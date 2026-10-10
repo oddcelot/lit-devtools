@@ -14,7 +14,13 @@ import {elementById} from '../timeline/identity.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
 import type {ViteHotLike} from '../page-channel.js';
-import {buildTree, collectDetails, expandPath, listedIdOf} from './collect.js';
+import {
+  buildTree,
+  collectDetails,
+  expandPath,
+  listedIdOf,
+  setProp,
+} from './collect.js';
 import {anatomyById, clearAnatomy, focusAnatomy} from './anatomy-overlay.js';
 import {shadowOf} from './anatomy.js';
 import {onLitWarning} from '../timeline/lit-warnings.js';
@@ -506,6 +512,19 @@ if (typeof window !== 'undefined') {
     });
   };
 
+  const applySetProp = (
+    cmd: Extract<InspectorCommand, {type: 'set-prop'}>
+  ): void => {
+    const el = elementById(cmd.id);
+    if (el === undefined) {
+      send({type: 'gone', id: cmd.id});
+      return;
+    }
+    setProp(el, cmd.name, cmd.value);
+    // Whether or not it applied, so a rejected value snaps back in the panel.
+    replyDetails(cmd.id);
+  };
+
   // Commands the page does not act on (`pick`) have no entry.
   type CommandHandlers = {
     [K in InspectorCommand['type']]?: (
@@ -519,6 +538,7 @@ if (typeof window !== 'undefined') {
     'define-frames': (cmd) => replyDefineFrames(cmd.ids),
     'fetch-text': (cmd) => void fetchText(cmd.url).then(send),
     expand: replyExpanded,
+    'set-prop': applySetProp,
     watch: (cmd) => (cmd.id === null ? unwatch() : watch(cmd.id)),
     // Fallback path. A panel that handshaked over the in-page channel emits
     // there instead and never reaches this.

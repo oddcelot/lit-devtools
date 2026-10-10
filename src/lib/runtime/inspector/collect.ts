@@ -43,6 +43,7 @@ interface PropertyDeclaration {
   converter?: unknown;
   noAccessor?: boolean;
   useDefault?: boolean;
+  type?: unknown;
 }
 
 /** Subset of a ReactiveElement instance/constructor we duck-type against. */
@@ -210,6 +211,32 @@ const optionsOf = (
   return out;
 };
 
+type EditableKind = NonNullable<InspectorProp['editable']>;
+
+const EDITABLE_TYPES = new Map<unknown, EditableKind>([
+  [String, 'string'],
+  [Number, 'number'],
+  [Boolean, 'boolean'],
+]);
+
+/**
+ * Which primitive a value can be edited as: its own type, or for an unset
+ * one the declared `type` (`null` has no type of its own to go by).
+ */
+const editableOf = (
+  value: unknown,
+  decl: PropertyDeclaration
+): EditableKind | undefined => {
+  if (
+    typeof value === 'string' ||
+    typeof value === 'number' ||
+    typeof value === 'boolean'
+  ) {
+    return typeof value as EditableKind;
+  }
+  return value == null ? EDITABLE_TYPES.get(decl.type) : undefined;
+};
+
 /** One declared reactive property, read without trusting its getter. */
 const propOf = (
   el: Element,
@@ -226,6 +253,7 @@ const propOf = (
     threw = true;
   }
   const options = optionsOf((el as ReactiveElementLike).constructor, decl);
+  const editable = threw ? undefined : editableOf(value, decl);
   return {
     name: typeof key === 'symbol' ? key.toString() : String(key),
     value: threw ? '[getter threw]' : serialize(value),
@@ -235,6 +263,7 @@ const propOf = (
     state: decl.state === true,
     ...(options.length > 0 ? {options} : {}),
     ...(!threw && isExpandable(value) ? {expandable: true} : {}),
+    ...(editable !== undefined ? {editable} : {}),
   };
 };
 
@@ -335,4 +364,40 @@ export const expandPath = (
     at = stepInto(at.value, key);
   }
   return at === undefined ? null : childrenOf(at.value);
+};
+
+/**
+ * Answer a `set-prop` command: assign `value` to the declared reactive
+ * property `name` on `el`. Only a declared property whose current value is a
+ * primitive of the same type is written, so a command cannot set arbitrary
+ * fields or change a property's type. Returns whether it was applied.
+ */
+export const setProp = (
+  el: Element,
+  name: string,
+  value: string | number | boolean
+): boolean => {
+  const re = el as ReactiveElementLike;
+  const decl = re.constructor.elementProperties?.get(name);
+  if (decl === undefined) return false;
+  const target = el as unknown as Record<string, unknown>;
+  try {
+    const old = target[name];
+    const kind = editableOf(old, decl);
+    if (kind === undefined || typeof value !== kind) return false;
+    if (typeof value === 'number' && !Number.isFinite(value)) return false;
+    target[name] = value;
+    // A `noAccessor` property, or one with a custom `hasChanged`, would not
+    // schedule the render the assignment is for.
+    if (typeof re.requestUpdate === 'function') {
+      (re.requestUpdate as (name: string, old: unknown) => void).call(
+        el,
+        name,
+        old
+      );
+    }
+    return true;
+  } catch {
+    return false;
+  }
 };

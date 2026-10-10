@@ -113,3 +113,53 @@ test('links a real @consume to its @provide and follows the value live', async (
     .poll(() => contextOf('hmr-ctx-consumer')?.value, {timeout: 10_000})
     .not.toBe(before);
 });
+
+test('set-prop writes a primitive to the live element and answers with it', async () => {
+  const idOf = () => {
+    const id = find(roots, 'hmr-properties');
+    if (id === undefined) {
+      fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+    }
+    return id;
+  };
+  await expect.poll(idOf, {timeout: 10_000}).toBeDefined();
+  const id = idOf()!;
+  const factorRow = () =>
+    details
+      .filter((d) => d.id === id)
+      .at(-1)
+      ?.properties.find((p) => p.name === 'factor');
+
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id,
+    name: 'factor',
+    value: 9,
+  });
+  await expect
+    .poll(
+      () =>
+        fixture.page.evaluate(
+          `document.querySelector('hmr-properties').factor`
+        ),
+      {timeout: 10_000}
+    )
+    .toBe(9);
+  await expect
+    .poll(factorRow, {timeout: 10_000})
+    .toMatchObject({value: '9', editable: 'number'});
+
+  // The wrong type is refused and the page's value is what comes back.
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id,
+    name: 'factor',
+    value: 'nine',
+  });
+  await expect.poll(factorRow, {timeout: 10_000}).toMatchObject({value: '9'});
+  expect(
+    await fixture.page.evaluate(
+      `document.querySelector('hmr-properties').factor`
+    )
+  ).toBe(9);
+});

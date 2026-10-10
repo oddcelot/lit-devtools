@@ -114,6 +114,11 @@ export interface InspectorProp {
    * from an older runtime, which cannot answer one.
    */
   expandable?: boolean;
+  /**
+   * The primitive type a `set-prop` command may assign to it. Absent when the
+   * value cannot be edited from its preview, and from an older runtime.
+   */
+  editable?: 'string' | 'number' | 'boolean';
 }
 
 /**
@@ -416,6 +421,17 @@ export type InspectorCommand =
   | {type: 'reveal'; id: number}
   /** List the children of the value at `path` on element `id`. */
   | {type: 'expand'; id: number; path: ValuePath}
+  /**
+   * Assign a string, number or boolean to the reactive property `name` on
+   * element `id`, then answer with fresh details. Applied only to a declared
+   * property of that primitive type; anything else leaves the value as it was.
+   */
+  | {
+      type: 'set-prop';
+      id: number;
+      name: string;
+      value: string | number | boolean;
+    }
   /** Draw element `id`'s slots and parts on the page; `null` clears it. */
   | {type: 'anatomy'; id: number | null}
   /**

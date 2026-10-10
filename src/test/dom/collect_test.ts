@@ -4,6 +4,7 @@ import {
   buildTree,
   collectDetails,
   listedIdOf,
+  setProp,
 } from '../../lib/runtime/inspector/collect.js';
 import {
   isForeignElement,
@@ -520,5 +521,116 @@ describe('collectDetails warnings', () => {
       'warnings'
     );
     document.body.replaceChildren();
+  });
+});
+
+describe('editable properties', () => {
+  const editableEl = (
+    props: Array<[string, Record<string, unknown>]>,
+    requestUpdate: (name?: string, old?: unknown) => void = () => {}
+  ) => {
+    const tag = uniqueTag('x-edit');
+    class El extends HTMLElement {
+      static elementProperties = new Map<PropertyKey, unknown>(props);
+      hasUpdated = false;
+      isUpdatePending = false;
+      requestUpdate(name?: string, old?: unknown) {
+        requestUpdate(name, old);
+      }
+    }
+    customElements.define(tag, El);
+    return document.createElement(tag) as HTMLElement & Record<string, unknown>;
+  };
+  const kinds = (el: Element) =>
+    Object.fromEntries(
+      collectDetails(el).properties.map((p) => [p.name, p.editable])
+    );
+
+  test('marks primitives, and unset values by their declared type', () => {
+    const el = editableEl([
+      ['s', {}],
+      ['n', {}],
+      ['b', {}],
+      ['unsetN', {type: Number}],
+      ['unsetS', {type: String}],
+      ['unsetB', {type: Boolean}],
+      ['untyped', {}],
+      ['obj', {type: Object}],
+      ['list', {}],
+      ['bad', {type: Number}],
+    ]);
+    Object.assign(el, {
+      s: 'a',
+      n: 1,
+      b: false,
+      unsetN: null,
+      unsetS: undefined,
+      unsetB: null,
+      untyped: null,
+      obj: null,
+      list: [1],
+    });
+    Object.defineProperty(el, 'bad', {
+      get() {
+        throw new Error('boom');
+      },
+    });
+    expect(kinds(el)).toEqual({
+      s: 'string',
+      n: 'number',
+      b: 'boolean',
+      unsetN: 'number',
+      unsetS: 'string',
+      unsetB: 'boolean',
+      untyped: undefined,
+      obj: undefined,
+      list: undefined,
+      bad: undefined,
+    });
+  });
+
+  test('setProp assigns a value of the same type and asks for a render', () => {
+    const asked: unknown[][] = [];
+    const el = editableEl([['n', {}]], (...args) => asked.push(args));
+    el['n'] = 1;
+    expect(setProp(el, 'n', 5)).toBe(true);
+    expect(el['n']).toBe(5);
+    expect(asked).toEqual([['n', 1]]);
+  });
+
+  test('setProp takes a declared type for an unset value', () => {
+    const el = editableEl([['n', {type: Number}]]);
+    el['n'] = null;
+    expect(setProp(el, 'n', 2)).toBe(true);
+    expect(el['n']).toBe(2);
+  });
+
+  test('setProp refuses what it was not meant to write', () => {
+    const el = editableEl([
+      ['n', {}],
+      ['o', {}],
+    ]);
+    el['n'] = 1;
+    el['o'] = {a: 1};
+    el['secret'] = 'x';
+    expect(setProp(el, 'secret', 'y')).toBe(false);
+    expect(el['secret']).toBe('x');
+    expect(setProp(el, 'n', '5')).toBe(false);
+    expect(setProp(el, 'n', Number.NaN)).toBe(false);
+    expect(setProp(el, 'n', Infinity)).toBe(false);
+    expect(setProp(el, 'o', 'text')).toBe(false);
+    expect(el['n']).toBe(1);
+    expect(el['o']).toEqual({a: 1});
+  });
+
+  test('setProp survives a setter that throws', () => {
+    const el = editableEl([['n', {}]]);
+    Object.defineProperty(el, 'n', {
+      get: () => 1,
+      set() {
+        throw new Error('no');
+      },
+    });
+    expect(setProp(el, 'n', 2)).toBe(false);
   });
 });

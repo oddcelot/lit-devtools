@@ -362,3 +362,55 @@ test('fetch-text answers ok: false when the fetch fails', async () => {
   expect(await fetchedText(carrier, url)).toMatchObject({ok: false});
   vi.unstubAllGlobals();
 });
+
+const sentOf = (carrier: Carrier, type: string) =>
+  carrier.sent
+    .filter(
+      ([ch, m]) =>
+        ch === INSPECT_DATA_CHANNEL && (m as {type: string}).type === type
+    )
+    .map(([, m]) => m as Record<string, unknown>);
+
+test('set-prop assigns, then answers with the details the page holds', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-settable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['count', {}]]);
+      count = 1;
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {count: unknown};
+  document.body.append(el);
+  const before = details(carrier);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id: idOf(el),
+    name: 'count',
+    value: 7,
+  });
+  expect(el.count).toBe(7);
+  expect(details(carrier)).toBe(before + 1);
+  // A refused value still gets an answer, which snaps the panel back.
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id: idOf(el),
+    name: 'count',
+    value: 'seven',
+  });
+  expect(el.count).toBe(7);
+  expect(details(carrier)).toBe(before + 2);
+});
+
+test('set-prop on an element that is gone says so', async () => {
+  const {carrier} = await load();
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id: -1,
+    name: 'count',
+    value: 7,
+  });
+  expect(sentOf(carrier, 'gone')).toMatchObject([{type: 'gone', id: -1}]);
+});
