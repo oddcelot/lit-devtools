@@ -1756,3 +1756,142 @@ test('long About text starts clamped and opens with more', async () => {
   expect(text().classList.contains('clamped')).toBe(false);
   expect(more().textContent!.trim()).toBe('less');
 });
+
+const settable = () => ({
+  ...detailsFor(),
+  properties: [
+    {
+      name: 'disabled',
+      value: 'false',
+      type: 'boolean',
+      attribute: 'disabled',
+      reflects: false,
+      state: false,
+      editable: 'boolean' as const,
+    },
+    {
+      name: 'count',
+      value: '3',
+      type: 'number',
+      attribute: 'count',
+      reflects: false,
+      state: false,
+      editable: 'number' as const,
+    },
+    {
+      name: 'label',
+      value: '"Save"',
+      type: 'string',
+      attribute: 'label',
+      reflects: false,
+      state: false,
+      editable: 'string' as const,
+    },
+    {
+      name: 'long',
+      value: '"abc…',
+      type: 'string',
+      attribute: false as const,
+      reflects: false,
+      state: false,
+      editable: 'string' as const,
+    },
+    {
+      name: 'config',
+      value: '{a: 1}',
+      type: 'object',
+      attribute: false as const,
+      reflects: false,
+      state: false,
+    },
+  ],
+});
+
+const mountSettable = async () => {
+  const mounted = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: settable()});
+  await flush(mounted.el);
+  const row = (name: string) =>
+    mounted.root.querySelector<HTMLElement>(
+      `.details .entry[data-key="p:${name}"]`
+    )!;
+  const sets = () =>
+    mounted.inspects().filter((c) => (c as {type: string}).type === 'set-prop');
+  return {...mounted, row, sets};
+};
+
+test('a boolean flips from its row', async () => {
+  const {el, row, sets} = await mountSettable();
+  const button = row('disabled').querySelector<HTMLElement>('button.edit')!;
+  expect(button.getAttribute('aria-label')).toBe('Set to true');
+  button.click();
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'disabled', value: true},
+  ]);
+});
+
+test('a number is typed over, and Enter sends it parsed', async () => {
+  const {el, row, sets} = await mountSettable();
+  row('count').querySelector<HTMLElement>('button.edit')!.click();
+  await flush(el);
+  const input = row('count').querySelector<HTMLInputElement>('.edit-input')!;
+  expect(input.value).toBe('3');
+  input.value = '';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+  await flush(el);
+  // Nothing to send for an empty number: it stays open and says so.
+  expect(sets()).toEqual([]);
+  expect(input.getAttribute('aria-invalid')).toBe('true');
+  input.value = '12.5';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'count', value: 12.5},
+  ]);
+  expect(row('count').querySelector('.edit-input')).toBeNull();
+});
+
+test('a string starts from its text, not its quoted preview', async () => {
+  const {el, row, sets} = await mountSettable();
+  row('label').querySelector<HTMLElement>('button.edit')!.click();
+  await flush(el);
+  const input = row('label').querySelector<HTMLInputElement>('.edit-input')!;
+  expect(input.value).toBe('Save');
+  input.value = 'Send';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'label', value: 'Send'},
+  ]);
+});
+
+test('Escape sends nothing and returns to the edit button', async () => {
+  const {el, row, sets} = await mountSettable();
+  row('label').querySelector<HTMLElement>('button.edit')!.click();
+  await flush(el);
+  const input = row('label').querySelector<HTMLInputElement>('.edit-input')!;
+  input.value = 'Send';
+  input.dispatchEvent(
+    new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})
+  );
+  await flush(el);
+  expect(row('label').querySelector('.edit-input')).toBeNull();
+  expect(sets()).toEqual([]);
+  expect(el.shadowRoot!.activeElement).toBe(
+    row('label').querySelector('button.edit')
+  );
+});
+
+test('only a whole primitive can be edited, and not in a snapshot', async () => {
+  const {row} = await mountSettable();
+  // A truncated string is not the value; an object is not a primitive.
+  expect(row('long').querySelector('button.edit')).toBeNull();
+  expect(row('config').querySelector('button.edit')).toBeNull();
+
+  document.body.replaceChildren();
+  setSnapshot(true);
+  const frozen = await mountSettable();
+  expect(frozen.root.querySelector('.details button.edit')).toBeNull();
+});

@@ -41,11 +41,14 @@ import fileCode from '@phosphor-icons/core/assets/regular/file-code.svg?raw';
 import gear from '@phosphor-icons/core/assets/regular/gear.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
 import magnifyingGlass from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw';
+import pencilSimple from '@phosphor-icons/core/assets/regular/pencil-simple.svg?raw';
 import packageIcon from '@phosphor-icons/core/assets/regular/package.svg?raw';
 import notification from '@phosphor-icons/core/assets/regular/notification.svg?raw';
 import record from '@phosphor-icons/core/assets/regular/record.svg?raw';
 import stop from '@phosphor-icons/core/assets/regular/stop.svg?raw';
 import target from '@phosphor-icons/core/assets/regular/target.svg?raw';
+import toggleLeft from '@phosphor-icons/core/assets/regular/toggle-left.svg?raw';
+import toggleRight from '@phosphor-icons/core/assets/regular/toggle-right.svg?raw';
 import trash from '@phosphor-icons/core/assets/regular/trash.svg?raw';
 import warning from '@phosphor-icons/core/assets/regular/warning.svg?raw';
 import x from '@phosphor-icons/core/assets/regular/x.svg?raw';
@@ -73,9 +76,12 @@ const ICONS = {
   'magnifying-glass': magnifyingGlass,
   notification,
   package: packageIcon,
+  'pencil-simple': pencilSimple,
   record,
   stop,
   target,
+  'toggle-left': toggleLeft,
+  'toggle-right': toggleRight,
   trash,
   warning,
   x,

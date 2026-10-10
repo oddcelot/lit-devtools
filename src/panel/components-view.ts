@@ -225,6 +225,35 @@ const typeOfPreview = (value: string): string =>
   /^[A-Za-z_$][\w$.]*(?:\(\d+\))?/.exec(value)?.[0] ??
   (value.startsWith('[') ? 'Array' : 'object');
 
+/** What a row needs to be set from the panel. */
+interface PropEdit {
+  name: string;
+  kind: NonNullable<InspectorProp['editable']>;
+  /** The value as typed: a boolean's `true`/`false`, else the raw text. */
+  text: string;
+}
+
+/**
+ * Whether a property can be set from the panel, and its starting text. Not in
+ * a snapshot, which has no page. A string needs a whole preview to start
+ * from: a truncated one is not the value, so it is not offered.
+ */
+const editOf = (p: InspectorProp, snapshot: boolean): PropEdit | undefined => {
+  if (snapshot || p.editable === undefined) return undefined;
+  const unset = p.value === 'null' || p.value === 'undefined';
+  if (p.editable === 'string' && !unset) {
+    try {
+      const text: unknown = JSON.parse(p.value);
+      return typeof text === 'string'
+        ? {name: p.name, kind: 'string', text}
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+  return {name: p.name, kind: p.editable, text: unset ? '' : p.value};
+};
+
 /** Types the value's own spelling already shows, so no tag is needed. */
 const SELF_EVIDENT_TYPES = new Set([
   'string',
@@ -796,7 +825,8 @@ export class ComponentsView extends LitElement {
       .entry {
         position: relative;
       }
-      .copy {
+      .copy,
+      .edit {
         position: absolute;
         top: 0;
         right: 0;
@@ -810,18 +840,43 @@ export class ComponentsView extends LitElement {
         opacity: 0;
       }
       .entry:hover > .copy,
+      .entry:hover > .edit,
       .copy:focus-visible,
+      .edit:focus-visible,
       .copy.copied {
         opacity: 1;
       }
-      .copy:hover {
+      .copy:hover,
+      .edit:hover {
         color: var(--lit-devtools-text);
       }
       .copy.copied {
         color: var(--lit-devtools-success);
       }
-      .copy:focus-visible {
+      .copy:focus-visible,
+      .edit:focus-visible {
         outline: 2px solid var(--lit-devtools-accent-ring);
+      }
+      /* Sits left of the copy button, which keeps the right edge. */
+      .edit {
+        right: calc(1em + 2 * var(--lit-devtools-space-2));
+      }
+      .edit-input {
+        box-sizing: border-box;
+        width: 100%;
+        min-width: 0;
+        padding: 0 var(--lit-devtools-space-2);
+        border: 1px solid var(--lit-devtools-border);
+        border-radius: 2px;
+        background: var(--lit-devtools-surface);
+        color: var(--lit-devtools-text);
+        font: inherit;
+      }
+      .edit-input:focus-visible {
+        outline: 2px solid var(--lit-devtools-accent-ring);
+      }
+      .edit-input[aria-invalid='true'] {
+        border-color: var(--lit-devtools-error);
       }
       .entry > .name {
         color: var(--lit-devtools-text);
@@ -1108,6 +1163,10 @@ export class ComponentsView extends LitElement {
   private _hovered: InspectorTreeNode | null = null;
   /** The tag whose rows are marked while Shift-hovering, or null. */
   @state() private _tagHover: string | null = null;
+  /** The row (by `propKey`) whose value is being typed over, if any. */
+  @state() private _editing: string | null = null;
+  /** Whether what was typed was refused, so the input says so. */
+  @state() private _editInvalid = false;
   /** The row whose value was just copied, for a moment of feedback. */
   @state() private _copied: string | null = null;
   private _copiedTimer: ReturnType<typeof setTimeout> | undefined;
@@ -1154,6 +1213,7 @@ export class ComponentsView extends LitElement {
     const d = this._session.details;
     if (d === this._shownDetails) return;
     this._expansion.follow(d?.id ?? null);
+    if (d?.id !== this._shownDetails?.id) this._editing = null;
     // Only a refresh of the same element can change a row; a new selection
     // or the first snapshot flashes nothing. A changed row also re-asks for
     // whatever is open under it.
@@ -1567,10 +1627,14 @@ export class ComponentsView extends LitElement {
       expand?: {path: ValuePath; type: string};
       /** What the copy button puts on the clipboard; no button without it. */
       copy?: string;
+      /** The primitive the row can be set to, and the text to start from. */
+      edit?: PropEdit;
     } = {}
   ): TemplateResult {
-    const {trailing = nothing, code = false, key, expand, copy} = opts;
+    const {trailing = nothing, code = false, key, expand, copy, edit} = opts;
     const expandable = expand !== undefined && !this._snapshot;
+    const editing =
+      edit !== undefined && key !== undefined && this._editing === key;
     const open = expandable && this._expansion.isOpen(expand.path);
     return html`<div
       class="entry ${open || value.length > WIDE_VALUE ? 'wide' : ''}"
@@ -1579,6 +1643,7 @@ export class ComponentsView extends LitElement {
       <span class="name">${name}</span>
       <span class="val ${code ? 'code' : ''} ${expandable ? 'has-caret' : ''}"
         >${(() => {
+          if (editing) return this._renderEditInput(key, edit);
           const caret = expandable
             ? this._renderExpander(expand.path, name)
             : nothing;
@@ -1586,11 +1651,127 @@ export class ComponentsView extends LitElement {
           return code ? renderCode(value, caret) : html`${caret}${value}`;
         })()}${trailing}${open ? this._renderLevel(expand.path) : nothing}</span
       >${
+        edit === undefined || key === undefined || editing
+          ? nothing
+          : this._renderEditButton(key, edit)
+      }${
         copy === undefined || key === undefined
           ? nothing
           : this._renderCopy(key, copy)
       }
     </div>`;
+  }
+
+  /**
+   * A boolean flips on a click; a string or number turns its value into an
+   * input. Either way the page answers with fresh details, so the row shows
+   * what the page holds, not what was asked for.
+   */
+  private _renderEditButton(key: string, edit: PropEdit): TemplateResult {
+    if (edit.kind === 'boolean') {
+      const next = edit.text !== 'true';
+      return html`<button
+        class="edit"
+        data-tip=${`Set to ${next}`}
+        aria-label=${`Set to ${next}`}
+        @click=${() => this._setProp(edit.name, next)}
+      >
+        <wa-icon name=${next ? 'toggle-right' : 'toggle-left'}></wa-icon>
+      </button>`;
+    }
+    return html`<button
+      class="edit"
+      data-tip="Edit value"
+      aria-label="Edit value"
+      @click=${() => void this._startEdit(key)}
+    >
+      <wa-icon name="pencil-simple"></wa-icon>
+    </button>`;
+  }
+
+  private _renderEditInput(key: string, edit: PropEdit): TemplateResult {
+    return html`<input
+      class="edit-input"
+      type=${edit.kind === 'number' ? 'number' : 'text'}
+      step=${edit.kind === 'number' ? 'any' : nothing}
+      .value=${edit.text}
+      aria-label=${`Value of ${edit.name}`}
+      aria-invalid=${this._editInvalid ? 'true' : 'false'}
+      @input=${() => (this._editInvalid = false)}
+      @keydown=${(e: KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this._commitEdit(key, edit, e.currentTarget as HTMLInputElement);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
+          void this._endEdit(key, true);
+        }
+      }}
+      @blur=${(e: FocusEvent) =>
+        this._commitEdit(key, edit, e.currentTarget as HTMLInputElement, true)}
+    />`;
+  }
+
+  private async _startEdit(key: string): Promise<void> {
+    this._editInvalid = false;
+    this._editing = key;
+    await this.updateComplete;
+    const input =
+      this._rowOf(key)?.querySelector<HTMLInputElement>('.edit-input');
+    input?.focus();
+    input?.select();
+  }
+
+  private _rowOf(key: string): HTMLElement | null {
+    for (const row of this.renderRoot.querySelectorAll<HTMLElement>(
+      '.details .entry[data-key]'
+    )) {
+      if (row.dataset['key'] === key) return row;
+    }
+    return null;
+  }
+
+  /** Leave edit mode; Escape hands focus back to the button that opened it. */
+  private async _endEdit(key: string, refocus: boolean): Promise<void> {
+    if (this._editing !== key) return;
+    this._editing = null;
+    this._editInvalid = false;
+    if (!refocus) return;
+    await this.updateComplete;
+    this._rowOf(key)?.querySelector<HTMLElement>('button.edit')?.focus();
+  }
+
+  /**
+   * Enter or blur. A number that is not one stays open and says so on Enter;
+   * a blur drops it instead, since the focus has already left.
+   */
+  private _commitEdit(
+    key: string,
+    edit: PropEdit,
+    input: HTMLInputElement,
+    blurred = false
+  ): void {
+    if (this._editing !== key) return;
+    const text = input.value;
+    const value = edit.kind === 'number' ? Number(text.trim()) : text;
+    if (
+      edit.kind === 'number' &&
+      (text.trim() === '' || !Number.isFinite(value as number))
+    ) {
+      if (blurred) void this._endEdit(key, false);
+      else this._editInvalid = true;
+      return;
+    }
+    void this._endEdit(key, !blurred);
+    if (text !== edit.text) this._setProp(edit.name, value);
+  }
+
+  private _setProp(name: string, value: string | number | boolean): void {
+    const id = this._session.selectedId;
+    if (id !== undefined && id !== null) {
+      sendToPage({type: 'set-prop', id, name, value});
+    }
   }
 
   /**
@@ -1853,6 +2034,7 @@ export class ComponentsView extends LitElement {
               code: true,
               key: propKey(p.name),
               copy: p.value,
+              edit: editOf(p, this._snapshot),
               ...(p.expandable === true
                 ? {
                     expand: {
