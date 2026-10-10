@@ -108,6 +108,13 @@ the value as the pane shows it, which is the preview and not the live object,
 so a truncated value copies truncated. An attribute copies its text without
 the quotes.
 
+A property that holds a string, number or boolean also shows an edit button
+beside the copy button. A boolean flips on a click. A string or number turns
+into an input: Enter or leaving the field applies it, and Escape cancels. The
+value is assigned to the live element, so it lasts until the page reloads or
+the code sets it again. Objects, arrays and functions cannot be edited, nor
+can a string cut short in the pane, and a snapshot has no page to write to.
+
 Each section heading shows how many rows it holds. Click a heading to fold
 the section. It stays folded as you select other elements and after a
 reload.
