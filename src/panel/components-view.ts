@@ -24,6 +24,7 @@ import {
   type InspectorTreeNode,
   type ValueChild,
   type ValuePath,
+  type ValueSegment,
 } from '../types/inspector.js';
 import {
   describeHmrReason,
@@ -228,30 +229,49 @@ const typeOfPreview = (value: string): string =>
 /** What a row needs to be set from the panel. */
 interface PropEdit {
   name: string;
+  /** Steps from the property's value to the leaf; empty for the row itself. */
+  keys: ValueSegment[];
   kind: NonNullable<InspectorProp['editable']>;
   /** The value as typed: a boolean's `true`/`false`, else the raw text. */
   text: string;
 }
 
+/** What {@link editOf} reads: a property row, or a leaf below one. */
+interface Editable {
+  name: string;
+  keys?: ValueSegment[];
+  /** The preview as shown. */
+  value: string;
+  editable?: InspectorProp['editable'];
+}
+
+/** The `_editing` key of a row: the property's own, or a leaf's path. */
+const editKeyOf = (edit: Pick<PropEdit, 'name' | 'keys'>): string =>
+  edit.keys.length === 0
+    ? propKey(edit.name)
+    : `${propKey(edit.name)}/${JSON.stringify(edit.keys)}`;
+
 /**
- * Whether a property can be set from the panel, and its starting text. Not in
- * a snapshot, which has no page. A string needs a whole preview to start
- * from: a truncated one is not the value, so it is not offered.
+ * Whether a property, or a leaf inside its value, can be set from the panel,
+ * and its starting text. Not in a snapshot, which has no page. A string needs
+ * a whole preview to start from: a truncated one is not the value, so it is
+ * not offered.
  */
-const editOf = (p: InspectorProp, snapshot: boolean): PropEdit | undefined => {
+const editOf = (p: Editable, snapshot: boolean): PropEdit | undefined => {
   if (snapshot || p.editable === undefined) return undefined;
+  const {name, keys = []} = p;
   const unset = p.value === 'null' || p.value === 'undefined';
   if (p.editable === 'string' && !unset) {
     try {
       const text: unknown = JSON.parse(p.value);
       return typeof text === 'string'
-        ? {name: p.name, kind: 'string', text}
+        ? {name, keys, kind: 'string', text}
         : undefined;
     } catch {
       return undefined;
     }
   }
-  return {name: p.name, kind: p.editable, text: unset ? '' : p.value};
+  return {name, keys, kind: p.editable, text: unset ? '' : p.value};
 };
 
 /** Types the value's own spelling already shows, so no tag is needed. */
@@ -822,7 +842,8 @@ export class ComponentsView extends LitElement {
         align-items: baseline;
         padding: 2px 0;
       }
-      .entry {
+      .entry,
+      .child {
         position: relative;
       }
       .copy,
@@ -841,6 +862,7 @@ export class ComponentsView extends LitElement {
       }
       .entry:hover > .copy,
       .entry:hover > .edit,
+      .child:hover > .edit,
       .copy:focus-visible,
       .edit:focus-visible,
       .copy.copied {
@@ -861,10 +883,15 @@ export class ComponentsView extends LitElement {
       .edit {
         right: calc(1em + 2 * var(--lit-devtools-space-2));
       }
+      /* A leaf has no copy button, so its edit button keeps the right edge. */
+      .child > .edit {
+        right: 0;
+      }
       .edit-input {
         box-sizing: border-box;
         width: 100%;
         min-width: 0;
+        text-indent: 0;
         padding: 0 var(--lit-devtools-space-2);
         border: 1px solid var(--lit-devtools-border);
         border-radius: 2px;
@@ -1674,7 +1701,7 @@ export class ComponentsView extends LitElement {
         class="edit"
         data-tip=${`Set to ${next}`}
         aria-label=${`Set to ${next}`}
-        @click=${() => this._setProp(edit.name, next)}
+        @click=${() => this._setProp(edit, next)}
       >
         <wa-icon name=${next ? 'toggle-right' : 'toggle-left'}></wa-icon>
       </button>`;
@@ -1695,7 +1722,7 @@ export class ComponentsView extends LitElement {
       type=${edit.kind === 'number' ? 'number' : 'text'}
       step=${edit.kind === 'number' ? 'any' : nothing}
       .value=${edit.text}
-      aria-label=${`Value of ${edit.name}`}
+      aria-label=${`Value of ${[edit.name, ...edit.keys].join('.')}`}
       aria-invalid=${this._editInvalid ? 'true' : 'false'}
       @input=${() => (this._editInvalid = false)}
       @keydown=${(e: KeyboardEvent) => {
@@ -1725,9 +1752,9 @@ export class ComponentsView extends LitElement {
 
   private _rowOf(key: string): HTMLElement | null {
     for (const row of this.renderRoot.querySelectorAll<HTMLElement>(
-      '.details .entry[data-key]'
+      '.details .entry[data-key], .details .child[data-edit-key]'
     )) {
-      if (row.dataset['key'] === key) return row;
+      if ((row.dataset['key'] ?? row.dataset['editKey']) === key) return row;
     }
     return null;
   }
@@ -1764,13 +1791,19 @@ export class ComponentsView extends LitElement {
       return;
     }
     void this._endEdit(key, !blurred);
-    if (text !== edit.text) this._setProp(edit.name, value);
+    if (text !== edit.text) this._setProp(edit, value);
   }
 
-  private _setProp(name: string, value: string | number | boolean): void {
+  private _setProp(edit: PropEdit, value: string | number | boolean): void {
     const id = this._session.selectedId;
     if (id !== undefined && id !== null) {
-      sendToPage({type: 'set-prop', id, name, value});
+      sendToPage({
+        type: 'set-prop',
+        id,
+        name: edit.name,
+        value,
+        ...(edit.keys.length > 0 ? {keys: edit.keys} : {}),
+      });
     }
   }
 
@@ -1848,15 +1881,29 @@ export class ComponentsView extends LitElement {
   private _renderChild(parent: ValuePath, c: ValueChild): TemplateResult {
     const path = {...parent, keys: [...parent.keys, c.key]};
     const open = c.expandable && this._expansion.isOpen(path);
-    return html`<div class="child">
+    // Only props are written to; an extra's children stay read-only.
+    const edit =
+      parent.section === 'prop'
+        ? editOf({...c, name: parent.name, keys: path.keys}, this._snapshot)
+        : undefined;
+    const editKey = edit === undefined ? undefined : editKeyOf(edit);
+    const editing = edit !== undefined && this._editing === editKey;
+    return html`<div class="child" data-edit-key=${editKey ?? nothing}>
       ${
         c.expandable
           ? this._renderExpander(path, c.label)
           : html`<span class="expander-space"></span>`
       }<span class="t-key">${c.entry ? renderCode(c.label) : c.label}</span
-      ><span class="t-punct">${c.entry ? ' => ' : ': '}</span
-      >${open ? summarize(c.type) : renderCode(c.value)}${
-        open ? this._renderLevel(path) : nothing
+      ><span class="t-punct">${c.entry ? ' => ' : ': '}</span>${
+        editing
+          ? this._renderEditInput(editKey!, edit)
+          : open
+            ? summarize(c.type)
+            : renderCode(c.value)
+      }${open ? this._renderLevel(path) : nothing}${
+        edit === undefined || editing
+          ? nothing
+          : this._renderEditButton(editKey!, edit)
       }
     </div>`;
   }
