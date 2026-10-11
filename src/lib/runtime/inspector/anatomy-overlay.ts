@@ -159,18 +159,86 @@ const styleTag = (
   } satisfies Partial<CSSStyleDeclaration>);
 };
 
+const LABEL_STEP = LABEL_HEIGHT + 2;
+/** Labels a stack may hold before the next one goes sideways instead. */
+const MAX_STACK = 4;
+
+const hitIn = (r: DOMRect, placed: DOMRect[]): DOMRect | undefined =>
+  placed.find(
+    (p) =>
+      r.left < p.right &&
+      p.left < r.right &&
+      r.top < p.bottom &&
+      p.top < r.bottom
+  );
+
+/**
+ * Where a label may go, as offsets from its usual spot, best first: there,
+ * then just inside the top of its own box, then stacked further out. A
+ * label already drawn inside (its box touches the viewport's top) only
+ * stacks further in.
+ */
+const offsetsFor = (inside: boolean): number[] => {
+  // Past the box's border too, which is up to 2px.
+  const out = inside ? [0] : [0, LABEL_HEIGHT + 2];
+  for (let k = 1; k <= MAX_STACK; k++) {
+    out.push(inside ? k * LABEL_STEP : -k * LABEL_STEP);
+  }
+  return out;
+};
+
+/**
+ * The first spot on the row `dy` from `base` that clears `placed`: there,
+ * or past the labels in the way, as long as it ends inside `maxRight`, the
+ * right edge of the label's own box.
+ */
+const fitRow = (
+  base: DOMRect,
+  dy: number,
+  placed: DOMRect[],
+  maxRight: number
+): DOMRect | undefined => {
+  let r = new DOMRect(base.x, base.y + dy, base.width, base.height);
+  for (let tries = 0; tries < 8; tries++) {
+    const hit = hitIn(r, placed);
+    if (hit === undefined) return r;
+    r = new DOMRect(hit.right + 2, r.y, r.width, r.height);
+    if (r.right > maxRight) return undefined;
+  }
+  return undefined;
+};
+
+/**
+ * Moves `tag` to the first row in {@link offsetsFor} with room for it over
+ * its own box, `box`, so a label stays on the region it names. Undefined
+ * when none has, or the next row would leave the viewport.
+ */
+const stackTag = (
+  tag: HTMLElement,
+  placed: DOMRect[],
+  box: DOMRect,
+  inside: boolean
+): DOMRect | undefined => {
+  const base = tag.getBoundingClientRect();
+  for (const dy of offsetsFor(inside)) {
+    if (base.top + dy < 0 || base.bottom + dy > innerHeight) return undefined;
+    const r = fitRow(base, dy, placed, box.right);
+    if (r === undefined) continue;
+    const dx = r.x - base.x;
+    tag.style.transform =
+      dx === 0 && dy === 0 ? '' : `translate(${dx}px, ${dy}px)`;
+    return r;
+  }
+  return undefined;
+};
+
 /** Shifts `tag` right until its label clears every one in `placed`. */
-const placeTag = (tag: HTMLElement, placed: DOMRect[]): DOMRect => {
+const shiftTag = (tag: HTMLElement, placed: DOMRect[]): DOMRect => {
   let shift = 0;
+  tag.style.transform = '';
   let r = tag.getBoundingClientRect();
   for (let tries = 0; tries < 8; tries++) {
-    const hit = placed.find(
-      (p) =>
-        r.left < p.right &&
-        p.left < r.right &&
-        r.top < p.bottom &&
-        p.top < r.bottom
-    );
+    const hit = hitIn(r, placed);
     if (hit === undefined) break;
     shift += hit.right - r.left + 2;
     tag.style.transform = `translateX(${shift}px)`;
@@ -179,11 +247,18 @@ const placeTag = (tag: HTMLElement, placed: DOMRect[]): DOMRect => {
   return r;
 };
 
+const placeTag = (
+  tag: HTMLElement,
+  placed: DOMRect[],
+  box: DOMRect,
+  inside: boolean
+): DOMRect => stackTag(tag, placed, box, inside) ?? shiftTag(tag, placed);
+
 /** Reuses the layer's children in order, adding one when it runs out. */
 const drawer = (root: HTMLElement) => {
   let i = 0;
   // Labels already placed this frame. A part often wraps a slot exactly, so
-  // their labels would land on the same spot; later ones shift right.
+  // their labels would land on the same spot; later ones move aside.
   const placed: DOMRect[] = [];
   const draw = (
     box: Box,
@@ -205,8 +280,9 @@ const drawer = (root: HTMLElement) => {
     const tag = el.firstElementChild as HTMLElement;
     tag.textContent = label;
     // Above the box, or inside it when the box touches the viewport's top.
-    styleTag(tag, color, style, rect.y < LABEL_HEIGHT);
-    placed.push(placeTag(tag, placed));
+    const inside = rect.y < LABEL_HEIGHT;
+    styleTag(tag, color, style, inside);
+    placed.push(placeTag(tag, placed, el.getBoundingClientRect(), inside));
   };
   const finish = (): void => {
     for (let j = i; j < root.children.length; j++) {
