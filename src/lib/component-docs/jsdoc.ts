@@ -1,7 +1,8 @@
 /**
  * Finds and reads the `/** … *\/` comment that documents a declaration, in
  * the tag vocabulary the Custom Elements Manifest analyzer reads (`@fires`,
- * `@slot`, `@csspart`, `@cssprop`, `@cssstate`, `@summary`, `@deprecated`).
+ * `@slot`, `@csspart`, `@cssprop`, `@cssstate`, `@summary`, `@deprecated`,
+ * `@example`).
  *
  * Vite's `parseAst` drops comments, so the comment is found by looking back
  * from the declaration's first character (its first decorator, or the
@@ -9,7 +10,7 @@
  * also what makes a comment a doc comment rather than a stray one above.
  */
 
-import type {DocEntry} from '../../types/component-docs.js';
+import type {DocEntry, DocExample} from '../../types/component-docs.js';
 
 interface JsDocTag {
   tag: string;
@@ -49,13 +50,31 @@ const trimmed = (value: string): string | undefined => {
 const docCommentAfter = (code: string, position: number): string | undefined =>
   /^\s*\/\*\*(?!\/)([\s\S]*?)\*\//.exec(code.slice(position))?.[1];
 
+const FENCE = /^\s*(```|~~~)/;
+
+/**
+ * The tag `line` opens, if it opens one. An `@example` holds code, where
+ * `@customElement('x')` or `@property()` is a decorator, not a tag: there a
+ * tag name must be followed by a space or nothing, and none starts inside a
+ * fence.
+ */
+const tagAt = (
+  line: string,
+  current: JsDocTag | undefined
+): RegExpExecArray | null => {
+  if (current?.tag !== 'example') return /^@([\w-]+)\s?(.*)$/.exec(line);
+  const fences = current.text.split('\n').filter((l) => FENCE.test(l));
+  if (fences.length % 2 === 1) return null;
+  return /^@([\w-]+)(?:\s(.*))?$/.exec(line);
+};
+
 /** Splits a comment body into its description and its block tags. */
 const parseJsDoc = (body: string): JsDoc => {
   const description: string[] = [];
   const tags: JsDocTag[] = [];
   for (const line of linesOf(body)) {
-    const tag = /^@([\w-]+)\s?(.*)$/.exec(line.trim());
-    if (tag !== null) tags.push({tag: tag[1], text: tag[2]});
+    const tag = tagAt(line.trim(), tags.at(-1));
+    if (tag !== null) tags.push({tag: tag[1], text: tag[2] ?? ''});
     else if (tags.length > 0) tags[tags.length - 1].text += `\n${line}`;
     else description.push(line);
   }
@@ -100,6 +119,37 @@ export const tagText = (
   const tag = doc?.tags.find((t) => t.tag === name);
   return tag === undefined ? undefined : trimmed(tag.text);
 };
+
+/** `text` without its common leading indentation. */
+const dedent = (text: string): string => {
+  const lines = text.split('\n');
+  const indents = lines
+    .filter((line) => line.trim() !== '')
+    .map((line) => /^[ \t]*/.exec(line)![0].length);
+  const common = Math.min(...indents);
+  return lines.map((line) => line.slice(common)).join('\n');
+};
+
+/** An `@example` tag's text: its code, and a leading `<caption>` if any. */
+const exampleOf = (text: string): DocExample | undefined => {
+  const caption = /^\s*<caption>([\s\S]*?)<\/caption>/.exec(text);
+  // Only blank lines go from the top: the code's own indentation stays.
+  const code = text
+    .slice(caption?.[0].length ?? 0)
+    .replace(/^(?:[ \t]*\n)+/, '')
+    .trimEnd();
+  if (code.trim() === '') return undefined;
+  const example: DocExample = {code: dedent(code)};
+  const label = trimmed(caption?.[1] ?? '');
+  if (label !== undefined) example.caption = label;
+  return example;
+};
+
+/** Every `@example` tag, in order, with line breaks and indentation kept. */
+export const examplesOf = (doc: JsDoc | undefined): DocExample[] =>
+  (doc?.tags ?? [])
+    .filter((t) => t.tag === 'example')
+    .flatMap((t) => exampleOf(t.text) ?? []);
 
 /** A leading `{Type}`, which may nest braces (`{CustomEvent<{a: 1}>}`). */
 const leadingType = (text: string): {type?: string; rest: string} => {

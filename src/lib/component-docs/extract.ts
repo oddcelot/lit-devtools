@@ -8,7 +8,7 @@
  * What it reads, in the analyzer's vocabulary: the tag from
  * `@customElement('x-y')` or `customElements.define('x-y', Class)`, the
  * class's JSDoc (`@summary`, `@deprecated`, `@fires`/`@event`, `@slot`,
- * `@csspart`, `@cssprop`/`@cssproperty`, `@cssstate`), and its public
+ * `@csspart`, `@cssprop`/`@cssproperty`, `@cssstate`, `@example`), and its public
  * instance fields and accessors with their JSDoc, declared type, initializer
  * and attribute (from `@property()` or `static properties`). Internal
  * reactive state (`@state()`, `state: true`) and private, protected, `#`
@@ -35,6 +35,7 @@ import {
   type JsDoc,
   cssPropertyEntry,
   deprecationOf,
+  examplesOf,
   namedEntry,
   tagText,
 } from './jsdoc.js';
@@ -148,6 +149,8 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   put(docs, 'summary', tagText(doc, 'summary'));
   put(docs, 'description', doc?.description);
   put(docs, 'deprecated', deprecationOf(doc));
+  const examples = examplesOf(doc);
+  if (examples.length > 0) docs.examples = examples;
   return docs;
 };
 

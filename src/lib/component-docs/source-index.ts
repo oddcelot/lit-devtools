@@ -41,7 +41,7 @@ interface Located {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated'
+  'summary' | 'description' | 'deprecated' | 'examples'
 >;
 
 const LISTS: ListKey[] = [

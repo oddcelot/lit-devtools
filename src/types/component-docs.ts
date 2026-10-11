@@ -30,6 +30,14 @@ export interface DocEntry {
   inheritedFrom?: string;
 }
 
+/** A usage example from an `@example` tag. */
+export interface DocExample {
+  /** The `<caption>` that leads the example, if it has one. */
+  caption?: string;
+  /** The example as written, line breaks and indentation kept. */
+  code: string;
+}
+
 /** Where a component's docs came from. */
 export interface DocsOrigin {
   /** The package that ships the manifest; absent for the project's own. */
@@ -58,6 +66,11 @@ export interface ComponentDocs {
   summary?: string;
   description?: string;
   deprecated?: boolean | string;
+  /**
+   * The class JSDoc's `@example` tags, in order. Only docs read from source
+   * have them; a manifest has no place for an example.
+   */
+  examples?: DocExample[];
   /** Public fields only; private and protected members are dropped. */
   properties: DocEntry[];
   attributes: DocEntry[];
