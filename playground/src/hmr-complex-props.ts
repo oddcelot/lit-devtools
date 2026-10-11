@@ -9,8 +9,11 @@ interface Todo {
 
 /**
  * Objects, arrays, a Map and a Set, all rendered, so a leaf edited from the
- * Components tab shows up on the page. Set members have no slot to write to,
- * so the DevTools leave them read-only.
+ * Components tab shows up on the page. Members of a `Set` have no slot to
+ * write to, so the DevTools leave them read-only.
+ *
+ * @example <caption>Drop it on a page</caption>
+ * <hmr-complex-props></hmr-complex-props>
  */
 @customElement('hmr-complex-props')
 export class HmrComplexProps extends LitElement {

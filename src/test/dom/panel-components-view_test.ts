@@ -1623,9 +1623,9 @@ test("shows the manifest's docs for the selected tag", async () => {
   expect(
     [...details.querySelectorAll('.label')].map((l) => l.textContent)
   ).toEqual(['About', 'Properties', 'Events', 'CSS properties']);
-  expect(details.querySelector('.about p')!.textContent).toBe(
-    'A button.\n\nFires x-press when pressed.'
-  );
+  expect(
+    [...details.querySelectorAll('.about p')].map((p) => p.textContent)
+  ).toEqual(['A button.', 'Fires x-press when pressed.']);
   // The source is a quiet icon in the heading, its origin in the tooltip;
   // the section has no count.
   const about = details.querySelector('[data-section="About"] summary')!;
@@ -1696,6 +1696,81 @@ test('the row filter reaches the docs', async () => {
   ).toEqual(['CSS properties']);
 });
 
+test('About and doc rows render their markdown', async () => {
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      summary: undefined,
+      description:
+        'Presses a `Set` of things,\nwrapped by hand. See [the guide](javascript:alert(1)).',
+      events: [{name: 'x-press', description: 'Fires with `detail`.'}],
+    },
+  }));
+  const {el, root} = await mount(true);
+  await pickButton(el);
+  const about = root.querySelector('.details .about')!;
+  expect(about.querySelector('code')!.textContent).toBe('Set');
+  expect(about.textContent!.replace(/\s+/g, ' ')).toContain(
+    'of things, wrapped by hand. See the guide.'
+  );
+  expect(about.querySelector('a')).toBeNull();
+  const row = root.querySelector('.details [data-key="event:x-press"] .val')!;
+  expect(row.querySelector('code')!.textContent).toBe('detail');
+  expect(row.querySelector('p')).toBeNull();
+});
+
+test('the row filter marks a word inside rendered prose', async () => {
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      summary: undefined,
+      description: 'A `Set` of **bold** things.',
+    },
+  }));
+  const {el, root} = await mount(true);
+  await pickButton(el);
+  const filter = root.querySelector<HTMLInputElement & {value: string}>(
+    '.details wa-input.filter'
+  )!;
+  filter.value = 'bold';
+  filter.dispatchEvent(new Event('input'));
+  await flush(el);
+  expect(root.querySelector('.details .about strong mark')!.textContent).toBe(
+    'bold'
+  );
+  // The filter matches what is shown, not the markup around it.
+  filter.value = '**';
+  filter.dispatchEvent(new Event('input'));
+  await flush(el);
+  expect(root.querySelector('.details .about')).toBeNull();
+});
+
+test('About shows @examples as code blocks, under their captions', async () => {
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      examples: [
+        {caption: 'Basic', code: '<x-button>\n  Save\n</x-button>'},
+        {code: 'Use it:\n\n```html\n<x-button></x-button>\n```'},
+      ],
+    },
+  }));
+  const {el, root} = await mount(true);
+  await pickButton(el);
+  const examples = [...root.querySelectorAll('.details .about .example')];
+  expect(examples.map((e) => e.querySelector('.caption')?.textContent)).toEqual(
+    ['Basic', undefined]
+  );
+  expect(examples[0]!.querySelector('pre code')!.textContent).toBe(
+    '<x-button>\n  Save\n</x-button>'
+  );
+  // An example holding a fence renders as markdown.
+  expect(examples[1]!.querySelector('p')!.textContent).toBe('Use it:');
+  expect(examples[1]!.querySelector('pre code')!.textContent).toBe(
+    '<x-button></x-button>'
+  );
+});
+
 test('slots and parts take their manifest descriptions as tooltips', async () => {
   answers.set('component-docs', () => ({
     docs: {
@@ -1747,7 +1822,7 @@ test('long About text starts clamped and opens with more', async () => {
   }));
   const {el, root} = await mount(true);
   await pickButton(el);
-  const text = () => root.querySelector('.details .about p')!;
+  const text = () => root.querySelector('.details .about .prose')!;
   const more = () =>
     root.querySelector<HTMLButtonElement>('.details .about .more')!;
   expect(text().classList.contains('clamped')).toBe(true);

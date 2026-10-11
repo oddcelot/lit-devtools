@@ -319,3 +319,85 @@ test('the id query is ignored when picking the language', () => {
     {name: 'a', type: 'number', default: '1'},
   ]);
 });
+
+describe('@example', () => {
+  const examples = (comment: string) =>
+    only(`
+      ${comment}
+      export class XA extends LitElement {}
+    `).docs.examples;
+
+  test('keeps line breaks and indentation beyond the gutter', () => {
+    expect(
+      examples(`/**
+       * A.
+       *
+       * @example
+       * <x-a>
+       *   <span>hi</span>
+       * </x-a>
+       */`)
+    ).toEqual([{code: '<x-a>\n  <span>hi</span>\n</x-a>'}]);
+  });
+
+  test('reads several, and a leading caption', () => {
+    expect(
+      examples(`/**
+       * @example <caption>Basic</caption>
+       * <x-a></x-a>
+       * @example const a = 1;
+       *   a++;
+       */`)
+    ).toEqual([
+      {caption: 'Basic', code: '<x-a></x-a>'},
+      {code: 'const a = 1;\n  a++;'},
+    ]);
+  });
+
+  test('a fence stays inside the example', () => {
+    expect(
+      examples(`/**
+       * @example
+       * \`\`\`html
+       * <x-a></x-a>
+       * \`\`\`
+       */`)
+    ).toEqual([{code: '```html\n<x-a></x-a>\n```'}]);
+  });
+
+  test('a decorator stays in the example; a tag after it still ends it', () => {
+    const doc = only(`
+      /**
+       * @example
+       * @customElement('x-a')
+       * class XA extends LitElement {
+       *   @property() size = 'm';
+       * }
+       * @slot - The content.
+       */
+      export class XA extends LitElement {}
+    `).docs;
+    expect(doc.examples).toEqual([
+      {
+        code: "@customElement('x-a')\nclass XA extends LitElement {\n  @property() size = 'm';\n}",
+      },
+    ]);
+    expect(doc.slots).toEqual([{name: '', description: 'The content.'}]);
+  });
+
+  test('no tag starts inside a fenced example', () => {
+    expect(
+      examples(`/**
+       * @example
+       * \`\`\`ts
+       * @state
+       * \`\`\`
+       */`)
+    ).toEqual([{code: '```ts\n@state\n```'}]);
+  });
+
+  test('an empty one is dropped; none leaves the field off', () => {
+    expect(examples(`/**\n * @example\n */`)).toBeUndefined();
+    expect(examples(`/** A. */`)).toBeUndefined();
+  });
+});
