@@ -159,6 +159,28 @@ test('draws labelled slot and part regions until cleared', async () => {
       '::part(header)',
       '::part(body)',
     ]);
+  // Regions sharing a spot keep their labels over their own box rather
+  // than stringing them out sideways past it, and no two overlap.
+  const placement = await fixture.page.evaluate(`(() => {
+    const shown = Array.from(
+      document.querySelectorAll('[data-lit-devtools-anatomy] > div')
+    ).filter((box) => box.style.display !== 'none');
+    const rects = shown.map((box) => ({
+      box: box.getBoundingClientRect(),
+      tag: box.firstElementChild.getBoundingClientRect(),
+    }));
+    const overlap = (a, b) =>
+      a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+    return {
+      detached: rects.filter(
+        ({box, tag}) => tag.left < box.left - 2 || tag.left > box.right
+      ).length,
+      overlaps: rects.filter((a, i) =>
+        rects.some((b, j) => j > i && overlap(a.tag, b.tag))
+      ).length,
+    };
+  })()`);
+  expect(placement).toEqual({detached: 0, overlaps: 0});
   if (process.env['ANATOMY_SHOT']) {
     const box = (await fixture.page
       .locator('hmr-slots')
@@ -168,9 +190,9 @@ test('draws labelled slot and part regions until cleared', async () => {
       path: process.env['ANATOMY_SHOT'],
       clip: {
         x: box.x - 24,
-        y: box.y - 40,
+        y: box.y - 88,
         width: box.width + 48,
-        height: box.height + 64,
+        height: box.height + 112,
       },
     });
   }
@@ -203,9 +225,9 @@ test('draws labelled slot and part regions until cleared', async () => {
       path: process.env['ANATOMY_SHOT'].replace('.png', '-focus.png'),
       clip: {
         x: box.x - 24,
-        y: box.y - 40,
+        y: box.y - 88,
         width: box.width + 48,
-        height: box.height + 64,
+        height: box.height + 112,
       },
     });
   }
