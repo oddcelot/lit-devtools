@@ -34,6 +34,7 @@ import type {HmrPatchEvent} from '../types/hmr-patch.js';
 import type {
   ComponentDocs,
   DocEntry,
+  DocExample,
   DocsOrigin,
 } from '../types/component-docs.js';
 import {describeError, getMeta, litRpc} from './client.js';
@@ -46,6 +47,12 @@ import {elementRevealer} from './element-revealer.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {overrides} from './settings-override.js';
+import {
+  docPlainText,
+  renderDocInline,
+  renderDocText,
+  type Mark,
+} from './doc-text.js';
 import {formatLines, type ValueToken} from './value-format.js';
 import {filterTree, type TreeFilterResult} from './tree-filter.js';
 import {ValueExpansion} from './value-expansion.js';
@@ -325,6 +332,30 @@ const aboutText = (docs: ComponentDocs): string | undefined => {
   return text === '' ? undefined : text;
 };
 
+/**
+ * The `@example`s as code blocks, each under its caption. An example that
+ * holds a markdown fence is already markdown, so it renders as such.
+ */
+const renderExamples = (
+  examples: readonly DocExample[],
+  mark: Mark
+): TemplateResult[] =>
+  examples.map(
+    (e) =>
+      html`<div class="example">
+        ${
+          e.caption === undefined
+            ? nothing
+            : html`<div class="caption">${mark(e.caption)}</div>`
+        }
+        ${
+          e.code.includes('```')
+            ? renderDocText(e.code, mark)
+            : html`<pre><code>${mark(e.code)}</code></pre>`
+        }
+      </div>`
+  );
+
 /** The selected element's manifest docs, as the details pane shows them. */
 interface DocsView {
   docs: ComponentDocs | null;
@@ -362,7 +393,7 @@ const deprecatedChip = (
   if (deprecated === undefined || deprecated === false) return nothing;
   return html`<span
     class="status warned"
-    data-tip=${typeof deprecated === 'string' ? deprecated : 'Marked deprecated in its manifest'}
+    data-tip=${typeof deprecated === 'string' ? docPlainText(deprecated) : 'Marked deprecated in its manifest'}
     >deprecated</span
   >`;
 };
@@ -648,15 +679,55 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-secondary);
         line-height: var(--lit-devtools-leading-normal);
       }
-      .about p {
-        margin: 0;
-        white-space: pre-line;
+      /* Doc prose, rendered from markdown: compact blocks, no outer margin. */
+      .prose p,
+      .prose ul,
+      .prose ol,
+      .prose pre {
+        margin: 0 0 var(--lit-devtools-space-2);
       }
-      .about p.clamped {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 4;
+      .prose > :last-child {
+        margin-bottom: 0;
+      }
+      .prose ul,
+      .prose ol {
+        padding-left: var(--lit-devtools-space-7);
+      }
+      .prose code {
+        padding: 0 var(--lit-devtools-space-1);
+        background: var(--lit-devtools-surface-container);
+        font-family: var(--lit-devtools-font-mono);
+        font-size: 0.92em;
+      }
+      .prose pre {
+        padding: var(--lit-devtools-space-3);
+        background: var(--lit-devtools-surface-container);
+        overflow-x: auto;
+      }
+      .prose pre code {
+        padding: 0;
+        background: none;
+        font-size: var(--lit-devtools-text-xs);
+      }
+      .prose a {
+        color: var(--lit-devtools-accent);
+      }
+      .prose .example {
+        margin-top: var(--lit-devtools-space-3);
+      }
+      .prose .caption {
+        margin-bottom: var(--lit-devtools-space-1);
+        font-size: var(--lit-devtools-text-2xs);
+        color: var(--lit-devtools-text-muted);
+      }
+      .prose .example pre {
+        margin-bottom: 0;
+      }
+      /* Blocks, not lines, so the clamp cuts at a height, faded out. */
+      .about .prose.clamped {
+        max-height: calc(4 * 1em * var(--lit-devtools-leading-normal));
         overflow: hidden;
+        mask-image: linear-gradient(#000 60%, transparent);
       }
       .about .more {
         margin-top: var(--lit-devtools-space-1);
@@ -706,7 +777,6 @@ export class ComponentsView extends LitElement {
       .entry > .val.doc {
         font-family: var(--lit-devtools-font-sans);
         color: var(--lit-devtools-text-muted);
-        white-space: pre-line;
       }
       .warning {
         grid-column: 1 / -1;
@@ -1917,7 +1987,9 @@ export class ComponentsView extends LitElement {
     documented: readonly DocEntry[],
     shown: TemplateResult | string = this._mark(name)
   ): TemplateResult {
-    const tip = documented.find((e) => e.name === name)?.description;
+    const description = documented.find((e) => e.name === name)?.description;
+    const tip =
+      description === undefined ? undefined : docPlainText(description);
     return html`<span
       class=${tip === undefined ? '' : 'described'}
       data-tip=${tip ?? nothing}
@@ -1936,11 +2008,21 @@ export class ComponentsView extends LitElement {
         : null;
     if (docs === null) return NO_DOCS;
     const byDoc = (e: DocEntry) =>
-      this._matches(e.name, e.description ?? '', e.type ?? '');
+      this._matches(
+        e.name,
+        e.description === undefined ? '' : docPlainText(e.description),
+        e.type ?? ''
+      );
     const events = docs.events.filter(byDoc);
     const cssProperties = docs.cssProperties.filter(byDoc);
     const about = aboutText(docs);
-    const aboutShown = about !== undefined && this._matches(about);
+    const examples = docs.examples ?? [];
+    const aboutShown =
+      (about !== undefined || examples.length > 0) &&
+      this._matches(
+        about === undefined ? '' : docPlainText(about),
+        ...examples.map((e) => e.code)
+      );
     return {
       docs,
       about,
@@ -1979,15 +2061,24 @@ export class ComponentsView extends LitElement {
   /** The manifest's summary and description, and where they came from. */
   private _renderAbout(view: DocsView): TemplateResult | typeof nothing {
     const {docs, about} = view;
-    if (docs === null || about === undefined) return nothing;
-    const long = about.length > ABOUT_CLAMP_CHARS;
+    const examples = docs?.examples ?? [];
+    if (docs === null || (about === undefined && examples.length === 0))
+      return nothing;
+    const length = [
+      docPlainText(about ?? ''),
+      ...examples.map((e) => e.code),
+    ].join('\n\n').length;
+    const long = length > ABOUT_CLAMP_CHARS;
     const clamped = long && this._aboutOpenFor !== docs.tagName;
     return this._renderSection(
       'About',
       view.aboutShown ? 1 : 0,
       1,
       html`<div class="about">
-        <p class=${clamped ? 'clamped' : ''}>${this._mark(about)}</p>
+        <div class=${clamped ? 'prose clamped' : 'prose'}>
+          ${renderDocText(about ?? '', (t) => this._mark(t))}
+          ${renderExamples(examples, (t) => this._mark(t))}
+        </div>
         ${
           long
             ? html`<button
@@ -2039,8 +2130,8 @@ export class ComponentsView extends LitElement {
                     >`
               }</span
             >
-            <span class="val doc"
-              >${e.description === undefined ? nothing : this._mark(e.description)}${
+            <span class="val doc prose"
+              >${e.description === undefined ? nothing : renderDocInline(e.description, (t) => this._mark(t))}${
                 e.default === undefined
                   ? nothing
                   : html` <code class="default">${e.default}</code>`
