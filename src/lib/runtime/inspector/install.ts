@@ -88,7 +88,7 @@ if (typeof window !== 'undefined') {
       highlight: {handler: (id) => highlightById(id)},
       highlightAll: {handler: (ids) => void highlightAll(ids)},
       reveal: {handler: (id) => revealById(id)},
-      anatomy: {handler: (id) => anatomyById(id)},
+      anatomy: {handler: (id, only) => anatomyById(id, only)},
       anatomyFocus: {handler: (focus) => focusAnatomy(focus)},
     },
   });
@@ -556,7 +556,7 @@ if (typeof window !== 'undefined') {
     // Fallback path, as for `highlight`.
     'highlight-all': (cmd) => highlightAll(cmd.ids),
     reveal: (cmd) => revealById(cmd.id),
-    anatomy: (cmd) => anatomyById(cmd.id),
+    anatomy: (cmd) => anatomyById(cmd.id, cmd.only),
     'anatomy-focus': (cmd) => focusAnatomy(cmd.focus),
     observe: (cmd) => setObserving(cmd.enabled),
   };

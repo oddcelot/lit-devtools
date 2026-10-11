@@ -14,6 +14,8 @@
  *
  * Hovering a slot or part row in the pane focuses its region: it gains a
  * ring and a stronger fill, and the others fade, so a row can be found on a busy page.
+ * With the overlay off, a hovered row draws just its own region, in that focused
+ * style, and nothing else.
  */
 
 import {elementById} from '../timeline/identity.js';
@@ -219,20 +221,24 @@ const slotLabel = (slot: HTMLSlotElement): string => {
   return slot.assignedNodes().length === 0 ? `${name} · fallback` : name;
 };
 
-const render = (el: Element): void => {
+const regionKey = (focus: AnatomyFocus): string =>
+  `${focus.kind}:${focus.index}`;
+
+/** Draws `el`'s anatomy, or only the regions whose key `keep` accepts. */
+const render = (el: Element, keep: (key: string) => boolean): void => {
   const {draw, finish} = drawer(ensureLayer());
-  const host = boundsOf([el]);
+  const host = keep('host') ? boundsOf([el]) : null;
   if (host !== null) {
     draw(host, '#868e96', `<${el.localName}>`, 'host', 'host');
   }
   const slots = slotsOf(el);
   slots.forEach((slot, i) => {
-    const box = boundsOf(renderedNodesOf(slot));
+    const box = keep(`slot:${i}`) ? boundsOf(renderedNodesOf(slot)) : null;
     const color = ANATOMY_COLORS[i % ANATOMY_COLORS.length];
     if (box !== null) draw(box, color, slotLabel(slot), 'slot', `slot:${i}`);
   });
   partsOf(el).forEach(({names, element}, j) => {
-    const box = boundsOf([element]);
+    const box = keep(`part:${j}`) ? boundsOf([element]) : null;
     const color = ANATOMY_COLORS[(slots.length + j) % ANATOMY_COLORS.length];
     const label = `::part(${names.join(' ')})`;
     if (box !== null) draw(box, color, label, 'part', `part:${j}`);
@@ -251,21 +257,25 @@ export const clearAnatomy = (): void => {
 /**
  * Draw the anatomy of the element with this id until it is cleared, the
  * element leaves the page, or another id replaces it. `null` and unknown ids
- * clear it.
+ * clear it. With `only`, draw just that region, focused, and no host box or
+ * other regions.
  */
-export const anatomyById = (id: number | null): void => {
+export const anatomyById = (id: number | null, only?: AnatomyFocus): void => {
   clearAnatomy();
   const el = id === null ? undefined : elementById(id);
   if (el === undefined) return;
   const ref = new WeakRef(el);
   target = ref;
+  const onlyKey = only === undefined ? null : regionKey(only);
+  focusKey = onlyKey;
+  const keep = (key: string): boolean => onlyKey === null || key === onlyKey;
   const tick = (): void => {
     const cur = ref.deref();
     if (target !== ref || cur === undefined || !cur.isConnected) {
       if (target === ref) clearAnatomy();
       return;
     }
-    render(cur);
+    render(cur, keep);
     frame = requestAnimationFrame(tick);
   };
   tick();
@@ -277,5 +287,5 @@ export const anatomyById = (id: number | null): void => {
  * while no anatomy is drawn.
  */
 export const focusAnatomy = (focus: AnatomyFocus | null): void => {
-  focusKey = focus === null ? null : `${focus.kind}:${focus.index}`;
+  focusKey = focus === null ? null : regionKey(focus);
 };

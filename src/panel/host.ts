@@ -96,7 +96,7 @@ export const sendToPage = (command: InspectorCommand): void => {
     return;
   }
   if (command.type === 'anatomy' && inPageConnected()) {
-    inPageChannel().emit('anatomy', command.id);
+    inPageChannel().emit('anatomy', command.id, command.only);
     return;
   }
   if (command.type === 'anatomy-focus' && inPageConnected()) {

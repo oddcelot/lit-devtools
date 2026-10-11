@@ -1246,8 +1246,10 @@ export class ComponentsView extends LitElement {
   @state() private _flash = false;
   /** Draw the selected element's slots and parts on the page; remembered. */
   @state() private _anatomy = readAnatomy();
-  /** The id the page is drawing the anatomy of, `null` for none. */
-  private _anatomyShown: number | null = null;
+  /** What the page is drawing (see `_anatomyKey`), `null` for nothing. */
+  private _anatomyShown: string | null = null;
+  /** The slot or part row under the pointer; drawn alone while Anatomy is off. */
+  @state() private _hoveredRegion: AnatomyFocus | null = null;
   /** Set when the devframe connection fails; rendered in place of the tree. */
   @state() private _error: string | null = null;
   /**
@@ -1317,14 +1319,17 @@ export class ComponentsView extends LitElement {
     this._unsubscribeSession?.();
     this._unsubscribeSession = null;
     this._session.dispose();
-    this._syncAnatomy(null);
+    this._syncAnatomy(null, null);
   }
 
   protected override willUpdate(): void {
     const d = this._session.details;
     if (d === this._shownDetails) return;
     this._expansion.follow(d?.id ?? null);
-    if (d?.id !== this._shownDetails?.id) this._editing = null;
+    if (d?.id !== this._shownDetails?.id) {
+      this._editing = null;
+      this._hoveredRegion = null;
+    }
     // Only a refresh of the same element can change a row; a new selection
     // or the first snapshot flashes nothing. A changed row also re-asks for
     // whatever is open under it.
@@ -1339,9 +1344,8 @@ export class ComponentsView extends LitElement {
 
   protected override updated(): void {
     this._flashChangedRows();
-    this._syncAnatomy(
-      this._anatomy && !this._snapshot ? this._session.selectedId : null
-    );
+    const id = this._snapshot ? null : this._session.selectedId;
+    this._syncAnatomy(id, this._anatomy ? null : this._hoveredRegion);
   }
 
   /**
@@ -1374,11 +1378,21 @@ export class ComponentsView extends LitElement {
     }
   }
 
-  /** Point the page's anatomy overlay at `id`, or clear it for `null`. */
-  private _syncAnatomy(id: number | null): void {
-    if (id === this._anatomyShown) return;
-    this._anatomyShown = id;
-    sendToPage({type: 'anatomy', id});
+  /**
+   * Point the page's anatomy overlay at `id`, or clear it for `null`: all of
+   * it with Anatomy on, just the hovered region (`only`) with it off.
+   */
+  private _syncAnatomy(id: number | null, only: AnatomyFocus | null): void {
+    if (!this._anatomy && only === null) id = null;
+    const region = only === null ? '' : `${only.kind}:${only.index}`;
+    const key = id === null ? null : `${id}|${region}`;
+    if (key === this._anatomyShown) return;
+    this._anatomyShown = key;
+    sendToPage(
+      id === null
+        ? {type: 'anatomy', id}
+        : {type: 'anatomy', id, ...(only === null ? {} : {only})}
+    );
   }
 
   /**
@@ -1551,6 +1565,7 @@ export class ComponentsView extends LitElement {
 
   private _toggleAnatomy(): void {
     this._anatomy = !this._anatomy;
+    this._hoveredRegion = null;
     try {
       localStorage.setItem(ANATOMY_LS_KEY, String(this._anatomy));
     } catch {
@@ -1595,6 +1610,7 @@ export class ComponentsView extends LitElement {
 
   /** Single out a slot or part in the page's anatomy overlay while hovered. */
   private _focusRegion(focus: AnatomyFocus | null): void {
+    this._hoveredRegion = focus;
     if (this._anatomy) sendToPage({type: 'anatomy-focus', focus});
   }
 
