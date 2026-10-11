@@ -633,4 +633,35 @@ describe('editable properties', () => {
     });
     expect(setProp(el, 'n', 2)).toBe(false);
   });
+
+  test('setProp writes a nested leaf in place and asks for a render', () => {
+    const asked: unknown[][] = [];
+    const el = editableEl([['cfg', {}]], (...args) => asked.push(args));
+    const cfg = {theme: {mode: 'light'}, list: [1, 2]};
+    el['cfg'] = cfg;
+    expect(setProp(el, 'cfg', 'dark', ['theme', 'mode'])).toBe(true);
+    expect(setProp(el, 'cfg', 7, ['list', 1])).toBe(true);
+    expect(el['cfg']).toBe(cfg);
+    expect(cfg).toEqual({theme: {mode: 'dark'}, list: [1, 7]});
+    // The reference did not change, so the old value is left out for Lit's
+    // hasChanged to see a change.
+    expect(asked).toEqual([
+      ['cfg', undefined],
+      ['cfg', undefined],
+    ]);
+  });
+
+  test('setProp refuses a nested path that does not lead to a leaf of that type', () => {
+    const asked: unknown[][] = [];
+    const el = editableEl([['cfg', {}]], (...args) => asked.push(args));
+    el['cfg'] = {theme: {mode: 'light'}, n: 1, s: new Set(['a'])};
+    el['secret'] = {a: 'x'};
+    expect(setProp(el, 'cfg', 'x', ['gone', 'mode'])).toBe(false);
+    expect(setProp(el, 'cfg', 'x', ['theme', 'gone'])).toBe(false);
+    expect(setProp(el, 'cfg', 'x', ['n'])).toBe(false);
+    expect(setProp(el, 'cfg', 'x', ['s', 0])).toBe(false);
+    expect(setProp(el, 'secret', 'y', ['a'])).toBe(false);
+    expect(el['secret']).toEqual({a: 'x'});
+    expect(asked).toEqual([]);
+  });
 });

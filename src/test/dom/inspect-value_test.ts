@@ -6,6 +6,7 @@ import {
   isExpandable,
   MAX_CHILDREN,
   stepInto,
+  writeInto,
 } from '../../lib/runtime/inspector/inspect-value.js';
 
 let counter = 0;
@@ -150,6 +151,96 @@ test('expands a plain field listed among the extras', () => {
       value: '1',
       type: 'number',
       expandable: false,
+      editable: 'number',
     },
   ]);
+});
+
+const editables = (value: unknown) =>
+  childrenOf(value).children.map((c) => c.editable);
+
+test('leaves are marked editable by the type they hold, where a slot exists', () => {
+  expect(editables({s: 'a', n: 1, b: true, o: {}, u: undefined})).toEqual([
+    'string',
+    'number',
+    'boolean',
+    undefined,
+    undefined,
+  ]);
+  expect(editables(['a', 2])).toEqual(['string', 'number']);
+  expect(editables(new Uint8Array(2))).toEqual(['number', 'number']);
+  expect(
+    editables(
+      new Map<unknown, unknown>([
+        ['k', 'v'],
+        ['j', {}],
+      ])
+    )
+  ).toEqual(['string', undefined]);
+  // A Set member has no slot to write.
+  expect(editables(new Set(['a', 1]))).toEqual([undefined, undefined]);
+});
+
+test('a getter that throws is not editable', () => {
+  const value = {
+    get boom(): string {
+      throw new Error('no');
+    },
+  };
+  expect(childrenOf(value).children).toEqual([
+    expect.objectContaining({type: 'error'}),
+  ]);
+  expect(editables(value)).toEqual([undefined]);
+});
+
+test('writeInto assigns in place and keeps identity', () => {
+  const obj = {a: 'x', n: 1};
+  expect(writeInto(obj, 'a', 'y')).toBe(true);
+  expect(writeInto(obj, 'n', 2)).toBe(true);
+  expect(obj).toEqual({a: 'y', n: 2});
+
+  const arr = [1, 2];
+  expect(writeInto(arr, 1, 9)).toBe(true);
+  expect(arr).toEqual([1, 9]);
+
+  const typed = new Uint8Array(2);
+  expect(writeInto(typed, 1, 7)).toBe(true);
+  expect([...typed]).toEqual([0, 7]);
+
+  const map = new Map<unknown, unknown>([
+    ['a', 1],
+    [{k: 1}, 2],
+  ]);
+  expect(writeInto(map, 1, 5)).toBe(true);
+  expect([...map.values()]).toEqual([1, 5]);
+  expect(map.size).toBe(2);
+});
+
+test('writeInto refuses what is not a same-type write to a real slot', () => {
+  const set = new Set(['a']);
+  expect(writeInto(set, 0, 'b')).toBe(false);
+  expect([...set]).toEqual(['a']);
+  const obj = {a: 'x', o: {}};
+  expect(writeInto(obj, 'a', 1)).toBe(false);
+  expect(writeInto(obj, 'o', 'text')).toBe(false);
+  expect(writeInto(obj, 'missing', 'y')).toBe(false);
+  expect(writeInto([1], 0, 'one')).toBe(false);
+  expect(writeInto([1], 3, 2)).toBe(false);
+  expect(writeInto([1], 'length', 2)).toBe(false);
+  expect(writeInto(new Map([['a', 1]]), 4, 2)).toBe(false);
+  expect(writeInto(new Map([['a', 1]]), 0, 'x')).toBe(false);
+  expect(writeInto(obj, 'a', 'y' as never) && obj.a).toBe('y');
+  expect(writeInto('text', 0, 'x')).toBe(false);
+  expect(obj.o).toEqual({});
+});
+
+test('writeInto refuses NaN, Infinity and a frozen container', () => {
+  const arr = [1];
+  expect(writeInto(arr, 0, Number.NaN)).toBe(false);
+  expect(writeInto(arr, 0, Infinity)).toBe(false);
+  expect(arr).toEqual([1]);
+  const frozen = Object.freeze({a: 1});
+  expect(writeInto(frozen, 'a', 2)).toBe(false);
+  expect(frozen.a).toBe(1);
+  expect(writeInto(Object.freeze([1]), 0, 2)).toBe(false);
 });

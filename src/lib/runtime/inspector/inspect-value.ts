@@ -58,7 +58,8 @@ const child = (
   label: string,
   key: ValueSegment,
   v: {ok: true; value: unknown} | {ok: false},
-  entry = false
+  entry = false,
+  writable = false
 ): ValueChild => ({
   label,
   key,
@@ -66,7 +67,16 @@ const child = (
   value: v.ok ? serialize(v.value) : '[getter threw]',
   type: v.ok ? typeTag(v.value) : 'error',
   expandable: v.ok && isExpandable(v.value),
+  ...(writable && v.ok ? editableOf(v.value) : {}),
 });
+
+/** The `editable` field for a primitive of an editable type, else nothing. */
+const editableOf = (value: unknown): Pick<ValueChild, 'editable'> => {
+  const t = typeof value;
+  return t === 'string' || t === 'number' || t === 'boolean'
+    ? {editable: t}
+    : {};
+};
 
 /** The first {@link MAX_CHILDREN} entries of a `Map`, keys serialised. */
 const mapChildren = (map: Map<unknown, unknown>): ValueChild[] => {
@@ -74,7 +84,7 @@ const mapChildren = (map: Map<unknown, unknown>): ValueChild[] => {
   let i = 0;
   for (const [k, v] of map) {
     if (i === MAX_CHILDREN) break;
-    children.push(child(serialize(k), i, {ok: true, value: v}, true));
+    children.push(child(serialize(k), i, {ok: true, value: v}, true, true));
     i++;
   }
   return children;
@@ -96,14 +106,16 @@ const setChildren = (set: Set<unknown>): ValueChild[] => {
 const indexedChildren = (value: ArrayLike<unknown> & object): ValueChild[] => {
   const children: ValueChild[] = [];
   for (let i = 0; i < Math.min(value.length, MAX_CHILDREN); i++) {
-    children.push(child(String(i), i, read(value, i)));
+    children.push(child(String(i), i, read(value, i), false, true));
   }
   return children;
 };
 
 /** The first {@link MAX_CHILDREN} own enumerable properties of `value`. */
 const keyedChildren = (value: object, keys: string[]): ValueChild[] =>
-  keys.slice(0, MAX_CHILDREN).map((k) => child(k, k, read(value, k)));
+  keys
+    .slice(0, MAX_CHILDREN)
+    .map((k) => child(k, k, read(value, k), false, true));
 
 /**
  * The first {@link MAX_CHILDREN} children of `value`, and how many more
@@ -168,4 +180,51 @@ export const stepInto = (
   if (!hasSlot(value, key)) return undefined;
   const r = read(value, key);
   return r.ok ? {value: r.value} : undefined;
+};
+
+/** Assign `value` to `key` of an indexed or keyed `container`, same type. */
+const writeSlot = (
+  container: object,
+  key: ValueSegment,
+  value: string | number | boolean
+): boolean => {
+  if (!hasSlot(container, key)) return false;
+  const slot = container as Record<string | number, unknown>;
+  if (typeof slot[key] !== typeof value) return false;
+  slot[key] = value;
+  return true;
+};
+
+/**
+ * Write the primitive `value` into the slot of `container` that `key` names,
+ * as {@link childrenOf} numbered it: an object key, an array or typed array
+ * index, or the position of a `Map` entry, whose value is replaced. Identity
+ * is kept, as the container is changed in place. Only a slot already holding
+ * a primitive of the same type is written, and a number must be finite.
+ * A `Set` member has no slot, and a frozen container refuses; both give
+ * false, as does anything that does not resolve. Never throws.
+ */
+export const writeInto = (
+  container: unknown,
+  key: ValueSegment,
+  value: string | number | boolean
+): boolean => {
+  if (!isContainer(container)) return false;
+  if (typeof value === 'number' && !Number.isFinite(value)) return false;
+  try {
+    if (container instanceof Set) return false;
+    if (container instanceof Map) {
+      let i = 0;
+      for (const [k, v] of container) {
+        if (i++ !== key) continue;
+        if (typeof v !== typeof value) return false;
+        container.set(k, value);
+        return true;
+      }
+      return false;
+    }
+    return writeSlot(container, key, value);
+  } catch {
+    return false;
+  }
 };

@@ -163,3 +163,37 @@ test('set-prop writes a primitive to the live element and answers with it', asyn
     )
   ).toBe(9);
 });
+
+test('a keyed set-prop writes a leaf of a live object and re-renders', async () => {
+  await expect
+    .poll(() => find(roots, 'hmr-properties'), {timeout: 10_000})
+    .toBeDefined();
+  const id = find(roots, 'hmr-properties')!;
+  const config = `document.querySelector('hmr-properties').config`;
+  const same = await fixture.page.evaluate(`window.__cfg = ${config}, true`);
+  expect(same).toBe(true);
+
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id,
+    name: 'config',
+    value: 'dark',
+    keys: ['colorScheme'],
+  });
+  await expect
+    .poll(() => fixture.page.evaluate(`${config}.colorScheme`), {
+      timeout: 10_000,
+    })
+    .toBe('dark');
+  // Written in place, and the element rendered it.
+  expect(await fixture.page.evaluate(`window.__cfg === ${config}`)).toBe(true);
+  await expect
+    .poll(
+      () =>
+        fixture.page.evaluate(
+          `document.querySelector('hmr-properties').shadowRoot.querySelector('#color-scheme').textContent`
+        ),
+      {timeout: 10_000}
+    )
+    .toContain('dark');
+});
