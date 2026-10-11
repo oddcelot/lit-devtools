@@ -138,6 +138,84 @@ test('refreshes a watched element when a light child changes slot', async () => 
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
 });
 
+/**
+ * What the overlay has drawn, read in the page: the labels, the boxes and the
+ * leaders still shown, in drawing order (host first, then slots, then parts).
+ * With every label text unique, the Nth label, box and leader go together.
+ */
+const SNAPSHOT = `(() => {
+  const layer = document.querySelector('[data-lit-devtools-anatomy]');
+  const shown = (sel) =>
+    Array.from(layer.querySelectorAll(sel)).filter(
+      (el) => el.style.display !== 'none'
+    );
+  const rect = (el) => {
+    const r = el.getBoundingClientRect();
+    return {left: r.left, top: r.top, right: r.right, bottom: r.bottom};
+  };
+  const labels = shown('[data-anatomy-label]');
+  const boxes = shown('[data-anatomy-box]');
+  const leaders = shown('svg g');
+  return {
+    texts: labels.map((l) => l.textContent),
+    labels: labels.map(rect),
+    boxes: boxes.map(rect),
+    boxStyles: boxes.map((b) => [b.style.opacity, b.style.boxShadow !== 'none']),
+    labelOpacity: labels.map((l) => l.style.opacity),
+    leaders: leaders.map((g) => ({
+      end: {
+        x: Number(g.lastElementChild.getAttribute('cx')),
+        y: Number(g.lastElementChild.getAttribute('cy')),
+      },
+      opacity: g.style.opacity,
+      width: g.firstElementChild.getAttribute('stroke-width'),
+    })),
+  };
+})()`;
+
+interface Rect {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}
+
+interface Snapshot {
+  texts: string[];
+  labels: Rect[];
+  boxes: Rect[];
+  boxStyles: [string, boolean][];
+  labelOpacity: string[];
+  leaders: {end: {x: number; y: number}; opacity: string; width: string}[];
+}
+
+const snapshot = (): Promise<Snapshot> => fixture.page.evaluate(SNAPSHOT);
+
+const overlap = (a: Rect, b: Rect): boolean =>
+  a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+
+/** How far `p` is from the outline of `r`. */
+const edgeDistance = (r: Rect, p: {x: number; y: number}): number => {
+  const dx = Math.max(r.left - p.x, 0, p.x - r.right);
+  const dy = Math.max(r.top - p.y, 0, p.y - r.bottom);
+  if (dx > 0 || dy > 0) return Math.hypot(dx, dy);
+  return Math.min(p.x - r.left, r.right - p.x, p.y - r.top, r.bottom - p.y);
+};
+
+/** Screenshots the host with room for the label gutters either side. */
+const shoot = async (path: string): Promise<void> => {
+  const box = (await fixture.page.locator('hmr-slots').first().boundingBox())!;
+  await fixture.page.screenshot({
+    path,
+    clip: {
+      x: Math.max(0, box.x - 260),
+      y: Math.max(0, box.y - 88),
+      width: box.width + 520,
+      height: box.height + 112,
+    },
+  });
+};
+
 test('draws labelled slot and part regions until cleared', async () => {
   const {id} = await nodeFor('hmr-slots');
   await fixture.page.evaluate(
@@ -145,12 +223,8 @@ test('draws labelled slot and part regions until cleared', async () => {
   );
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'anatomy', id});
 
-  const labels = `Array.from(
-    document.querySelectorAll('[data-lit-devtools-anatomy] > div'),
-    (box) => box.style.display === 'none' ? null : box.textContent
-  ).filter(Boolean)`;
   await expect
-    .poll(() => fixture.page.evaluate(labels), {timeout: 10_000})
+    .poll(async () => (await snapshot()).texts, {timeout: 10_000})
     .toEqual([
       '<hmr-slots>',
       'slot "title"',
@@ -159,77 +233,49 @@ test('draws labelled slot and part regions until cleared', async () => {
       '::part(header)',
       '::part(body)',
     ]);
-  // Regions sharing a spot keep their labels over their own box rather
-  // than stringing them out sideways past it, and no two overlap.
-  const placement = await fixture.page.evaluate(`(() => {
-    const shown = Array.from(
-      document.querySelectorAll('[data-lit-devtools-anatomy] > div')
-    ).filter((box) => box.style.display !== 'none');
-    const rects = shown.map((box) => ({
-      box: box.getBoundingClientRect(),
-      tag: box.firstElementChild.getBoundingClientRect(),
-    }));
-    const overlap = (a, b) =>
-      a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
-    return {
-      detached: rects.filter(
-        ({box, tag}) => tag.left < box.left - 2 || tag.left > box.right
-      ).length,
-      overlaps: rects.filter((a, i) =>
-        rects.some((b, j) => j > i && overlap(a.tag, b.tag))
-      ).length,
-    };
-  })()`);
-  expect(placement).toEqual({detached: 0, overlaps: 0});
+  const drawn = await snapshot();
+  // No two labels overlap, and every label but the host's stands clear of the host.
+  const [host, ...regions] = drawn.boxes;
+  drawn.labels.forEach((a, i) => {
+    drawn.labels.slice(i + 1).forEach((b) => expect(overlap(a, b)).toBe(false));
+    if (i > 0) expect(overlap(a, host)).toBe(false);
+  });
+  // Each region has a leader that ends on its box's edge.
+  expect(drawn.leaders).toHaveLength(regions.length);
+  drawn.leaders.forEach(({end}, i) => {
+    expect(edgeDistance(regions[i], end)).toBeLessThanOrEqual(3);
+  });
   if (process.env['ANATOMY_SHOT']) {
-    const box = (await fixture.page
-      .locator('hmr-slots')
-      .first()
-      .boundingBox())!;
-    await fixture.page.screenshot({
-      path: process.env['ANATOMY_SHOT'],
-      clip: {
-        x: box.x - 24,
-        y: box.y - 88,
-        width: box.width + 48,
-        height: box.height + 112,
-      },
-    });
+    await shoot(process.env['ANATOMY_SHOT']);
   }
 
-  // Focus the title slot: it gains a ring, everything else fades.
-  const regions = `Array.from(
-    document.querySelectorAll('[data-lit-devtools-anatomy] > div'),
-    (box) => [box.textContent, box.style.opacity, box.style.boxShadow !== 'none']
-  )`;
+  // Focus the title slot: it gains a ring and a thicker leader, everything
+  // else fades.
+  const focused = async () => {
+    const s = await snapshot();
+    return s.texts.map((text, i) => [
+      text,
+      s.boxStyles[i][0],
+      s.boxStyles[i][1],
+      s.labelOpacity[i],
+      i === 0 ? null : s.leaders[i - 1].opacity,
+      i === 0 ? null : s.leaders[i - 1].width,
+    ]);
+  };
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
     type: 'anatomy-focus',
     focus: {kind: 'slot', index: 1},
   });
-  await expect
-    .poll(() => fixture.page.evaluate(regions), {timeout: 10_000})
-    .toEqual([
-      ['<hmr-slots>', '0.25', false],
-      ['slot "title"', '1', true],
-      ['default slot', '0.25', false],
-      ['slot "footer" · fallback', '0.25', false],
-      ['::part(header)', '0.25', false],
-      ['::part(body)', '0.25', false],
-    ]);
+  await expect.poll(focused, {timeout: 10_000}).toEqual([
+    ['<hmr-slots>', '0.25', false, '0.25', null, null],
+    ['slot "title"', '1', true, '1', '1', '2'],
+    ['default slot', '0.25', false, '0.25', '0.25', '1.25'],
+    ['slot "footer" · fallback', '0.25', false, '0.25', '0.25', '1.25'],
+    ['::part(header)', '0.25', false, '0.25', '0.25', '1.25'],
+    ['::part(body)', '0.25', false, '0.25', '0.25', '1.25'],
+  ]);
   if (process.env['ANATOMY_SHOT']) {
-    const box = (await fixture.page
-      .locator('hmr-slots')
-      .first()
-      .boundingBox())!;
-    await fixture.page.screenshot({
-      path: process.env['ANATOMY_SHOT'].replace('.png', '-focus.png'),
-      clip: {
-        x: box.x - 24,
-        y: box.y - 88,
-        width: box.width + 48,
-        height: box.height + 112,
-      },
-    });
+    await shoot(process.env['ANATOMY_SHOT'].replace('.png', '-focus.png'));
   }
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
     type: 'anatomy-focus',
@@ -237,10 +283,13 @@ test('draws labelled slot and part regions until cleared', async () => {
   });
   await expect
     .poll(
-      async () =>
-        ((await fixture.page.evaluate(regions)) as unknown[][]).every(
-          ([, opacity, ring]) => opacity === '1' && ring === false
-        ),
+      async () => {
+        const s = await snapshot();
+        return (
+          s.boxStyles.every(([o, ring]) => o === '1' && !ring) &&
+          s.leaders.every((l) => l.opacity === '1')
+        );
+      },
       {timeout: 10_000}
     )
     .toBe(true);
@@ -259,18 +308,21 @@ test('draws labelled slot and part regions until cleared', async () => {
 
 test('draws just one region while the overlay is off', async () => {
   const {id} = await nodeFor('hmr-slots');
-  const labels = `Array.from(
-    document.querySelectorAll('[data-lit-devtools-anatomy] > div'),
-    (box) => box.style.display === 'none' ? null : box.textContent
-  ).filter(Boolean)`;
+  const only = async () => {
+    const s = await snapshot();
+    return {texts: s.texts, boxes: s.boxes.length, leaders: s.leaders.length};
+  };
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
     type: 'anatomy',
     id,
     only: {kind: 'part', index: 0},
   });
   await expect
-    .poll(() => fixture.page.evaluate(labels), {timeout: 10_000})
-    .toEqual(['::part(header)']);
+    .poll(only, {timeout: 10_000})
+    .toEqual({texts: ['::part(header)'], boxes: 1, leaders: 1});
+  const {leaders, boxes, boxStyles} = await snapshot();
+  expect(edgeDistance(boxes[0], leaders[0].end)).toBeLessThanOrEqual(3);
+  expect(boxStyles[0]).toEqual(['1', true]);
 
   // Slot 0 (`icon`) is empty, so there is nothing to draw.
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
@@ -279,8 +331,8 @@ test('draws just one region while the overlay is off', async () => {
     only: {kind: 'slot', index: 0},
   });
   await expect
-    .poll(() => fixture.page.evaluate(labels), {timeout: 10_000})
-    .toEqual([]);
+    .poll(only, {timeout: 10_000})
+    .toEqual({texts: [], boxes: 0, leaders: 0});
 
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'anatomy', id: null});
 });
