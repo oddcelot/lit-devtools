@@ -29,6 +29,7 @@ import './hmr-events.js';
 import './hmr-skipped-update.js';
 import './hmr-warnings.js';
 import './hmr-property-options.js';
+import './hmr-complex-props.js';
 import './hmr-undefined.js';
 
 export interface HmrProbeState {
