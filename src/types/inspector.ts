@@ -193,6 +193,12 @@ export interface ValueChild {
   value: string;
   type: string;
   expandable: boolean;
+  /**
+   * The primitive type a `set-prop` command may assign to it, by `keys`.
+   * Absent for a value that is not a string, number or boolean, for a slot
+   * that cannot be written (a `Set` member), and from an older runtime.
+   */
+  editable?: 'string' | 'number' | 'boolean';
 }
 
 /** An element named in an anatomy entry; `id` is set when the tree lists it. */
@@ -425,12 +431,17 @@ export type InspectorCommand =
    * Assign a string, number or boolean to the reactive property `name` on
    * element `id`, then answer with fresh details. Applied only to a declared
    * property of that primitive type; anything else leaves the value as it was.
+   * With `keys`, the primitive is written into the live object, array or
+   * `Map` the property holds, at the end of that path: the steps from the
+   * property's value down to the leaf, numbered as `expand` paths number
+   * them. Absent or empty means the property itself.
    */
   | {
       type: 'set-prop';
       id: number;
       name: string;
       value: string | number | boolean;
+      keys?: ValueSegment[];
     }
   /** Draw element `id`'s slots and parts on the page; `null` clears it. */
   | {type: 'anatomy'; id: number | null}

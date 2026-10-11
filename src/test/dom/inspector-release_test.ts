@@ -414,3 +414,37 @@ test('set-prop on an element that is gone says so', async () => {
   });
   expect(sentOf(carrier, 'gone')).toMatchObject([{type: 'gone', id: -1}]);
 });
+
+test('a keyed set-prop writes the leaf, then answers details and the parent level', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-settable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['cfg', {}]]);
+      cfg = {theme: {mode: 'light'}};
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {
+    cfg: {theme: {mode: string}};
+  };
+  document.body.append(el);
+  const before = details(carrier);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id: idOf(el),
+    name: 'cfg',
+    value: 'dark',
+    keys: ['theme', 'mode'],
+  });
+  expect(el.cfg.theme.mode).toBe('dark');
+  expect(details(carrier)).toBe(before + 1);
+  expect(sentOf(carrier, 'expanded')).toMatchObject([
+    {
+      id: idOf(el),
+      path: {section: 'prop', name: 'cfg', keys: ['theme']},
+      children: [{label: 'mode', value: '"dark"', editable: 'string'}],
+    },
+  ]);
+});

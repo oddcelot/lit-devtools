@@ -520,9 +520,19 @@ if (typeof window !== 'undefined') {
       send({type: 'gone', id: cmd.id});
       return;
     }
-    setProp(el, cmd.name, cmd.value);
+    const keys = cmd.keys ?? [];
+    setProp(el, cmd.name, cmd.value, keys);
     // Whether or not it applied, so a rejected value snaps back in the panel.
     replyDetails(cmd.id);
+    // A leaf deeper than the row's preview would leave the open level that
+    // holds it stale, so answer that level too.
+    if (keys.length > 0) {
+      replyExpanded({
+        type: 'expand',
+        id: cmd.id,
+        path: {section: 'prop', name: cmd.name, keys: keys.slice(0, -1)},
+      });
+    }
   };
 
   // Commands the page does not act on (`pick`) have no entry.

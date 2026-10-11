@@ -4,7 +4,12 @@
  * the results are sent over the transport as plain JSON.
  */
 
-import {childrenOf, isExpandable, stepInto} from './inspect-value.js';
+import {
+  childrenOf,
+  isExpandable,
+  stepInto,
+  writeInto,
+} from './inspect-value.js';
 import {idOf} from '../timeline/identity.js';
 import {warningsFor} from '../timeline/lit-warnings.js';
 import {
@@ -24,6 +29,7 @@ import type {
   InspectorTreeNode,
   ValueChild,
   ValuePath,
+  ValueSegment,
 } from '../../../types/inspector.js';
 import {CALL_SITE_ATTR, SOURCE_META_KEY, readCallSite} from '../source-meta.js';
 import {defineFramesOf, defineIdOf} from '../define-sites.js';
@@ -367,12 +373,45 @@ export const expandPath = (
 };
 
 /**
- * Answer a `set-prop` command: assign `value` to the declared reactive
- * property `name` on `el`. Only a declared property whose current value is a
- * primitive of the same type is written, so a command cannot set arbitrary
- * fields or change a property's type. Returns whether it was applied.
+ * The nested half of {@link setProp}: write `value` at `keys` below the
+ * declared property `name`, in the live value, so its identity is kept.
  */
-export const setProp = (
+const setNestedProp = (
+  el: Element,
+  name: string,
+  value: string | number | boolean,
+  keys: ValueSegment[]
+): boolean => {
+  const re = el as ReactiveElementLike;
+  if (re.constructor.elementProperties?.has(name) !== true) return false;
+  let at: {value: unknown} | undefined;
+  try {
+    at = {value: (el as unknown as Record<string, unknown>)[name]};
+    for (const key of keys.slice(0, -1)) {
+      if (at === undefined) return false;
+      at = stepInto(at.value, key);
+    }
+  } catch {
+    return false;
+  }
+  if (at === undefined || !writeInto(at.value, keys[keys.length - 1]!, value)) {
+    return false;
+  }
+  // The reference is unchanged, so passing the old value would make Lit's
+  // `hasChanged` report no change. `undefined` schedules the render and
+  // lists `name` in `changedProperties`, its old value reading as undefined.
+  if (typeof re.requestUpdate === 'function') {
+    (re.requestUpdate as (n: string, old: unknown) => void).call(
+      el,
+      name,
+      undefined
+    );
+  }
+  return true;
+};
+
+/** The top-level half of {@link setProp}: assign the property itself. */
+const setOwnProp = (
   el: Element,
   name: string,
   value: string | number | boolean
@@ -400,4 +439,23 @@ export const setProp = (
   } catch {
     return false;
   }
+};
+
+/**
+ * Answer a `set-prop` command: assign `value` to the declared reactive
+ * property `name` on `el`. Only a declared property whose current value is a
+ * primitive of the same type is written, so a command cannot set arbitrary
+ * fields or change a property's type. With `keys`, the leaf at that path
+ * inside the property's live value is written instead. Returns whether it
+ * was applied.
+ */
+export const setProp = (
+  el: Element,
+  name: string,
+  value: string | number | boolean,
+  keys: ValueSegment[] = []
+): boolean => {
+  return keys.length === 0
+    ? setOwnProp(el, name, value)
+    : setNestedProp(el, name, value, keys);
 };

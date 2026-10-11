@@ -1895,3 +1895,130 @@ test('only a whole primitive can be edited, and not in a snapshot', async () => 
   const frozen = await mountSettable();
   expect(frozen.root.querySelector('.details button.edit')).toBeNull();
 });
+
+const leafPath = () => ({section: 'prop' as const, name: 'config', keys: []});
+
+const mountLeaves = async (section: 'prop' | 'extra' = 'prop') => {
+  const mounted = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  const details = expandable();
+  push('inspector-message', {
+    type: 'details',
+    details:
+      section === 'prop'
+        ? details
+        : {
+            ...details,
+            extras: [
+              {
+                name: 'cache',
+                kind: 'field',
+                value: '{a: 1}',
+                type: 'object',
+                expandable: true,
+              },
+            ],
+          },
+  });
+  await flush(mounted.el);
+  const path =
+    section === 'prop' ? leafPath() : {...leafPath(), section, name: 'cache'};
+  const first = mounted.root.querySelector<HTMLElement>(
+    section === 'prop'
+      ? '.details .entry[data-key="p:config"] .expander'
+      : '.details .entry[data-key="e:cache"] .expander'
+  )!;
+  first.click();
+  await flush(mounted.el);
+  push('inspector-message', {
+    type: 'expanded',
+    id: 2,
+    path,
+    children: [
+      {
+        label: 'name',
+        key: 'name',
+        value: '"Ada"',
+        type: 'string',
+        expandable: false,
+        editable: 'string',
+      },
+      {
+        label: 'on',
+        key: 'on',
+        value: 'true',
+        type: 'boolean',
+        expandable: false,
+        editable: 'boolean',
+      },
+    ],
+  });
+  await flush(mounted.el);
+  const child = (label: string) =>
+    [...mounted.root.querySelectorAll<HTMLElement>('.details .child')].find(
+      (c) => c.querySelector('.t-key')?.textContent === label
+    )!;
+  const sets = () =>
+    mounted.inspects().filter((c) => (c as {type: string}).type === 'set-prop');
+  return {...mounted, child, sets};
+};
+
+test('a leaf inside an expanded prop is typed over and sent with its keys', async () => {
+  const {el, child, sets} = await mountLeaves();
+  child('name').querySelector<HTMLElement>('button.edit')!.click();
+  await flush(el);
+  const input = child('name').querySelector<HTMLInputElement>('.edit-input')!;
+  expect(input.value).toBe('Ada');
+  expect(input.getAttribute('aria-label')).toBe('Value of config.name');
+  input.value = 'Grace';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'config', value: 'Grace', keys: ['name']},
+  ]);
+  expect(child('name').querySelector('.edit-input')).toBeNull();
+});
+
+test('a boolean leaf flips on a click', async () => {
+  const {el, child, sets} = await mountLeaves();
+  const button = child('on').querySelector<HTMLElement>('button.edit')!;
+  expect(button.getAttribute('aria-label')).toBe('Set to false');
+  button.click();
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'config', value: false, keys: ['on']},
+  ]);
+});
+
+test('Escape on a leaf returns focus to its edit button', async () => {
+  const {el, child, sets} = await mountLeaves();
+  child('name').querySelector<HTMLElement>('button.edit')!.click();
+  await flush(el);
+  child('name')
+    .querySelector<HTMLInputElement>('.edit-input')!
+    .dispatchEvent(
+      new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})
+    );
+  await flush(el);
+  expect(sets()).toEqual([]);
+  expect(el.shadowRoot!.activeElement).toBe(
+    child('name').querySelector('button.edit')
+  );
+});
+
+test("an extra's children are read-only", async () => {
+  const {root} = await mountLeaves('extra');
+  expect(root.querySelectorAll('.details .child')).toHaveLength(2);
+  expect(root.querySelector('.details .child button.edit')).toBeNull();
+});
+
+test('a snapshot opens no levels, so no leaf can be edited', async () => {
+  document.body.replaceChildren();
+  setSnapshot(true);
+  const mounted = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: expandable()});
+  await flush(mounted.el);
+  expect(mounted.root.querySelector('.details .expander')).toBeNull();
+  expect(mounted.root.querySelector('.details button.edit')).toBeNull();
+});
