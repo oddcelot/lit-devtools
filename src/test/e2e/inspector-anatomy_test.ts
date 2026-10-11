@@ -234,3 +234,31 @@ test('draws labelled slot and part regions until cleared', async () => {
     )
     .toBe(true);
 });
+
+test('draws just one region while the overlay is off', async () => {
+  const {id} = await nodeFor('hmr-slots');
+  const labels = `Array.from(
+    document.querySelectorAll('[data-lit-devtools-anatomy] > div'),
+    (box) => box.style.display === 'none' ? null : box.textContent
+  ).filter(Boolean)`;
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+    type: 'anatomy',
+    id,
+    only: {kind: 'part', index: 0},
+  });
+  await expect
+    .poll(() => fixture.page.evaluate(labels), {timeout: 10_000})
+    .toEqual(['::part(header)']);
+
+  // Slot 0 (`icon`) is empty, so there is nothing to draw.
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+    type: 'anatomy',
+    id,
+    only: {kind: 'slot', index: 0},
+  });
+  await expect
+    .poll(() => fixture.page.evaluate(labels), {timeout: 10_000})
+    .toEqual([]);
+
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'anatomy', id: null});
+});

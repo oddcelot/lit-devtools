@@ -654,6 +654,89 @@ test('filtering slots keeps each row on its own colour', async () => {
   expect(swatch.getAttribute('style')).toContain(ANATOMY_COLORS[1]);
 });
 
+const regionDetails = (extra = {}) => ({
+  ...detailsFor(),
+  ...extra,
+  anatomy: {
+    renderRoot: 'shadow' as const,
+    mode: 'open' as const,
+    slots: [
+      {
+        name: '',
+        status: 'assigned' as const,
+        elements: [{tagName: 'p'}],
+        moreElements: 0,
+        textNodes: 0,
+        forwarded: false,
+        duplicate: false,
+      },
+    ],
+    orphans: [],
+    orphanText: 0,
+    parts: [{names: ['header'], tagName: 'header'}],
+  },
+});
+
+const mountRegions = async () => {
+  const m = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: regionDetails()});
+  await flush(m.el);
+  const rows = [...m.root.querySelectorAll<HTMLElement>('.entry.region')];
+  expect(rows).toHaveLength(2);
+  const hover = async (row: HTMLElement, type: string) => {
+    row.dispatchEvent(new MouseEvent(type));
+    await flush(m.el);
+  };
+  const anatomyCalls = () =>
+    m
+      .inspects()
+      .filter((c) => (c as {type: string}).type.startsWith('anatomy'));
+  return {...m, rows, hover, anatomyCalls};
+};
+
+test.each([
+  ['slot', 0],
+  ['part', 1],
+] as const)(
+  'hovering a %s row draws just its region while Anatomy is off',
+  async (kind, row) => {
+    const {rows, hover, anatomyCalls} = await mountRegions();
+    await hover(rows[row], 'mouseenter');
+    expect(anatomyCalls()).toEqual([
+      {type: 'anatomy', id: 2, only: {kind, index: 0}},
+    ]);
+    await hover(rows[row], 'mouseleave');
+    expect(anatomyCalls().at(-1)).toEqual({type: 'anatomy', id: null});
+  }
+);
+
+test('re-renders under a hovered row do not resend the solo region', async () => {
+  const {el, rows, hover, anatomyCalls} = await mountRegions();
+  await hover(rows[0], 'mouseenter');
+  push('inspector-message', {type: 'details', details: regionDetails()});
+  await flush(el);
+  expect(anatomyCalls()).toHaveLength(1);
+});
+
+test('with Anatomy on a hovered row focuses and sends no solo region', async () => {
+  const {el, root, rows, hover, anatomyCalls} = await mountRegions();
+  root.querySelector<HTMLElement>('wa-button.anatomy')!.click();
+  await flush(el);
+  await hover(rows[0], 'mouseenter');
+  expect(anatomyCalls()).toEqual([
+    {type: 'anatomy', id: 2},
+    {type: 'anatomy-focus', focus: {kind: 'slot', index: 0}},
+  ]);
+});
+
+test('a snapshot draws nothing for a hovered row', async () => {
+  setSnapshot(true);
+  const {rows, hover, anatomyCalls} = await mountRegions();
+  await hover(rows[0], 'mouseenter');
+  expect(anatomyCalls()).toEqual([]);
+});
+
 test('a refresh highlights the rows whose value changed', async () => {
   const animate = vi.fn();
   const original = Object.getOwnPropertyDescriptor(

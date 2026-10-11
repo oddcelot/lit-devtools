@@ -443,8 +443,13 @@ export type InspectorCommand =
       value: string | number | boolean;
       keys?: ValueSegment[];
     }
-  /** Draw element `id`'s slots and parts on the page; `null` clears it. */
-  | {type: 'anatomy'; id: number | null}
+  /**
+   * Draw element `id`'s slots and parts on the page; `null` clears it. With
+   * `only`, draw just that slot or part region (labelled, in the focused
+   * style) and no host outline or other regions: a hovered row while the
+   * overlay is off.
+   */
+  | {type: 'anatomy'; id: number | null; only?: AnatomyFocus}
   /**
    * Emphasise one region of the anatomy overlay and fade the rest; `null` shows
    * them all evenly again.

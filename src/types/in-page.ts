@@ -38,8 +38,9 @@ export const LIT_IN_PAGE_CHANNEL = 'lit:in-page';
  * so a tree node, a details payload, and an outline all agree on identity.
  * `null` clears the outline. `reveal` scrolls an element into view and
  * outlines it for a moment, for the details pane's "Scroll into view".
- * `anatomy` draws an element's slots and parts until it gets `null`, and
- * `anatomyFocus` singles one of them out while a pane row is hovered.
+ * `anatomy` draws an element's slots and parts (or just the region `only`
+ * names) until it gets `null`, and `anatomyFocus` singles one of them out
+ * while a pane row is hovered.
  * `highlightAll` outlines several elements at once (every instance of a tag,
  * for a Shift-hovered tree row); a single `highlight` replaces it.
  */
@@ -49,7 +50,7 @@ export interface LitInPageProtocol {
       highlight: (id: number | null) => void;
       highlightAll: (ids: number[]) => void;
       reveal: (id: number) => void;
-      anatomy: (id: number | null) => void;
+      anatomy: (id: number | null, only?: AnatomyFocus) => void;
       anatomyFocus: (focus: AnatomyFocus | null) => void;
     };
   };
