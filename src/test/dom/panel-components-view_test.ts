@@ -2097,3 +2097,70 @@ test('a snapshot opens no levels, so no leaf can be edited', async () => {
   expect(mounted.root.querySelector('.details .expander')).toBeNull();
   expect(mounted.root.querySelector('.details button.edit')).toBeNull();
 });
+
+const dblclick = (el: Element) =>
+  el.dispatchEvent(new MouseEvent('dblclick', {bubbles: true, composed: true}));
+
+test('the edit button sits inside the value, top-level and leaf', async () => {
+  const {row} = await mountSettable();
+  expect(row('count').querySelector('.val > button.edit')).not.toBeNull();
+  const {child} = await mountLeaves();
+  expect(child('name').querySelector('.t-value > button.edit')).not.toBeNull();
+});
+
+test('double-clicking a boolean value flips it', async () => {
+  const {el, row, sets} = await mountSettable();
+  dblclick(row('disabled').querySelector('.val')!);
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'disabled', value: true},
+  ]);
+});
+
+test('double-clicking a number value opens the input', async () => {
+  const {el, row, sets} = await mountSettable();
+  dblclick(row('count').querySelector('.val')!);
+  await flush(el);
+  expect(row('count').querySelector('.edit-input')).not.toBeNull();
+  expect(sets()).toEqual([]);
+});
+
+test('double-clicking a leaf value does what its button does', async () => {
+  const {el, child, sets} = await mountLeaves();
+  dblclick(child('on').querySelector('.t-value')!);
+  await flush(el);
+  expect(sets()).toEqual([
+    {type: 'set-prop', id: 2, name: 'config', value: false, keys: ['on']},
+  ]);
+  dblclick(child('name').querySelector('.t-value')!);
+  await flush(el);
+  expect(child('name').querySelector('.edit-input')).not.toBeNull();
+});
+
+test('double-clicking the edit button itself does not edit twice', async () => {
+  const {el, row, sets} = await mountSettable();
+  dblclick(row('disabled').querySelector('button.edit')!);
+  await flush(el);
+  expect(sets()).toEqual([]);
+});
+
+test('double-clicking a value that cannot be edited does nothing', async () => {
+  const {el, row, sets} = await mountSettable();
+  dblclick(row('config').querySelector('.val')!);
+  dblclick(row('long').querySelector('.val')!);
+  await flush(el);
+  expect(sets()).toEqual([]);
+  expect(row('config').querySelector('.edit-input')).toBeNull();
+  expect(row('long').querySelector('.edit-input')).toBeNull();
+});
+
+test('a snapshot ignores a double-click on a value', async () => {
+  document.body.replaceChildren();
+  setSnapshot(true);
+  const {el, row, sets} = await mountSettable();
+  dblclick(row('disabled').querySelector('.val')!);
+  dblclick(row('count').querySelector('.val')!);
+  await flush(el);
+  expect(sets()).toEqual([]);
+  expect(el.shadowRoot!.querySelector('.edit-input')).toBeNull();
+});

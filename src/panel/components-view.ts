@@ -219,6 +219,15 @@ const renderCode = (
 };
 
 /**
+ * A second press of a double-click would select a word; stopping it on
+ * mousedown leaves no selection to clear, and no flash of one. Only wired
+ * on editable values, so the rest stay selectable.
+ */
+const keepSelection = (e: MouseEvent): void => {
+  if (e.detail > 1) e.preventDefault();
+};
+
+/**
  * What an open value shows in place of its preview, since its children now
  * say the rest: `Array(3)`, `Map(2)`, a class name, or `Object`.
  */
@@ -916,8 +925,7 @@ export class ComponentsView extends LitElement {
       .child {
         position: relative;
       }
-      .copy,
-      .edit {
+      .copy {
         position: absolute;
         top: 0;
         right: 0;
@@ -930,9 +938,23 @@ export class ComponentsView extends LitElement {
         cursor: pointer;
         opacity: 0;
       }
+      /* Sits right after the value, so it is found where the eye already is. */
+      .edit {
+        display: inline-flex;
+        vertical-align: middle;
+        margin-left: var(--lit-devtools-space-1);
+        padding: 0 2px;
+        border: 0;
+        border-radius: 2px;
+        background: transparent;
+        color: var(--lit-devtools-text-muted);
+        cursor: pointer;
+        opacity: 0;
+      }
+      /* Direct children only: an ancestor's hover must not reveal a leaf's. */
       .entry:hover > .copy,
-      .entry:hover > .edit,
-      .child:hover > .edit,
+      .entry:hover > .val > .edit,
+      .child:hover > .t-value > .edit,
       .copy:focus-visible,
       .edit:focus-visible,
       .copy.copied {
@@ -948,14 +970,6 @@ export class ComponentsView extends LitElement {
       .copy:focus-visible,
       .edit:focus-visible {
         outline: 2px solid var(--lit-devtools-accent-ring);
-      }
-      /* Sits left of the copy button, which keeps the right edge. */
-      .edit {
-        right: calc(1em + 2 * var(--lit-devtools-space-2));
-      }
-      /* A leaf has no copy button, so its edit button keeps the right edge. */
-      .child > .edit {
-        right: 0;
       }
       .edit-input {
         box-sizing: border-box;
@@ -1732,13 +1746,17 @@ export class ComponentsView extends LitElement {
     const expandable = expand !== undefined && !this._snapshot;
     const editing =
       edit !== undefined && key !== undefined && this._editing === key;
+    const hooks = this._editHooks(key, edit);
     const open = expandable && this._expansion.isOpen(expand.path);
     return html`<div
       class="entry ${open || value.length > WIDE_VALUE ? 'wide' : ''}"
       data-key=${key ?? nothing}
     >
       <span class="name">${name}</span>
-      <span class="val ${code ? 'code' : ''} ${expandable ? 'has-caret' : ''}"
+      <span
+        class="val ${code ? 'code' : ''} ${expandable ? 'has-caret' : ''}"
+        @mousedown=${hooks.down}
+        @dblclick=${hooks.dbl}
         >${(() => {
           if (editing) return this._renderEditInput(key, edit);
           const caret = expandable
@@ -1746,17 +1764,32 @@ export class ComponentsView extends LitElement {
             : nothing;
           if (open) return html`${caret}${summarize(expand.type)}`;
           return code ? renderCode(value, caret) : html`${caret}${value}`;
-        })()}${trailing}${open ? this._renderLevel(expand.path) : nothing}</span
+        })()}${hooks.button}${trailing}${open ? this._renderLevel(expand.path) : nothing}</span
       >${
-        edit === undefined || key === undefined || editing
-          ? nothing
-          : this._renderEditButton(key, edit)
-      }${
         copy === undefined || key === undefined
           ? nothing
           : this._renderCopy(key, copy)
       }
     </div>`;
+  }
+
+  /**
+   * What an editable value wears: the edit button after it, and a
+   * double-click that does what the button does. All of it is absent for a
+   * value that cannot be edited, or is being edited now.
+   */
+  private _editHooks(key: string | undefined, edit: PropEdit | undefined) {
+    if (edit === undefined || key === undefined || this._editing === key)
+      return {down: nothing, dbl: nothing, button: nothing};
+    return {
+      down: keepSelection,
+      dbl: (e: Event) => {
+        if ((e.target as Element).closest('button') !== null) return;
+        if (edit.kind === 'boolean') this._setProp(edit, edit.text !== 'true');
+        else void this._startEdit(key);
+      },
+      button: this._renderEditButton(key, edit),
+    };
   }
 
   /**
@@ -1769,7 +1802,7 @@ export class ComponentsView extends LitElement {
       const next = edit.text !== 'true';
       return html`<button
         class="edit"
-        data-tip=${`Set to ${next}`}
+        data-tip=${`Set to ${next} (or double-click the value)`}
         aria-label=${`Set to ${next}`}
         @click=${() => this._setProp(edit, next)}
       >
@@ -1778,7 +1811,7 @@ export class ComponentsView extends LitElement {
     }
     return html`<button
       class="edit"
-      data-tip="Edit value"
+      data-tip="Edit value (or double-click it)"
       aria-label="Edit value"
       @click=${() => void this._startEdit(key)}
     >
@@ -1958,23 +1991,23 @@ export class ComponentsView extends LitElement {
         : undefined;
     const editKey = edit === undefined ? undefined : editKeyOf(edit);
     const editing = edit !== undefined && this._editing === editKey;
+    const hooks = this._editHooks(editKey, edit);
     return html`<div class="child" data-edit-key=${editKey ?? nothing}>
       ${
         c.expandable
           ? this._renderExpander(path, c.label)
           : html`<span class="expander-space"></span>`
       }<span class="t-key">${c.entry ? renderCode(c.label) : c.label}</span
-      ><span class="t-punct">${c.entry ? ' => ' : ': '}</span>${
-        editing
-          ? this._renderEditInput(editKey!, edit)
-          : open
-            ? summarize(c.type)
-            : renderCode(c.value)
-      }${open ? this._renderLevel(path) : nothing}${
-        edit === undefined || editing
-          ? nothing
-          : this._renderEditButton(editKey!, edit)
-      }
+      ><span class="t-punct">${c.entry ? ' => ' : ': '}</span
+      ><span class="t-value" @mousedown=${hooks.down} @dblclick=${hooks.dbl}
+        >${
+          editing
+            ? this._renderEditInput(editKey!, edit)
+            : open
+              ? summarize(c.type)
+              : renderCode(c.value)
+        }${hooks.button}</span
+      >${open ? this._renderLevel(path) : nothing}
     </div>`;
   }
 
