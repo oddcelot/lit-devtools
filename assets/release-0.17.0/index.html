@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #030308;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="45.999"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        id="el-01-title"
+        class="scene"
+        data-composition-id="01-title"
+        data-composition-src="compositions/frames/01-title.html"
+        data-start="0"
+        data-duration="4.118"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-02-docs"
+        class="scene"
+        data-composition-id="02-docs"
+        data-composition-src="compositions/frames/02-docs.html"
+        data-start="4.118"
+        data-duration="5.856"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-03-edit"
+        class="scene"
+        data-composition-id="03-edit"
+        data-composition-src="compositions/frames/03-edit.html"
+        data-start="9.974"
+        data-duration="5.856"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-04-overrides"
+        class="scene"
+        data-composition-id="04-overrides"
+        data-composition-src="compositions/frames/04-overrides.html"
+        data-start="15.83"
+        data-duration="5.855"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-05-everywhere"
+        class="scene"
+        data-composition-id="05-everywhere"
+        data-composition-src="compositions/frames/05-everywhere.html"
+        data-start="21.685000000000002"
+        data-duration="4.88"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-06-anatomy"
+        class="scene"
+        data-composition-id="06-anatomy"
+        data-composition-src="compositions/frames/06-anatomy.html"
+        data-start="26.565"
+        data-duration="6.831"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-07-css"
+        class="scene"
+        data-composition-id="07-css"
+        data-composition-src="compositions/frames/07-css.html"
+        data-start="33.396"
+        data-duration="3.904"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-08-fixes"
+        class="scene"
+        data-composition-id="08-fixes"
+        data-composition-src="compositions/frames/08-fixes.html"
+        data-start="37.3"
+        data-duration="3.904"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-09-lockup"
+        class="scene"
+        data-composition-id="09-lockup"
+        data-composition-src="compositions/frames/09-lockup.html"
+        data-start="41.20399999999999"
+        data-duration="4.795"
+        data-track-index="1"
+      ></div>
+
+      <!-- BGM -->
+      <audio
+        id="el-bgm"
+        src="assets/bgm/groche-energique.m4a"
+        data-start="0"
+        data-duration="45.999"
+        data-track-index="11"
+        data-volume="0.9"
+      ></audio>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

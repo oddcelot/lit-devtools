@@ -1,0 +1,231 @@
+<template id="f06-anatomy-template">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; }
+    [data-composition-id="06-anatomy"] * { box-sizing: border-box; margin: 0; }
+
+    #f06-anatomy-ground {
+      position: absolute; inset: 0;
+      background-color: #030308;
+      background-image: radial-gradient(circle 1000px at 1344px 430px, rgba(42, 44, 157, 0.35), rgba(42, 44, 157, 0) 100%);
+    }
+    #f06-anatomy-content { position: absolute; inset: 0; }
+    #f06-anatomy-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 1300px 540px; }
+
+    /* headline column */
+    #f06-anatomy-eyebrow { position: absolute; left: 115px; top: 230px; display: flex; gap: 10px; font-weight: 700; font-size: 18px; line-height: 22px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; white-space: nowrap; }
+    #f06-anatomy-eyebrow span { display: inline-block; opacity: 0; }
+    #f06-anatomy-eyebrow-2 { color: #00e8ff; }
+    [data-composition-id="06-anatomy"] .hl { position: absolute; left: 115px; width: 576px; font-weight: 800; font-size: 69px; line-height: 72.45px; height: 72.45px; letter-spacing: -0.03em; color: #ffffff; white-space: nowrap; opacity: 0; }
+    [data-composition-id="06-anatomy"] .hl em { font-style: normal; color: #00e8ff; }
+    #f06-anatomy-sub { position: absolute; left: 115px; top: 514px; width: 556px; font-weight: 500; font-size: 24px; line-height: 33.6px; color: #a1a1a1; opacity: 0; }
+
+    /* anatomy slots box */
+    #f06-anatomy-box { position: absolute; left: 115px; top: 611px; width: 576px; height: 300px; background: #121212; border: 1px solid #363636; border-radius: 12px; box-shadow: 0 30px 70px rgba(0, 0, 0, 0.55); opacity: 0; }
+    #f06-anatomy-box-label { position: absolute; left: 27px; top: 24px; font-weight: 700; font-size: 15px; line-height: 20px; letter-spacing: 0.12em; color: #616161; text-transform: uppercase; opacity: 0; }
+    [data-composition-id="06-anatomy"] .srow { position: absolute; left: 15px; right: 15px; height: 44px; border-radius: 6px; display: flex; align-items: center; gap: 22px; padding: 0 12px; opacity: 0; }
+    [data-composition-id="06-anatomy"] .srow .nm { font-family: "Roboto Mono", monospace; font-size: 20px; color: #b2ccd6; min-width: 120px; }
+    [data-composition-id="06-anatomy"] .srow .ds { font-weight: 500; font-size: 18px; color: #a1a1a1; }
+    #f06-anatomy-row-hl { position: absolute; left: 15px; right: 15px; top: 60px; height: 44px; border-radius: 6px; background: rgba(0, 232, 255, 0.1); box-shadow: inset 4px 0 0 #00e8ff; opacity: 0; }
+    #f06-anatomy-foot { position: absolute; left: 15px; right: 15px; top: 228px; height: 56px; border-top: 1px solid #363636; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; opacity: 0; }
+    #f06-anatomy-foot-label { font-weight: 600; font-size: 17px; color: #a1a1a1; }
+    #f06-anatomy-toggle { position: relative; width: 46px; height: 26px; border-radius: 99px; background: #292929; border: 1px solid #363636; }
+    #f06-anatomy-knob { position: absolute; left: 3px; top: 3px; width: 18px; height: 18px; border-radius: 50%; background: #a1a1a1; }
+
+    /* Fernhouse page panel + card */
+    #f06-anatomy-panel { position: absolute; left: 806px; top: 115px; width: 998px; height: 845px; background: #f6f3ec; border-radius: 12px; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
+    #f06-anatomy-card { position: absolute; left: 307px; top: 134px; width: 384px; height: 576px; background: #ffffff; border: 1px solid #e3ded2; border-radius: 10px; overflow: hidden; }
+    [data-composition-id="06-anatomy"] .card-media { position: absolute; left: 0; top: 0; width: 100%; height: 317px; background: linear-gradient(135deg, #bcd3b8, #6f9a74); }
+    [data-composition-id="06-anatomy"] .card-leaf { position: absolute; border-radius: 0 100% 0 100%; background: rgba(47, 111, 78, 0.35); }
+    [data-composition-id="06-anatomy"] .card-badge { position: absolute; left: 19px; top: 22px; padding: 5px 13px; border-radius: 99px; background: #2f6f4e; color: #ffffff; font-weight: 700; font-size: 15px; line-height: 18px; }
+    [data-composition-id="06-anatomy"] .card-title { position: absolute; left: 23px; top: 343px; font-weight: 700; font-size: 23px; line-height: 30px; color: #1f2a1f; white-space: nowrap; }
+    [data-composition-id="06-anatomy"] .card-price { position: absolute; right: 23px; top: 346px; font-family: "Roboto Mono", monospace; font-size: 21px; line-height: 26px; color: #1f2a1f; }
+    [data-composition-id="06-anatomy"] .card-desc { position: absolute; left: 23px; top: 384px; font-weight: 500; font-size: 16px; line-height: 22px; color: #5f6b5c; white-space: nowrap; }
+    [data-composition-id="06-anatomy"] .card-cta { position: absolute; left: 23px; top: 476px; width: 154px; height: 60px; border: 1.5px solid #2f6f4e; border-radius: 6px; color: #2f6f4e; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; }
+
+    /* overlay */
+    #f06-anatomy-svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    [data-composition-id="06-anatomy"] .lead { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+    [data-composition-id="06-anatomy"] .region { fill: rgba(50, 79, 255, 0.07); stroke: #324fff; stroke-width: 2; opacity: 0; }
+    [data-composition-id="06-anatomy"] .dot { opacity: 0; }
+    #f06-anatomy-media-outline { fill: none; stroke: #00e8ff; stroke-width: 4; filter: drop-shadow(0 0 10px rgba(0, 232, 255, 0.7)); }
+    #f06-anatomy-media-tint { fill: rgba(0, 232, 255, 0.1); opacity: 0; }
+    [data-composition-id="06-anatomy"] .pill { position: absolute; height: 34px; padding: 0 14px; border-radius: 5px; font-family: "Roboto Mono", monospace; font-size: 18px; line-height: 34px; color: #ffffff; white-space: nowrap; box-shadow: 0 8px 20px rgba(31, 42, 31, 0.22); opacity: 0; }
+    [data-composition-id="06-anatomy"] .pill-accent { background: #4d63ff; }
+    [data-composition-id="06-anatomy"] .pill-deep { background: #324fff; }
+
+    #f06-anatomy-pointer { position: absolute; left: 330px; top: 697px; width: 24px; height: 24px; opacity: 0; filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.7)); }
+  </style>
+
+  <div data-hf-id="hf-pq2d" id="root" data-composition-id="06-anatomy" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-2sj8" id="f06-anatomy-ground" class="clip" data-start="0" data-duration="6.831" data-track-index="0"></div>
+
+    <div data-hf-id="hf-uiav" id="f06-anatomy-content" class="clip" data-start="0" data-duration="6.831" data-track-index="1">
+      <div data-hf-id="hf-twnu" id="f06-anatomy-stage">
+        <!-- headline column -->
+        <div data-hf-id="hf-ky69" id="f06-anatomy-eyebrow"><span data-hf-id="hf-1b48" id="f06-anatomy-eyebrow-1">Added</span><span data-hf-id="hf-nv1y" id="f06-anatomy-eyebrow-2">+ Changed</span></div>
+        <div data-hf-id="hf-1yc1" class="hl" id="f06-anatomy-hl-1" style="top: 273px">Hover a slot.</div>
+        <div data-hf-id="hf-pwbs" class="hl" id="f06-anatomy-hl-2" style="top: 345.45px"><em data-hf-id="hf-8kqc">See it on</em></div>
+        <div data-hf-id="hf-hsdj" class="hl" id="f06-anatomy-hl-3" style="top: 417.9px"><em data-hf-id="hf-5s09">the page.</em></div>
+        <div data-hf-id="hf-f4rd" id="f06-anatomy-sub">Anatomy labels now sit beside the component, with lines to their regions.</div>
+
+        <!-- Anatomy slots box -->
+        <div data-hf-id="hf-2f5f" id="f06-anatomy-box">
+          <div data-hf-id="hf-ex7b" id="f06-anatomy-box-label">Anatomy · Slots</div>
+          <div data-hf-id="hf-mnm5" id="f06-anatomy-row-hl"></div>
+          <div data-hf-id="hf-1zjh" class="srow" id="f06-anatomy-row-1" style="top: 60px"><span data-hf-id="hf-u5p3" class="nm" id="f06-anatomy-row-1-nm">media</span><span data-hf-id="hf-0yxc" class="ds">A product photo.</span></div>
+          <div data-hf-id="hf-unlo" class="srow" id="f06-anatomy-row-2" style="top: 112px"><span data-hf-id="hf-ce36" class="nm">(default)</span><span data-hf-id="hf-ulnc" class="ds">Short description.</span></div>
+          <div data-hf-id="hf-6dec" class="srow" id="f06-anatomy-row-3" style="top: 164px"><span data-hf-id="hf-n1wv" class="nm">price</span><span data-hf-id="hf-86fd" class="ds">A sale price.</span></div>
+          <div data-hf-id="hf-rnxo" id="f06-anatomy-foot">
+            <span data-hf-id="hf-xdwz" id="f06-anatomy-foot-label">Anatomy overlay</span>
+            <div data-hf-id="hf-u0ic" id="f06-anatomy-toggle"><div data-hf-id="hf-dqs4" id="f06-anatomy-knob"></div></div>
+          </div>
+        </div>
+
+        <!-- Fernhouse page -->
+        <div data-hf-id="hf-r9oa" id="f06-anatomy-panel">
+          <div data-hf-id="hf-uqxu" id="f06-anatomy-card">
+            <div data-hf-id="hf-5ro5" class="card-media">
+              <div data-hf-id="hf-m4w6" class="card-leaf" style="left: 150px; top: 70px; width: 120px; height: 120px; transform: rotate(-20deg)"></div>
+              <div data-hf-id="hf-7rme" class="card-leaf" style="left: 110px; top: 150px; width: 100px; height: 100px; transform: rotate(60deg)"></div>
+              <div data-hf-id="hf-uywj" class="card-leaf" style="left: 200px; top: 160px; width: 96px; height: 96px; transform: rotate(-5deg)"></div>
+            </div>
+            <div data-hf-id="hf-iw0i" class="card-badge">New</div>
+            <div data-hf-id="hf-u8j3" class="card-title">Fiddle Leaf</div>
+            <div data-hf-id="hf-y4og" class="card-price">€19</div>
+            <div data-hf-id="hf-83q5" class="card-desc">Ficus lyrata · 40 cm pot</div>
+            <div data-hf-id="hf-ngdv" class="card-cta">Add to cart</div>
+          </div>
+        </div>
+
+        <!-- overlay: media outline, regions, leader lines -->
+        <svg data-hf-id="hf-xj4v" id="f06-anatomy-svg" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+          <rect data-hf-id="hf-1dz2" id="f06-anatomy-media-tint" x="1114" y="250" width="382" height="316" />
+          <rect data-hf-id="hf-v6nl" id="f06-anatomy-media-outline" x="1116" y="252" width="378" height="312" rx="8" />
+
+          <rect data-hf-id="hf-6zf8" class="region" id="f06-anatomy-reg-title" x="1126" y="588" width="144" height="38" rx="5" />
+          <rect data-hf-id="hf-n0dz" class="region" id="f06-anatomy-reg-price" x="1428" y="592" width="56" height="34" rx="5" />
+          <rect data-hf-id="hf-amvz" class="region" id="f06-anatomy-reg-cta" x="1132" y="721" width="164" height="68" rx="7" />
+
+          <path data-hf-id="hf-6s0u" class="lead" id="f06-anatomy-lead-media" d="M 1062 408 L 1140 408" stroke="#4d63ff" />
+          <path data-hf-id="hf-7th0" class="lead" id="f06-anatomy-lead-title" d="M 1554 578 L 1300 578 L 1270 598" stroke="#324fff" />
+          <path data-hf-id="hf-6fzz" class="lead" id="f06-anatomy-lead-price" d="M 1554 640 L 1518 640 L 1485 616" stroke="#324fff" />
+          <path data-hf-id="hf-a1q9" class="lead" id="f06-anatomy-lead-cta" d="M 1554 755 L 1297 755" stroke="#324fff" />
+
+          <circle data-hf-id="hf-0kbj" class="dot" id="f06-anatomy-dot-media" cx="1140" cy="408" r="6" fill="#4d63ff" stroke="#ffffff" stroke-width="2" />
+          <circle data-hf-id="hf-0s3i" class="dot" id="f06-anatomy-dot-title" cx="1270" cy="598" r="5" fill="#324fff" stroke="#ffffff" stroke-width="2" />
+          <circle data-hf-id="hf-jlq4" class="dot" id="f06-anatomy-dot-price" cx="1485" cy="616" r="5" fill="#324fff" stroke="#ffffff" stroke-width="2" />
+          <circle data-hf-id="hf-bpja" class="dot" id="f06-anatomy-dot-cta" cx="1297" cy="755" r="5" fill="#324fff" stroke="#ffffff" stroke-width="2" />
+        </svg>
+
+        <!-- label pills (gutter columns) -->
+        <div data-hf-id="hf-uuwa" class="pill pill-accent" id="f06-anatomy-pill-media" style="right: 858px; top: 391px">slot media</div>
+        <div data-hf-id="hf-rtg1" class="pill pill-deep" id="f06-anatomy-pill-title" style="left: 1556px; top: 561px">part title</div>
+        <div data-hf-id="hf-83ux" class="pill pill-deep" id="f06-anatomy-pill-price" style="left: 1556px; top: 623px">slot price</div>
+        <div data-hf-id="hf-prit" class="pill pill-deep" id="f06-anatomy-pill-cta" style="left: 1556px; top: 738px">part cta</div>
+
+        <!-- pointer -->
+        <svg data-hf-id="hf-ptqp" id="f06-anatomy-pointer" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path data-hf-id="hf-x884" d="M2 1 L2 20 L7 15.5 L10.5 23 L14 21.5 L10.6 14.2 L17.5 14.2 Z" fill="#ffffff" stroke="#111111" stroke-width="1.2" stroke-linejoin="round" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var P = "f06-anatomy-";
+      function $(n) { return document.getElementById(P + n); }
+      var F = 1 / 60;
+      var tl = gsap.timeline({ paused: true });
+
+      // Slow push under the whole shot (macro camera move).
+      tl.fromTo($("stage"), { scale: 1 }, { scale: 1.014, duration: 6.545, ease: "none" }, 0);
+
+      // ── Scene 1 (0–1.09): page panel set, eyebrow on beat 0, headline on beat 0.55
+      tl.fromTo($("panel"), { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0);
+      var e0 = 0.02;
+      tl.set($("eyebrow-1"), { opacity: 1, y: 30 }, e0);
+      tl.to($("eyebrow-1"), { y: 0, duration: 0.14, ease: "power4.out" }, e0);
+      tl.set($("eyebrow-2"), { opacity: 1, y: 34 }, e0 + 0.14 - F);
+      tl.to($("eyebrow-2"), { y: 0, duration: 0.14, ease: "power4.out" }, e0 + 0.14 - F);
+
+      var h0 = 0.55;
+      tl.set($("hl-1"), { opacity: 1, y: 70 }, h0);
+      tl.to($("hl-1"), { y: 0, duration: 0.2, ease: "power4.out" }, h0);
+      var h1 = h0 + 0.2 + F;
+      tl.set($("hl-2"), { opacity: 1, y: 60 }, h1);
+      tl.to($("hl-2"), { y: 0, duration: 0.17, ease: "power4.out" }, h1);
+      var h2 = h1 + 0.17 - F;
+      tl.set($("hl-3"), { opacity: 1, y: 72 }, h2);
+      tl.to($("hl-3"), { y: 0, duration: 0.16, ease: "power4.out" }, h2);
+
+      // ── Scene 2 (1.09–2.73): Anatomy box waterfalls in, pointer glides onto `media`
+      var b0 = 1.09;
+      tl.set($("box"), { opacity: 1, y: 80 }, b0);
+      tl.to($("box"), { y: 0, duration: 0.2, ease: "power4.out" }, b0);
+      var b1 = b0 + 0.2 - F;
+      tl.set($("box-label"), { opacity: 1, y: 30 }, b1);
+      tl.to($("box-label"), { y: 0, duration: 0.12, ease: "power4.out" }, b1);
+      var rt = b1 + 0.12 - F;
+      ["row-1", "row-2", "row-3"].forEach(function (id, i) {
+        var t = rt + i * (0.14 - F);
+        tl.set($(id), { opacity: 1, y: 42 }, t);
+        tl.to($(id), { y: 0, duration: 0.14, ease: "power4.out" }, t);
+      });
+      var ft = rt + 3 * (0.14 - F);
+      tl.set($("foot"), { opacity: 1, y: 30 }, ft);
+      tl.to($("foot"), { y: 0, duration: 0.12, ease: "power4.out" }, ft);
+
+      tl.fromTo($("pointer"), { opacity: 0, x: 300, y: 230 }, { opacity: 1, duration: 0.15, ease: "power1.out" }, 1.4);
+      tl.to($("pointer"), { x: 0, y: 0, duration: 0.72, ease: "power3.inOut" }, 1.46);
+
+      // beat 2.18: row lights + cyan outline traces the media region
+      var hv = 2.18;
+      tl.fromTo($("row-hl"), { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, hv);
+      tl.fromTo($("row-1-nm"), { color: "#b2ccd6" }, { color: "#00e8ff", duration: 0.12, ease: "power1.out" }, hv);
+      var outline = $("media-outline");
+      var oLen = outline.getTotalLength() * 1.02;
+      tl.fromTo(outline, { strokeDasharray: oLen, strokeDashoffset: oLen }, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, hv);
+      tl.fromTo($("media-tint"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, hv + 0.2);
+
+      // ── Scene 3 (2.73–5.45): overlay on, sub reveals, labels land one per beat
+      var ov = 2.73;
+      tl.fromTo($("knob"), { x: 0, backgroundColor: "#a1a1a1" }, { x: 20, backgroundColor: "#ffffff", duration: 0.2, ease: "power3.out" }, ov);
+      tl.fromTo($("toggle"), { backgroundColor: "#292929", borderColor: "#363636" }, { backgroundColor: "#4d63ff", borderColor: "#4d63ff", duration: 0.2, ease: "power1.out" }, ov);
+      tl.fromTo($("foot-label"), { color: "#a1a1a1" }, { color: "#e3e3e3", duration: 0.2, ease: "power1.out" }, ov);
+      tl.set($("sub"), { opacity: 1, y: 40 }, ov);
+      tl.to($("sub"), { y: 0, duration: 0.18, ease: "power4.out" }, ov);
+
+      var labels = [
+        { k: "media", t: 3.27, dx: 40, region: null },
+        { k: "title", t: 3.82, dx: -40, region: "reg-title" },
+        { k: "price", t: 4.36, dx: -40, region: "reg-price" },
+        { k: "cta", t: 4.91, dx: -40, region: "reg-cta" }
+      ];
+      labels.forEach(function (L) {
+        var lead = $("lead-" + L.k);
+        var len = lead.getTotalLength();
+        tl.fromTo($("pill-" + L.k), { opacity: 0, x: L.dx }, { opacity: 1, x: 0, duration: 0.3, ease: "power3.out" }, L.t);
+        tl.fromTo(lead, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.38, ease: "power2.out" }, L.t + 0.06);
+        tl.fromTo($("dot-" + L.k), { opacity: 0, scale: 0, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, duration: 0.16, ease: "back.out(2)" }, L.t + 0.4);
+        if (L.region) {
+          tl.fromTo($(L.region), { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" }, L.t + 0.38);
+        }
+      });
+
+      // ── Scene 4 (5.45–6.545): held read; the push keeps it alive. No exit.
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["06-anatomy"] = tlOuter;
+    })();
+  </script>
+</template>

@@ -1,0 +1,302 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; color: #e3e3e3; }
+    #root * { box-sizing: border-box; }
+
+    .\30 3-edit-ground { position: absolute; inset: 0; background: radial-gradient(circle 1000px at 1344px 430px, rgba(42,44,157,0.35), rgba(42,44,157,0) 100%), #030308; }
+    .\30 3-edit-stage { position: absolute; inset: 0; }
+
+    /* headline column */
+    .\30 3-edit-eyebrow { position: absolute; left: 115px; top: 230px; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; }
+    .\30 3-edit-hl { position: absolute; left: 115px; top: 273px; width: 576px; font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em; color: #ffffff; }
+    .\30 3-edit-line { display: block; white-space: nowrap; }
+    .\30 3-edit-cy { color: #00e8ff; }
+    .\30 3-edit-sub { position: absolute; left: 115px; top: 442px; width: 556px; font-weight: 500; font-size: 24px; line-height: 1.4; color: #a1a1a1; opacity: 0; }
+
+    /* Fernhouse page panel */
+    .\30 3-edit-page { position: absolute; left: 115px; top: 560px; width: 576px; height: 400px; background: #f6f3ec; border-radius: 12px; box-shadow: 0 29px 58px rgba(0,0,0,0.8); opacity: 0; }
+    .\30 3-edit-hilite { position: absolute; left: 137px; top: 22px; width: 302px; height: 356px; border: 2px solid #4d63ff; border-radius: 14px; background: rgba(77,99,255,0.06); opacity: 0; }
+    .\30 3-edit-card { position: absolute; left: 143px; top: 28px; width: 290px; height: 344px; background: #ffffff; border: 1px solid #e3ded2; border-radius: 10px; overflow: hidden; }
+    .\30 3-edit-media { position: absolute; left: 0; top: 0; right: 0; height: 55%; background: linear-gradient(135deg, #bcd3b8, #6f9a74); }
+    .\30 3-edit-badge { position: absolute; left: 14px; top: 14px; background: #2f6f4e; color: #ffffff; font-weight: 700; font-size: 13px; line-height: 18px; padding: 4px 11px; border-radius: 99px; }
+    .\30 3-edit-ctitle { position: absolute; left: 18px; top: 207px; font-weight: 700; font-size: 22px; line-height: 30px; color: #1f2a1f; white-space: nowrap; border-radius: 4px; }
+    .\30 3-edit-cprice { position: absolute; right: 18px; top: 208px; font-family: "Roboto Mono", monospace; font-size: 20px; line-height: 28px; color: #1f2a1f; border-radius: 4px; }
+    .\30 3-edit-cta { position: absolute; left: 18px; right: 18px; bottom: 18px; height: 42px; border: 1.5px solid #2f6f4e; border-radius: 6px; color: #2f6f4e; background: #ffffff; font-weight: 700; font-size: 15px; line-height: 39px; text-align: center; }
+    .\30 3-edit-cta.\30 3-edit-soldout { border-color: #c9c4b8; color: #6e6a63; background: #efece5; }
+
+    /* DevTools window (Stage spec geometry, identical to 02/04) */
+    .\30 3-edit-win { position: absolute; left: 768px; top: 86px; width: 1056px; height: 912px; background: #121212; border: 1px solid #363636; border-radius: 15px; box-shadow: 0 38px 96px rgba(0,0,0,0.65); }
+    .\30 3-edit-bar { position: absolute; left: 0; top: 0; right: 0; height: 56px; background: #1c1c1c; border-bottom: 1px solid #363636; border-radius: 15px 15px 0 0; }
+    .\30 3-edit-flame { position: absolute; left: 31px; top: 17px; height: 22px; width: auto; }
+    .\30 3-edit-brand { position: absolute; left: 58px; top: 0; line-height: 55px; font-weight: 800; font-size: 18px; letter-spacing: 0.12em; color: #e3e3e3; white-space: nowrap; }
+    .\30 3-edit-tabs { position: absolute; left: 250px; top: 0; height: 55px; display: flex; gap: 38px; }
+    .\30 3-edit-tab { position: relative; line-height: 55px; font-weight: 600; font-size: 17px; color: #a1a1a1; white-space: nowrap; }
+    .\30 3-edit-on { color: #4d63ff; }
+    .\30 3-edit-on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #4d63ff; }
+    .\30 3-edit-ver { position: absolute; right: 27px; top: 13px; font-family: "Roboto Mono", monospace; font-size: 16px; line-height: 22px; color: #00e8ff; border: 1px solid rgba(0,232,255,0.4); border-radius: 99px; padding: 3px 15px; }
+
+    .\30 3-edit-tree { position: absolute; left: 0; top: 56px; width: 288px; bottom: 0; border-right: 1px solid #363636; padding: 23px; font-family: "Roboto Mono", monospace; font-size: 17px; color: #a1a1a1; }
+    .\30 3-edit-trow { position: relative; z-index: 1; line-height: 40px; height: 40px; white-space: nowrap; }
+    .\30 3-edit-d1 { padding-left: 12px; }
+    .\30 3-edit-selrow { color: #ffffff; }
+    .\30 3-edit-sel { position: absolute; left: 0; top: 143px; width: 287px; height: 40px; background: rgba(77,99,255,0.16); box-shadow: inset 4px 0 0 #4d63ff; }
+
+    .\30 3-edit-det { position: absolute; left: 288px; top: 56px; right: 0; bottom: 0; padding: 27px 35px; }
+    .\30 3-edit-dh { font-family: "Roboto Mono", monospace; font-size: 23px; line-height: 30px; color: #89ddff; margin-bottom: 6px; }
+    .\30 3-edit-src { font-family: "Roboto Mono", monospace; font-size: 14px; line-height: 20px; color: #616161; margin-bottom: 8px; }
+    .\30 3-edit-sec { margin-top: 15px; padding-top: 15px; padding-bottom: 10px; border-top: 1px solid #363636; font-weight: 700; font-size: 15px; line-height: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: #616161; }
+    .\30 3-edit-row { display: flex; align-items: center; gap: 19px; height: 36px; width: max-content; font-family: "Roboto Mono", monospace; font-size: 18px; line-height: 36px; color: #b2ccd6; white-space: nowrap; }
+    .\30 3-edit-nest { padding-left: 26px; opacity: 0; }
+    .\30 3-edit-vw { display: inline-flex; align-items: center; gap: 10px; }
+    .\30 3-edit-val { display: inline-block; line-height: 28px; border-radius: 4px; }
+    .\30 3-edit-s { color: #c3e88d; }
+    .\30 3-edit-n { color: #f78c6c; }
+    .\30 3-edit-k { color: #c792ea; min-width: 54px; }
+    .\30 3-edit-d { font-family: "Manrope", sans-serif; font-weight: 500; font-size: 16px; color: #a1a1a1; }
+    .\30 3-edit-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #292929; }
+    .\30 3-edit-btn svg { width: 14px; height: 14px; }
+    .\30 3-edit-input { display: none; align-items: center; height: 30px; min-width: 150px; padding: 0 10px; border: 1px solid #4d63ff; background: #0a0a14; border-radius: 5px; color: #c3e88d; box-shadow: 0 0 0 3px rgba(77,99,255,0.18); }
+    .\30 3-edit-input.\30 3-edit-num { min-width: 72px; color: #f78c6c; }
+    .\30 3-edit-pick { background: rgba(77,99,255,0.45); color: #ffffff; }
+    .\30 3-edit-caret { display: inline-block; width: 2px; height: 20px; margin-left: 1px; background: #e3e3e3; }
+    .\30 3-edit-tri { display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -1px; }
+    .\30 3-edit-meta { display: inline-flex; align-items: center; }
+
+    .\30 3-edit-ring { position: absolute; width: 40px; height: 40px; margin: -20px 0 0 -20px; border: 2px solid #00e8ff; border-radius: 50%; box-shadow: 0 0 14px rgba(0,232,255,0.5); opacity: 0; pointer-events: none; z-index: 40; }
+    .\30 3-edit-ptr { position: absolute; left: -3px; top: -2px; width: 24px; height: 24px; transform-origin: 3px 2px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)); pointer-events: none; z-index: 50; }
+  </style>
+
+  <div data-hf-id="hf-eq5v" id="root" data-composition-id="03-edit" data-start="0" data-duration="5.856" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-hita" id="f03-edit-ground" class="03-edit-ground clip" data-start="0" data-duration="5.856" data-track-index="0"></div>
+
+    <div data-hf-id="hf-xk09" id="f03-edit-stage" class="03-edit-stage clip" data-start="0" data-duration="5.856" data-track-index="1">
+      <div data-hf-id="hf-aokk" class="03-edit-eyebrow">Added</div>
+      <div data-hf-id="hf-sinl" class="03-edit-hl">
+        <span data-hf-id="hf-t7yw" class="03-edit-line">Edit a prop.</span>
+        <span data-hf-id="hf-beeu" class="03-edit-line 03-edit-cy">Watch the page.</span>
+      </div>
+      <div data-hf-id="hf-gjy8" class="03-edit-sub" id="f03-edit-sub">Strings, numbers, booleans. Also inside objects, arrays and Maps.</div>
+
+      <!-- the bound target: Fernhouse page card -->
+      <div data-hf-id="hf-59ws" class="03-edit-page" id="f03-edit-page">
+        <div data-hf-id="hf-dqos" class="03-edit-hilite" id="f03-edit-hilite"></div>
+        <div data-hf-id="hf-rb9u" class="03-edit-card" id="f03-edit-card">
+          <div data-hf-id="hf-o4yj" class="03-edit-media"></div>
+          <div data-hf-id="hf-wilg" class="03-edit-badge">New</div>
+          <div data-hf-id="hf-1ywd" class="03-edit-ctitle" id="f03-edit-ctitle">Monstera</div>
+          <div data-hf-id="hf-mx58" class="03-edit-cprice" id="f03-edit-cprice">€24</div>
+          <div data-hf-id="hf-fwg6" class="03-edit-cta" id="f03-edit-cta">Add to cart</div>
+        </div>
+      </div>
+
+      <!-- the bound panel: Lit DevTools window -->
+      <div data-hf-id="hf-fz3h" class="03-edit-win">
+        <div data-hf-id="hf-wx40" class="03-edit-bar">
+          <img data-hf-id="hf-n5eu" class="03-edit-flame" src="assets/flame.svg" alt="">
+          <div data-hf-id="hf-i3q5" class="03-edit-brand">LIT DEVTOOLS</div>
+          <div data-hf-id="hf-hs79" class="03-edit-tabs">
+            <span data-hf-id="hf-u8ot" class="03-edit-tab 03-edit-on">Components</span>
+            <span data-hf-id="hf-htdl" class="03-edit-tab">Updates</span>
+            <span data-hf-id="hf-q5si" class="03-edit-tab">Timeline</span>
+            <span data-hf-id="hf-278c" class="03-edit-tab">Settings</span>
+          </div>
+          <div data-hf-id="hf-21es" class="03-edit-ver">0.17.0</div>
+        </div>
+
+        <div data-hf-id="hf-vt49" class="03-edit-tree">
+          <div data-hf-id="hf-07bj" class="03-edit-sel"></div>
+          <div data-hf-id="hf-qlqx" class="03-edit-trow">fh-app</div>
+          <div data-hf-id="hf-r015" class="03-edit-trow 03-edit-d1">fh-header</div>
+          <div data-hf-id="hf-9oow" class="03-edit-trow 03-edit-d1">fh-search</div>
+          <div data-hf-id="hf-w35d" class="03-edit-trow 03-edit-d1 03-edit-selrow">fh-product-card</div>
+          <div data-hf-id="hf-wvn4" class="03-edit-trow 03-edit-d1">fh-product-card</div>
+          <div data-hf-id="hf-inex" class="03-edit-trow 03-edit-d1">fh-cart-button</div>
+          <div data-hf-id="hf-sdij" class="03-edit-trow 03-edit-d1">fh-toast</div>
+        </div>
+
+        <div data-hf-id="hf-7mz4" class="03-edit-det">
+          <div data-hf-id="hf-d1de" class="03-edit-dh">&lt;fh-product-card&gt;</div>
+          <div data-hf-id="hf-r7kg" class="03-edit-src">src/components/product-card.ts:4</div>
+          <div data-hf-id="hf-9il9" class="03-edit-sec">Properties</div>
+
+          <div data-hf-id="hf-bdcv" class="03-edit-row"><span data-hf-id="hf-jfkq">name</span>
+            <span data-hf-id="hf-gep2" class="03-edit-vw" id="f03-edit-namevw"><span data-hf-id="hf-xhkf" class="03-edit-val 03-edit-s" id="f03-edit-nameval">"Monstera"</span><span data-hf-id="hf-mv8c" class="03-edit-btn" id="f03-edit-namebtn"><svg data-hf-id="hf-2r17" viewBox="0 0 14 14"><path data-hf-id="hf-pr2c" d="M2 12 L2.6 9.4 L9.4 2.6 L11.4 4.6 L4.6 11.4 Z M8.3 3.7 L10.3 5.7" fill="none" stroke="#00e8ff" stroke-width="1.4" stroke-linejoin="round" /></svg></span></span>
+            <span data-hf-id="hf-5r4l" class="03-edit-input" id="f03-edit-namein"><span data-hf-id="hf-dd6g" id="f03-edit-nametxt"></span><span data-hf-id="hf-y6co" class="03-edit-caret" id="f03-edit-caret1"></span></span>
+          </div>
+          <div data-hf-id="hf-hhwf" class="03-edit-row"><span data-hf-id="hf-rsme">price</span>
+            <span data-hf-id="hf-lo18" class="03-edit-vw" id="f03-edit-pricevw"><span data-hf-id="hf-ugv7" class="03-edit-val 03-edit-n" id="f03-edit-priceval">24</span><span data-hf-id="hf-bj9g" class="03-edit-btn"><svg data-hf-id="hf-m8bf" viewBox="0 0 14 14"><path data-hf-id="hf-fjp8" d="M2 12 L2.6 9.4 L9.4 2.6 L11.4 4.6 L4.6 11.4 Z M8.3 3.7 L10.3 5.7" fill="none" stroke="#00e8ff" stroke-width="1.4" stroke-linejoin="round" /></svg></span></span>
+            <span data-hf-id="hf-7rl2" class="03-edit-input 03-edit-num" id="f03-edit-pricein"><span data-hf-id="hf-168c" id="f03-edit-pricetxt"></span><span data-hf-id="hf-6u8j" class="03-edit-caret" id="f03-edit-caret2"></span></span>
+          </div>
+          <div data-hf-id="hf-h3le" class="03-edit-row"><span data-hf-id="hf-b644">badge</span>
+            <span data-hf-id="hf-uhm9" class="03-edit-vw"><span data-hf-id="hf-hzd1" class="03-edit-val 03-edit-s">"New"</span><span data-hf-id="hf-r81o" class="03-edit-btn"><svg data-hf-id="hf-lu0e" viewBox="0 0 14 14"><path data-hf-id="hf-ecs5" d="M2 12 L2.6 9.4 L9.4 2.6 L11.4 4.6 L4.6 11.4 Z M8.3 3.7 L10.3 5.7" fill="none" stroke="#00e8ff" stroke-width="1.4" stroke-linejoin="round" /></svg></span></span>
+          </div>
+          <div data-hf-id="hf-gpad" class="03-edit-row"><span data-hf-id="hf-ef04">inStock</span>
+            <span data-hf-id="hf-2751" class="03-edit-vw"><span data-hf-id="hf-2qnh" class="03-edit-val 03-edit-k" id="f03-edit-stockval">true</span><span data-hf-id="hf-r8kj" class="03-edit-btn" id="f03-edit-stockbtn"><svg data-hf-id="hf-lfpd" viewBox="0 0 14 14"><path data-hf-id="hf-7xtq" d="M2 4.5 H11.5 M9 2 L11.5 4.5 L9 7 M12 9.5 H2.5 M5 7 L2.5 9.5 L5 12" fill="none" stroke="#00e8ff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg></span></span>
+          </div>
+          <div data-hf-id="hf-jhfk" class="03-edit-row"><span data-hf-id="hf-1pv2" class="03-edit-meta"><svg data-hf-id="hf-e6fw" class="03-edit-tri" id="f03-edit-tri" viewBox="0 0 14 14"><path data-hf-id="hf-cd5g" d="M4.5 2.5 L10 7 L4.5 11.5 Z" fill="#a1a1a1" /></svg>meta</span><span data-hf-id="hf-ggdb" class="03-edit-d">Object</span></div>
+          <div data-hf-id="hf-qug9" class="03-edit-row 03-edit-nest" id="f03-edit-nest"><span data-hf-id="hf-1t3f">light</span>
+            <span data-hf-id="hf-3e24" class="03-edit-vw"><span data-hf-id="hf-2lwh" class="03-edit-val 03-edit-s">"bright"</span><span data-hf-id="hf-q14l" class="03-edit-btn"><svg data-hf-id="hf-l1ec" viewBox="0 0 14 14"><path data-hf-id="hf-er36" d="M2 12 L2.6 9.4 L9.4 2.6 L11.4 4.6 L4.6 11.4 Z M8.3 3.7 L10.3 5.7" fill="none" stroke="#00e8ff" stroke-width="1.4" stroke-linejoin="round" /></svg></span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- click ripples, live in DOM from t=0 at each click point -->
+      <div data-hf-id="hf-f5gf" class="03-edit-ring" id="f03-edit-r1" style="left:1265px;top:421px"></div>
+      <div data-hf-id="hf-8085" class="03-edit-ring" id="f03-edit-r2" style="left:1286px;top:313px"></div>
+      <div data-hf-id="hf-xv8b" class="03-edit-ring" id="f03-edit-r3" style="left:1176px;top:349px"></div>
+      <div data-hf-id="hf-p7g4" class="03-edit-ring" id="f03-edit-r4" style="left:1176px;top:349px"></div>
+      <div data-hf-id="hf-2ufq" class="03-edit-ring" id="f03-edit-r5" style="left:1133px;top:457px"></div>
+
+      <svg data-hf-id="hf-e06e" class="03-edit-ptr" id="f03-edit-ptr" viewBox="0 0 24 24"><path data-hf-id="hf-2f4j" d="M3 2 L3 20 L8 15.5 L11.5 22.5 L14.5 21 L11 14.5 L18 14.5 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2" stroke-linejoin="round" /></svg>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById("f03-edit-" + id); };
+      var DUR = 5.454;
+      var tl = gsap.timeline({ paused: true });
+
+      // ---- beats (frame-local) ----
+      var B_SUB = 0.55, B_TOGGLE = 1.64, B_NAME = 2.73, B_NAME_COMMIT = 3.27, B_PRICE = 3.82, B_PRICE_COMMIT = 4.36;
+      var NAME_OPEN = 2.78, PRICE_OPEN = 3.85, META_CLICK = 4.80;
+
+      // ---- discrete state: ONE schedule drives both the panel and the page card ----
+      var NAME_TYPE = [
+        { t: NAME_OPEN, text: "Monstera", pick: true },
+        { t: 2.86, text: "F" }, { t: 2.93, text: "Fid" }, { t: 3.0, text: "Fiddl" },
+        { t: 3.07, text: "Fiddle " }, { t: 3.14, text: "Fiddle Le" }, { t: 3.21, text: "Fiddle Leaf" }
+      ];
+      var PRICE_TYPE = [
+        { t: PRICE_OPEN, text: "24", pick: true },
+        { t: 4.0, text: "1" }, { t: 4.13, text: "19" }
+      ];
+      function stepAt(seq, time) {
+        for (var i = seq.length - 1; i >= 0; i--) if (time >= seq[i].t) return seq[i];
+        return seq[0];
+      }
+      var el = {
+        nameVw: $("namevw"), nameVal: $("nameval"), nameIn: $("namein"), nameTxt: $("nametxt"),
+        priceVw: $("pricevw"), priceVal: $("priceval"), priceIn: $("pricein"), priceTxt: $("pricetxt"),
+        stockVal: $("stockval"), cta: $("cta"), ctitle: $("ctitle"), cprice: $("cprice"),
+        caret1: $("caret1"), caret2: $("caret2")
+      };
+      var last = "";
+      function apply(t) {
+        var nameMode = t < NAME_OPEN ? 0 : (t < B_NAME_COMMIT ? 1 : 2);
+        var priceMode = t < PRICE_OPEN ? 0 : (t < B_PRICE_COMMIT ? 1 : 2);
+        var ns = stepAt(NAME_TYPE, t), ps = stepAt(PRICE_TYPE, t);
+        var sold = t >= B_TOGGLE;
+        var key = [nameMode, priceMode, ns.text, ps.text, sold].join("|");
+        if (key === last) return;
+        last = key;
+
+        // inStock toggle <-> CTA (same frame)
+        el.stockVal.textContent = sold ? "false" : "true";
+        el.cta.textContent = sold ? "Sold out" : "Add to cart";
+        el.cta.classList.toggle("03-edit-soldout", sold);
+
+        // name: value -> input -> committed value; card title flips on commit
+        el.nameVw.style.display = nameMode === 1 ? "none" : "inline-flex";
+        el.nameIn.style.display = nameMode === 1 ? "inline-flex" : "none";
+        el.nameVal.textContent = nameMode === 2 ? "\"Fiddle Leaf\"" : "\"Monstera\"";
+        el.nameTxt.textContent = ns.text;
+        el.nameTxt.className = ns.pick ? "03-edit-pick" : "";
+        el.ctitle.textContent = nameMode === 2 ? "Fiddle Leaf" : "Monstera";
+
+        // price: value -> input -> committed value; card price ticks on commit
+        el.priceVw.style.display = priceMode === 1 ? "none" : "inline-flex";
+        el.priceIn.style.display = priceMode === 1 ? "inline-flex" : "none";
+        el.priceVal.textContent = priceMode === 2 ? "19" : "24";
+        el.priceTxt.textContent = ps.text;
+        el.priceTxt.className = ps.pick ? "03-edit-pick" : "";
+        el.cprice.textContent = priceMode === 2 ? "€19" : "€24";
+      }
+      apply(0);
+      var driver = { t: 0 };
+      tl.to(driver, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { apply(driver.t); } }, 0);
+
+      // caret blink: deterministic square wave
+      var blink = { p: 0 };
+      tl.to(blink, { p: Math.PI * 2 * (DUR / 0.6), duration: DUR, ease: "none", onUpdate: function () {
+        var o = Math.sin(blink.p) > -0.2 ? "1" : "0";
+        el.caret1.style.opacity = o; el.caret2.style.opacity = o;
+      } }, 0);
+
+      // ---- Scene 1: sub on beat 0.55 ----
+      tl.fromTo($("sub"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.45, ease: "power3.out" }, B_SUB);
+
+      // ---- Scene 2: page panel slides up into the headline column ----
+      tl.fromTo($("page"), { opacity: 0, y: 90 }, { opacity: 1, y: 0, duration: 0.7, ease: "power3.out" }, B_SUB + 0.05);
+      tl.fromTo($("card"), { scale: 0.94 }, { scale: 1, duration: 0.6, ease: "power3.out" }, B_SUB + 0.15);
+      tl.fromTo($("hilite"), { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power2.out" }, 1.2);
+
+      // ---- pointer path (power3.inOut, never teleports) ----
+      var ptr = $("ptr");
+      gsap.set(ptr, { x: 1430, y: 640 });
+      function move(fx, fy, tx, ty, at, dur) {
+        tl.fromTo(ptr, { x: fx, y: fy }, { x: tx, y: ty, duration: dur, ease: "power3.inOut", immediateRender: false }, at);
+      }
+      function press(at) {
+        tl.to(ptr, { scale: 0.85, duration: 0.07, ease: "power2.in" }, at);
+        tl.to(ptr, { scale: 1, duration: 0.08, ease: "power2.out" }, at + 0.07);
+      }
+      function ripple(id, at) {
+        var r = $(id);
+        gsap.set(r, { scale: 0.3, opacity: 0 });
+        tl.set(r, { scale: 0.3, opacity: 0.95 }, at);
+        tl.to(r, { scale: 2.6, opacity: 0, duration: 0.6, ease: "power2.out" }, at);
+      }
+      function flash(target, color, at) {
+        tl.fromTo(target, { backgroundColor: color }, { backgroundColor: "rgba(0,0,0,0)", duration: 0.7, ease: "power2.out", immediateRender: false }, at);
+      }
+
+      // ---- Scene 3: toggle inStock on beat 1.64; CTA greys on the same frame ----
+      move(1430, 640, 1265, 421, 1.0, 0.56);
+      press(B_TOGGLE);
+      ripple("r1", B_TOGGLE);
+      tl.to($("stockbtn"), { scale: 0.88, duration: 0.1, ease: "power1.in" }, B_TOGGLE);
+      tl.to($("stockbtn"), { scale: 1, duration: 0.42, ease: "back.out(2)" }, B_TOGGLE + 0.1);
+      flash($("stockval"), "rgba(77,99,255,0.5)", B_TOGGLE);
+      tl.fromTo($("cta"), { scale: 0.94 }, { scale: 1, duration: 0.4, ease: "back.out(1.6)", immediateRender: false }, B_TOGGLE);
+
+      // ---- Scene 4: name edit button on 2.73, types, commits on 3.27 with the card title ----
+      move(1265, 421, 1286, 313, 1.95, 0.7);
+      press(B_NAME);
+      ripple("r2", B_NAME);
+      tl.to($("namebtn"), { scale: 0.88, duration: 0.05, ease: "power1.in" }, B_NAME);
+      tl.to($("namebtn"), { scale: 1, duration: 0.05, ease: "power1.out" }, B_NAME + 0.05);
+      move(1286, 313, 1330, 372, 2.84, 0.32); // step aside so the input reads
+      flash($("nameval"), "rgba(77,99,255,0.5)", B_NAME_COMMIT);
+      flash($("ctitle"), "rgba(0,232,255,0.45)", B_NAME_COMMIT);
+      tl.fromTo($("ctitle"), { y: 8 }, { y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, B_NAME_COMMIT);
+
+      // ---- Scene 5: double-click price on 3.82, type 19, commit on 4.36 ----
+      move(1330, 372, 1176, 349, 3.3, 0.36);
+      press(3.70); ripple("r3", 3.70);
+      press(B_PRICE); ripple("r4", B_PRICE);
+      move(1176, 349, 1215, 392, 3.95, 0.3);
+      flash($("priceval"), "rgba(77,99,255,0.5)", B_PRICE_COMMIT);
+      flash($("cprice"), "rgba(0,232,255,0.45)", B_PRICE_COMMIT);
+      tl.fromTo($("cprice"), { y: -10 }, { y: 0, duration: 0.3, ease: "power3.out", immediateRender: false }, B_PRICE_COMMIT);
+
+      // nested values: meta expands, light: "bright" appears with its own edit button
+      move(1215, 392, 1133, 457, 4.42, 0.32);
+      press(META_CLICK); ripple("r5", META_CLICK);
+      tl.fromTo($("tri"), { rotation: 0 }, { rotation: 90, duration: 0.22, ease: "power2.out", transformOrigin: "50% 50%" }, META_CLICK + 0.02);
+      tl.fromTo($("nest"), { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }, META_CLICK + 0.04);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["03-edit"] = tlOuter;
+    })();
+  </script>
+</template>

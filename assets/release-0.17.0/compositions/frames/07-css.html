@@ -1,0 +1,254 @@
+<template>
+  <div data-hf-id="hf-isv0" id="root" data-composition-id="07-css" data-width="1920" data-height="1080" data-start="0" data-duration="3.904">
+    <style>
+      @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+      @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+      @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+      @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "Manrope", sans-serif;
+        color: #e3e3e3;
+      }
+      #root * { box-sizing: border-box; }
+
+      .s07-ground {
+        position: absolute;
+        inset: 0;
+        background-color: #030308;
+        background-image: radial-gradient(circle 1000px at 1344px 430px, rgba(42, 44, 157, 0.35), rgba(42, 44, 157, 0) 100%);
+      }
+
+      .s07-eyebrow {
+        position: absolute;
+        left: 115px;
+        top: 115px;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4d63ff;
+        white-space: nowrap;
+      }
+      .s07-eyebrow .s07-cy { color: #00e8ff; }
+
+      .s07-headline {
+        position: absolute;
+        left: 115px;
+        top: 158px;
+        font-weight: 800;
+        font-size: 69px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        white-space: nowrap;
+      }
+      .s07-headline .s07-cy { color: #00e8ff; }
+
+      .s07-sub {
+        position: absolute;
+        left: 115px;
+        top: 257px;
+        width: 1152px;
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 1.4;
+        color: #a1a1a1;
+      }
+
+      .s07-chip {
+        position: absolute;
+        left: 115px;
+        top: 318px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 40px;
+        padding: 0 18px 0 15px;
+        border-radius: 999px;
+        background: #292929;
+        border: 1px solid #363636;
+        font-family: "Roboto Mono", monospace;
+        font-size: 18px;
+        color: #e3e3e3;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .s07-chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #00e8ff;
+        box-shadow: 0 0 10px rgba(0, 232, 255, 0.7);
+      }
+      .s07-chip-dim { color: #616161; }
+      .s07-chip-prop { color: #b2ccd6; }
+
+      .s07-card {
+        position: absolute;
+        top: 384px;
+        width: 384px;
+        height: 499px;
+        background: #121212;
+        border: 1px solid #363636;
+        border-radius: 10px;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+        opacity: 0;
+      }
+      #s07-card-1 { left: 115px; }
+      #s07-card-2 { left: 537px; }
+      #s07-card-3 { left: 959px; }
+      #s07-card-4 { left: 1381px; }
+
+      .s07-label {
+        position: absolute;
+        left: 27px;
+        top: 27px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 22px;
+        color: #89ddff;
+        white-space: nowrap;
+      }
+      .s07-label .s07-tick { color: #c3e88d; }
+
+      .s07-swatch {
+        position: absolute;
+        left: 27px;
+        top: 77px;
+        width: 328px;
+        height: 290px;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .s07-skin {
+        position: absolute;
+        inset: 0;
+      }
+      .s07-skin-0 { background: linear-gradient(135deg, #4d63ff 0%, #2a2c9d 100%); }
+      .s07-skin-1 { background: linear-gradient(135deg, #00e8ff 0%, #4d63ff 100%); opacity: 0; }
+
+      .s07-renders {
+        position: absolute;
+        left: 27px;
+        bottom: 27px;
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 20px;
+        color: #a1a1a1;
+        white-space: nowrap;
+      }
+      .s07-count-wrap {
+        display: inline-block;
+        width: 34px;
+        text-align: left;
+      }
+      .s07-count {
+        display: inline-block;
+        font-size: 30px;
+        font-variant-numeric: tabular-nums;
+        color: #34e0a1;
+        transform-origin: left 70%;
+      }
+    </style>
+
+    <div data-hf-id="hf-hk4k" id="s07-ground" class="clip s07-ground" data-start="0" data-duration="3.904" data-track-index="0"></div>
+
+    <div data-hf-id="hf-62kl" id="s07-eyebrow" class="s07-eyebrow">Added · <span data-hf-id="hf-130r" class="s07-cy">examples/css</span></div>
+    <div data-hf-id="hf-dyev" id="s07-headline" class="s07-headline">Every way to style a shadow root, <span data-hf-id="hf-i3kj" class="s07-cy">side by side.</span></div>
+    <div data-hf-id="hf-egoo" id="s07-sub" class="s07-sub">With real UnoCSS utilities, one shared sheet for every component.</div>
+
+    <div data-hf-id="hf-k6pe" id="s07-chip" class="s07-chip"><span data-hf-id="hf-d044" class="s07-chip-dot"></span><span data-hf-id="hf-39ed">edit <span data-hf-id="hf-c9o8" class="s07-chip-dim">·</span> <span data-hf-id="hf-j8d8" class="s07-chip-prop">--accent</span></span></div>
+
+    <div data-hf-id="hf-hw4o" id="s07-card-1" class="s07-card">
+      <div data-hf-id="hf-y4xx" class="s07-label s07-in">?css-sheet</div>
+      <div data-hf-id="hf-jl5v" class="s07-swatch s07-in"><div data-hf-id="hf-wcvf" class="s07-skin s07-skin-0"></div><div data-hf-id="hf-sere" class="s07-skin s07-skin-1"></div></div>
+      <div data-hf-id="hf-38rp" class="s07-renders s07-in">renders <span data-hf-id="hf-r75m" class="s07-count-wrap"><span data-hf-id="hf-73co" id="s07-count-1" class="s07-count">1</span></span></div>
+    </div>
+    <div data-hf-id="hf-qk0j" id="s07-card-2" class="s07-card">
+      <div data-hf-id="hf-ur9n" class="s07-label s07-in">?hmr-url</div>
+      <div data-hf-id="hf-l0pv" class="s07-swatch s07-in"><div data-hf-id="hf-0ydn" class="s07-skin s07-skin-0"></div><div data-hf-id="hf-ixcu" class="s07-skin s07-skin-1"></div></div>
+      <div data-hf-id="hf-yut5" class="s07-renders s07-in">renders <span data-hf-id="hf-tl7i" class="s07-count-wrap"><span data-hf-id="hf-yo81" id="s07-count-2" class="s07-count">1</span></span></div>
+    </div>
+    <div data-hf-id="hf-mlwi" id="s07-card-3" class="s07-card">
+      <div data-hf-id="hf-37jl" class="s07-label s07-in">?inline</div>
+      <div data-hf-id="hf-kmeu" class="s07-swatch s07-in"><div data-hf-id="hf-0k2m" class="s07-skin s07-skin-0"></div><div data-hf-id="hf-jbnv" class="s07-skin s07-skin-1"></div></div>
+      <div data-hf-id="hf-01q8" class="s07-renders s07-in">renders <span data-hf-id="hf-tzij" class="s07-count-wrap"><span data-hf-id="hf-ari6" id="s07-count-3" class="s07-count">1</span></span></div>
+    </div>
+    <div data-hf-id="hf-3u6t" id="s07-card-4" class="s07-card">
+      <div data-hf-id="hf-ja3i" class="s07-label s07-in">css<span data-hf-id="hf-j6cn" class="s07-tick">`…`</span></div>
+      <div data-hf-id="hf-k83t" class="s07-swatch s07-in"><div data-hf-id="hf-05rl" class="s07-skin s07-skin-0"></div><div data-hf-id="hf-jpyw" class="s07-skin s07-skin-1"></div></div>
+      <div data-hf-id="hf-znf7" class="s07-renders s07-in">renders <span data-hf-id="hf-udtk" class="s07-count-wrap"><span data-hf-id="hf-m9en" id="s07-count-4" class="s07-count">1</span></span></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        var F = 1 / 60;
+        var tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["07-css"] = tlOuter;
+
+        // Scene 1 (0–0.55): eyebrow + headline are set from the first frame (cut in).
+        tl.set(["#s07-eyebrow", "#s07-headline"], { opacity: 1 }, 0);
+        // Sub reveals on beat 0.55.
+        tl.fromTo("#s07-sub", { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0.55);
+
+        // Scene 2 (0.55–2.18): four cards whip up into their slots, one per beat (waterfall entry,
+        // binary opacity). Inside each card, label → swatch → counter cascade with overlapping waves.
+        var beats = [0.55, 1.0954, 1.6408, 2.1862];
+        [1, 2, 3, 4].forEach(function (n, i) {
+          var card = "#s07-card-" + n;
+          var t = beats[i];
+          tl.set(card, { opacity: 1, y: 80 }, t);
+          tl.to(card, { y: 0, duration: 0.2, ease: "power4.out" }, t);
+          var parts = document.querySelectorAll(card + " .s07-in");
+          var offs = [44, 60, 34];
+          var durs = [0.15, 0.18, 0.13];
+          var at = t + 0.06;
+          parts.forEach(function (el, k) {
+            tl.set(el, { opacity: 1, y: offs[k] }, at);
+            tl.to(el, { y: 0, duration: durs[k], ease: "power4.out" }, at);
+            at += durs[k] - F;
+          });
+          // pre-arrival hidden state for the inner parts (seek-safe: set at 0)
+          tl.set(parts, { opacity: 0 }, 0);
+        });
+
+        // Scene 3 (2.18–3.82): the edit chip lands on beat 2.73 ...
+        tl.fromTo("#s07-chip", { opacity: 0, y: 16, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.3, ease: "back.out(1.6)" }, 2.7316);
+        // ... and all four swatches re-skin together (theme crossfade: opacity only, one shared position).
+        var MORPH = 0.3;
+        var TINT_AT = 2.7816;
+        tl.fromTo("#root .s07-skin-1", { opacity: 0 }, { opacity: 1, duration: MORPH, ease: "power2.inOut" }, TINT_AT);
+        tl.fromTo("#root .s07-skin-0", { opacity: 1 }, { opacity: 0, duration: MORPH, ease: "power2.inOut" }, TINT_AT);
+
+        // Beat 3.27: only the ?inline and css`…` counters re-render, 1 → 2 (count + scale share timing/ease).
+        var COUNT_AT = 3.277;
+        var COUNT_DUR = 0.45;
+        ["#s07-count-3", "#s07-count-4"].forEach(function (sel) {
+          var el = document.querySelector(sel);
+          var state = { value: 1 };
+          tl.to(state, {
+            value: 2,
+            duration: COUNT_DUR,
+            ease: "power3.out",
+            onUpdate: function () { el.textContent = String(Math.round(state.value)); }
+          }, COUNT_AT);
+          tl.fromTo(el, { scale: 0.55 }, { scale: 1, duration: COUNT_DUR, ease: "power3.out", immediateRender: false }, COUNT_AT);
+          tl.fromTo(el, { color: "#34e0a1" }, { color: "#f78c6c", duration: 0.12, ease: "none", immediateRender: false }, COUNT_AT);
+        });
+
+        // Scene 4 (3.82–4.363): held read. Pad the timeline to the full duration.
+        tl.set({}, {}, 4.363);
+      })();
+    </script>
+  </div>
+</template>

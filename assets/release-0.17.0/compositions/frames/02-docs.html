@@ -1,0 +1,193 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; color: #e3e3e3; }
+    #root * { box-sizing: border-box; }
+
+    .f02-docs-ground { position: absolute; inset: 0; background: radial-gradient(circle 1000px at 1344px 430px, rgba(42,44,157,0.35), rgba(42,44,157,0) 100%), #030308; }
+    .f02-docs-stage { position: absolute; inset: 0; }
+
+    /* headline column */
+    .f02-docs-eyebrow { position: absolute; left: 115px; top: 230px; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; }
+    .f02-docs-hl { position: absolute; left: 115px; top: 273px; width: 576px; font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em; color: #ffffff; }
+    .f02-docs-line { display: block; white-space: nowrap; opacity: 0; }
+    .f02-docs-cy { color: #00e8ff; }
+    .f02-docs-sub { position: absolute; left: 115px; top: 514px; width: 556px; font-weight: 500; font-size: 24px; line-height: 1.4; color: #a1a1a1; opacity: 0; }
+
+    /* DevTools window (Stage spec geometry) */
+    .f02-docs-win { position: absolute; left: 768px; top: 86px; width: 1056px; height: 912px; background: #121212; border: 1px solid #363636; border-radius: 15px; box-shadow: 0 38px 96px rgba(0,0,0,0.65); }
+    .f02-docs-bar { position: absolute; left: 0; top: 0; right: 0; height: 56px; background: #1c1c1c; border-bottom: 1px solid #363636; border-radius: 15px 15px 0 0; }
+    .f02-docs-flame { position: absolute; left: 31px; top: 17px; height: 22px; width: auto; }
+    .f02-docs-brand { position: absolute; left: 58px; top: 0; line-height: 55px; font-weight: 800; font-size: 18px; letter-spacing: 0.12em; color: #e3e3e3; white-space: nowrap; }
+    .f02-docs-tabs { position: absolute; left: 250px; top: 0; height: 55px; display: flex; gap: 38px; }
+    .f02-docs-tab { position: relative; line-height: 55px; font-weight: 600; font-size: 17px; color: #a1a1a1; white-space: nowrap; }
+    .f02-docs-on { color: #4d63ff; }
+    .f02-docs-on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #4d63ff; }
+    .f02-docs-ver { position: absolute; right: 27px; top: 13px; font-family: "Roboto Mono", monospace; font-size: 16px; line-height: 22px; color: #00e8ff; border: 1px solid rgba(0,232,255,0.4); border-radius: 99px; padding: 3px 15px; }
+
+    .f02-docs-tree { position: absolute; left: 0; top: 56px; width: 288px; bottom: 0; border-right: 1px solid #363636; padding: 23px; font-family: "Roboto Mono", monospace; font-size: 17px; color: #a1a1a1; }
+    .f02-docs-trow { position: relative; z-index: 1; line-height: 40px; height: 40px; white-space: nowrap; }
+    .f02-docs-d1 { padding-left: 12px; }
+    .f02-docs-sel { position: absolute; left: 0; top: 143px; width: 287px; height: 40px; background: rgba(77,99,255,0.16); box-shadow: inset 4px 0 0 #4d63ff; opacity: 0; }
+
+    .f02-docs-det { position: absolute; left: 288px; top: 56px; right: 0; bottom: 0; padding: 27px 35px; }
+    .f02-docs-dh { font-family: "Roboto Mono", monospace; font-size: 23px; line-height: 30px; color: #89ddff; margin-bottom: 6px; opacity: 0; }
+    .f02-docs-src { font-family: "Roboto Mono", monospace; font-size: 14px; line-height: 20px; color: #616161; margin-bottom: 8px; opacity: 0; }
+    .f02-docs-sec { position: relative; z-index: 2; background: #121212; margin-top: 15px; padding-top: 15px; padding-bottom: 10px; border-top: 1px solid #363636; font-weight: 700; font-size: 15px; line-height: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: #616161; }
+    .f02-docs-mask { height: 64px; overflow: hidden; }
+    .f02-docs-sheet { height: 64px; will-change: transform; }
+    .f02-docs-about { max-width: 653px; font-weight: 500; font-size: 19px; line-height: 28px; color: #e3e3e3; }
+    .f02-docs-code { font-family: "Roboto Mono", monospace; font-size: 17px; color: #89ddff; }
+    .f02-docs-below { will-change: transform; }
+    .f02-docs-below .f02-docs-sec, .f02-docs-rw { opacity: 0; }
+    .f02-docs-rw { position: relative; width: max-content; }
+    .f02-docs-row { display: flex; align-items: baseline; gap: 19px; width: max-content; font-family: "Roboto Mono", monospace; font-size: 18px; line-height: 36px; color: #b2ccd6; white-space: nowrap; }
+    .f02-docs-s { color: #c3e88d; }
+    .f02-docs-n { color: #f78c6c; }
+    .f02-docs-k { color: #c792ea; }
+    .f02-docs-d { font-family: "Manrope", sans-serif; font-weight: 500; font-size: 16px; color: #a1a1a1; }
+    .f02-docs-price { z-index: 5; }
+    .f02-docs-ring { position: absolute; left: -10px; top: 1px; right: -10px; bottom: 1px; border: 2px solid #00e8ff; border-radius: 6px; box-shadow: 0 0 18px rgba(0,232,255,0.45); opacity: 0; }
+    .f02-docs-tip { position: absolute; left: calc(100% + 56px); top: -6px; width: 330px; background: #292929; border: 1px solid #363636; border-radius: 8px; padding: 12px 17px; font-weight: 500; font-size: 16px; line-height: 1.45; color: #e3e3e3; white-space: normal; box-shadow: 0 19px 38px rgba(0,0,0,0.6); opacity: 0; }
+    .f02-docs-tip .f02-docs-code { font-size: 15px; }
+    .f02-docs-ptr { position: absolute; left: 46px; top: 24px; width: 24px; height: 24px; opacity: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)); }
+  </style>
+
+  <div data-hf-id="hf-xpsb" id="root" data-composition-id="02-docs" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-xrl2" id="f02-docs-ground" class="f02-docs-ground clip" data-start="0" data-duration="5.856" data-track-index="0"></div>
+
+    <div data-hf-id="hf-gnpp" id="f02-docs-stage" class="f02-docs-stage clip" data-start="0" data-duration="5.856" data-track-index="1">
+      <div data-hf-id="hf-74j4" class="f02-docs-eyebrow" id="f02-docs-eyebrow">Added</div>
+      <div data-hf-id="hf-wkf9" class="f02-docs-hl">
+        <span data-hf-id="hf-c4i1" class="f02-docs-line" id="f02-docs-l1">Docs, right</span>
+        <span data-hf-id="hf-sjpx" class="f02-docs-line" id="f02-docs-l2">in the <span data-hf-id="hf-pz48" class="f02-docs-cy">details</span></span>
+        <span data-hf-id="hf-e380" class="f02-docs-line" id="f02-docs-l3"><span data-hf-id="hf-zj0u" class="f02-docs-cy">pane.</span></span>
+      </div>
+      <div data-hf-id="hf-8d8j" class="f02-docs-sub" id="f02-docs-sub">From your JSDoc during dev, or a Custom Elements Manifest.</div>
+
+      <div data-hf-id="hf-hcji" class="f02-docs-win" id="f02-docs-win">
+        <div data-hf-id="hf-5mlw" class="f02-docs-bar">
+          <img data-hf-id="hf-106y" class="f02-docs-flame" src="assets/flame.svg" alt="">
+          <div data-hf-id="hf-twqx" class="f02-docs-brand">LIT DEVTOOLS</div>
+          <div data-hf-id="hf-ip95" class="f02-docs-tabs">
+            <span data-hf-id="hf-d44x" class="f02-docs-tab f02-docs-on">Components</span>
+            <span data-hf-id="hf-5x6z" class="f02-docs-tab">Updates</span>
+            <span data-hf-id="hf-pbts" class="f02-docs-tab">Timeline</span>
+            <span data-hf-id="hf-pjl2" class="f02-docs-tab">Settings</span>
+          </div>
+          <div data-hf-id="hf-rh7k" class="f02-docs-ver">0.17.0</div>
+        </div>
+
+        <div data-hf-id="hf-3ru5" class="f02-docs-tree">
+          <div data-hf-id="hf-gvda" class="f02-docs-sel" id="f02-docs-sel"></div>
+          <div data-hf-id="hf-y2z1" class="f02-docs-trow">fh-app</div>
+          <div data-hf-id="hf-hdvb" class="f02-docs-trow f02-docs-d1">fh-header</div>
+          <div data-hf-id="hf-cg0m" class="f02-docs-trow f02-docs-d1">fh-search</div>
+          <div data-hf-id="hf-lyg9" class="f02-docs-trow f02-docs-d1" id="f02-docs-selrow">fh-product-card</div>
+          <div data-hf-id="hf-7blq" class="f02-docs-trow f02-docs-d1">fh-product-card</div>
+          <div data-hf-id="hf-or7n" class="f02-docs-trow f02-docs-d1">fh-cart-button</div>
+          <div data-hf-id="hf-1peh" class="f02-docs-trow f02-docs-d1">fh-toast</div>
+        </div>
+
+        <div data-hf-id="hf-aluk" class="f02-docs-det">
+          <div data-hf-id="hf-ywqt" class="f02-docs-dh" id="f02-docs-dh">&lt;fh-product-card&gt;</div>
+          <div data-hf-id="hf-2t9j" class="f02-docs-src" id="f02-docs-src">src/components/product-card.ts:4</div>
+
+          <div data-hf-id="hf-ynr2" class="f02-docs-sec" id="f02-docs-abouthead" style="opacity:0">About</div>
+          <div data-hf-id="hf-p13f" class="f02-docs-mask" id="f02-docs-mask" data-layout-allow-overflow="">
+            <div data-hf-id="hf-8szm" class="f02-docs-sheet" id="f02-docs-sheet">
+              <div data-hf-id="hf-1chq" class="f02-docs-about" id="f02-docs-abouttext">A product tile in the shop grid. Fill the <span data-hf-id="hf-lsdv" class="f02-docs-code">media</span> slot with a photo and <span data-hf-id="hf-t5p6" class="f02-docs-code">price</span> with a sale price.</div>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-404e" class="f02-docs-below" id="f02-docs-below">
+            <div data-hf-id="hf-reqq" class="f02-docs-sec" id="f02-docs-propsec">Properties</div>
+            <div data-hf-id="hf-fqvc" class="f02-docs-rw" id="f02-docs-r1"><div data-hf-id="hf-g5dv" class="f02-docs-row"><span data-hf-id="hf-jfkq">name</span><span data-hf-id="hf-1wqq" class="f02-docs-s">"Monstera"</span></div></div>
+            <div data-hf-id="hf-igyf" class="f02-docs-rw f02-docs-price" id="f02-docs-r2">
+              <div data-hf-id="hf-rb64" class="f02-docs-ring" id="f02-docs-ring"></div>
+              <div data-hf-id="hf-lx37" class="f02-docs-row"><span data-hf-id="hf-rsme">price</span><span data-hf-id="hf-foje" class="f02-docs-n">24</span></div>
+              <div data-hf-id="hf-i9my" class="f02-docs-tip" id="f02-docs-tip">Price in euros. Shown unless the <span data-hf-id="hf-8hfi" class="f02-docs-code">price</span> slot is filled.</div>
+              <svg data-hf-id="hf-nboy" class="f02-docs-ptr" id="f02-docs-ptr" viewBox="0 0 24 24"><path data-hf-id="hf-2f4j" d="M3 2 L3 20 L8 15.5 L11.5 22.5 L14.5 21 L11 14.5 L18 14.5 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2" stroke-linejoin="round" /></svg>
+            </div>
+            <div data-hf-id="hf-mo8y" class="f02-docs-rw" id="f02-docs-r3"><div data-hf-id="hf-lis6" class="f02-docs-row"><span data-hf-id="hf-b644">badge</span><span data-hf-id="hf-67a5" class="f02-docs-s">"New"</span></div></div>
+
+            <div data-hf-id="hf-acbo" class="f02-docs-sec" id="f02-docs-evsec">Events</div>
+            <div data-hf-id="hf-3wj9" class="f02-docs-rw" id="f02-docs-r4"><div data-hf-id="hf-l4h5" class="f02-docs-row"><span data-hf-id="hf-ds6n" class="f02-docs-k">add-to-cart</span><span data-hf-id="hf-hnrf" class="f02-docs-d">Fired when the CTA is pressed.</span></div></div>
+
+            <div data-hf-id="hf-4hkn" class="f02-docs-sec" id="f02-docs-csssec">CSS properties</div>
+            <div data-hf-id="hf-34vg" class="f02-docs-rw" id="f02-docs-r5"><div data-hf-id="hf-kq64" class="f02-docs-row"><span data-hf-id="hf-l1ym">--card-accent</span><span data-hf-id="hf-pykt" class="f02-docs-d">Border and CTA colour.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById("f02-docs-" + id); };
+      var tl = gsap.timeline({ paused: true });
+      var F = 1 / 60;
+
+      // Scene 1 (0.0-0.55): window rises 40px + fades in; eyebrow fades in.
+      tl.fromTo($("win"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0);
+      tl.fromTo($("eyebrow"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.1);
+
+      // waterfall arrival: binary opacity via set, whip up from below
+      function arrive(el, at, dy, dur) {
+        tl.set(el, { opacity: 1, y: dy }, at);
+        tl.to(el, { y: 0, duration: dur, ease: "power4.out" }, at);
+      }
+
+      // Scene 2 (0.55-1.64): headline line by line on beat 0.55.
+      arrive($("l1"), 0.55, 80, 0.2);
+      arrive($("l2"), 0.55 + 0.2 - F, 60, 0.18);
+      arrive($("l3"), 0.55 + 0.38 - 2 * F, 70, 0.17);
+
+      // beat 1.09: selection highlight slides onto fh-product-card; details header appears.
+      tl.fromTo($("sel"), { y: -80, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: "power3.out" }, 1.09);
+      tl.fromTo($("selrow"), { color: "#a1a1a1" }, { color: "#ffffff", duration: 0.2, ease: "power2.out" }, 1.15);
+      tl.fromTo($("dh"), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 1.12);
+      tl.fromTo($("src"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }, 1.18);
+      tl.fromTo($("abouthead"), { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power2.out" }, 1.3);
+
+      // Scene 3 (1.64): About expands downward - sheet + below share ONE tween.
+      var BODY_H = 64; // = .mask / .sheet CSS height
+      tl.fromTo([$("sheet"), $("below")], { y: -BODY_H }, { y: 0, duration: 0.45, ease: "power3.out" }, 1.64);
+      tl.fromTo($("abouttext"), { opacity: 0 }, { opacity: 1, duration: 0.28, ease: "power2.out" }, 1.64 + 0.11);
+
+      // Sections waterfall in, one per beat.
+      var P = 2.18;
+      arrive($("propsec"), P, 60, 0.18);
+      arrive($("r1"), P + 0.18 - F, 45, 0.15);
+      arrive($("r2"), P + 0.32 - 2 * F, 42, 0.14);
+      arrive($("r3"), P + 0.45 - 3 * F, 40, 0.13);
+      arrive($("sub"), P, 30, 0.2);
+
+      var E = 2.73;
+      arrive($("evsec"), E, 60, 0.18);
+      arrive($("r4"), E + 0.18 - F, 45, 0.15);
+
+      var C = 3.27;
+      arrive($("csssec"), C, 60, 0.18);
+      arrive($("r5"), C + 0.18 - F, 45, 0.15);
+
+      // Scene 4 (3.82-5.2): pointer glides in from lower right onto the price name.
+      tl.fromTo($("ptr"), { x: 520, y: 400, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 3.82);
+      // beat 4.36: cyan focus ring settles, tooltip opens beside the row.
+      tl.fromTo($("ring"), { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: "power3.out" }, 4.36);
+      tl.fromTo($("tip"), { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.28, ease: "power3.out" }, 4.4);
+
+      // Scene 5 (5.2-6.0): held read.
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["02-docs"] = tlOuter;
+    })();
+  </script>
+</template>

@@ -1,0 +1,232 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Manrope";
+      src: url("assets/manrope-bold.woff2") format("woff2");
+      font-weight: 700;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "Manrope";
+      src: url("assets/manrope-extrabold.woff2") format("woff2");
+      font-weight: 800;
+      font-style: normal;
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Manrope", sans-serif;
+      color: #e3e3e3;
+    }
+
+    /* Ground: full-bleed canvas clip + indigo glow (stage spec: centred 1344,430, r ~1000, 35%) */
+    #f01-title-ground {
+      position: absolute;
+      inset: 0;
+      background: #030308;
+    }
+    #f01-title-glow {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle 1000px at 1344px 430px, #2a2c9d 0%, rgba(42, 44, 157, 0) 100%);
+      transform-origin: 1344px 430px;
+      will-change: transform, opacity;
+    }
+
+    /* Flame mark: centre, upper third, ~96px tall (viewBox 160x200) */
+    #f01-title-halo {
+      position: absolute;
+      left: 700px;
+      top: 88px;
+      width: 520px;
+      height: 520px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%, #324fff 0%, rgba(50, 79, 255, 0) 65%);
+      transform-origin: 50% 50%;
+      z-index: 1;
+    }
+    #f01-title-flame {
+      position: absolute;
+      left: 922px;
+      top: 300px;
+      width: 77px;
+      height: 96px;
+      transform-origin: 50% 60%;
+      z-index: 2;
+      will-change: transform, opacity;
+    }
+
+    /* Title line: "vite-plugin-lit" + appended "0.17.0" */
+    #f01-title-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 461px;
+      display: flex;
+      justify-content: center;
+      z-index: 2;
+    }
+    #f01-title-shift {
+      display: inline-flex;
+      align-items: baseline;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    #f01-title-name {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 84px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    #f01-title-ver {
+      display: inline-block;
+      width: 230px;
+      margin-left: 22px;
+      font-weight: 800;
+      font-size: 84px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #00e8ff;
+      text-align: left;
+    }
+
+    /* Value claim: two centred lines below the title */
+    #f01-title-claim {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 614px;
+      text-align: center;
+      z-index: 2;
+    }
+    #f01-title-claim-a,
+    #f01-title-claim-b {
+      display: block;
+      font-weight: 700;
+      font-size: 46px;
+      line-height: 1.3;
+      letter-spacing: -0.01em;
+      will-change: transform, opacity;
+    }
+    #f01-title-claim-a {
+      color: #e3e3e3;
+    }
+    #f01-title-claim-b {
+      color: #00e8ff;
+    }
+  </style>
+
+  <div data-hf-id="hf-8n4b" id="root" data-composition-id="01-title" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-zk79" id="f01-title-ground" class="clip" data-start="0" data-duration="4.118" data-track-index="0">
+      <div data-hf-id="hf-rj9l" id="f01-title-glow"></div>
+    </div>
+
+    <div data-hf-id="hf-koqp" id="f01-title-stage" class="clip" data-start="0" data-duration="4.118" data-track-index="1" style="position: absolute; inset: 0">
+      <div data-hf-id="hf-9ujs" id="f01-title-halo"></div>
+      <img data-hf-id="hf-klkd" id="f01-title-flame" src="assets/flame.svg" alt="">
+
+      <div data-hf-id="hf-ocok" id="f01-title-line">
+        <div data-hf-id="hf-6veq" id="f01-title-shift">
+          <span data-hf-id="hf-98uu" id="f01-title-name">vite-plugin-lit</span><span data-hf-id="hf-8nws" id="f01-title-ver">0.17.0</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-q4iu" id="f01-title-claim">
+        <span data-hf-id="hf-ti17" id="f01-title-claim-a">Your components explain themselves.</span>
+        <span data-hf-id="hf-vyb7" id="f01-title-claim-b">And take edits.</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      const $ = (id) => document.getElementById("f01-title-" + id);
+      const glow = $("glow");
+      const halo = $("halo");
+      const flame = $("flame");
+      const shift = $("shift");
+      const name = $("name");
+      const ver = $("ver");
+      const claimA = $("claim-a");
+      const claimB = $("claim-b");
+
+      // Beat grid (local seconds): 0.55 flame, 1.09 name, 1.64 version, 2.18 claim, 3.27 qualifier.
+      const B_FLAME = 0.55;
+      const B_NAME = 1.09;
+      const B_VER = 1.64;
+      const B_CLAIM = 2.18;
+      const B_EDITS = 3.27;
+
+      // Half of (version margin + width): the offset that keeps the name alone centred.
+      const VER_SHIFT = (22 + 230) / 2;
+
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 — the indigo ground glow blooms in from the void.
+      tl.fromTo(
+        glow,
+        { opacity: 0, scale: 0.88 },
+        { opacity: 0.35, scale: 1, duration: 1.1, ease: "power2.out" },
+        0,
+      );
+
+      // Flame spring-pops (smooth power3 settle, no overshoot) with its halo landing as one beat.
+      tl.fromTo(
+        flame,
+        { scale: 0, opacity: 0, y: 12 },
+        { scale: 1, opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        B_FLAME - 0.13,
+      );
+      tl.fromTo(
+        halo,
+        { opacity: 0, scale: 0.85 },
+        { opacity: 0.22, scale: 1, duration: 0.75, ease: "power2.out" },
+        B_FLAME - 0.28,
+      );
+
+      // Scene 2 — name reveals under the flame, centred on its own.
+      tl.set(shift, { x: VER_SHIFT }, 0);
+      tl.set(ver, { opacity: 0, color: "#616161" }, 0);
+      tl.fromTo(
+        name,
+        { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" },
+        B_NAME,
+      );
+
+      // Version appends as one bulk addition, grey -> bright cyan, while the line recentres.
+      tl.set(ver, { opacity: 1, color: "#616161" }, B_VER);
+      tl.to(ver, { color: "#00e8ff", duration: 0.4, ease: "power2.out" }, B_VER + 0.05);
+      tl.to(shift, { x: 0, duration: 0.5, ease: "power3.inOut" }, B_VER);
+
+      // Scene 3 — the value claim rises in below, then its cyan qualifier under it.
+      tl.fromTo(
+        claimA,
+        { opacity: 0, y: 34 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        B_CLAIM,
+      );
+      tl.fromTo(
+        claimB,
+        { opacity: 0, y: 34 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" },
+        B_EDITS,
+      );
+
+      // Scene 4 — held read to 4.513s; nothing moves. Anchor the timeline length.
+      tl.set({}, {}, 4.513);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["01-title"] = tlOuter;
+    })();
+  </script>
+</template>
