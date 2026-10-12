@@ -127,8 +127,7 @@ test('a #event= link selects the span it names', async () => {
 test('a #event= link to a row folded into an update opens it and scrolls to it', async () => {
   const {page} = panel;
   // A few updates of our own; the list is long already from the tests
-  // above. Not many: the dev server keeps the last 512 events, and the
-  // reload test after this one expects all of them to come back.
+  // above.
   const increment = fixture.page.locator('hmr-counter #increment');
   for (let i = 0; i < 3; i++) {
     await increment.click();
@@ -200,6 +199,10 @@ test('a #event= link to an unknown id leaves nothing selected', async () => {
 
 test('a reloaded panel lists the events recorded before it reloaded', async () => {
   const {page} = panel;
+  // Start from an empty list: the dev server replays only its last 512
+  // events, and the tests above can leave more than that behind.
+  await page.getByRole('button', {name: 'Clear'}).click();
+  await page.locator('timeline-event-list .empty').waitFor();
   const increment = fixture.page.locator('hmr-counter #increment');
   for (let i = 0; i < 5; i++) {
     await increment.click();
