@@ -9,14 +9,15 @@
  * still holds the override; anything else there is the app's, and stays. An
  * override whose container the app replaced (the property, or an object on
  * the way down, now holds another one) no longer applies: it is dropped, its
- * old container handed its original back, and the drop is kept for the panel
- * to report.
+ * old container handed its original back, and the drop is noted for the
+ * panel (`override-drops.ts`).
  *
  * Shares the global switch with `prop-overrides.ts`: {@link reapplyLeaves}
  * follows it.
  */
 
 import {stepInto, writeInto} from './inspect-value.js';
+import {noteDrop, pendingDrops} from './override-drops.js';
 import {overridesApplied} from './prop-overrides.js';
 import type {ValueSegment} from '../../../types/inspector.js';
 
@@ -28,6 +29,8 @@ interface LeafSlot {
   container: object;
   override: Leaf;
   enabled: boolean;
+  /** Kept across reloads (see `override-store.ts`). */
+  persist: boolean;
   /** Whether the override is what the container holds now. */
   written: boolean;
   /** The leaf's value from before the override, written back when it goes. */
@@ -45,12 +48,14 @@ export interface LeafOverrideRecord {
   keys: ValueSegment[];
   value: Leaf;
   enabled: boolean;
+  persist: boolean;
 }
 
 /** A leaf override as an expanded level describes it. */
 export interface LeafOverrideState {
   value: Leaf;
   enabled: boolean;
+  persist: boolean;
   /** The value the leaf holds, or would hold, without the override. */
   intrinsic: unknown;
 }
@@ -59,7 +64,6 @@ const leaves = new WeakMap<Element, Map<string, LeafSlot>>();
 // As in prop-overrides.ts: the elements `leaves` holds, without keeping
 // them alive.
 const holders = new Set<WeakRef<Element>>();
-let dropped: LeafOverrideRecord[] = [];
 
 const keyOf = (name: string, keys: readonly ValueSegment[]): string =>
   JSON.stringify([name, ...keys]);
@@ -130,7 +134,7 @@ const forget = (el: Element, key: string): void => {
 
 /**
  * Drop each of `el`'s leaf overrides whose container the app replaced, and
- * remember the drops for {@link takeDropped}.
+ * note the drops for the panel.
  */
 const sweep = (el: Element): void => {
   const map = leaves.get(el);
@@ -141,12 +145,12 @@ const sweep = (el: Element): void => {
     // The old container may be shared, or come back: leave it as it was.
     sync(slot);
     forget(el, key);
-    dropped.push({
+    noteDrop({
       el,
       name: slot.name,
       keys: slot.keys,
       value: slot.override,
-      enabled: false,
+      reason: 'replaced',
     });
   }
 };
@@ -185,6 +189,7 @@ export const setLeafOverride = (
       container,
       override: value,
       enabled: true,
+      persist: false,
       written: false,
       original: undefined,
     };
@@ -252,6 +257,7 @@ export const leafOverrideOf = (
   return {
     value: slot.override,
     enabled: slot.enabled,
+    persist: slot.persist,
     intrinsic: slot.written ? slot.original : readLeaf(slot),
   };
 };
@@ -268,10 +274,24 @@ export const listLeafOverrides = (): LeafOverrideRecord[] => {
         keys: slot.keys,
         value: slot.override,
         enabled: slot.enabled,
+        persist: slot.persist,
       });
     }
   }
   return out;
+};
+
+/** Mark an existing leaf override to be kept across reloads, or not. */
+export const persistLeafOverride = (
+  el: Element,
+  name: string,
+  keys: ValueSegment[],
+  persist: boolean
+): boolean => {
+  const slot = leaves.get(el)?.get(keyOf(name, keys));
+  if (slot === undefined) return false;
+  slot.persist = persist;
+  return true;
 };
 
 /** Follow the global switch: write or withdraw every leaf override. */
@@ -294,16 +314,9 @@ export const clearLeafOverrides = (): void => {
   }
 };
 
-/** Whether `el` has leaf overrides that went stale since they were listed. */
+/** Whether `el` had leaf overrides that went stale, now dropped. */
 export const sweepLeaves = (el: Element): boolean => {
-  const before = dropped.length;
+  const before = pendingDrops();
   sweep(el);
-  return dropped.length > before;
-};
-
-/** The overrides dropped since the last call, oldest first. */
-export const takeDropped = (): LeafOverrideRecord[] => {
-  const out = dropped;
-  dropped = [];
-  return out;
+  return pendingDrops() > before;
 };

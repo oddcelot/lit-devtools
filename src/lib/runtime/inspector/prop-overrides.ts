@@ -26,6 +26,8 @@ interface Backing {
 interface Slot {
   override: unknown;
   enabled: boolean;
+  /** Kept across reloads (see `override-store.ts`). */
+  persist: boolean;
   intrinsic: unknown;
   backing: Backing;
 }
@@ -40,12 +42,14 @@ export interface OverrideRecord {
   name: string;
   value: unknown;
   enabled: boolean;
+  persist: boolean;
 }
 
 /** An override as the details of its element describe it. */
 export interface OverrideState {
   value: unknown;
   enabled: boolean;
+  persist: boolean;
   intrinsic: unknown;
 }
 
@@ -156,6 +160,7 @@ const install = (el: Element, name: string): Slot | undefined => {
   const slot: Slot = {
     override: undefined,
     enabled: true,
+    persist: false,
     intrinsic: backing.get(),
     backing,
   };
@@ -235,6 +240,18 @@ export const toggleOverride = (
   return true;
 };
 
+/** Mark an existing override to be kept across reloads, or not. */
+export const persistOverride = (
+  el: Element,
+  name: string,
+  persist: boolean
+): boolean => {
+  const slot = slotOf(el, name);
+  if (slot === undefined) return false;
+  slot.persist = persist;
+  return true;
+};
+
 /**
  * Drop the override on `name`, hand the element its intrinsic value, and give
  * the property back once nothing overrides it.
@@ -264,7 +281,12 @@ export const overrideOf = (
   const slot = slotOf(el, name);
   return slot === undefined
     ? undefined
-    : {value: slot.override, enabled: slot.enabled, intrinsic: slot.intrinsic};
+    : {
+        value: slot.override,
+        enabled: slot.enabled,
+        persist: slot.persist,
+        intrinsic: slot.intrinsic,
+      };
 };
 
 /** Every override in the page, element by element, oldest first. */
@@ -278,7 +300,13 @@ export const listOverrides = (): OverrideRecord[] => {
       continue;
     }
     for (const [name, slot] of layer) {
-      out.push({el, name, value: slot.override, enabled: slot.enabled});
+      out.push({
+        el,
+        name,
+        value: slot.override,
+        enabled: slot.enabled,
+        persist: slot.persist,
+      });
     }
   }
   return out;

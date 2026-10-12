@@ -25,6 +25,7 @@
 
 import {installDefineSites} from './define-sites.js';
 import {forgetOwnLit} from './own-lit.js';
+import './inspector/persist.js';
 import './timeline/install.js';
 import './inspector/install.js';
 import {initSourceOverlay} from './source-overlay/overlay-element.js';

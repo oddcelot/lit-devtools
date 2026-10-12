@@ -272,3 +272,56 @@ test('a leaf override switches off to the old value and drops with its object', 
       dropped: [{id, name: 'config', keys, value: '"light"'}],
     });
 });
+
+test('an override kept across reloads is back on the first render', async () => {
+  const idOf = () => {
+    const id = find(roots, 'hmr-properties');
+    if (id === undefined) {
+      fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+    }
+    return id;
+  };
+  await expect.poll(idOf, {timeout: 10_000}).toBeDefined();
+  const send = (cmd: Record<string, unknown>) =>
+    fixture.server.hot.send(INSPECT_CMD_CHANNEL, cmd);
+  const el = `document.querySelector('hmr-properties')`;
+  const shown = () =>
+    fixture.page.evaluate(
+      `${el}?.shadowRoot?.querySelector('#label')?.textContent`
+    );
+  const errors: string[] = [];
+  fixture.page.on('pageerror', (e) => errors.push(e.message));
+
+  const id = idOf()!;
+  send({type: 'set-prop', id, name: 'label', value: 'kept'});
+  send({type: 'override-persist', id, name: 'label', persist: true});
+  await expect.poll(shown, {timeout: 10_000}).toBe('label: kept');
+  await expect
+    .poll(
+      () =>
+        fixture.page.evaluate(
+          `sessionStorage.getItem('lit-devtools-overrides') ?? ''`
+        ),
+      {timeout: 10_000}
+    )
+    .toContain('"kept"');
+
+  roots = [];
+  await fixture.page.reload();
+  await expect.poll(shown, {timeout: 10_000}).toBe('label: kept');
+  // On from the first render: the element rendered once, not twice.
+  expect(await fixture.page.evaluate(`${el}.renders`)).toBe(1);
+  // The reflected attribute follows the override too.
+  expect(await fixture.page.evaluate(`${el}.getAttribute('label')`)).toBe(
+    'kept'
+  );
+  expect(errors).toEqual([]);
+
+  // Removed, it is gone after the next reload.
+  await expect.poll(idOf, {timeout: 10_000}).toBeDefined();
+  send({type: 'override-remove', id: idOf()!, name: 'label'});
+  await expect.poll(shown, {timeout: 10_000}).toBe('label: initial');
+  roots = [];
+  await fixture.page.reload();
+  await expect.poll(shown, {timeout: 10_000}).toBe('label: initial');
+});

@@ -136,6 +136,17 @@ export const litHmr = (ctx: OptionsContext): Plugin => ({
         },
         injectTo: 'head-prepend',
       });
+      // Also ahead of the app: overrides kept across reloads go back on
+      // during each element's first update, which needs the hook in place
+      // before the app defines anything.
+      tags.splice(1, 0, {
+        tag: 'script',
+        attrs: {
+          type: 'module',
+          src: `/@fs/` + resolveRuntimeModule('inspector/persist'),
+        },
+        injectTo: 'head-prepend',
+      });
       const installUrl = `/@fs/` + resolveRuntimeModule('timeline/install');
       tags.push({
         tag: 'script',

@@ -65,6 +65,7 @@ describe('override layer', () => {
     expect(overrideOf(el, 'label')).toEqual({
       value: 'over',
       enabled: true,
+      persist: false,
       intrinsic: 'from app',
     });
 
