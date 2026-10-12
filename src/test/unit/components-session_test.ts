@@ -243,12 +243,52 @@ describe('overrides', () => {
     drain();
     session.toggleOverride('n', false);
     session.removeOverride('n');
-    session.removeOverride('m', 1);
+    session.removeOverride('m', [], 1);
+    session.toggleOverride('cfg', true, ['a', 0]);
+    session.removeOverride('cfg', ['a', 0]);
     expect(drain()).toEqual([
       {type: 'override-toggle', id: 3, name: 'n', enabled: false},
       {type: 'override-remove', id: 3, name: 'n'},
       {type: 'override-remove', id: 1, name: 'm'},
+      {
+        type: 'override-toggle',
+        id: 3,
+        name: 'cfg',
+        keys: ['a', 0],
+        enabled: true,
+      },
+      {type: 'override-remove', id: 3, name: 'cfg', keys: ['a', 0]},
     ]);
+  });
+
+  test('collects dropped overrides until dismissed or the page changes', () => {
+    const {session} = setup();
+    const drop = {
+      id: 3,
+      tagName: 'x-b',
+      name: 'cfg',
+      keys: ['a'],
+      value: '1',
+      enabled: false,
+    };
+    session.receive({
+      type: 'overrides',
+      applied: true,
+      entries: [],
+      dropped: [drop],
+    });
+    session.receive({type: 'overrides', applied: true, entries: []});
+    expect(session.droppedOverrides).toEqual([drop]);
+    session.dismissDropped();
+    expect(session.droppedOverrides).toEqual([]);
+    session.receive({
+      type: 'overrides',
+      applied: true,
+      entries: [],
+      dropped: [drop],
+    });
+    session.pageChanged();
+    expect(session.droppedOverrides).toEqual([]);
   });
 
   test('the global switch and clear-all re-ask for the selection', () => {

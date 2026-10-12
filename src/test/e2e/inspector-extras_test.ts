@@ -232,3 +232,43 @@ test('a keyed set-prop writes a leaf of a live object and re-renders', async () 
     )
     .toContain('dark');
 });
+
+test('a leaf override switches off to the old value and drops with its object', async () => {
+  await expect
+    .poll(() => find(roots, 'hmr-properties'), {timeout: 10_000})
+    .toBeDefined();
+  const id = find(roots, 'hmr-properties')!;
+  const overrides: Array<Extract<InspectorMessage, {type: 'overrides'}>> = [];
+  fixture.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+    if (data.type === 'overrides') overrides.push(data);
+  });
+  const el = `document.querySelector('hmr-properties')`;
+  const shown = () =>
+    fixture.page.evaluate(
+      `${el}.shadowRoot.querySelector('#color-scheme').textContent`
+    );
+  const send = (cmd: Record<string, unknown>) =>
+    fixture.server.hot.send(INSPECT_CMD_CHANNEL, cmd);
+  const keys = ['colorScheme'];
+  // The test above left its own override on this leaf.
+  send({type: 'override-remove', id, name: 'config', keys});
+  await expect.poll(shown, {timeout: 10_000}).toBe('color-scheme: auto');
+
+  send({type: 'set-prop', id, name: 'config', value: 'light', keys});
+  await expect.poll(shown, {timeout: 10_000}).toBe('color-scheme: light');
+  send({type: 'override-toggle', id, name: 'config', keys, enabled: false});
+  await expect.poll(shown, {timeout: 10_000}).toBe('color-scheme: auto');
+  send({type: 'override-toggle', id, name: 'config', keys, enabled: true});
+  await expect.poll(shown, {timeout: 10_000}).toBe('color-scheme: light');
+
+  // The app replaces the object: the override has nothing left to hold.
+  await fixture.page.click('hmr-properties #toggle-color-scheme');
+  await expect.poll(shown, {timeout: 10_000}).toBe('color-scheme: dark');
+  send({type: 'overrides'});
+  await expect
+    .poll(() => overrides.at(-1), {timeout: 10_000})
+    .toMatchObject({
+      entries: [],
+      dropped: [{id, name: 'config', keys, value: '"light"'}],
+    });
+});
