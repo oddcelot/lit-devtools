@@ -25,6 +25,7 @@ import {
 import {
   applyOverrides,
   clearOverrides,
+  onIntrinsicWrite,
   removeOverride,
   toggleOverride,
 } from './prop-overrides.js';
@@ -208,7 +209,18 @@ if (typeof window !== 'undefined') {
   // Hold the watched element via a WeakRef so an active watch doesn't keep a
   // removed element alive: the override and `restore` only reach `el` through
   // the ref, leaving the DOM as its sole strong root.
-  let watched: {ref: WeakRef<Updatable>; restore: () => void} | null = null;
+  let watched: {
+    ref: WeakRef<Updatable>;
+    restore: () => void;
+    /** Push fresh details once, at the end of the current task. */
+    queuePush: () => void;
+  } | null = null;
+
+  // An app write under an override renders nothing, so `updated` never
+  // hears of it; the intrinsic value the pane shows would go stale.
+  onIntrinsicWrite((el) => {
+    if (watched !== null && watched.ref.deref() === el) watched.queuePush();
+  });
 
   const unwatch = (): void => {
     const prev = watched;
@@ -275,6 +287,7 @@ if (typeof window !== 'undefined') {
     };
     watched = {
       ref,
+      queuePush: onSlotChange,
       restore: () => {
         const cur = ref.deref();
         if (cur === undefined) return;

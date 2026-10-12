@@ -454,6 +454,38 @@ test('override commands toggle, remove and list the overrides', async () => {
   expect(lastOverrides()).toMatchObject({applied: true, entries: []});
 });
 
+test('an app write under an override re-pushes the watched details', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-settable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['count', {}]]);
+      count = 1;
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {count: unknown};
+  document.body.append(el);
+  const id = idOf(el);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id});
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id,
+    name: 'count',
+    value: 7,
+  });
+  const before = details(carrier);
+  el.count = 2;
+  el.count = 3;
+  await Promise.resolve();
+  expect(details(carrier)).toBe(before + 1);
+  const last = sentOf(carrier, 'details').at(-1) as {
+    details: {properties: Array<{override?: {intrinsic: string}}>};
+  };
+  expect(last.details.properties[0]?.override?.intrinsic).toBe('3');
+});
+
 test('set-prop on an element that is gone says so', async () => {
   const {carrier} = await load();
   carrier.deliver(INSPECT_CMD_CHANNEL, {

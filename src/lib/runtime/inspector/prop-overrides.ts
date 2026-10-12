@@ -54,6 +54,16 @@ const layers = new WeakMap<Element, Map<string, Slot>>();
 // iterated, and a removed element must not be kept alive for the list.
 const holders = new Set<WeakRef<Element>>();
 let applied = true;
+let intrinsicWritten: ((el: Element) => void) | undefined;
+
+/**
+ * Hear of each app write to an overridden property. Such a write changes no
+ * rendered value while the override is in effect, so nothing else says so.
+ * One listener: a later call replaces it.
+ */
+export const onIntrinsicWrite = (listener: (el: Element) => void): void => {
+  intrinsicWritten = listener;
+};
 
 const effectiveOf = (slot: Slot): unknown =>
   applied && slot.enabled ? slot.override : slot.intrinsic;
@@ -156,6 +166,7 @@ const install = (el: Element, name: string): Slot | undefined => {
     set: (v: unknown) => {
       // An app write: the element's own intended value, under the override.
       slot.intrinsic = v;
+      intrinsicWritten?.(el);
       if (applied && slot.enabled) return;
       // As the write would have gone without the layer: an accessor renders
       // on its own, a plain field waits for the app to ask.
