@@ -217,11 +217,22 @@ test('a reloaded panel lists the events recorded before it reloaded', async () =
     .locator('timeline-event-list .row.selected')
     .textContent();
   // The list is virtualized, so the DOM row count says little; the scroll
-  // height is the whole list's size. Let the last batch land before reading.
+  // height is the whole list's size. Let the last batch land before reading:
+  // a fixed wait was too short on a loaded CI runner, so wait for the height
+  // to hold still across a few reads.
   const scroller = page.locator('timeline-event-list .scroll');
   const height = () => scroller.evaluate((el) => el.scrollHeight);
-  await page.waitForTimeout(500);
-  const before = await height();
+  let before = -1;
+  await expect
+    .poll(
+      async () => {
+        const previous = before;
+        before = await height();
+        return before === previous;
+      },
+      {interval: 300, timeout: 5000}
+    )
+    .toBe(true);
   expect(before).toBeGreaterThan(0);
 
   // No clicks from here on: whatever the reloaded panel shows can only have
