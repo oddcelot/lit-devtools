@@ -17,6 +17,8 @@ export default defineConfig({
     },
     projects: [
       {
+        // Runs in Node: lit's node builds, as the published packages resolve.
+        ...canarySettings({node: true}),
         test: {
           name: 'unit',
           environment: 'node',
