@@ -96,14 +96,18 @@ describe('connecting', () => {
     expect(session.hmrIncompatibilities).toHaveLength(1);
     // The newest patch, skipping the failure after it.
     expect(session.lastPatch).toEqual(patch(1));
-    expect(drain()).toEqual([{type: 'tree'}, {type: 'observe', enabled: true}]);
+    expect(drain()).toEqual([
+      {type: 'tree'},
+      {type: 'overrides'},
+      {type: 'observe', enabled: true},
+    ]);
   });
 
   test('leaves Live off when it was paused last time', () => {
     const {session, drain} = setup({[LIVE_LS_KEY]: 'false'});
     expect(session.live).toBe(false);
     session.connected({roots: [], hmrIncompatibilities: []});
-    expect(drain()).toEqual([{type: 'tree'}]);
+    expect(drain()).toEqual([{type: 'tree'}, {type: 'overrides'}]);
   });
 });
 
@@ -180,15 +184,16 @@ describe('re-arming', () => {
     });
     expect(drain()).toEqual([
       {type: 'tree'},
+      {type: 'overrides'},
       {type: 'watch', id: 3},
       {type: 'observe', enabled: true},
     ]);
   });
 
-  test('a ready with nothing selected and Live paused only asks for the tree', () => {
+  test('a ready with nothing selected and Live paused only asks for the tree and overrides', () => {
     const {session, drain} = setup({[LIVE_LS_KEY]: 'false'});
     session.receive({type: 'ready'});
-    expect(drain()).toEqual([{type: 'tree'}]);
+    expect(drain()).toEqual([{type: 'tree'}, {type: 'overrides'}]);
   });
 
   test('a page change forgets the old page but keeps and re-watches the selection', () => {
@@ -210,8 +215,54 @@ describe('re-arming', () => {
     });
     expect(drain()).toEqual([
       {type: 'tree'},
+      {type: 'overrides'},
       {type: 'details', id: 3},
       {type: 'watch', id: 3},
+    ]);
+  });
+});
+
+describe('overrides', () => {
+  test('keeps the list the page sends, and forgets it on a page change', () => {
+    const {session} = setup();
+    const entries = [
+      {id: 3, tagName: 'x-b', name: 'n', value: '1', enabled: true},
+    ];
+    session.receive({type: 'overrides', applied: false, entries});
+    expect(session.overrides).toEqual({applied: false, entries});
+    session.pageChanged();
+    expect(session.overrides).toEqual({applied: true, entries: []});
+  });
+
+  test('acts on the selection, or on the element an entry names', () => {
+    const {session, drain} = setup();
+    session.toggleOverride('n', false);
+    expect(drain()).toEqual([]);
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    session.select(3);
+    drain();
+    session.toggleOverride('n', false);
+    session.removeOverride('n');
+    session.removeOverride('m', 1);
+    expect(drain()).toEqual([
+      {type: 'override-toggle', id: 3, name: 'n', enabled: false},
+      {type: 'override-remove', id: 3, name: 'n'},
+      {type: 'override-remove', id: 1, name: 'm'},
+    ]);
+  });
+
+  test('the global switch and clear-all re-ask for the selection', () => {
+    const {session, drain} = setup();
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    session.select(3);
+    drain();
+    session.applyOverrides(false);
+    session.clearOverrides();
+    expect(drain()).toEqual([
+      {type: 'overrides-apply', applied: false},
+      {type: 'details', id: 3},
+      {type: 'overrides-clear'},
+      {type: 'details', id: 3},
     ]);
   });
 });

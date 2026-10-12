@@ -6,8 +6,10 @@ import '@awesome.me/webawesome/dist/components/details/details.js';
 import '@awesome.me/webawesome/dist/components/input/input.js';
 import './wa-icons.js';
 import '@awesome.me/webawesome/dist/components/split-panel/split-panel.js';
+import '@awesome.me/webawesome/dist/components/switch/switch.js';
 import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
 import type WaSplitPanel from '@awesome.me/webawesome/dist/components/split-panel/split-panel.js';
+import type WaSwitch from '@awesome.me/webawesome/dist/components/switch/switch.js';
 import {tokens} from '../lib/tokens.js';
 import {
   ANATOMY_COLORS,
@@ -1192,6 +1194,87 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-muted);
         white-space: nowrap;
       }
+      /* The page's overrides: the switch for all of them, and their list. */
+      .overrides-bar {
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: var(--lit-devtools-space-2) var(--lit-devtools-space-4);
+        padding: var(--lit-devtools-space-2) var(--lit-devtools-space-5);
+        border-bottom: 1px solid var(--lit-devtools-border);
+        background: var(--lit-devtools-accent-soft);
+        font-size: var(--lit-devtools-text-xs);
+      }
+      .overrides-bar > details {
+        flex: 1;
+        min-width: 0;
+      }
+      .overrides-bar summary {
+        cursor: pointer;
+        color: var(--lit-devtools-text);
+      }
+      .overrides-list {
+        flex-basis: 100%;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 160px;
+        overflow-y: auto;
+        font-family: var(--lit-devtools-font-mono);
+        font-size: var(--lit-devtools-text-2xs);
+      }
+      .overrides-list li {
+        display: flex;
+        align-items: baseline;
+        gap: var(--lit-devtools-space-2);
+        padding: 2px 0;
+      }
+      .overrides-list li.off .override-value {
+        text-decoration: line-through;
+        color: var(--lit-devtools-text-muted);
+      }
+      .overrides-list .tag {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--lit-devtools-accent);
+        font: inherit;
+        cursor: pointer;
+      }
+      .override-value {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        color: var(--lit-devtools-warning);
+      }
+      .override-toggle {
+        margin: 0 var(--lit-devtools-space-2) 0 0;
+        vertical-align: middle;
+      }
+      /* Whichever of override and intrinsic value is not in effect. */
+      .shadowed {
+        margin-left: var(--lit-devtools-space-2);
+        color: var(--lit-devtools-text-muted);
+        text-decoration: line-through;
+      }
+      .remove-override {
+        display: inline-flex;
+        vertical-align: middle;
+        margin-left: var(--lit-devtools-space-1);
+        padding: 0 2px;
+        border: 0;
+        border-radius: 2px;
+        background: transparent;
+        color: var(--lit-devtools-text-muted);
+        cursor: pointer;
+      }
+      .remove-override:hover {
+        color: var(--lit-devtools-text);
+      }
+      .remove-override:focus-visible,
+      .overrides-list .tag:focus-visible {
+        outline: 2px solid var(--lit-devtools-accent-ring);
+      }
     `,
   ];
 
@@ -1756,16 +1839,26 @@ export class ComponentsView extends LitElement {
       copy?: string;
       /** The primitive the row can be set to, and the text to start from. */
       edit?: PropEdit;
+      /** Extra classes on the row. */
+      rowClass?: string;
     } = {}
   ): TemplateResult {
-    const {trailing = nothing, code = false, key, expand, copy, edit} = opts;
+    const {
+      trailing = nothing,
+      code = false,
+      key,
+      expand,
+      copy,
+      edit,
+      rowClass = '',
+    } = opts;
     const expandable = expand !== undefined && !this._snapshot;
     const editing =
       edit !== undefined && key !== undefined && this._editing === key;
     const hooks = this._editHooks(key, edit);
     const open = expandable && this._expansion.isOpen(expand.path);
     return html`<div
-      class="entry ${open || value.length > WIDE_VALUE ? 'wide' : ''}"
+      class="entry ${open || value.length > WIDE_VALUE ? 'wide' : ''} ${rowClass}"
       data-key=${key ?? nothing}
     >
       <span class="name">${name}</span>
@@ -2199,13 +2292,14 @@ export class ComponentsView extends LitElement {
       <div class="kv">
         ${props.map((p) =>
           this._renderEntry(
-            html`${this._describedName(p.name, documented)}${typeLabel(
-              p.type,
-              p.value
-            )}`,
+            html`${this._renderOverrideToggle(p)}${this._describedName(
+              p.name,
+              documented
+            )}${typeLabel(p.type, p.value)}`,
             p.value,
             {
-              trailing: html`${
+              rowClass: p.override === undefined ? '' : 'overridden',
+              trailing: html`${this._renderShadowed(p)}${
                 p.reflects
                   ? html`<wa-badge
                       class="badge"
@@ -2235,6 +2329,115 @@ export class ComponentsView extends LitElement {
         )}
       </div>
     `;
+  }
+
+  /** Whether `p`'s override is the value in effect. */
+  private _overrideInEffect(p: InspectorProp): boolean {
+    return p.override?.enabled === true && this._session.overrides.applied;
+  }
+
+  /**
+   * An overridden row's own switch, like a declaration's checkbox in the
+   * browser's Styles pane. A snapshot has no page to switch it in.
+   */
+  private _renderOverrideToggle(
+    p: InspectorProp
+  ): TemplateResult | typeof nothing {
+    const o = p.override;
+    if (o === undefined || this._snapshot) return nothing;
+    return html`<input
+      type="checkbox"
+      class="override-toggle"
+      .checked=${o.enabled}
+      aria-label=${`Override ${p.name}`}
+      data-tip=${o.enabled ? 'Switch the override off' : 'Switch the override on'}
+      @change=${(e: Event) =>
+        this._session.toggleOverride(
+          p.name,
+          (e.target as HTMLInputElement).checked
+        )}
+    />`;
+  }
+
+  /**
+   * After an overridden value, the one it hides, struck through: the
+   * intrinsic value while the override is in effect, else the override.
+   * Then the button that drops the override.
+   */
+  private _renderShadowed(p: InspectorProp): TemplateResult | typeof nothing {
+    const o = p.override;
+    if (o === undefined) return nothing;
+    const inEffect = this._overrideInEffect(p);
+    return html`<span
+        class="shadowed"
+        data-tip=${inEffect ? 'Intrinsic value, overridden' : 'Override, off'}
+        >${inEffect ? o.intrinsic : o.value}</span
+      >${
+        this._snapshot
+          ? nothing
+          : html`<button
+              class="remove-override"
+              data-tip="Remove the override"
+              aria-label=${`Remove the override on ${p.name}`}
+              @click=${() => this._session.removeOverride(p.name)}
+            >
+              <wa-icon name="x"></wa-icon>
+            </button>`
+      }`;
+  }
+
+  /**
+   * The page's overrides at a glance, while there are any: a switch that
+   * suspends them all, the list (each entry selects its element), and a way
+   * to drop them all.
+   */
+  private _renderOverridesBar(): TemplateResult | typeof nothing {
+    const {applied, entries} = this._session.overrides;
+    if (this._snapshot || entries.length === 0) return nothing;
+    return html`<div class="overrides-bar">
+      <wa-switch
+        size="small"
+        .checked=${applied}
+        @change=${(e: Event) =>
+          this._session.applyOverrides((e.target as WaSwitch).checked)}
+        >Apply overrides</wa-switch
+      >
+      <details>
+        <summary>
+          ${entries.length} ${entries.length === 1 ? 'override' : 'overrides'}
+        </summary>
+        <ul class="overrides-list">
+          ${entries.map(
+            (e) =>
+              html`<li class=${e.enabled ? '' : 'off'}>
+                <button
+                  class="tag"
+                  data-tip="Select the element"
+                  @click=${() => this._session.select(e.id)}
+                >
+                  &lt;${e.tagName}&gt;.${e.name}
+                </button>
+                <span class="override-value">${e.value}</span>
+                <button
+                  class="remove-override"
+                  data-tip="Remove the override"
+                  aria-label=${`Remove the override on ${e.tagName} ${e.name}`}
+                  @click=${() => this._session.removeOverride(e.name, e.id)}
+                >
+                  <wa-icon name="x"></wa-icon>
+                </button>
+              </li>`
+          )}
+        </ul>
+      </details>
+      <wa-button
+        class="clear-overrides"
+        size="small"
+        appearance="plain"
+        @click=${() => this._session.clearOverrides()}
+        >Clear all</wa-button
+      >
+    </div>`;
   }
 
   /**
@@ -3130,7 +3333,7 @@ export class ComponentsView extends LitElement {
               )
         }
       </div>
-      ${this._renderHmrBanner()}${this._renderLastPatch()}
+      ${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
       <wa-split-panel
         primary="end"
         position-in-pixels=${this._detailsWidth}

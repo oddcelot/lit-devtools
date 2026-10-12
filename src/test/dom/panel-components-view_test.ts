@@ -2247,3 +2247,112 @@ test('a snapshot ignores a double-click on a value', async () => {
   expect(sets()).toEqual([]);
   expect(el.shadowRoot!.querySelector('.edit-input')).toBeNull();
 });
+
+const overridden = (enabled: boolean) => ({
+  ...detailsFor(),
+  properties: [
+    {
+      name: 'label',
+      value: enabled ? '"Send"' : '"Save"',
+      type: 'string',
+      attribute: 'label',
+      reflects: false,
+      state: false,
+      editable: 'string' as const,
+      override: {value: '"Send"', enabled, intrinsic: '"Save"'},
+    },
+  ],
+});
+
+const mountOverridden = async (enabled = true) => {
+  const mounted = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: overridden(enabled)});
+  await flush(mounted.el);
+  const row = () =>
+    mounted.root.querySelector<HTMLElement>(
+      '.details .entry[data-key="p:label"]'
+    )!;
+  const sent = (type: string) =>
+    mounted.inspects().filter((c) => (c as {type: string}).type === type);
+  return {...mounted, row, sent};
+};
+
+test('an overridden row strikes the intrinsic value and can be switched off', async () => {
+  const {el, row, sent} = await mountOverridden();
+  expect(row().classList.contains('overridden')).toBe(true);
+  expect(row().querySelector('.shadowed')!.textContent).toBe('"Save"');
+  const toggle = row().querySelector<HTMLInputElement>('.override-toggle')!;
+  expect(toggle.checked).toBe(true);
+  toggle.click();
+  await flush(el);
+  expect(sent('override-toggle')).toEqual([
+    {type: 'override-toggle', id: 2, name: 'label', enabled: false},
+  ]);
+});
+
+test('a switched-off override is what gets struck through', async () => {
+  const {row} = await mountOverridden(false);
+  expect(row().querySelector('.shadowed')!.textContent).toBe('"Send"');
+  expect(
+    row().querySelector<HTMLInputElement>('.override-toggle')!.checked
+  ).toBe(false);
+});
+
+test('an override is removed from its row', async () => {
+  const {el, row, sent} = await mountOverridden();
+  row().querySelector<HTMLElement>('.remove-override')!.click();
+  await flush(el);
+  expect(sent('override-remove')).toEqual([
+    {type: 'override-remove', id: 2, name: 'label'},
+  ]);
+});
+
+test('the overrides bar shows while the page has overrides', async () => {
+  const {el, root, sent} = await mountOverridden();
+  const bar = () => root.querySelector<HTMLElement>('.overrides-bar');
+  expect(bar()).toBeNull();
+  expect(sent('overrides').length).toBeGreaterThan(0);
+  push('inspector-message', {
+    type: 'overrides',
+    applied: true,
+    entries: [
+      {
+        id: 2,
+        tagName: 'x-button',
+        name: 'label',
+        value: '"Send"',
+        enabled: true,
+      },
+      {id: 1, tagName: 'x-app', name: 'open', value: 'true', enabled: false},
+    ],
+  });
+  await flush(el);
+  expect(bar()!.querySelector('summary')!.textContent!.trim()).toBe(
+    '2 overrides'
+  );
+  const items = [...bar()!.querySelectorAll('.overrides-list li')];
+  expect(items[1]!.classList.contains('off')).toBe(true);
+
+  items[1]!.querySelector<HTMLElement>('.remove-override')!.click();
+  items[1]!.querySelector<HTMLElement>('.tag')!.click();
+  await flush(el);
+  expect(sent('override-remove')).toEqual([
+    {type: 'override-remove', id: 1, name: 'open'},
+  ]);
+  expect(el.location.selected('components')).toBe(1);
+
+  const toggle = bar()!.querySelector('wa-switch')!;
+  (toggle as HTMLElement & {checked: boolean}).checked = false;
+  toggle.dispatchEvent(new Event('change'));
+  bar()!.querySelector<HTMLElement>('.clear-overrides')!.click();
+  await flush(el);
+  expect(sent('overrides-apply')).toEqual([
+    {type: 'overrides-apply', applied: false},
+  ]);
+  expect(sent('overrides-clear')).toEqual([{type: 'overrides-clear'}]);
+
+  push('inspector-message', {type: 'overrides', applied: true, entries: []});
+  await flush(el);
+  expect(bar()).toBeNull();
+});

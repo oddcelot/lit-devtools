@@ -305,7 +305,7 @@ test('a page change drops the Components tree and HMR history, and asks the new 
   expect(components.hmrIncompatibilityCount).toBe(0);
   expect(
     calls.filter((c) => c.name === 'inspect').map((c) => c.args[0])
-  ).toEqual([{type: 'tree'}]);
+  ).toEqual([{type: 'tree'}, {type: 'overrides'}]);
 });
 
 test('a page change asks the new page for the selection, not the old details', async () => {
@@ -319,7 +319,12 @@ test('a page change asks the new page for the selection, not the old details', a
   expect(components.location.selected('components')).toBe(7);
   expect(
     calls.filter((c) => c.name === 'inspect').map((c) => c.args[0])
-  ).toEqual([{type: 'tree'}, {type: 'details', id: 7}, {type: 'watch', id: 7}]);
+  ).toEqual([
+    {type: 'tree'},
+    {type: 'overrides'},
+    {type: 'details', id: 7},
+    {type: 'watch', id: 7},
+  ]);
 });
 
 test('a frozen session has no page to follow', async () => {

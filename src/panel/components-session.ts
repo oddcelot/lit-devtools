@@ -14,6 +14,7 @@ import type {
   InspectorCommand,
   InspectorDetails,
   InspectorMessage,
+  InspectorOverrides,
   InspectorTreeNode,
 } from '../types/inspector.js';
 import type {
@@ -83,6 +84,8 @@ export const findAncestors = (
   return walk(nodes) ? [...trail] : null;
 };
 
+const NO_OVERRIDES: InspectorOverrides = {applied: true, entries: []};
+
 export class ComponentsSession {
   readonly #ports: ComponentsSessionPorts;
   readonly #listeners = new Set<() => void>();
@@ -97,6 +100,7 @@ export class ComponentsSession {
   #runtime: LitRuntimeInfo | null = null;
   #hmrIncompatibilities: HmrIncompatibilityEvent[] = [];
   #lastPatch: HmrPatchEvent | null = null;
+  #overrides: InspectorOverrides = NO_OVERRIDES;
 
   constructor(ports: ComponentsSessionPorts) {
     this.#ports = ports;
@@ -148,6 +152,11 @@ export class ComponentsSession {
     return this.#lastPatch;
   }
 
+  /** The page's prop overrides, and whether they apply. */
+  get overrides(): InspectorOverrides {
+    return this.#overrides;
+  }
+
   /** Call `listener` after every change. Returns an unsubscribe. */
   subscribe(listener: () => void): () => void {
     this.#listeners.add(listener);
@@ -167,6 +176,7 @@ export class ComponentsSession {
     );
     if (prime.hmrHistory) this.#lastPatch = lastPatchOf(prime.hmrHistory);
     this.#send({type: 'tree'});
+    this.#send({type: 'overrides'});
     if (this.#live) this.#send({type: 'observe', enabled: true});
     this.#changed();
   }
@@ -192,6 +202,7 @@ export class ComponentsSession {
         // Live (it releases the observer when the panel disconnects, and a
         // reload restarts it with none); `live` is what the user asked for.
         this.#send({type: 'tree'});
+        this.#send({type: 'overrides'});
         if (this.#selectedId !== null) {
           this.#send({type: 'watch', id: this.#selectedId});
         }
@@ -213,6 +224,9 @@ export class ComponentsSession {
         if (message.id !== this.#selectedId) return;
         this.#details = null;
         this.#gone = true;
+        break;
+      case 'overrides':
+        this.#overrides = {applied: message.applied, entries: message.entries};
         break;
       case 'pick':
         this.#picking = false;
@@ -252,6 +266,9 @@ export class ComponentsSession {
     this.#roots = [];
     this.#lastPatch = null;
     this.#hmrIncompatibilities = [];
+    // Overrides live in the page, so the new one has its own (none, on a
+    // reload): ask rather than show the old page's.
+    this.#overrides = NO_OVERRIDES;
     const id = this.#selectedId;
     if (id !== null) {
       this.#details = null;
@@ -300,6 +317,38 @@ export class ComponentsSession {
     this.#changed();
   }
 
+  /** Switch the selected element's override on `name` on or off. */
+  toggleOverride(name: string, enabled: boolean): void {
+    const id = this.#selectedId;
+    if (id !== null) this.#send({type: 'override-toggle', id, name, enabled});
+  }
+
+  /** Drop an override; on the selected element unless `id` names another. */
+  removeOverride(name: string, id = this.#selectedId): void {
+    if (id !== null) this.#send({type: 'override-remove', id, name});
+  }
+
+  /**
+   * Apply or suspend every override, or drop them all. The page answers with
+   * the list; the selection's details are asked for again, since a value that
+   * did not change renders nothing, and so pushes none.
+   */
+  applyOverrides(applied: boolean): void {
+    this.#send({type: 'overrides-apply', applied});
+    this.#refreshDetails();
+  }
+
+  clearOverrides(): void {
+    this.#send({type: 'overrides-clear'});
+    this.#refreshDetails();
+  }
+
+  #refreshDetails(): void {
+    if (this.#selectedId !== null) {
+      this.#send({type: 'details', id: this.#selectedId});
+    }
+  }
+
   /** The panel is going away: release what the page holds for it. */
   dispose(): void {
     this.#send({type: 'watch', id: null});
@@ -330,6 +379,7 @@ export class ComponentsSession {
 
   #refresh(): void {
     this.#send({type: 'tree'});
+    this.#send({type: 'overrides'});
     if (this.#selectedId !== null) {
       this.#send({type: 'details', id: this.#selectedId});
     }
