@@ -5,6 +5,10 @@
  * to boot on scroll, so the iframe is only created on a click. StackBlitz's
  * `ctl=1` click-to-load does not apply to GitHub imports.
  *
+ * Nothing loads from StackBlitz before that click, and the Run button says
+ * what the click does: it boots the project on StackBlitz, which receives
+ * the visitor's IP address and runs code from this repo.
+ *
  * The embed needs a cross-origin isolated page, which `coi-sw.js` provides
  * from the page's next load: the first Run reloads the page once, then
  * starts the embed. The caption has a button that reloads just the iframe,
@@ -35,9 +39,18 @@ const query = (extra: Record<string, string>) => {
 
 <figure class="stackblitz-embed">
   <stackblitz-embed data-src={query({embed: '1', hideExplorer: '1'})}>
-    <button type="button" class="run" data-title={title}>
-      Run this demo
-    </button>
+    <div class="start">
+      <button type="button" class="run" data-title={title}>
+        Run this demo
+      </button>
+      <p class="notice">
+        Runs on StackBlitz: starting it connects to stackblitz.com, which
+        installs and runs this project in your browser (<a
+          href="https://stackblitz.com/privacy-policy">StackBlitz's privacy
+          policy</a
+        >).
+      </p>
+    </div>
   </stackblitz-embed>
   <figcaption>
     <button type="button" class="reload" hidden>
@@ -68,9 +81,16 @@ const query = (extra: Record<string, string>) => {
   class StackBlitzEmbed extends HTMLElement {
     connectedCallback() {
       const run = this.querySelector<HTMLButtonElement>('.run');
+      const startArea = this.querySelector<HTMLElement>('.start');
       const reload =
         this.closest('figure')?.querySelector<HTMLButtonElement>('.reload');
-      if (run === null || reload === null || reload === undefined) return;
+      if (
+        run === null ||
+        startArea === null ||
+        reload === null ||
+        reload === undefined
+      )
+        return;
       const src = this.dataset.src ?? '';
 
       const start = () => {
@@ -79,7 +99,7 @@ const query = (extra: Record<string, string>) => {
         frame.allow = 'cross-origin-isolated';
         frame.src = src;
         frame.title = run.dataset.title ?? '';
-        run.replaceWith(frame);
+        startArea.replaceWith(frame);
         reload.hidden = false;
         reload.addEventListener('click', () => {
           frame.src = src;
@@ -89,7 +109,7 @@ const query = (extra: Record<string, string>) => {
         const note = document.createElement('p');
         note.className = 'unsupported';
         note.textContent = text;
-        run.replaceWith(note);
+        startArea.replaceWith(note);
       };
 
       if (!canEmbed) {
@@ -144,6 +164,20 @@ const query = (extra: Record<string, string>) => {
     width: 100%;
     height: 100%;
     border: 0;
+  }
+  .start {
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    max-width: 30rem;
+    padding: 1rem;
+    text-align: center;
+  }
+  .notice {
+    margin: 0;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+    text-wrap: balance;
   }
   .run {
     padding: 0.5rem 1.25rem;

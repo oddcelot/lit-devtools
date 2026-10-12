@@ -225,9 +225,6 @@ importers:
 
   docs:
     dependencies:
-      '@astro-community/astro-embed-youtube':
-        specifier: ^0.5.10
-        version: 0.5.10
       '@astrojs/sitemap':
         specifier: ^3.7.4
         version: 3.7.4
@@ -239,7 +236,10 @@ importers:
         version: 2.1.1
       '@videojs/html':
         specifier: 10.0.1
-        version: 10.0.1(react@19.3.0)
+        version: 10.0.1(@videojs/youtube-video@10.0.1)(react@19.3.0)
+      '@videojs/youtube-video':
+        specifier: 10.0.1
+        version: 10.0.1
       astro:
         specifier: ^7.3.5
         version: 7.3.5(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
@@ -403,9 +403,6 @@ packages:
     resolution: {integrity: sha512-pg43g83gojVtEsAkXfjWuzJhuXneJp4wM/leBftGkCPV3yxKgB92EWA+nWu735BgbBMph3P7DrVqVc3ikt+dJA==}
     peerDependencies:
       astro: ^4.14.0 || ^5.0.0-beta.0
-
-  '@astro-community/astro-embed-youtube@0.5.10':
-    resolution: {integrity: sha512-hVlx77KQLjKzElVQnrU5znQ5/E60keVSAPrhuWvQQHuqva5auJtt8YBpOThkwDMuEKXjQybEF1/3C07RZ8MAOQ==}
 
   '@astrojs/compiler-binding-android-arm64@0.5.1':
     resolution: {integrity: sha512-nMb2nMIJtcWLNH+fV75Enmi+jp4tIOYOfsv4XtpgdOWkqc9P4uSSdK5u1xb340AzrXo5V18SxLl/nc3vcqtamQ==}
@@ -2177,6 +2174,9 @@ packages:
   '@videojs/utils@10.0.1':
     resolution: {integrity: sha512-S7WO9lPfyCz5YQYWtpE42JZTtJKUaiWaAZGAa+VLoBiFMfpoogCloSP4pjChTYcQ6sGcLlQJNxVKhM1RvI/Dig==}
 
+  '@videojs/youtube-video@10.0.1':
+    resolution: {integrity: sha512-SBn0O391jUeQAM7imXP1C/rCIbwbozl3otRLmqjdd5VK4/szdDINVrl0286/j/j5UxAwbcarYqIp3e57nB3LMw==}
+
   '@vitejs/devtools-kit@0.7.6':
     resolution: {integrity: sha512-VtnTo296ypQyksFcPgrUyDDxh/SuAa/18uWEitbODcJIu5eilMFQyaSzsLKgp0HQPsxo/Kfzbfl5gowNGfjwqQ==}
     peerDependencies:
@@ -3332,9 +3332,6 @@ packages:
   lit@3.3.3:
     resolution: {integrity: sha512-fycuvZg/hkpozL00lm1pEJH5nN/lr9ZXd6mJI2HSN4+Bzc+LDNdEApJ6HFbPkdFNHLvOplIIuJvxkS4XUxqirw==}
 
-  lite-youtube-embed@0.3.4:
-    resolution: {integrity: sha512-aXgxpwK7AIW58GEbRzA8EYaY4LWvF3FKak6B9OtSJmuNyLhX2ouD4cMTxz/yR5HFInhknaYd2jLWOTRTvT8oAw==}
-
   local-pkg@1.2.1:
     resolution: {integrity: sha512-++gUqRDEvcnN6Zhqrr+y/CkVEHhlrR96vZn3nZZPYzMcBUyBtTKzB9NadClFIsIVSsu+3i9tfk/erqy9kAmt7Q==}
     engines: {node: '>=14'}
@@ -4426,10 +4423,6 @@ snapshots:
   '@ascorbic/loader-utils@1.0.2(astro@7.3.5(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))':
     dependencies:
       astro: 7.3.5(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
-
-  '@astro-community/astro-embed-youtube@0.5.10':
-    dependencies:
-      lite-youtube-embed: 0.3.4
 
   '@astrojs/compiler-binding-android-arm64@0.5.1':
     optional: true
@@ -5835,7 +5828,7 @@ snapshots:
     dependencies:
       '@lit/context': 1.1.6
 
-  '@videojs/html@10.0.1(react@19.3.0)':
+  '@videojs/html@10.0.1(@videojs/youtube-video@10.0.1)(react@19.3.0)':
     dependencies:
       '@videojs/core': 10.0.1(@videojs/element@10.0.1)(react@19.3.0)
       '@videojs/element': 10.0.1
@@ -5844,6 +5837,8 @@ snapshots:
       '@videojs/spf': 10.0.1
       '@videojs/store': 10.0.1(@videojs/element@10.0.1)(react@19.3.0)
       '@videojs/utils': 10.0.1
+    optionalDependencies:
+      '@videojs/youtube-video': 10.0.1
     transitivePeerDependencies:
       - react
 
@@ -5871,6 +5866,11 @@ snapshots:
       react: 19.3.0
 
   '@videojs/utils@10.0.1': {}
+
+  '@videojs/youtube-video@10.0.1':
+    dependencies:
+      '@videojs/media': 10.0.1
+      '@videojs/utils': 10.0.1
 
   '@vitejs/devtools-kit@0.7.6(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(crossws@0.4.12(srvx@1.0.5))(srvx@1.0.5)':
     dependencies:
@@ -7076,8 +7076,6 @@ snapshots:
       '@lit/reactive-element': 2.1.2
       lit-element: 4.2.2
       lit-html: 3.3.3
-
-  lite-youtube-embed@0.3.4: {}
 
   local-pkg@1.2.1:
     dependencies:
