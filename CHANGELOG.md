@@ -13,6 +13,8 @@ app's own writes, and pinned to survive a reload. Anatomy labels sit beside the
 component with leader lines, and a CSS example shows each way of styling a
 shadow root. Nothing needs action to upgrade.
 
+[![Watch the 0.17.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.17.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.17.0/vite-plugin-lit-0.17.0.mp4)
+
 ### Added
 
 - **The Components tab shows a component's documentation.** The details pane
