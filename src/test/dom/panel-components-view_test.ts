@@ -2448,3 +2448,61 @@ test('the bar reports dropped overrides until dismissed', async () => {
   await flush(el);
   expect(root.querySelector('.overrides-bar')).toBeNull();
 });
+
+test('the pin keeps an override across reloads, where the page can', async () => {
+  const {el, row, root, sent} = await mountOverridden();
+  expect(row().querySelector('.pin-override')).toBeNull();
+  push('inspector-message', {
+    type: 'overrides',
+    applied: true,
+    canPersist: true,
+    waiting: 2,
+    entries: [
+      {
+        id: 2,
+        tagName: 'x-button',
+        name: 'label',
+        value: '"Send"',
+        enabled: true,
+      },
+    ],
+  });
+  await flush(el);
+  const pin = row().querySelector<HTMLElement>('.pin-override')!;
+  expect(pin.getAttribute('aria-pressed')).toBe('false');
+  pin.click();
+  root.querySelector<HTMLElement>('.overrides-list .pin-override')!.click();
+  await flush(el);
+  expect(sent('override-persist')).toEqual([
+    {type: 'override-persist', id: 2, name: 'label', persist: true},
+    {type: 'override-persist', id: 2, name: 'label', persist: true},
+  ]);
+  expect(root.querySelector('.overrides-bar .waiting')!.textContent).toBe(
+    ', 2 saved, not on this page'
+  );
+});
+
+test('a saved override that no longer applies is reported', async () => {
+  const {el, root} = await mountOverridden();
+  push('inspector-message', {
+    type: 'overrides',
+    applied: true,
+    entries: [],
+    dropped: [
+      {
+        id: 2,
+        tagName: 'x-button',
+        name: 'size',
+        value: '3',
+        enabled: false,
+        reason: 'refused',
+      },
+    ],
+  });
+  await flush(el);
+  const text = root
+    .querySelector('.overrides-dropped')!
+    .textContent!.replace(/\s+/g, ' ')
+    .trim();
+  expect(text).toBe('A saved override no longer applies: <x-button>.size.');
+});

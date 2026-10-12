@@ -24,6 +24,7 @@ import {
 } from './collect.js';
 import {
   clearLeafOverrides,
+  persistLeafOverride,
   reapplyLeaves,
   removeLeafOverride,
   sweepLeaves,
@@ -33,9 +34,11 @@ import {
   applyOverrides,
   clearOverrides,
   onIntrinsicWrite,
+  persistOverride,
   removeOverride,
   toggleOverride,
 } from './prop-overrides.js';
+import {forgetWaiting, onRestored, saveOverrides} from './override-store.js';
 import {anatomyById, clearAnatomy, focusAnatomy} from './anatomy-overlay.js';
 import {shadowOf} from './anatomy.js';
 import {onLitWarning} from '../timeline/lit-warnings.js';
@@ -575,9 +578,27 @@ if (typeof window !== 'undefined') {
     });
   };
 
+  // Every change to the overrides is answered with them, so this is also
+  // where the ones kept across reloads are saved.
   const replyOverrides = (): void => {
+    saveOverrides();
     send({type: 'overrides', ...collectOverrides()});
   };
+  // Saved overrides go back on as their elements first update, with no
+  // command to answer; several elements usually do so together.
+  let restoreQueued = false;
+  onRestored(() => {
+    if (restoreQueued) return;
+    restoreQueued = true;
+    queueMicrotask(() => {
+      restoreQueued = false;
+      // Naming the restored elements mints their ids; walk the tree first
+      // so ids still come in tree order, as the panel's selection expects
+      // the same id for the same element after a reload.
+      build();
+      replyOverrides();
+    });
+  });
 
   /** Act on one element's override, then answer for it and for the list. */
   const onOverride =
@@ -621,6 +642,12 @@ if (typeof window !== 'undefined') {
         ? removeOverride(el, name)
         : removeLeafOverride(el, name, keys)
     ),
+    'override-persist': (cmd) =>
+      onOverride((el, name, keys) =>
+        keys.length === 0
+          ? persistOverride(el, name, cmd.persist)
+          : persistLeafOverride(el, name, keys, cmd.persist)
+      )(cmd),
     'overrides-apply': (cmd) => {
       applyOverrides(cmd.applied);
       reapplyLeaves();
@@ -629,6 +656,7 @@ if (typeof window !== 'undefined') {
     'overrides-clear': () => {
       clearOverrides();
       clearLeafOverrides();
+      forgetWaiting();
       replyOverrides();
     },
     watch: (cmd) => (cmd.id === null ? unwatch() : watch(cmd.id)),

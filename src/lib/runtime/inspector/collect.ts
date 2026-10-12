@@ -20,8 +20,9 @@ import {
   leafOverrideOf,
   listLeafOverrides,
   setLeafOverride,
-  takeDropped,
 } from './leaf-overrides.js';
+import {takeDrops} from './override-drops.js';
+import {canPersist, waitingCount} from './override-store.js';
 import {
   listOverrides,
   overrideOf,
@@ -285,6 +286,7 @@ const propOf = (
           override: {
             value: serialize(override.value),
             enabled: override.enabled,
+            ...(override.persist ? {persist: true} : {}),
             intrinsic: serialize(override.intrinsic),
           },
         }
@@ -402,6 +404,7 @@ export const expandPath = (
             override: {
               value: serialize(o.value),
               enabled: o.enabled,
+              ...(o.persist ? {persist: true} : {}),
               intrinsic: serialize(o.intrinsic),
             },
           };
@@ -473,14 +476,18 @@ const entryOf = (o: {
   name: string;
   keys?: ValueSegment[];
   value: unknown;
-  enabled: boolean;
+  enabled?: boolean;
+  persist?: boolean;
+  reason?: InspectorOverrideEntry['reason'];
 }): InspectorOverrideEntry => ({
   id: idOf(o.el),
   tagName: o.el.localName,
   name: o.name,
   ...(o.keys !== undefined ? {keys: o.keys} : {}),
   value: serialize(o.value),
-  enabled: o.enabled,
+  enabled: o.enabled ?? false,
+  ...(o.persist === true ? {persist: true} : {}),
+  ...(o.reason !== undefined ? {reason: o.reason} : {}),
 });
 
 /**
@@ -489,10 +496,13 @@ const entryOf = (o: {
  */
 export const collectOverrides = (): InspectorOverrides => {
   const entries = [...listOverrides(), ...listLeafOverrides()].map(entryOf);
-  const dropped = takeDropped().map(entryOf);
+  const dropped = takeDrops().map(entryOf);
+  const waiting = waitingCount();
   return {
     applied: overridesApplied(),
     entries,
     ...(dropped.length > 0 ? {dropped} : {}),
+    ...(canPersist() ? {canPersist: true} : {}),
+    ...(waiting > 0 ? {waiting} : {}),
   };
 };

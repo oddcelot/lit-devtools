@@ -64,6 +64,7 @@ describe('leaf overrides', () => {
     expect(leafOverrideOf(el, 'cfg', ['theme', 'mode'])).toEqual({
       value: 'dark',
       enabled: true,
+      persist: false,
       intrinsic: 'light',
     });
 

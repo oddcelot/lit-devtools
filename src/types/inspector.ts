@@ -135,6 +135,8 @@ export interface InspectorPropOverride {
   value: string;
   /** This override's own switch; the global one is {@link InspectorOverrides}. */
   enabled: boolean;
+  /** Kept across reloads of the page. Absent from an older runtime. */
+  persist?: boolean;
   intrinsic: string;
 }
 
@@ -148,6 +150,14 @@ export interface InspectorOverrideEntry {
   /** Serialized preview of the override value. */
   value: string;
   enabled: boolean;
+  /** Kept across reloads of the page. */
+  persist?: boolean;
+  /**
+   * Only on a dropped entry: `replaced` when the app replaced the object the
+   * leaf was in, `refused` when a saved override no longer fit the element
+   * it was restored to (a renamed property, a changed type).
+   */
+  reason?: 'replaced' | 'refused';
 }
 
 /** Every override in the page, and whether they apply at all. */
@@ -155,10 +165,21 @@ export interface InspectorOverrides {
   applied: boolean;
   entries: InspectorOverrideEntry[];
   /**
-   * Leaf overrides dropped since the last message because the app replaced
-   * the object holding them. Each is reported once.
+   * Overrides the page dropped since the last message, each reported once;
+   * `reason` says why.
    */
   dropped?: InspectorOverrideEntry[];
+  /**
+   * Whether this page can keep overrides across reloads: true on the
+   * dev-server hosts, absent from the extension, which has no storage of
+   * the page's to write to, and from an older runtime.
+   */
+  canPersist?: boolean;
+  /**
+   * How many saved overrides this page has not found an element for yet.
+   * They apply when one appears; clearing the overrides forgets them.
+   */
+  waiting?: number;
 }
 
 /**
@@ -512,11 +533,26 @@ export type InspectorCommand =
    */
   | {type: 'override-remove'; id: number; name: string; keys?: ValueSegment[]}
   /**
+   * Keep the override on `name` (or the leaf at `keys`) of element `id`
+   * across reloads, or stop keeping it, then answer as `override-toggle`
+   * does. Ignored where the host cannot keep anything.
+   */
+  | {
+      type: 'override-persist';
+      id: number;
+      name: string;
+      keys?: ValueSegment[];
+      persist: boolean;
+    }
+  /**
    * Apply every override, or suspend them all without losing them, then
    * answer with the overrides.
    */
   | {type: 'overrides-apply'; applied: boolean}
-  /** Drop every override in the page, then answer with the overrides. */
+  /**
+   * Drop every override in the page, and the saved ones still waiting for
+   * an element, then answer with the overrides.
+   */
   | {type: 'overrides-clear'}
   /**
    * Draw element `id`'s slots and parts on the page; `null` clears it. With

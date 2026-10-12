@@ -303,6 +303,19 @@ const childWrites = (
   };
 };
 
+/** `one` for a single item, else the count and `many`. */
+const plural = (n: number, one: string, many: string): string =>
+  n === 1 ? one : `${n} ${many}`;
+
+/** Dropped overrides as `<tag>.path` code spans, comma-separated. */
+const dropList = (entries: readonly InspectorOverrideEntry[]) =>
+  entries.map(
+    (e, i) =>
+      html`${i > 0 ? ', ' : ''}<code
+          >&lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}</code
+        >`
+  );
+
 /** The `_editing` key of a row: the property's own, or a leaf's path. */
 const editKeyOf = (edit: Pick<PropEdit, 'name' | 'keys'>): string =>
   edit.keys.length === 0
@@ -1319,8 +1332,29 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-muted);
         cursor: pointer;
       }
-      .remove-override:hover {
+      .remove-override:hover,
+      .pin-override:hover {
         color: var(--lit-devtools-text);
+      }
+      .pin-override {
+        display: inline-flex;
+        vertical-align: middle;
+        margin-left: var(--lit-devtools-space-1);
+        padding: 0 2px;
+        border: 0;
+        border-radius: 2px;
+        background: transparent;
+        color: var(--lit-devtools-text-muted);
+        cursor: pointer;
+      }
+      .pin-override.pinned {
+        color: var(--lit-devtools-accent);
+      }
+      .pin-override:focus-visible {
+        outline: 2px solid var(--lit-devtools-accent-ring);
+      }
+      .overrides-bar .waiting {
+        color: var(--lit-devtools-text-muted);
       }
       .remove-override:focus-visible,
       .overrides-list .tag:focus-visible {
@@ -2421,15 +2455,38 @@ export class ComponentsView extends LitElement {
       >${
         this._snapshot
           ? nothing
-          : html`<button
-              class="remove-override"
-              data-tip="Remove the override"
-              aria-label=${`Remove the override on ${pathLabel(t.name, t.keys)}`}
-              @click=${() => this._session.removeOverride(t.name, t.keys)}
-            >
-              <wa-icon name="x"></wa-icon>
-            </button>`
+          : html`${this._renderPin(t.name, t.keys, o.persist === true)}<button
+                class="remove-override"
+                data-tip="Remove the override"
+                aria-label=${`Remove the override on ${pathLabel(t.name, t.keys)}`}
+                @click=${() => this._session.removeOverride(t.name, t.keys)}
+              >
+                <wa-icon name="x"></wa-icon>
+              </button>`
       }`;
+  }
+
+  /**
+   * Whether an override is kept across reloads, and the switch for it.
+   * Absent where the page cannot keep anything (the extension).
+   */
+  private _renderPin(
+    name: string,
+    keys: readonly ValueSegment[],
+    persist: boolean,
+    id?: number
+  ): TemplateResult | typeof nothing {
+    if (this._session.overrides.canPersist !== true) return nothing;
+    const label = pathLabel(name, keys);
+    return html`<button
+      class="pin-override ${persist ? 'pinned' : ''}"
+      aria-pressed=${persist ? 'true' : 'false'}
+      aria-label=${`Keep the override on ${label} across reloads`}
+      data-tip=${persist ? 'Kept across reloads' : 'Keep across reloads'}
+      @click=${() => this._session.persistOverride(name, !persist, keys, id)}
+    >
+      <wa-icon name="push-pin"></wa-icon>
+    </button>`;
   }
 
   /**
@@ -2438,14 +2495,15 @@ export class ComponentsView extends LitElement {
    * to drop them all.
    */
   private _renderOverridesBar(): TemplateResult | typeof nothing {
-    const {applied, entries} = this._session.overrides;
+    const {applied, entries, waiting = 0} = this._session.overrides;
     const dropped = this._session.droppedOverrides;
-    if (this._snapshot || entries.length + dropped.length === 0) return nothing;
+    const listed = entries.length + waiting;
+    if (this._snapshot || listed + dropped.length === 0) return nothing;
     return html`<div class="overrides-bar">
       ${this._renderDropped(dropped)}${
-        entries.length === 0
+        listed === 0
           ? nothing
-          : this._renderOverridesList(applied, entries)
+          : this._renderOverridesList(applied, entries, waiting)
       }
     </div>`;
   }
@@ -2458,18 +2516,25 @@ export class ComponentsView extends LitElement {
     dropped: readonly InspectorOverrideEntry[]
   ): TemplateResult | typeof nothing {
     if (dropped.length === 0) return nothing;
+    const replaced = dropped.filter((e) => e.reason !== 'refused');
+    const refused = dropped.filter((e) => e.reason === 'refused');
     return html`<div class="overrides-dropped" role="status">
       <wa-icon name="warning"></wa-icon>
       <span
-        >The app replaced the object under
-        ${dropped.length === 1 ? 'an override' : `${dropped.length} overrides`},
-        so ${dropped.length === 1 ? 'it was' : 'they were'} dropped:
-        ${dropped.map(
-          (e, i) =>
-            html`${i > 0 ? ', ' : ''}<code
-                >&lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}</code
-              >`
-        )}</span
+        >${
+          replaced.length === 0
+            ? nothing
+            : html`The app replaced the object under
+              ${plural(replaced.length, 'an override', 'overrides')}, so
+              ${replaced.length === 1 ? 'it was' : 'they were'} dropped:
+              ${dropList(replaced)}. `
+        }${
+          refused.length === 0
+            ? nothing
+            : html`${plural(refused.length, 'A saved override', 'saved overrides')}
+              no longer ${refused.length === 1 ? 'applies' : 'apply'}:
+              ${dropList(refused)}.`
+        }</span
       >
       <button
         class="remove-override"
@@ -2484,7 +2549,8 @@ export class ComponentsView extends LitElement {
 
   private _renderOverridesList(
     applied: boolean,
-    entries: readonly InspectorOverrideEntry[]
+    entries: readonly InspectorOverrideEntry[],
+    waiting: number
   ): TemplateResult {
     return html` <wa-switch
         size="small"
@@ -2495,7 +2561,15 @@ export class ComponentsView extends LitElement {
       >
       <details>
         <summary>
-          ${entries.length} ${entries.length === 1 ? 'override' : 'overrides'}
+          ${plural(entries.length, '1 override', 'overrides')}${
+            waiting === 0
+              ? nothing
+              : html`<span
+                  class="waiting"
+                  data-tip="Kept from an earlier load; they apply when their element appears"
+                  >, ${waiting} saved, not on this page</span
+                >`
+          }
         </summary>
         <ul class="overrides-list">
           ${entries.map(
@@ -2509,6 +2583,7 @@ export class ComponentsView extends LitElement {
                   &lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}
                 </button>
                 <span class="override-value">${e.value}</span>
+                ${this._renderPin(e.name, e.keys ?? [], e.persist === true, e.id)}
                 <button
                   class="remove-override"
                   data-tip="Remove the override"
