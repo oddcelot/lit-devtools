@@ -1,9 +1,11 @@
 ---
 /**
- * A short demo video from `public/demo/`. Muted autoplay on a loop, like a
- * moving screenshot; the player's controls are there to pause it or turn the
- * music on. Plays in Video.js's packaged skin (VideoPlayerScript.astro).
- * Files in `public/` are not processed, so the paths carry the base.
+ * A video from `public/demo/`, in Video.js's packaged skin
+ * (VideoPlayerScript.astro). By default a short demo: muted autoplay on a
+ * loop, like a moving screenshot, with controls to pause it or turn the
+ * music on. With `autoplay={false}` it is a film: the poster until someone
+ * presses play, and nothing downloaded before that. Files in `public/` are
+ * not processed, so the paths carry the base.
  */
 import VideoPlayerScript from './VideoPlayerScript.astro';
 
@@ -14,9 +16,17 @@ interface Props {
   name?: string;
   width?: number;
   height?: number;
+  /** Muted looping autoplay (a demo) or play on request (a film). */
+  autoplay?: boolean;
 }
 
-const {label, name = 'hmr-demo', width = 1440, height = 902} = Astro.props;
+const {
+  label,
+  name = 'hmr-demo',
+  width = 1440,
+  height = 902,
+  autoplay = true,
+} = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
@@ -28,11 +38,11 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         width={width}
         height={height}
         aria-label={label}
-        autoplay
-        muted
-        loop
+        autoplay={autoplay}
+        muted={autoplay}
+        loop={autoplay}
         playsinline
-        preload="metadata"></video>
+        preload={autoplay ? 'metadata' : 'none'}></video>
       <img slot="poster" src={`${base}/demo/${name}-poster.jpg`} alt="" />
     </video-skin>
   </video-player>

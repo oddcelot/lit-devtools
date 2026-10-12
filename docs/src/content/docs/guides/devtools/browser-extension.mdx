@@ -9,7 +9,7 @@ sidebar:
 import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
 import {Image} from 'astro:assets';
 import StoreButtons from '../../../../components/StoreButtons.astro';
-import YouTubeVideo from '../../../../components/YouTubeVideo.astro';
+import DemoVideo from '../../../../components/DemoVideo.astro';
 import screenshot from '../../../../../../extension/store/screenshot-1-components.png';
 
 Inspect the Lit components on any page, including production builds and sites
@@ -19,10 +19,12 @@ there.
 
 <StoreButtons />
 
-<YouTubeVideo
-  id="3sPdpev0emU"
-  poster="lit-inspector"
-  label="Play the Lit Inspector video: the Lit tab in Chrome DevTools on a production shop, from enabling it on the site through Pick, the Elements panel, Anatomy, sourcemaps, the Timeline and Updates to the Performance panel"
+<DemoVideo
+  name="lit-inspector"
+  width={1920}
+  height={1080}
+  autoplay={false}
+  label="The Lit Inspector video: the Lit tab in Chrome DevTools on a production shop, from enabling it on the site through Pick, the Elements panel, Anatomy, sourcemaps, the Timeline and Updates to the Performance panel"
 />
 
 <Image

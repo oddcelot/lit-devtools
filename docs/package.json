@@ -15,7 +15,6 @@
     "@astrojs/starlight": "^0.42.5",
     "@phosphor-icons/core": "^2.1.1",
     "@videojs/html": "10.0.1",
-    "@videojs/youtube-video": "10.0.1",
     "astro": "^7.3.5",
     "satori": "^0.33.5",
     "sharp": "^0.35.5",

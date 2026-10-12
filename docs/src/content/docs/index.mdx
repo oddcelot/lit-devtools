@@ -22,12 +22,14 @@ import {CardGrid} from '@astrojs/starlight/components';
 import {PackageManagers} from 'starlight-package-managers';
 import IconLinkCard from '../../components/IconLinkCard.astro';
 import StoreButtons from '../../components/StoreButtons.astro';
-import YouTubeVideo from '../../components/YouTubeVideo.astro';
+import DemoVideo from '../../components/DemoVideo.astro';
 
-<YouTubeVideo
-  id="eUg84347jyE"
-  poster="promo"
-  label="Play the vite-plugin-lit promo: a tour inside the Lit DevTools panel, from HMR that keeps a counter at 42, through one stylesheet recolouring a thousand shadow roots and the Timeline explaining each update, to the litPlugin() setup line"
+<DemoVideo
+  name="promo"
+  width={1920}
+  height={1080}
+  autoplay={false}
+  label="The vite-plugin-lit promo: a tour inside the Lit DevTools panel, from HMR that keeps a counter at 42, through one stylesheet recolouring a thousand shadow roots and the Timeline explaining each update, to the litPlugin() setup line"
 />
 
 <CardGrid>

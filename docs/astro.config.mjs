@@ -19,13 +19,13 @@ export default defineConfig({
     build: {
       rolldownOptions: {
         output: {
-          // Video.js in one chunk. Split across chunks shared with the
-          // YouTube embed's dynamic imports, the skin module ran before the
-          // player's, so <video-skin> asked for the player's state before any
-          // <video-player> was defined, and its poster never showed. Vite's
-          // dynamic-import helper gets its own chunk first: the Video.js
-          // group would otherwise pull it in, and every page with a dynamic
-          // import would download Video.js just for the helper.
+          // Video.js in one chunk, so it runs in source order. Once it was
+          // split across chunks shared with another importer, the skin
+          // module ran before the player's: <video-skin> asked for the
+          // player's state before any <video-player> was defined, and its
+          // poster never showed. Vite's dynamic-import helper gets its own
+          // chunk first, or the group would pull it in and any page with a
+          // dynamic import would download Video.js for the helper alone.
           codeSplitting: {
             groups: [
               {name: 'preload-helper', test: /preload-helper/, priority: 2},
