@@ -69,6 +69,16 @@ merges with `--no-ff`. Release commits bump `package.json`, write the
 publishing, and creates the GitHub Release from the changelog section. Don't
 `pnpm publish` by hand.
 
+A release can carry a video: commit the render of its HyperFrames project as
+`assets/release-<version>/renders/video.mp4` before tagging. The release
+workflow's `youtube` job attaches it to the GitHub Release and uploads it to
+YouTube with the changelog section as its description, then links it from the
+release notes (credentials and the one-time setup: `scripts/youtube-auth.mjs`).
+In `CHANGELOG.md` the video is a poster linking to the release asset, because
+GitHub strips `<video>`; put the poster and a copy of the MP4 in
+`docs/public/demo/release-<version>{-poster.jpg,.mp4}` and the docs play it
+inline (`docs/scripts/sync-changelog.mjs`).
+
 At release time, `/changelog release v0.6.0` assembles the section: it runs
 the draft, rewrites any entry that fell back to a commit body, writes the
 intro paragraph, inserts the section into `CHANGELOG.md` and bumps
