@@ -132,8 +132,14 @@ in a template and how many elements from that spot come before it, or, for an
 element no template stamped, by its place in the page. A list that reorders
 or a condition that renders differently can move it. A pinned override that
 no longer fits its element, because the property was renamed or holds
-another type now, is dropped and the bar says so. Pinning needs the dev
-server's page runtime; the browser extension does not offer it.
+another type now, is dropped and the bar says so.
+
+In the browser extension, pinned overrides are kept in the extension's own
+session storage, per site, and never in the site's storage; they are cleared
+when the browser closes. Pages there carry no template stamps, so elements are
+found by their place in the page. The extension reads its storage
+asynchronously, so a component that renders before the overrides arrive
+renders once more with them.
 
 While the page has overrides, a bar under the toolbar lists them. Its
 **Apply overrides** switch turns them all off and back on at once, each

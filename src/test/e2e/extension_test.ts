@@ -76,7 +76,9 @@ const PROBE_JS = `window.__probe = {
 
 const APP_SOURCE = `import {LitElement, html} from 'lit';
 class ProbeHello extends LitElement {
-  render() { return html\`hello\`; }
+  static properties = {greeting: {}};
+  constructor() { super(); this.greeting = 'hello'; }
+  render() { return html\`\${this.greeting}\`; }
 }
 customElements.define('probe-hello', ProbeHello);
 `;
@@ -539,6 +541,54 @@ test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async
   await panel.close();
   await page.close();
 }, 60_000);
+
+test("a pinned override comes back after a reload, kept out of the site's storage", async () => {
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(appOrigin);
+  const shown = () =>
+    page.evaluate(
+      () => document.querySelector('probe-hello')?.shadowRoot?.textContent ?? ''
+    );
+  await expect.poll(shown).toContain('hello');
+  const id = await page.evaluate(() =>
+    (globalThis as unknown as Record<symbol, (el: Element) => number>)[
+      Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of')
+    ]!(document.querySelector('probe-hello')!)
+  );
+  // The panel's commands, over a panel port as the Lit tab sends them.
+  await extensionPage.evaluate(
+    async ([origin, channel, id]) => {
+      const [tab] = await chrome.tabs.query({url: `${origin}/*`});
+      const port = chrome.runtime.connect({name: 'lit-panel'});
+      port.postMessage({tabId: tab!.id});
+      const send = (data: unknown) => port.postMessage({channel, data});
+      send({type: 'set-prop', id, name: 'greeting', value: 'kept'});
+      send({type: 'override-persist', id, name: 'greeting', persist: true});
+      (window as unknown as {overridePort: unknown}).overridePort = port;
+    },
+    [appOrigin, 'lit:inspect:cmd', id] as const
+  );
+  await expect.poll(shown).toContain('kept');
+
+  await page.reload();
+  await expect.poll(shown, {timeout: 10_000}).toContain('kept');
+  // The runtime keeps its tab id in sessionStorage regardless; what matters
+  // is that no override is in either of the site's stores.
+  const siteStorage = await page.evaluate(() =>
+    JSON.stringify([{...sessionStorage}, {...localStorage}])
+  );
+  expect(siteStorage).not.toContain('kept');
+  expect(siteStorage).not.toContain('lit-devtools-overrides');
+  expect(errors).toEqual([]);
+  await extensionPage.evaluate(() =>
+    (
+      window as unknown as {overridePort: {disconnect(): void}}
+    ).overridePort.disconnect()
+  );
+  await page.close();
+});
 
 test('disabling stops the injection', async () => {
   expect(await registry('lit:disable')).toEqual({
