@@ -122,13 +122,26 @@ writes land in the element's own value, underneath. An overridden row gets a
 checkbox in front of its name and shows the value it hides struck through:
 the element's own value while the override is on, the override while it is
 off. Clear the checkbox to see the app's latest value, check it to bring the
-override back, and click the cross to remove it. Overrides last until the page
-reloads.
+override back, and click the cross to remove it.
+
+An override lasts until the page reloads, unless you pin it. A pinned
+override is saved in the tab's session storage under the page's path, and
+comes back on the next load from the component's first render, so the page
+never shows the old value. The element is found again by where it was written
+in a template and how many elements from that spot come before it, or, for an
+element no template stamped, by its place in the page. A list that reorders
+or a condition that renders differently can move it. A pinned override that
+no longer fits its element, because the property was renamed or holds
+another type now, is dropped and the bar says so. Pinning needs the dev
+server's page runtime; the browser extension does not offer it.
 
 While the page has overrides, a bar under the toolbar lists them. Its
 **Apply overrides** switch turns them all off and back on at once, each
 keeping its own checkbox. Open the list to see each element and property,
-click one to select the element, or click **Clear all**.
+pin or remove one, or click it to select the element. The summary also
+counts pinned overrides whose element is not on this page yet; they apply
+when it appears. **Clear all** removes every override, pinned ones
+included.
 
 A string, number or boolean inside an expanded object, array or Map gets the
 same edit button, and the value you set there is an override too, with the
