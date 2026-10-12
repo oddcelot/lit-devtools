@@ -65,3 +65,23 @@ export const isRegistryRequest = (
     typeof origin === 'string'
   );
 };
+
+/**
+ * Runtime messages the content script sends the background about the page's
+ * saved overrides. The origin is never in the message: the background takes
+ * it from the sender, so a page can only reach its own.
+ */
+export type OverridesRequest =
+  | {type: 'lit:overrides-get'}
+  | {type: 'lit:overrides-set'; json: string};
+
+export const isOverridesRequest = (
+  message: unknown
+): message is OverridesRequest => {
+  if (typeof message !== 'object' || message === null) return false;
+  const {type, json} = message as {type?: unknown; json?: unknown};
+  return (
+    type === 'lit:overrides-get' ||
+    (type === 'lit:overrides-set' && typeof json === 'string')
+  );
+};

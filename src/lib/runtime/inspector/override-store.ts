@@ -86,11 +86,9 @@ const waiting = (): SavedOverride[] => pending[pathname()] ?? [];
 const isLeaf = (v: unknown): v is Leaf =>
   typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
 
-const read = (): Store => {
+const parse = (json: string | null): Store => {
   try {
-    const parsed: unknown = JSON.parse(
-      storage?.getItem(OVERRIDES_SS_KEY) ?? '{}'
-    );
+    const parsed: unknown = JSON.parse(json ?? '{}');
     return typeof parsed === 'object' && parsed !== null
       ? (parsed as Store)
       : {};
@@ -98,6 +96,8 @@ const read = (): Store => {
     return {};
   }
 };
+
+const read = (): Store => parse(storage?.getItem(OVERRIDES_SS_KEY) ?? null);
 
 /**
  * Put one saved override back on `el` as it was saved, kept and switched on
@@ -202,11 +202,36 @@ export const installOverrideStore = (
       hookFirstUpdates(proto);
     define(name, ctor, options);
   };
+  restoreRendered();
+};
+
+/**
+ * Hook every Lit element already on the page, and put saved overrides back
+ * on those that have rendered: they are past their first update.
+ */
+const restoreRendered = (): void => {
   for (const el of deepElements(document)) {
     if (!('performUpdate' in el)) continue;
     hookFirstUpdates(el);
     if ((el as LitLike).hasUpdated === true) restoreAndTell(el);
   }
+};
+
+/**
+ * Take saved overrides that arrive after install, for a host whose storage
+ * answers asynchronously (the extension's). A path this load has saved to
+ * already keeps what it saved. Elements that rendered before they arrived
+ * get theirs now, at the cost of a second render.
+ */
+export const loadSaved = (json: string): void => {
+  if (storage === null) return;
+  const saved = parse(json);
+  for (const [path, records] of Object.entries(saved)) {
+    if (Object.hasOwn(store, path) || !Array.isArray(records)) continue;
+    store[path] = records;
+    pending[path] = [...(pending[path] ?? []), ...records];
+  }
+  restoreRendered();
 };
 
 /** Hear of overrides put back, so the panel can be told. One listener. */

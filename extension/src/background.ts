@@ -16,7 +16,8 @@ import {
   handleRegistryRequest,
   patternsKeepPort,
 } from './registry.js';
-import {isRegistryRequest} from './protocol.js';
+import {isOverridesRequest, isRegistryRequest} from './protocol.js';
+import {handleOverridesRequest} from './saved-overrides.js';
 
 const hub = createHub();
 chrome.runtime.onConnect.addListener((port) => hub.connect(port));
@@ -31,6 +32,21 @@ const registry = createRegistry({
 const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  // A content script, for the page it runs in: the origin is the one the
+  // browser reports for the sender, never one the page could name.
+  if (
+    isOverridesRequest(message) &&
+    sender.id === chrome.runtime.id &&
+    sender.tab !== undefined &&
+    sender.url !== undefined
+  ) {
+    const origin = new URL(sender.url).origin;
+    handleOverridesRequest(chrome.storage.session, origin, message).then(
+      sendResponse,
+      () => sendResponse(null)
+    );
+    return true;
+  }
   // Only the extension's own pages turn sites on or off; a content script's
   // sender URL is the page it runs in.
   if (sender.id !== chrome.runtime.id || sender.url === undefined) return;
