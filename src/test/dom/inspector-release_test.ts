@@ -540,6 +540,29 @@ test('keyed override commands act on the leaf and answer its level', async () =>
   expect(sentOf(carrier, 'overrides').at(-1)).toMatchObject({entries: []});
 });
 
+test('a details answer carries the element key, and locate finds it', async () => {
+  const {carrier, idOf} = await load();
+  const el = make();
+  el.setAttribute('data-lit-source', '/src/app.ts:3:4');
+  document.body.append(el);
+  const id = idOf(el);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'details', id});
+  const last = sentOf(carrier, 'details').at(-1) as {
+    details: {key?: unknown};
+  };
+  const key = {tag: el.localName, site: '/src/app.ts:3:4', nth: 0};
+  expect(last.details.key).toEqual(key);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'locate', key});
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'locate',
+    key: {...key, nth: 1},
+  });
+  expect(sentOf(carrier, 'located')).toMatchObject([
+    {type: 'located', key, id},
+    {type: 'located', key: {...key, nth: 1}, id: null},
+  ]);
+});
+
 test('set-prop on an element that is gone says so', async () => {
   const {carrier} = await load();
   carrier.deliver(INSPECT_CMD_CHANNEL, {

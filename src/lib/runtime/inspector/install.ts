@@ -10,7 +10,8 @@
 import {createPageScriptChannel} from 'devframe/in-page-channel';
 import {chromeTracksSupported} from '../timeline/chrome-tracks.js';
 import {defineFramesById} from '../define-sites.js';
-import {elementById} from '../timeline/identity.js';
+import {elementById, idOf} from '../timeline/identity.js';
+import {findByKey, keyOf} from './element-key.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
 import type {ViteHotLike} from '../page-channel.js';
@@ -512,10 +513,26 @@ if (typeof window !== 'undefined') {
     send({type: 'tree', roots});
   };
 
+  // Answers carry the element's key, so a panel can find it again after a
+  // reload; a watch's pushes do not, as a stamped key walks the document.
   const replyDetails = (id: number): void => {
     const el = elementById(id);
-    if (el !== undefined) send({type: 'details', details: collectDetails(el)});
-    else send({type: 'gone', id});
+    if (el === undefined) {
+      send({type: 'gone', id});
+      return;
+    }
+    send({type: 'details', details: {...collectDetails(el), key: keyOf(el)}});
+  };
+
+  const replyLocated = (
+    cmd: Extract<InspectorCommand, {type: 'locate'}>
+  ): void => {
+    const el = findByKey(cmd.key);
+    send({
+      type: 'located',
+      key: cmd.key,
+      id: el === undefined ? null : idOf(el),
+    });
   };
 
   const replyDefineFrames = (ids: number[]): void => {
@@ -631,6 +648,7 @@ if (typeof window !== 'undefined') {
     expand: replyExpanded,
     'set-prop': applySetProp,
     overrides: replyOverrides,
+    locate: replyLocated,
     'override-toggle': (cmd) =>
       onOverride((el, name, keys) =>
         keys.length === 0

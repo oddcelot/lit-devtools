@@ -330,6 +330,60 @@ describe('overrides', () => {
   });
 });
 
+describe('finding the selection on a new page', () => {
+  const key = {tag: 'x-item', site: '/src/list.ts:9:5', nth: 2};
+  const selectWithKey = () => {
+    const ctx = setup();
+    ctx.session.connected({roots: tree, hmrIncompatibilities: []});
+    ctx.session.select(3);
+    ctx.session.receive({type: 'details', details: {...detailsFor(3), key}});
+    ctx.drain();
+    ctx.events.length = 0;
+    return ctx;
+  };
+
+  test('a page change looks the selection up by its key', () => {
+    const {session, events, drain} = selectWithKey();
+    session.pageChanged();
+    expect(drain()).toEqual([
+      {type: 'tree'},
+      {type: 'overrides'},
+      {type: 'locate', key},
+    ]);
+    session.receive({type: 'located', key, id: 8});
+    expect(session.selectedId).toBe(8);
+    expect(events).toEqual(['select 8']);
+    expect(drain()).toEqual([
+      {type: 'details', id: 8},
+      {type: 'watch', id: 8},
+    ]);
+  });
+
+  test('a key the new page cannot find keeps the id', () => {
+    const {session, events, drain} = selectWithKey();
+    session.pageChanged();
+    drain();
+    session.receive({type: 'located', key, id: null});
+    expect(session.selectedId).toBe(3);
+    expect(events).toEqual([]);
+    expect(drain()).toEqual([
+      {type: 'details', id: 3},
+      {type: 'watch', id: 3},
+    ]);
+  });
+
+  test('an answer nobody asked for, or for an old selection, is ignored', () => {
+    const {session, drain} = selectWithKey();
+    session.receive({type: 'located', key, id: 8});
+    session.pageChanged();
+    session.select(2);
+    drain();
+    session.receive({type: 'located', key, id: 8});
+    expect(session.selectedId).toBe(2);
+    expect(drain()).toEqual([]);
+  });
+});
+
 describe('Live', () => {
   test('pausing is remembered and pulls one fresh tree; resuming re-arms', () => {
     const {session, storage, drain} = setup();
