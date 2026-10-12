@@ -6,6 +6,9 @@
     "src/main.{ts,tsx,js,jsx}",
     // Run by .github/workflows/release.yaml, not by a package.json script.
     "scripts/amo-metadata.mjs",
+    "scripts/youtube-publish.mjs",
+    // Run by hand once, to make the release workflow's YouTube credentials.
+    "scripts/youtube-auth.mjs",
     // Run by hand when new docs screenshots land.
     "docs/scripts/place-shots.mjs"
   ],
