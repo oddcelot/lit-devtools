@@ -4,12 +4,14 @@
  *     YOUTUBE_CLIENT_ID=… YOUTUBE_CLIENT_SECRET=… YOUTUBE_REFRESH_TOKEN=… \
  *       node scripts/youtube-publish.mjs v0.17.0
  *     node scripts/youtube-publish.mjs v0.17.0 --dry-run   # metadata only
+ *     … node scripts/youtube-publish.mjs v0.17.0 --video path/to/video.mp4
  *     … node scripts/youtube-publish.mjs --check            # credentials only
  *
  * Used by the release workflow's `youtube` job. The video is the committed
  * render of the release's HyperFrames project,
- * `assets/release-<version>/renders/video.mp4`; a release without one has
- * nothing to upload, and the script says so and exits 0. The title is
+ * `assets/release-<version>/renders/video.mp4`, or the file `--video` names;
+ * a release without one has nothing to upload, and the script says so and
+ * exits 0. The title is
  * `vite-plugin-lit <version>`, and the description is that version's
  * CHANGELOG.md section as plain text (scripts/release-notes.mjs), with the
  * links to the full notes. On success it prints the video id, and, under
@@ -45,7 +47,11 @@ const DESCRIPTION_MAX = 4900;
 const args = process.argv.slice(2);
 const check = args.includes('--check');
 const dryRun = args.includes('--dry-run');
-const tag = args.find((arg) => !arg.startsWith('--'));
+const videoArg = args.indexOf('--video');
+const videoPath = videoArg === -1 ? undefined : args[videoArg + 1];
+const tag = args.find(
+  (arg, i) => !arg.startsWith('--') && (videoArg === -1 || i !== videoArg + 1)
+);
 const version = tag?.replace(/^v/, '');
 const {
   YOUTUBE_CLIENT_ID: clientId,
@@ -105,7 +111,7 @@ if (check) {
   process.exit(0);
 }
 
-const video = `assets/release-${version}/renders/video.mp4`;
+const video = videoPath ?? `assets/release-${version}/renders/video.mp4`;
 if (!existsSync(video)) {
   console.log(`[youtube] no ${video}; nothing to upload for ${tag}`);
   process.exit(0);
