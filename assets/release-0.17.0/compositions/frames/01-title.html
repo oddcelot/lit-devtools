@@ -122,12 +122,12 @@
     }
   </style>
 
-  <div data-hf-id="hf-8n4b" id="root" data-composition-id="01-title" data-width="1920" data-height="1080">
-    <div data-hf-id="hf-zk79" id="f01-title-ground" class="clip" data-start="0" data-duration="4.118" data-track-index="0">
+  <div data-hf-id="hf-8n4b" id="root" data-composition-id="01-title" data-width="1920" data-height="1080" data-duration="4.618">
+    <div data-hf-id="hf-zk79" id="f01-title-ground" class="clip" data-start="0" data-duration="4.618" data-track-index="0">
       <div data-hf-id="hf-rj9l" id="f01-title-glow"></div>
     </div>
 
-    <div data-hf-id="hf-koqp" id="f01-title-stage" class="clip" data-start="0" data-duration="4.118" data-track-index="1" style="position: absolute; inset: 0">
+    <div data-hf-id="hf-koqp" id="f01-title-stage" class="clip" data-start="0" data-duration="4.618" data-track-index="1" style="position: absolute; inset: 0">
       <div data-hf-id="hf-9ujs" id="f01-title-halo"></div>
       <img data-hf-id="hf-klkd" id="f01-title-flame" src="assets/flame.svg" alt="">
 
@@ -193,7 +193,7 @@
 
       // Scene 2 — name reveals under the flame, centred on its own.
       tl.set(shift, { x: VER_SHIFT }, 0);
-      tl.set(ver, { opacity: 0, color: "#616161" }, 0);
+      tl.set(ver, { opacity: 0, x: -56, clipPath: "inset(0% 100% 0% 0%)" }, 0);
       tl.fromTo(
         name,
         { opacity: 0, y: 26 },
@@ -201,10 +201,14 @@
         B_NAME,
       );
 
-      // Version appends as one bulk addition, grey -> bright cyan, while the line recentres.
-      tl.set(ver, { opacity: 1, color: "#616161" }, B_VER);
-      tl.to(ver, { color: "#00e8ff", duration: 0.4, ease: "power2.out" }, B_VER + 0.05);
-      tl.to(shift, { x: 0, duration: 0.5, ease: "power3.inOut" }, B_VER);
+      // Version slides out from behind the name, wiping in left to right, while
+      // the line recentres; both settle on the beat.
+      tl.to(shift, { x: 0, duration: 0.6, ease: "power3.inOut" }, B_VER - 0.12);
+      tl.to(
+        ver,
+        { opacity: 1, x: 0, clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power3.out" },
+        B_VER - 0.12,
+      );
 
       // Scene 3 — the value claim rises in below, then its cyan qualifier under it.
       tl.fromTo(

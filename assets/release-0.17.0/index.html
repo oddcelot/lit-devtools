@@ -47,8 +47,8 @@
         data-composition-id="01-title"
         data-composition-src="compositions/frames/01-title.html"
         data-start="0"
-        data-duration="4.118"
-        data-track-index="1"
+        data-duration="4.618"
+        data-track-index="0"
       ></div>
 
       <div
@@ -57,7 +57,7 @@
         data-composition-id="02-docs"
         data-composition-src="compositions/frames/02-docs.html"
         data-start="4.118"
-        data-duration="5.856"
+        data-duration="6.206"
         data-track-index="1"
       ></div>
 
@@ -67,8 +67,8 @@
         data-composition-id="03-edit"
         data-composition-src="compositions/frames/03-edit.html"
         data-start="9.974"
-        data-duration="5.856"
-        data-track-index="1"
+        data-duration="6.206"
+        data-track-index="0"
       ></div>
 
       <div
@@ -77,7 +77,7 @@
         data-composition-id="04-overrides"
         data-composition-src="compositions/frames/04-overrides.html"
         data-start="15.83"
-        data-duration="5.855"
+        data-duration="6.305"
         data-track-index="1"
       ></div>
 
@@ -87,8 +87,8 @@
         data-composition-id="05-everywhere"
         data-composition-src="compositions/frames/05-everywhere.html"
         data-start="21.685000000000002"
-        data-duration="4.88"
-        data-track-index="1"
+        data-duration="5.33"
+        data-track-index="0"
       ></div>
 
       <div
@@ -97,7 +97,7 @@
         data-composition-id="06-anatomy"
         data-composition-src="compositions/frames/06-anatomy.html"
         data-start="26.565"
-        data-duration="6.831"
+        data-duration="7.281"
         data-track-index="1"
       ></div>
 
@@ -107,8 +107,8 @@
         data-composition-id="07-css"
         data-composition-src="compositions/frames/07-css.html"
         data-start="33.396"
-        data-duration="3.904"
-        data-track-index="1"
+        data-duration="4.354"
+        data-track-index="0"
       ></div>
 
       <div
@@ -117,7 +117,7 @@
         data-composition-id="08-fixes"
         data-composition-src="compositions/frames/08-fixes.html"
         data-start="37.3"
-        data-duration="3.904"
+        data-duration="4.404"
         data-track-index="1"
       ></div>
 
@@ -128,7 +128,7 @@
         data-composition-src="compositions/frames/09-lockup.html"
         data-start="41.20399999999999"
         data-duration="4.795"
-        data-track-index="1"
+        data-track-index="0"
       ></div>
 
       <!-- BGM -->
@@ -146,6 +146,26 @@
     <script>
       window.__timelines = window.__timelines || {};
       window.__timelines["main"] = gsap.timeline({ paused: true });
+      // ── frame transitions (injected by transitions.mjs) ──
+      (function () { var tl = window.__timelines["main"];
+        tl.to("#el-01-title", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.5, ease: "power2.inOut" }, 4.118);
+        tl.fromTo("#el-02-docs", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.5, ease: "power2.inOut" }, 4.118);
+        tl.to("#el-02-docs", { opacity: 0, duration: 0.35, ease: "power2.inOut" }, 9.974);
+        tl.fromTo("#el-03-edit", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.inOut" }, 9.974);
+        tl.to("#el-03-edit", { opacity: 0, duration: 0.35, ease: "power2.inOut" }, 15.83);
+        tl.fromTo("#el-04-overrides", { opacity: 0 }, { opacity: 1, duration: 0.35, ease: "power2.inOut" }, 15.83);
+        tl.to("#el-04-overrides", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.45, ease: "power2.inOut" }, 21.685);
+        tl.fromTo("#el-05-everywhere", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.45, ease: "power2.inOut" }, 21.685);
+        tl.to("#el-05-everywhere", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.45, ease: "power2.inOut" }, 26.565);
+        tl.fromTo("#el-06-anatomy", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.45, ease: "power2.inOut" }, 26.565);
+        tl.to("#el-06-anatomy", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.45, ease: "power2.inOut" }, 33.396);
+        tl.fromTo("#el-07-css", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.45, ease: "power2.inOut" }, 33.396);
+        tl.to("#el-07-css", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.45, ease: "power2.inOut" }, 37.3);
+        tl.fromTo("#el-08-fixes", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.45, ease: "power2.inOut" }, 37.3);
+        tl.to("#el-08-fixes", { filter: "blur(10px)", scale: 1.03, opacity: 0, duration: 0.5, ease: "power2.inOut" }, 41.204);
+        tl.fromTo("#el-09-lockup", { filter: "blur(10px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.5, ease: "power2.inOut" }, 41.204);
+        tl.to({}, { duration: 45.999 }, 0); // full-span anchor — main.duration() == composition total (Studio master duration)
+      })();
     </script>
   </body>
 </html>
