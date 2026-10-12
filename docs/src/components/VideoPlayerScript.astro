@@ -1,0 +1,14 @@
+---
+/**
+ * Defines Video.js's `<video-player>` and its packaged `<video-skin>`, the
+ * player every self-hosted video on the site uses. Render it on any page that
+ * has one: Astro bundles the script once and ships it only to those pages.
+ * The skin keeps its styles in its shadow root; the theme comes from the
+ * `--media-*` properties in src/styles/custom.css.
+ */
+---
+
+<script>
+  import '@videojs/html/video/player';
+  import '@videojs/html/video/skin';
+</script>
