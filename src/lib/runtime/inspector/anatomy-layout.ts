@@ -60,6 +60,11 @@ const LABEL_GAP = 3;
 const MARGIN = 4;
 /** How far a leader runs straight out of its label before it bends. */
 const STUB = 8;
+/**
+ * How far a column label sits above the height its leader lands at, so
+ * every leader bends rather than running flat.
+ */
+export const LABEL_RISE = 12;
 
 export const centreOf = (b: Box): Point => ({
   x: (b.left + b.right) / 2,
@@ -247,7 +252,10 @@ const columnPlacements = (
   view: Viewport
 ): Map<number, Placement> => {
   const starts = pack(
-    idx.map((i) => ({want: anchorOf(groups[i]).y - height / 2, size: height})),
+    idx.map((i) => ({
+      want: anchorOf(groups[i]).y - LABEL_RISE - height / 2,
+      size: height,
+    })),
     LABEL_GAP,
     MARGIN,
     view.height - MARGIN
@@ -379,8 +387,10 @@ const elbowOf = (stub: Point, end: Point, dir: Point): Point => {
 /** The leader from a label to the region `box`. */
 export const leaderTo = (p: Placement, box: Box): Leader => {
   const start = leaderStart(p);
-  const end = edgePoint(box, start);
   const dir = STUB_DIRECTION[p.side];
+  // A column label sits LABEL_RISE above where its leader should land.
+  const rise = dir.x !== 0 ? LABEL_RISE : 0;
+  const end = edgePoint(box, {x: start.x, y: start.y + rise});
   const stub = {x: start.x + dir.x * STUB, y: start.y + dir.y * STUB};
   const elbow = elbowOf(stub, end, dir);
   return {

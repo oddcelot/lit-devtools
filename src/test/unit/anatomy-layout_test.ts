@@ -10,6 +10,7 @@ import {
   groupLabel,
   groupRegions,
   layoutLabels,
+  LABEL_RISE,
   leaderTo,
   pack,
   sideFor,
@@ -208,6 +209,14 @@ describe('leaders', () => {
     expect(Math.abs(elbow.x - stub.x)).toBeCloseTo(Math.abs(elbow.y - stub.y));
     expect(end.y).toBe(elbow.y);
     expect(end.x).toBeGreaterThan(elbow.x);
+  });
+
+  test('a column label sits LABEL_RISE above where its leader lands', () => {
+    const b = box(450, 250, 40, 100);
+    const [left] = layoutLabels([group('l', b)], [90], 16, host, view);
+    expect(left.top + 8).toBe(anchorOf(group('l', b)).y - LABEL_RISE);
+    const [start, , , end] = pointsOf(leaderTo(left, b).d);
+    expect(end.y - start.y).toBe(LABEL_RISE);
   });
 
   test('a region closer than the bend needs gets a steeper straight run', () => {
