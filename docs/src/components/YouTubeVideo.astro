@@ -1,11 +1,17 @@
 ---
 /**
- * A video hosted on YouTube, framed like DemoVideo. The poster is a still
- * from `public/demo/`, so nothing loads from YouTube until someone presses
- * play. Files in `public/` are not processed, so the path carries the base.
+ * A video hosted on YouTube, behind a consent step. Until the visitor
+ * presses play the page shows only a poster from `public/demo/` and loads
+ * nothing from YouTube or Google, not even a preconnect on hover. The play
+ * button says what starting it does; the click loads Video.js and a
+ * `<youtube-video>` on youtube-nocookie.com in the same skin as the site's
+ * self-hosted videos, and starts playback.
+ *
+ * Ticking "Always load YouTube videos" remembers the choice
+ * (src/scripts/embed-consent.ts): later embeds load the player straight
+ * away, with a link under it to take that back. Files in `public/` are not
+ * processed, so the poster path carries the base.
  */
-import {YouTube} from '@astro-community/astro-embed-youtube';
-
 interface Props {
   /** The YouTube video ID. */
   id: string;
@@ -20,21 +26,192 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <figure class="youtube-video">
-  <YouTube
-    id={id}
-    poster={`${base}/demo/${poster}-poster.jpg`}
-    playlabel={label}
-  />
+  <youtube-consent data-id={id} data-label={label}>
+    <img class="poster" src={`${base}/demo/${poster}-poster.jpg`} alt="" />
+    <div class="gate">
+      <button type="button" class="play" aria-label={label}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"
+          ><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"
+          ></path></svg
+        >
+      </button>
+      <p class="notice">
+        Plays from YouTube. Starting it connects to YouTube and Google, which
+        may set cookies (<a href="https://policies.google.com/privacy"
+          >Google's privacy policy</a
+        >).
+      </p>
+      <label class="remember">
+        <input type="checkbox" />
+        Always load YouTube videos on this site
+      </label>
+    </div>
+  </youtube-consent>
+  <figcaption hidden>
+    YouTube videos load automatically on this site.
+    <button type="button" class="revoke">Stop loading them automatically</button>
+  </figcaption>
 </figure>
+
+<script>
+  import {hasConsent, setConsent} from '../scripts/embed-consent';
+
+  class YouTubeConsent extends HTMLElement {
+    connectedCallback() {
+      const play = this.querySelector<HTMLButtonElement>('.play');
+      const remember = this.querySelector<HTMLInputElement>('.remember input');
+      if (play === null || remember === null) return;
+      if (hasConsent('youtube')) {
+        void this.load(false);
+        return;
+      }
+      play.addEventListener('click', () => {
+        if (remember.checked) setConsent('youtube', true);
+        void this.load(true);
+      });
+    }
+
+    /** Swaps the poster and notice for the Video.js player on YouTube. */
+    async load(autoplay: boolean) {
+      await Promise.all([
+        import('@videojs/html/video/player'),
+        import('@videojs/html/video/skin'),
+        import('@videojs/html/media/youtube-video'),
+      ]);
+      const player = document.createElement('video-player');
+      const skin = document.createElement('video-skin');
+      const media = document.createElement('youtube-video');
+      media.setAttribute(
+        'src',
+        `https://www.youtube-nocookie.com/embed/${this.dataset.id}`,
+      );
+      media.setAttribute('playsinline', '');
+      media.setAttribute('aria-label', this.dataset.label ?? '');
+      if (autoplay) media.setAttribute('autoplay', '');
+      const poster = this.querySelector<HTMLImageElement>('.poster');
+      skin.append(media);
+      if (poster !== null) {
+        poster.slot = 'poster';
+        skin.append(poster);
+      }
+      player.append(skin);
+      this.replaceChildren(player);
+      this.dataset.loaded = '';
+
+      if (hasConsent('youtube')) this.offerRevoke();
+    }
+
+    offerRevoke() {
+      const caption = this.closest('figure')?.querySelector('figcaption');
+      const revoke = caption?.querySelector<HTMLButtonElement>('.revoke');
+      if (caption === null || caption === undefined || revoke == null) return;
+      caption.hidden = false;
+      revoke.addEventListener('click', () => {
+        setConsent('youtube', false);
+        caption.textContent =
+          'YouTube videos will ask again before loading, from the next page on.';
+      });
+    }
+  }
+  customElements.define('youtube-consent', YouTubeConsent);
+</script>
 
 <style>
   .youtube-video {
     margin: 1.5rem 0;
   }
-  .youtube-video :global(lite-youtube) {
-    max-width: none;
+  youtube-consent {
+    display: grid;
+    aspect-ratio: 16 / 9;
     border: 1px solid var(--sl-color-hairline);
     border-radius: 0.5rem;
     overflow: hidden;
+    background: #000;
+  }
+  youtube-consent[data-loaded] {
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+  youtube-consent > * {
+    grid-area: 1 / 1;
+  }
+  /* Created on click, so outside Astro's scoping. The media element defaults
+     to an inline 300×150 box; the skin sizes <video> but not this one. */
+  youtube-consent :global(youtube-video) {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+  .poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .gate {
+    display: grid;
+    grid-template-rows: 1fr auto auto;
+    justify-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem;
+    background: linear-gradient(transparent 40%, rgb(0 0 0 / 0.75));
+    color: #fff;
+    font-size: var(--sl-text-sm);
+    text-align: center;
+  }
+  .play {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    align-self: center;
+    border: 0;
+    border-radius: 999rem;
+    background: rgb(255 255 255 / 0.12);
+    backdrop-filter: blur(12px);
+    color: #fff;
+    cursor: pointer;
+  }
+  .play:hover,
+  .play:focus-visible {
+    background: var(--sl-color-accent);
+  }
+  .play svg {
+    width: 1.75rem;
+    height: 1.75rem;
+    fill: currentColor;
+  }
+  .notice {
+    max-width: 34rem;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .notice a {
+    color: inherit;
+  }
+  .remember {
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    opacity: 0.85;
+    cursor: pointer;
+  }
+  .remember input {
+    accent-color: var(--sl-color-accent);
+  }
+  .youtube-video figcaption {
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .revoke {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sl-color-text-accent);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
 </style>
