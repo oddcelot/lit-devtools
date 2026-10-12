@@ -191,4 +191,30 @@ describe('leaders', () => {
     expect(on(b, leader.end)).toBe(true);
     expect(leader.d.startsWith(`M${left.left + left.width},`)).toBe(true);
   });
+
+  const pointsOf = (d: string) =>
+    Array.from(d.matchAll(/[ML]([-\d.]+),([-\d.]+)/g), ([, x, y]) => ({
+      x: Number(x),
+      y: Number(y),
+    }));
+
+  test('a leader bends once at 45° and meets its region level', () => {
+    const b = box(450, 250, 40, 40);
+    const [left] = layoutLabels([group('l', b)], [90], 16, host, view);
+    // Pull the label well above the region so there is a bend to make.
+    const placed = {...left, top: left.top - 60};
+    const [start, stub, elbow, end] = pointsOf(leaderTo(placed, b).d);
+    expect(stub.y).toBe(start.y);
+    expect(Math.abs(elbow.x - stub.x)).toBeCloseTo(Math.abs(elbow.y - stub.y));
+    expect(end.y).toBe(elbow.y);
+    expect(end.x).toBeGreaterThan(elbow.x);
+  });
+
+  test('a region closer than the bend needs gets a steeper straight run', () => {
+    const b = box(450, 250, 40, 40);
+    const [left] = layoutLabels([group('l', b)], [90], 16, host, view);
+    const placed = {...left, top: left.top - 400};
+    const [, , elbow, end] = pointsOf(leaderTo(placed, b).d);
+    expect(elbow).toEqual(end);
+  });
 });

@@ -348,7 +348,7 @@ export const edgePoint = (box: Box, from: Point): Point => {
 };
 
 export interface Leader {
-  /** SVG path data: a stub out of the label, then a curve to the region. */
+  /** SVG path data: a stub out of the label, a 45° bend, then the region. */
   d: string;
   end: Point;
 }
@@ -360,18 +360,31 @@ const STUB_DIRECTION: Record<Side, Point> = {
   below: {x: 0, y: -1},
 };
 
+/**
+ * Where a leader leaving `stub` along `dir` bends: a 45° run that covers
+ * the offset across `dir`, so the last stretch meets `end` straight on. A
+ * region too close along `dir` for that gets no bend, and the diagonal
+ * steepens to reach it.
+ */
+const elbowOf = (stub: Point, end: Point, dir: Point): Point => {
+  const across = dir.x !== 0 ? end.y - stub.y : end.x - stub.x;
+  const along = (end.x - stub.x) * dir.x + (end.y - stub.y) * dir.y;
+  const run = Math.abs(across);
+  if (run >= along) return end;
+  return dir.x !== 0
+    ? {x: stub.x + dir.x * run, y: end.y}
+    : {x: end.x, y: stub.y + dir.y * run};
+};
+
 /** The leader from a label to the region `box`. */
 export const leaderTo = (p: Placement, box: Box): Leader => {
   const start = leaderStart(p);
   const end = edgePoint(box, start);
   const dir = STUB_DIRECTION[p.side];
   const stub = {x: start.x + dir.x * STUB, y: start.y + dir.y * STUB};
-  // Horizontal tangents at both ends in a column, vertical ones in a row.
-  const mid = dir.x !== 0 ? (stub.x + end.x) / 2 : (stub.y + end.y) / 2;
-  const c1 = dir.x !== 0 ? `${mid},${stub.y}` : `${stub.x},${mid}`;
-  const c2 = dir.x !== 0 ? `${mid},${end.y}` : `${end.x},${mid}`;
+  const elbow = elbowOf(stub, end, dir);
   return {
-    d: `M${start.x},${start.y} L${stub.x},${stub.y} C${c1} ${c2} ${end.x},${end.y}`,
+    d: `M${start.x},${start.y} L${stub.x},${stub.y} L${elbow.x},${elbow.y} L${end.x},${end.y}`,
     end,
   };
 };

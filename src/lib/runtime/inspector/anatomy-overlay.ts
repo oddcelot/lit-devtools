@@ -101,6 +101,7 @@ const makeLeader = (): SVGGElement => {
     document.createElementNS(SVG_NS, 'circle')
   );
   g.querySelector('path')!.setAttribute('fill', 'none');
+  g.querySelector('path')!.setAttribute('stroke-linejoin', 'round');
   g.querySelector('circle')!.setAttribute('r', '2.5');
   return g;
 };
