@@ -31,6 +31,9 @@ each with a changelog eyebrow (ADDED / CHANGED / FIXED). Layouts confirmed on `s
   ~7–21s; the drop is the cut 04→05 at 21.685s). Each frame's timeline runs at 1.1176×, so the
   local beat times listed in the frames below (written on the old 0.5454s grid) land on the new
   grid in real time. Frame starts: 0 · 4.118 · 9.974 · 15.830 · 21.685 · 26.565 · 33.396 · 37.300 · 41.205.
+- **Seams**: every seam dissolves; the outgoing frame holds its last image while the incoming one
+  fades in over it and builds. Frames 02→03→04 share the DevTools window, so a plain crossfade
+  changes only the details pane and the headline; the rest use blur-crossfade.
 - **Rhythm**: 01 builds, 02–04 are dense UI demos, 05 is a split punch, 06 a spatial reveal,
   07 and 08 quick list beats, 09 a held lockup. The held reads are the last ~0.8s of 02, 04
   and 09.
@@ -72,7 +75,7 @@ between them; the tagline rises under the title instead of replacing it.
 - scene: the Components tab selects fh-product-card; its About section fills with description, events, CSS properties; a property tooltip opens
 - duration: 5.856s
 - poster: 5.2s
-- transition_in: cut
+- transition_in: blur-crossfade 0.5s
 - status: animated
 - src: compositions/frames/02-docs.html
 - blueprint: compose
@@ -109,7 +112,7 @@ Layout: asymmetric 30/70. The headline column is on the left, and the DevTools w
 - scene: a boolean flips on click, `name` turns into an input and retypes, a value inside an object is double-click-edited; the page card updates live
 - duration: 5.856s
 - poster: 4.6s
-- transition_in: cut
+- transition_in: crossfade 0.35s
 - status: animated
 - src: compositions/frames/03-edit.html
 - blueprint: panel-edit-live-sync (Adapt)
@@ -154,7 +157,7 @@ in the headline column under the copy.
 - scene: the app writes `price` back but the override holds; its checkbox switches it off; the overrides bar lists it; pin → page reloads → the value is back
 - duration: 5.855s
 - poster: 5.9s
-- transition_in: cut
+- transition_in: crossfade 0.35s
 - status: animated
 - src: compositions/frames/04-overrides.html
 - blueprint: compose
@@ -198,7 +201,7 @@ Layout: asymmetric 30/70, the same as 02. The details pane shows the override st
 - scene: split: left, the browser extension's Lit tab showing the same About section; right, an agent call to `lit_component-docs` returning the description, events, slots and parts
 - duration: 4.88s
 - poster: 4.3s
-- transition_in: cut
+- transition_in: blur-crossfade 0.45s
 - status: animated
 - src: compositions/frames/05-everywhere.html
 - blueprint: comparison-split (Adapt)
@@ -234,7 +237,7 @@ The pairing is the same docs on two surfaces.
 - scene: hovering the `media` slot row outlines that region on the page card; then the Anatomy overlay lays its labels out beside the card with leader lines to each slot and part
 - duration: 6.831s
 - poster: 5.9s
-- transition_in: cut
+- transition_in: blur-crossfade 0.45s
 - status: animated
 - src: compositions/frames/06-anatomy.html
 - blueprint: compose
@@ -272,7 +275,7 @@ Anatomy slots box sits under the headline (x 115, top 557, 576×326).
 - scene: four cards, one per way to get CSS into a shadow root (`?css-sheet`, `?hmr-url`, `?inline`, `css` literal), each with a render counter; an edit restyles them and only the counters that re-render tick
 - duration: 3.904s
 - poster: 3.9s
-- transition_in: cut
+- transition_in: blur-crossfade 0.45s
 - status: animated
 - src: compositions/frames/07-css.html
 - blueprint: grid-card-assemble (Adapt)
@@ -304,7 +307,7 @@ re-tint + counters).
 - scene: six fixes stack in as a checklist, each checked off on the beat
 - duration: 3.904s
 - poster: 3.6s
-- transition_in: cut
+- transition_in: blur-crossfade 0.45s
 - status: animated
 - src: compositions/frames/08-fixes.html
 - blueprint: grid-card-assemble (Adapt)
@@ -313,13 +316,13 @@ re-tint + counters).
 - focal: the checklist panel
 - roles: flame.svg = unused (omit)
 - rules: waterfall-entry, svg-path-draw
-- on_screen: eyebrow FIXED · "Six fixes, small and sharp." · rows: Custom timeline events line up with Lit's · The selection survives a reload · Collapsed Timeline rows say what changed · Details sections fold again · Source paths wrap between folders · Tooltips follow the keyboard
+- on_screen: eyebrow FIXED · "Small fixes. Less friction." · rows: Custom timeline events line up with Lit's · The selection survives a reload · Collapsed Timeline rows say what changed · Details sections fold again · Source paths wrap between folders · Tooltips follow the keyboard
 
 Adapt: a vertical benefit list that accumulates (the menu's variant). One row per half-beat to
 fit six in the frame.
 
-- Scene 1 (0.0–0.55s): headline column: the eyebrow "FIXED" in `success` and the headline "Six
-  fixes, **small and sharp.**" (cyan) are set. The checklist panel (x 806, top 134, 998×806,
+- Scene 1 (0.0–0.55s): headline column: the eyebrow "FIXED" in `success` and the headline "Small
+  fixes. **Less friction.**" (second line cyan) are set. The checklist panel (x 806, top 134, 998×806,
   surface + border) fades up.
 - Scene 2 (0.55–3.27s): six rows (Manrope 600 30px, `text`, row pitch ~96px) enter top to
   bottom, one per half-beat from 0.55. Each row's ✓ (`success`) draws in as it lands.
@@ -330,7 +333,7 @@ fit six in the frame.
 - scene: flame + "0.17.0" lockup with the install command typing in a terminal pill
 - duration: 4.795s
 - poster: 3.5s
-- transition_in: cut
+- transition_in: blur-crossfade 0.5s
 - status: animated
 - src: compositions/frames/09-lockup.html
 - blueprint: prompt-type-submit-generate (Adapt)
