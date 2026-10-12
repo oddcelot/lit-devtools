@@ -14,8 +14,10 @@ import type {
   InspectorCommand,
   InspectorDetails,
   InspectorMessage,
+  InspectorOverrideEntry,
   InspectorOverrides,
   InspectorTreeNode,
+  ValueSegment,
 } from '../types/inspector.js';
 import type {
   HmrHistoryEntry,
@@ -86,6 +88,10 @@ export const findAncestors = (
 
 const NO_OVERRIDES: InspectorOverrides = {applied: true, entries: []};
 
+/** A command's `keys`, left out for the property itself. */
+const keysOf = (keys: readonly ValueSegment[]): {keys?: ValueSegment[]} =>
+  keys.length > 0 ? {keys: [...keys]} : {};
+
 export class ComponentsSession {
   readonly #ports: ComponentsSessionPorts;
   readonly #listeners = new Set<() => void>();
@@ -101,6 +107,7 @@ export class ComponentsSession {
   #hmrIncompatibilities: HmrIncompatibilityEvent[] = [];
   #lastPatch: HmrPatchEvent | null = null;
   #overrides: InspectorOverrides = NO_OVERRIDES;
+  #dropped: InspectorOverrideEntry[] = [];
 
   constructor(ports: ComponentsSessionPorts) {
     this.#ports = ports;
@@ -226,7 +233,7 @@ export class ComponentsSession {
         this.#gone = true;
         break;
       case 'overrides':
-        this.#overrides = {applied: message.applied, entries: message.entries};
+        this.#receiveOverrides(message);
         break;
       case 'pick':
         this.#picking = false;
@@ -269,6 +276,7 @@ export class ComponentsSession {
     // Overrides live in the page, so the new one has its own (none, on a
     // reload): ask rather than show the old page's.
     this.#overrides = NO_OVERRIDES;
+    this.#dropped = [];
     const id = this.#selectedId;
     if (id !== null) {
       this.#details = null;
@@ -317,15 +325,39 @@ export class ComponentsSession {
     this.#changed();
   }
 
-  /** Switch the selected element's override on `name` on or off. */
-  toggleOverride(name: string, enabled: boolean): void {
+  /**
+   * Switch the selected element's override on `name` on or off, or with
+   * `keys` the one on that leaf inside its value.
+   */
+  toggleOverride(
+    name: string,
+    enabled: boolean,
+    keys: readonly ValueSegment[] = []
+  ): void {
     const id = this.#selectedId;
-    if (id !== null) this.#send({type: 'override-toggle', id, name, enabled});
+    if (id === null) return;
+    this.#send({type: 'override-toggle', id, name, ...keysOf(keys), enabled});
   }
 
   /** Drop an override; on the selected element unless `id` names another. */
-  removeOverride(name: string, id = this.#selectedId): void {
-    if (id !== null) this.#send({type: 'override-remove', id, name});
+  removeOverride(
+    name: string,
+    keys: readonly ValueSegment[] = [],
+    id = this.#selectedId
+  ): void {
+    if (id !== null) {
+      this.#send({type: 'override-remove', id, name, ...keysOf(keys)});
+    }
+  }
+
+  /** Overrides the page dropped since they were last dismissed. */
+  get droppedOverrides(): readonly InspectorOverrideEntry[] {
+    return this.#dropped;
+  }
+
+  dismissDropped(): void {
+    this.#dropped = [];
+    this.#changed();
   }
 
   /**
@@ -341,6 +373,13 @@ export class ComponentsSession {
   clearOverrides(): void {
     this.#send({type: 'overrides-clear'});
     this.#refreshDetails();
+  }
+
+  #receiveOverrides(message: InspectorOverrides): void {
+    this.#overrides = {applied: message.applied, entries: message.entries};
+    if (message.dropped !== undefined) {
+      this.#dropped = [...this.#dropped, ...message.dropped];
+    }
   }
 
   #refreshDetails(): void {

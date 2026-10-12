@@ -2356,3 +2356,95 @@ test('the overrides bar shows while the page has overrides', async () => {
   await flush(el);
   expect(bar()).toBeNull();
 });
+
+test('a leaf override is switched and removed from its row', async () => {
+  const {el, root, inspects} = await mountOverridden();
+  const sent = (type: string) =>
+    inspects().filter((c) => (c as {type: string}).type === type);
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      properties: [
+        {
+          name: 'cfg',
+          value: '{mode: "dark"}',
+          type: 'object',
+          attribute: false as const,
+          reflects: false,
+          state: false,
+          expandable: true,
+        },
+      ],
+    },
+  });
+  await flush(el);
+  root
+    .querySelector<HTMLElement>('.entry[data-key="p:cfg"] .expander')!
+    .click();
+  push('inspector-message', {
+    type: 'expanded',
+    id: 2,
+    path: {section: 'prop', name: 'cfg', keys: []},
+    children: [
+      {
+        label: 'mode',
+        key: 'mode',
+        entry: false,
+        value: '"dark"',
+        type: 'string',
+        expandable: false,
+        editable: 'string',
+        override: {value: '"dark"', enabled: true, intrinsic: '"light"'},
+      },
+    ],
+  });
+  await flush(el);
+  const child = root.querySelector<HTMLElement>('.child')!;
+  expect(child.querySelector('.shadowed')!.textContent).toBe('"light"');
+  const toggle = child.querySelector<HTMLInputElement>('.override-toggle')!;
+  expect(toggle.getAttribute('aria-label')).toBe('Override cfg.mode');
+  toggle.click();
+  child.querySelector<HTMLElement>('.remove-override')!.click();
+  await flush(el);
+  expect(sent('override-toggle')).toEqual([
+    {
+      type: 'override-toggle',
+      id: 2,
+      name: 'cfg',
+      keys: ['mode'],
+      enabled: false,
+    },
+  ]);
+  expect(sent('override-remove')).toEqual([
+    {type: 'override-remove', id: 2, name: 'cfg', keys: ['mode']},
+  ]);
+});
+
+test('the bar reports dropped overrides until dismissed', async () => {
+  const {el, root} = await mountOverridden();
+  push('inspector-message', {
+    type: 'overrides',
+    applied: true,
+    entries: [],
+    dropped: [
+      {
+        id: 2,
+        tagName: 'x-button',
+        name: 'cfg',
+        keys: ['theme', 'mode'],
+        value: '"dark"',
+        enabled: false,
+      },
+    ],
+  });
+  await flush(el);
+  const notice = () => root.querySelector<HTMLElement>('.overrides-dropped');
+  expect(notice()!.querySelector('code')!.textContent).toBe(
+    '<x-button>.cfg.theme.mode'
+  );
+  expect(root.querySelector('.overrides-bar wa-switch')).toBeNull();
+  notice()!.querySelector<HTMLElement>('.remove-override')!.click();
+  await flush(el);
+  expect(root.querySelector('.overrides-bar')).toBeNull();
+});

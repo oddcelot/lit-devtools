@@ -18,7 +18,9 @@ import {
   type ElementSource,
   type InspectorAnatomy,
   type InspectorDetails,
+  type InspectorOverrideEntry,
   type InspectorProp,
+  type InspectorPropOverride,
   type InspectorPropOption,
   type InspectorContext,
   type InspectorExtra,
@@ -262,6 +264,44 @@ interface Editable {
   value: string;
   editable?: InspectorProp['editable'];
 }
+
+/** A property, or a leaf inside its value, that may carry an override. */
+interface OverrideTarget {
+  name: string;
+  keys: readonly ValueSegment[];
+  override?: InspectorPropOverride;
+}
+
+/** `name.key[0]`, as code would reach the value. */
+const pathLabel = (name: string, keys: readonly ValueSegment[]): string =>
+  name +
+  keys
+    .map((k) =>
+      typeof k === 'number'
+        ? `[${k}]`
+        : /^[A-Za-z_$][\w$]*$/.test(k)
+          ? `.${k}`
+          : `[${JSON.stringify(k)}]`
+    )
+    .join('');
+
+/**
+ * What a child row can be written through: its edit and the override it may
+ * carry. Only props are written to; an extra's children stay read-only.
+ */
+const childWrites = (
+  path: ValuePath,
+  c: ValueChild,
+  snapshot: boolean
+): {edit?: PropEdit; editKey?: string; target?: OverrideTarget} => {
+  if (path.section !== 'prop') return {};
+  const edit = editOf({...c, name: path.name, keys: path.keys}, snapshot);
+  return {
+    edit,
+    editKey: edit === undefined ? undefined : editKeyOf(edit),
+    target: {name: path.name, keys: path.keys, override: c.override},
+  };
+};
 
 /** The `_editing` key of a row: the property's own, or a leaf's path. */
 const editKeyOf = (edit: Pick<PropEdit, 'name' | 'keys'>): string =>
@@ -1206,6 +1246,17 @@ export class ComponentsView extends LitElement {
         background: var(--lit-devtools-accent-soft);
         font-size: var(--lit-devtools-text-xs);
       }
+      .overrides-dropped {
+        flex-basis: 100%;
+        display: flex;
+        align-items: baseline;
+        gap: var(--lit-devtools-space-2);
+        color: var(--lit-devtools-warning);
+      }
+      .overrides-dropped > span {
+        flex: 1;
+        min-width: 0;
+      }
       .overrides-bar > details {
         flex: 1;
         min-width: 0;
@@ -2093,12 +2144,7 @@ export class ComponentsView extends LitElement {
   private _renderChild(parent: ValuePath, c: ValueChild): TemplateResult {
     const path = {...parent, keys: [...parent.keys, c.key]};
     const open = c.expandable && this._expansion.isOpen(path);
-    // Only props are written to; an extra's children stay read-only.
-    const edit =
-      parent.section === 'prop'
-        ? editOf({...c, name: parent.name, keys: path.keys}, this._snapshot)
-        : undefined;
-    const editKey = edit === undefined ? undefined : editKeyOf(edit);
+    const {edit, editKey, target} = childWrites(path, c, this._snapshot);
     const editing = edit !== undefined && this._editing === editKey;
     const hooks = this._editHooks(editKey, edit);
     return html`<div class="child" data-edit-key=${editKey ?? nothing}>
@@ -2106,7 +2152,9 @@ export class ComponentsView extends LitElement {
         c.expandable
           ? this._renderExpander(path, c.label)
           : html`<span class="expander-space"></span>`
-      }<span class="t-key">${c.entry ? renderCode(c.label) : c.label}</span
+      }${target === undefined ? nothing : this._renderOverrideToggle(target)}<span
+        class="t-key"
+        >${c.entry ? renderCode(c.label) : c.label}</span
       ><span class="t-punct">${c.entry ? ' => ' : ': '}</span
       ><span class="t-value" @mousedown=${hooks.down} @dblclick=${hooks.dbl}
         >${
@@ -2115,7 +2163,9 @@ export class ComponentsView extends LitElement {
             : open
               ? summarize(c.type)
               : renderCode(c.value)
-        }${hooks.button}</span
+        }${hooks.button}${
+          target === undefined ? nothing : this._renderShadowed(target)
+        }</span
       >${open ? this._renderLevel(path) : nothing}
     </div>`;
   }
@@ -2292,14 +2342,14 @@ export class ComponentsView extends LitElement {
       <div class="kv">
         ${props.map((p) =>
           this._renderEntry(
-            html`${this._renderOverrideToggle(p)}${this._describedName(
+            html`${this._renderOverrideToggle({...p, keys: []})}${this._describedName(
               p.name,
               documented
             )}${typeLabel(p.type, p.value)}`,
             p.value,
             {
               rowClass: p.override === undefined ? '' : 'overridden',
-              trailing: html`${this._renderShadowed(p)}${
+              trailing: html`${this._renderShadowed({...p, keys: []})}${
                 p.reflects
                   ? html`<wa-badge
                       class="badge"
@@ -2331,30 +2381,26 @@ export class ComponentsView extends LitElement {
     `;
   }
 
-  /** Whether `p`'s override is the value in effect. */
-  private _overrideInEffect(p: InspectorProp): boolean {
-    return p.override?.enabled === true && this._session.overrides.applied;
-  }
-
   /**
-   * An overridden row's own switch, like a declaration's checkbox in the
+   * An overridden value's own switch, like a declaration's checkbox in the
    * browser's Styles pane. A snapshot has no page to switch it in.
    */
   private _renderOverrideToggle(
-    p: InspectorProp
+    t: OverrideTarget
   ): TemplateResult | typeof nothing {
-    const o = p.override;
+    const o = t.override;
     if (o === undefined || this._snapshot) return nothing;
     return html`<input
       type="checkbox"
       class="override-toggle"
       .checked=${o.enabled}
-      aria-label=${`Override ${p.name}`}
+      aria-label=${`Override ${pathLabel(t.name, t.keys)}`}
       data-tip=${o.enabled ? 'Switch the override off' : 'Switch the override on'}
       @change=${(e: Event) =>
         this._session.toggleOverride(
-          p.name,
-          (e.target as HTMLInputElement).checked
+          t.name,
+          (e.target as HTMLInputElement).checked,
+          t.keys
         )}
     />`;
   }
@@ -2364,10 +2410,10 @@ export class ComponentsView extends LitElement {
    * intrinsic value while the override is in effect, else the override.
    * Then the button that drops the override.
    */
-  private _renderShadowed(p: InspectorProp): TemplateResult | typeof nothing {
-    const o = p.override;
+  private _renderShadowed(t: OverrideTarget): TemplateResult | typeof nothing {
+    const o = t.override;
     if (o === undefined) return nothing;
-    const inEffect = this._overrideInEffect(p);
+    const inEffect = o.enabled && this._session.overrides.applied;
     return html`<span
         class="shadowed"
         data-tip=${inEffect ? 'Intrinsic value, overridden' : 'Override, off'}
@@ -2378,8 +2424,8 @@ export class ComponentsView extends LitElement {
           : html`<button
               class="remove-override"
               data-tip="Remove the override"
-              aria-label=${`Remove the override on ${p.name}`}
-              @click=${() => this._session.removeOverride(p.name)}
+              aria-label=${`Remove the override on ${pathLabel(t.name, t.keys)}`}
+              @click=${() => this._session.removeOverride(t.name, t.keys)}
             >
               <wa-icon name="x"></wa-icon>
             </button>`
@@ -2393,9 +2439,54 @@ export class ComponentsView extends LitElement {
    */
   private _renderOverridesBar(): TemplateResult | typeof nothing {
     const {applied, entries} = this._session.overrides;
-    if (this._snapshot || entries.length === 0) return nothing;
+    const dropped = this._session.droppedOverrides;
+    if (this._snapshot || entries.length + dropped.length === 0) return nothing;
     return html`<div class="overrides-bar">
-      <wa-switch
+      ${this._renderDropped(dropped)}${
+        entries.length === 0
+          ? nothing
+          : this._renderOverridesList(applied, entries)
+      }
+    </div>`;
+  }
+
+  /**
+   * Leaf overrides the page dropped because the app replaced the object
+   * they were in. Stays until dismissed, so a drop is not missed.
+   */
+  private _renderDropped(
+    dropped: readonly InspectorOverrideEntry[]
+  ): TemplateResult | typeof nothing {
+    if (dropped.length === 0) return nothing;
+    return html`<div class="overrides-dropped" role="status">
+      <wa-icon name="warning"></wa-icon>
+      <span
+        >The app replaced the object under
+        ${dropped.length === 1 ? 'an override' : `${dropped.length} overrides`},
+        so ${dropped.length === 1 ? 'it was' : 'they were'} dropped:
+        ${dropped.map(
+          (e, i) =>
+            html`${i > 0 ? ', ' : ''}<code
+                >&lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}</code
+              >`
+        )}</span
+      >
+      <button
+        class="remove-override"
+        data-tip="Dismiss"
+        aria-label="Dismiss"
+        @click=${() => this._session.dismissDropped()}
+      >
+        <wa-icon name="x"></wa-icon>
+      </button>
+    </div>`;
+  }
+
+  private _renderOverridesList(
+    applied: boolean,
+    entries: readonly InspectorOverrideEntry[]
+  ): TemplateResult {
+    return html` <wa-switch
         size="small"
         .checked=${applied}
         @change=${(e: Event) =>
@@ -2415,14 +2506,15 @@ export class ComponentsView extends LitElement {
                   data-tip="Select the element"
                   @click=${() => this._session.select(e.id)}
                 >
-                  &lt;${e.tagName}&gt;.${e.name}
+                  &lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}
                 </button>
                 <span class="override-value">${e.value}</span>
                 <button
                   class="remove-override"
                   data-tip="Remove the override"
-                  aria-label=${`Remove the override on ${e.tagName} ${e.name}`}
-                  @click=${() => this._session.removeOverride(e.name, e.id)}
+                  aria-label=${`Remove the override on ${e.tagName} ${pathLabel(e.name, e.keys ?? [])}`}
+                  @click=${() =>
+                    this._session.removeOverride(e.name, e.keys ?? [], e.id)}
                 >
                   <wa-icon name="x"></wa-icon>
                 </button>
@@ -2436,8 +2528,7 @@ export class ComponentsView extends LitElement {
         appearance="plain"
         @click=${() => this._session.clearOverrides()}
         >Clear all</wa-button
-      >
-    </div>`;
+      >`;
   }
 
   /**

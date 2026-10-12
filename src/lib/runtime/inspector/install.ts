@@ -23,6 +23,13 @@ import {
   setProp,
 } from './collect.js';
 import {
+  clearLeafOverrides,
+  reapplyLeaves,
+  removeLeafOverride,
+  sweepLeaves,
+  toggleLeafOverride,
+} from './leaf-overrides.js';
+import {
   applyOverrides,
   clearOverrides,
   onIntrinsicWrite,
@@ -52,6 +59,7 @@ import {
   type InspectorMessage,
   type InspectorTreeNode,
   type LitPackageVersions,
+  type ValueSegment,
 } from '../../../types/inspector.js';
 
 /** Lit packages and the global each pushes its version onto when loaded. */
@@ -250,6 +258,8 @@ if (typeof window !== 'undefined') {
       const cur = ref.deref();
       if (cur !== undefined) {
         send({type: 'details', details: collectDetails(cur)});
+        // The app may have replaced an object a leaf override was in.
+        if (sweepLeaves(cur)) replyOverrides();
       }
     };
     // Moving a light child between slots, or adding or removing one, does
@@ -544,16 +554,25 @@ if (typeof window !== 'undefined') {
     const applied = setProp(el, cmd.name, cmd.value, keys);
     // Whether or not it applied, so a rejected value snaps back in the panel.
     replyDetails(cmd.id);
-    if (applied && keys.length === 0) replyOverrides();
-    // A leaf deeper than the row's preview would leave the open level that
-    // holds it stale, so answer that level too.
-    if (keys.length > 0) {
-      replyExpanded({
-        type: 'expand',
-        id: cmd.id,
-        path: {section: 'prop', name: cmd.name, keys: keys.slice(0, -1)},
-      });
-    }
+    replyLeafLevel(cmd.id, cmd.name, keys);
+    if (applied) replyOverrides();
+  };
+
+  /**
+   * A leaf deeper than the row's preview would leave the open level that
+   * holds it stale, so answer that level too. Nothing for the property itself.
+   */
+  const replyLeafLevel = (
+    id: number,
+    name: string,
+    keys: readonly ValueSegment[]
+  ): void => {
+    if (keys.length === 0) return;
+    replyExpanded({
+      type: 'expand',
+      id,
+      path: {section: 'prop', name, keys: keys.slice(0, -1)},
+    });
   };
 
   const replyOverrides = (): void => {
@@ -562,15 +581,17 @@ if (typeof window !== 'undefined') {
 
   /** Act on one element's override, then answer for it and for the list. */
   const onOverride =
-    (act: (el: Element, name: string) => void) =>
-    (cmd: {id: number; name: string}): void => {
+    (act: (el: Element, name: string, keys: ValueSegment[]) => void) =>
+    (cmd: {id: number; name: string; keys?: ValueSegment[]}): void => {
       const el = elementById(cmd.id);
       if (el === undefined) {
         send({type: 'gone', id: cmd.id});
         return;
       }
-      act(el, cmd.name);
+      const keys = cmd.keys ?? [];
+      act(el, cmd.name, keys);
       replyDetails(cmd.id);
+      replyLeafLevel(cmd.id, cmd.name, keys);
       replyOverrides();
     };
 
@@ -590,14 +611,24 @@ if (typeof window !== 'undefined') {
     'set-prop': applySetProp,
     overrides: replyOverrides,
     'override-toggle': (cmd) =>
-      onOverride((el, name) => toggleOverride(el, name, cmd.enabled))(cmd),
-    'override-remove': onOverride(removeOverride),
+      onOverride((el, name, keys) =>
+        keys.length === 0
+          ? toggleOverride(el, name, cmd.enabled)
+          : toggleLeafOverride(el, name, keys, cmd.enabled)
+      )(cmd),
+    'override-remove': onOverride((el, name, keys) =>
+      keys.length === 0
+        ? removeOverride(el, name)
+        : removeLeafOverride(el, name, keys)
+    ),
     'overrides-apply': (cmd) => {
       applyOverrides(cmd.applied);
+      reapplyLeaves();
       replyOverrides();
     },
     'overrides-clear': () => {
       clearOverrides();
+      clearLeafOverrides();
       replyOverrides();
     },
     watch: (cmd) => (cmd.id === null ? unwatch() : watch(cmd.id)),
