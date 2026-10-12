@@ -131,9 +131,15 @@ keeping its own checkbox. Open the list to see each element and property,
 click one to select the element, or click **Clear all**.
 
 A string, number or boolean inside an expanded object, array or Map gets the
-same edit button, but no override: the write lands in the live object, not in a copy, so anything else that holds that object sees the new
-value too. Members of a Set cannot be edited, and neither can the shape of a
-value, which means adding or removing items.
+same edit button, and the value you set there is an override too, with the
+same checkbox and cross. The write lands in the live object, not in a copy, so
+anything else that holds that object sees the new value too. Clearing the
+checkbox writes the old value back, unless the app has written that slot
+since, in which case the app's value stays. If the app replaces the object
+itself, the override has nowhere left to apply: it is dropped, and the bar
+under the toolbar names it until you dismiss the notice. Members of a Set
+cannot be edited, and neither can the shape of a value, which means adding or
+removing items.
 
 Each section heading shows how many rows it holds. Click a heading to fold
 the section. It stays folded as you select other elements and after a
