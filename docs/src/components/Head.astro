@@ -8,11 +8,19 @@
  * Manrope is preloaded because it paints the first text on every page. Roboto
  * Mono is not: it only appears once a code block or an inline `code` scrolls
  * into view, so preloading it would compete with the text font.
+ *
+ * The changelog pages also get the video player: their release videos come
+ * from CHANGELOG.md as markup (docs/scripts/sync-changelog.mjs), with no
+ * component to load it, unlike DemoVideo.
  */
 import Default from '@astrojs/starlight/components/Head.astro';
 import {Font} from 'astro:assets';
+import VideoPlayerScript from './VideoPlayerScript.astro';
+
+const changelog = Astro.url.pathname.includes('/reference/changelog/');
 ---
 
 <Default />
 <Font cssVariable="--font-manrope" preload />
 <Font cssVariable="--font-roboto-mono" />
+{changelog && <VideoPlayerScript />}

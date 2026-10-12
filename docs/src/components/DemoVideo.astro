@@ -1,9 +1,12 @@
 ---
 /**
  * A short demo video from `public/demo/`. Muted autoplay on a loop, like a
- * moving screenshot; the controls are there to pause it or turn the music
- * on. Files in `public/` are not processed, so the paths carry the base.
+ * moving screenshot; the player's controls are there to pause it or turn the
+ * music on. Plays in Video.js's packaged skin (VideoPlayerScript.astro).
+ * Files in `public/` are not processed, so the paths carry the base.
  */
+import VideoPlayerScript from './VideoPlayerScript.astro';
+
 interface Props {
   /** What the video shows, for screen readers. */
   label: string;
@@ -18,29 +21,26 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <figure class="demo-video">
-  <video
-    src={`${base}/demo/${name}.mp4`}
-    poster={`${base}/demo/${name}-poster.jpg`}
-    width={width}
-    height={height}
-    aria-label={label}
-    autoplay
-    muted
-    loop
-    playsinline
-    controls
-    preload="metadata"></video>
+  <video-player>
+    <video-skin>
+      <video
+        src={`${base}/demo/${name}.mp4`}
+        width={width}
+        height={height}
+        aria-label={label}
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"></video>
+      <img slot="poster" src={`${base}/demo/${name}-poster.jpg`} alt="" />
+    </video-skin>
+  </video-player>
 </figure>
+<VideoPlayerScript />
 
 <style>
   .demo-video {
     margin: 1.5rem 0;
-  }
-  .demo-video video {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 1px solid var(--sl-color-hairline);
-    border-radius: 0.5rem;
   }
 </style>

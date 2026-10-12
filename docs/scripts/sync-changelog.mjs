@@ -10,8 +10,10 @@
 // GitHub release, because GitHub strips <video> from markdown. The docs can
 // play it inline, but not from the release: Safari refuses the release
 // asset's download URL. So when the poster is `public/demo/<name>-poster.jpg`
-// and `public/demo/<name>.mp4` exists beside it, the copy gets a <video> that
-// plays the docs' own file instead.
+// and `public/demo/<name>.mp4` exists beside it, the copy gets the site's
+// Video.js player (src/components/VideoPlayerScript.astro) on the docs' own
+// file instead. Each tag sits on its own line so markdown keeps the lines as
+// one HTML block rather than wrapping them in a paragraph.
 import {existsSync} from 'node:fs';
 import {readFile, writeFile, mkdir} from 'node:fs/promises';
 import {dirname, resolve} from 'node:path';
@@ -32,7 +34,14 @@ const body = raw
     /^\[!\[([^\]]*)\]\(https?:\/\/[^/)]+(\/[^)]*\/demo\/)([\w.-]+)-poster\.jpg\)\]\([^)]+\.mp4\)$/gm,
     (line, label, dir, name) =>
       existsSync(resolve(demo, `${name}.mp4`))
-        ? `<video class="changelog-video" src="${dir}${name}.mp4" poster="${dir}${name}-poster.jpg" width="1920" height="1080" aria-label="${label}" controls playsinline preload="none"></video>`
+        ? [
+            '<video-player class="changelog-video">',
+            '<video-skin>',
+            `<video src="${dir}${name}.mp4" width="1920" height="1080" aria-label="${label}" playsinline preload="none"></video>`,
+            `<img slot="poster" src="${dir}${name}-poster.jpg" alt="">`,
+            '</video-skin>',
+            '</video-player>',
+          ].join('\n')
         : line
   );
 

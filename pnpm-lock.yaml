@@ -237,6 +237,9 @@ importers:
       '@phosphor-icons/core':
         specifier: ^2.1.1
         version: 2.1.1
+      '@videojs/html':
+        specifier: 10.0.1
+        version: 10.0.1(react@19.3.0)
       astro:
         specifier: ^7.3.5
         version: 7.3.5(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
@@ -2098,6 +2101,82 @@ packages:
     peerDependencies:
       vite: ^5.0.0-0 || ^6.0.0-0 || ^7.0.0-0 || ^8.0.0-0
 
+  '@videojs/core@10.0.1':
+    resolution: {integrity: sha512-N+f41wgFcmpe0QUhO0Q9sFHpMxKvr38ojkX5FlxAo3LKDAo2UrG2KIeklte+1VVae3oaJfP6J/KYtrRRObRxxw==}
+
+  '@videojs/element@10.0.1':
+    resolution: {integrity: sha512-s42yzkN3PH3573ZVcFRLNAXCbQTraXX9X/nUUVjx4NH3n36VGTmFiqJ3jrGhU+IWg4euasKyuVnwSp6qp4C1lg==}
+
+  '@videojs/html@10.0.1':
+    resolution: {integrity: sha512-QAkGefFJU/u+w7ZNod4XyQSOBQ3Ij/uPHTO/hfW+ALlIeDYEsYzplQtHoLzU+Fh4mzHFhKKJI2iEW4x15fxj9Q==}
+    peerDependencies:
+      '@videojs/cloudflare-video': 10.0.1
+      '@videojs/dash-video': 10.0.1
+      '@videojs/google-cast': 10.0.1
+      '@videojs/hlsjs-video': 10.0.1
+      '@videojs/mux-audio': 10.0.1
+      '@videojs/mux-data': 10.0.1
+      '@videojs/mux-video': 10.0.1
+      '@videojs/shaka-video': 10.0.1
+      '@videojs/spotify-audio': 10.0.1
+      '@videojs/tiktok-video': 10.0.1
+      '@videojs/twitch-video': 10.0.1
+      '@videojs/vimeo-video': 10.0.1
+      '@videojs/wistia-video': 10.0.1
+      '@videojs/youtube-video': 10.0.1
+    peerDependenciesMeta:
+      '@videojs/cloudflare-video':
+        optional: true
+      '@videojs/dash-video':
+        optional: true
+      '@videojs/google-cast':
+        optional: true
+      '@videojs/hlsjs-video':
+        optional: true
+      '@videojs/mux-audio':
+        optional: true
+      '@videojs/mux-data':
+        optional: true
+      '@videojs/mux-video':
+        optional: true
+      '@videojs/shaka-video':
+        optional: true
+      '@videojs/spotify-audio':
+        optional: true
+      '@videojs/tiktok-video':
+        optional: true
+      '@videojs/twitch-video':
+        optional: true
+      '@videojs/vimeo-video':
+        optional: true
+      '@videojs/wistia-video':
+        optional: true
+      '@videojs/youtube-video':
+        optional: true
+
+  '@videojs/media@10.0.1':
+    resolution: {integrity: sha512-hMC2aS/8PovwJBi8y2qShC/amYfH6SBce7SZAM54qzRq8hl4FwWGFeUMMmXp8x4agRxLuCSqGqZg/EoGH2I5mQ==}
+
+  '@videojs/native-hls-video@10.0.1':
+    resolution: {integrity: sha512-MElgeDaxOJUj+OjHV3++TuW8TTgipTuzlRkfFDMMbnutlPLkSlX3VKhXo5ZNPhhXkt47oBVx4RGnAQJLWzilPw==}
+
+  '@videojs/spf@10.0.1':
+    resolution: {integrity: sha512-1HUTI1W++EKZuO3MaklFdEU/cEUhkJlKKuQx0Xi3VwjeHgVToAz7b1ySDH903KluPQy6cAGqXpro5Wt00y4DYA==}
+
+  '@videojs/store@10.0.1':
+    resolution: {integrity: sha512-BTkkTRHAU0XaZi+n3yWhtQJbe0BNjQLBd414u/s/nMZDz5bc1fp6b/voNbNriuSMd0Ro+ZmyzfPaMskiCa6GUQ==}
+    peerDependencies:
+      '@videojs/element': 10.0.1
+      react: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@videojs/element':
+        optional: true
+      react:
+        optional: true
+
+  '@videojs/utils@10.0.1':
+    resolution: {integrity: sha512-S7WO9lPfyCz5YQYWtpE42JZTtJKUaiWaAZGAa+VLoBiFMfpoogCloSP4pjChTYcQ6sGcLlQJNxVKhM1RvI/Dig==}
+
   '@vitejs/devtools-kit@0.7.6':
     resolution: {integrity: sha512-VtnTo296ypQyksFcPgrUyDDxh/SuAa/18uWEitbODcJIu5eilMFQyaSzsLKgp0HQPsxo/Kfzbfl5gowNGfjwqQ==}
     peerDependencies:
@@ -3691,8 +3770,17 @@ packages:
   radix3@1.1.2:
     resolution: {integrity: sha512-b484I/7b8rDEdSDKckSSBA8knMpcdsXudlE/LNL639wFoHKwLbEkQFZHWEYwDC0wa0FKUcCY+GAF73Z7wxNVFA==}
 
+  react-compiler-runtime@1.0.0:
+    resolution: {integrity: sha512-rRfjYv66HlG8896yPUDONgKzG5BxZD1nV9U6rkm+7VCuvQc903C4MjcoZR4zPw53IKSOX9wMQVpA1IAbRtzQ7w==}
+    peerDependencies:
+      react: ^17.0.0 || ^18.0.0 || ^19.0.0 || ^0.0.0-experimental
+
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
+
+  react@19.3.0:
+    resolution: {integrity: sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==}
+    engines: {node: '>=0.10.0'}
 
   readdirp@5.1.1:
     resolution: {integrity: sha512-Kko+Y5XQ6fM+Ce3dq3m9YGxnacYZYl9cA1wZjaF3Vbry2L3i1qVg8+CAgNPsXRArPMUMCaOR7oa9Nqntc43JKA==}
@@ -5734,6 +5822,56 @@ snapshots:
       - ocache
       - srvx
 
+  '@videojs/core@10.0.1(@videojs/element@10.0.1)(react@19.3.0)':
+    dependencies:
+      '@videojs/media': 10.0.1
+      '@videojs/store': 10.0.1(@videojs/element@10.0.1)(react@19.3.0)
+      '@videojs/utils': 10.0.1
+    transitivePeerDependencies:
+      - '@videojs/element'
+      - react
+
+  '@videojs/element@10.0.1':
+    dependencies:
+      '@lit/context': 1.1.6
+
+  '@videojs/html@10.0.1(react@19.3.0)':
+    dependencies:
+      '@videojs/core': 10.0.1(@videojs/element@10.0.1)(react@19.3.0)
+      '@videojs/element': 10.0.1
+      '@videojs/media': 10.0.1
+      '@videojs/native-hls-video': 10.0.1
+      '@videojs/spf': 10.0.1
+      '@videojs/store': 10.0.1(@videojs/element@10.0.1)(react@19.3.0)
+      '@videojs/utils': 10.0.1
+    transitivePeerDependencies:
+      - react
+
+  '@videojs/media@10.0.1':
+    dependencies:
+      '@videojs/utils': 10.0.1
+
+  '@videojs/native-hls-video@10.0.1':
+    dependencies:
+      '@videojs/media': 10.0.1
+      '@videojs/utils': 10.0.1
+
+  '@videojs/spf@10.0.1':
+    dependencies:
+      '@videojs/media': 10.0.1
+      '@videojs/utils': 10.0.1
+      signal-polyfill: 0.2.2
+
+  '@videojs/store@10.0.1(@videojs/element@10.0.1)(react@19.3.0)':
+    dependencies:
+      '@videojs/utils': 10.0.1
+      react-compiler-runtime: 1.0.0(react@19.3.0)
+    optionalDependencies:
+      '@videojs/element': 10.0.1
+      react: 19.3.0
+
+  '@videojs/utils@10.0.1': {}
+
   '@vitejs/devtools-kit@0.7.6(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(crossws@0.4.12(srvx@1.0.5))(srvx@1.0.5)':
     dependencies:
       '@devframes/hub': 1.1.0(@devframes/agentic@1.1.0)(crossws@0.4.12(srvx@1.0.5))(devframe@1.1.0)
@@ -7632,7 +7770,13 @@ snapshots:
 
   radix3@1.1.2: {}
 
+  react-compiler-runtime@1.0.0(react@19.3.0):
+    dependencies:
+      react: 19.3.0
+
   react-is@17.0.2: {}
+
+  react@19.3.0: {}
 
   readdirp@5.1.1: {}
 

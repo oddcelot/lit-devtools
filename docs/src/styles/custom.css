@@ -211,15 +211,23 @@
       no-repeat;
 }
 
-/* ------------------------------------------------- Changelog videos ---- */
+/* -------------------------------------------------------------- Video ---- */
+
+/* Every self-hosted video plays in Video.js's packaged skin (see
+   src/components/VideoPlayerScript.astro), themed from the tokens above: the
+   accent drives the progress bar and focus ring, and the frame matches the
+   site's hairline cards. The skin reads these through its shadow root.
+   <video-player> itself renders as `display: contents`, so spacing goes on
+   the <video-skin> inside it. */
+video-player {
+  --media-accent-color: var(--sl-color-accent);
+  --media-border-radius: 0.5rem;
+  --media-border-color: var(--sl-color-hairline);
+  --media-font-family: var(--sl-font);
+}
 
 /* scripts/sync-changelog.mjs turns a release video's poster link into a
-   <video> in the docs copy of CHANGELOG.md; framed like DemoVideo. */
-.sl-markdown-content .changelog-video {
-  display: block;
-  width: 100%;
-  height: auto;
+   player in the docs copy of CHANGELOG.md. */
+.sl-markdown-content .changelog-video > video-skin {
   margin: 1.5rem 0;
-  border: 1px solid var(--sl-color-hairline);
-  border-radius: 0.5rem;
 }
