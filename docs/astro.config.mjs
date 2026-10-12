@@ -15,6 +15,27 @@ import {base, redirects} from './redirects.mjs';
 
 export default defineConfig({
   site: 'https://oddcelot.github.io',
+  vite: {
+    build: {
+      rolldownOptions: {
+        output: {
+          // Video.js in one chunk. Split across chunks shared with the
+          // YouTube embed's dynamic imports, the skin module ran before the
+          // player's, so <video-skin> asked for the player's state before any
+          // <video-player> was defined, and its poster never showed. Vite's
+          // dynamic-import helper gets its own chunk first: the Video.js
+          // group would otherwise pull it in, and every page with a dynamic
+          // import would download Video.js just for the helper.
+          codeSplitting: {
+            groups: [
+              {name: 'preload-helper', test: /preload-helper/, priority: 2},
+              {name: 'videojs', test: /[\\/]@videojs[\\/]/, priority: 1},
+            ],
+          },
+        },
+      },
+    },
+  },
   // The two families the Lit Design System specifies, pulled from Fontsource
   // at build time. Astro downloads, subsets and fingerprints them into the
   // build, and generates fallback metrics so swapping in the real face does
