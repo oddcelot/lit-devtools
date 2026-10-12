@@ -17,10 +17,17 @@ import type {ViteHotLike} from '../page-channel.js';
 import {
   buildTree,
   collectDetails,
+  collectOverrides,
   expandPath,
   listedIdOf,
   setProp,
 } from './collect.js';
+import {
+  applyOverrides,
+  clearOverrides,
+  removeOverride,
+  toggleOverride,
+} from './prop-overrides.js';
 import {anatomyById, clearAnatomy, focusAnatomy} from './anatomy-overlay.js';
 import {shadowOf} from './anatomy.js';
 import {onLitWarning} from '../timeline/lit-warnings.js';
@@ -521,9 +528,10 @@ if (typeof window !== 'undefined') {
       return;
     }
     const keys = cmd.keys ?? [];
-    setProp(el, cmd.name, cmd.value, keys);
+    const applied = setProp(el, cmd.name, cmd.value, keys);
     // Whether or not it applied, so a rejected value snaps back in the panel.
     replyDetails(cmd.id);
+    if (applied && keys.length === 0) replyOverrides();
     // A leaf deeper than the row's preview would leave the open level that
     // holds it stale, so answer that level too.
     if (keys.length > 0) {
@@ -534,6 +542,24 @@ if (typeof window !== 'undefined') {
       });
     }
   };
+
+  const replyOverrides = (): void => {
+    send({type: 'overrides', ...collectOverrides()});
+  };
+
+  /** Act on one element's override, then answer for it and for the list. */
+  const onOverride =
+    (act: (el: Element, name: string) => void) =>
+    (cmd: {id: number; name: string}): void => {
+      const el = elementById(cmd.id);
+      if (el === undefined) {
+        send({type: 'gone', id: cmd.id});
+        return;
+      }
+      act(el, cmd.name);
+      replyDetails(cmd.id);
+      replyOverrides();
+    };
 
   // Commands the page does not act on (`pick`) have no entry.
   type CommandHandlers = {
@@ -549,6 +575,18 @@ if (typeof window !== 'undefined') {
     'fetch-text': (cmd) => void fetchText(cmd.url).then(send),
     expand: replyExpanded,
     'set-prop': applySetProp,
+    overrides: replyOverrides,
+    'override-toggle': (cmd) =>
+      onOverride((el, name) => toggleOverride(el, name, cmd.enabled))(cmd),
+    'override-remove': onOverride(removeOverride),
+    'overrides-apply': (cmd) => {
+      applyOverrides(cmd.applied);
+      replyOverrides();
+    },
+    'overrides-clear': () => {
+      clearOverrides();
+      replyOverrides();
+    },
     watch: (cmd) => (cmd.id === null ? unwatch() : watch(cmd.id)),
     // Fallback path. A panel that handshaked over the in-page channel emits
     // there instead and never reaches this.

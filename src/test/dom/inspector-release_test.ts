@@ -404,6 +404,56 @@ test('set-prop assigns, then answers with the details the page holds', async () 
   expect(details(carrier)).toBe(before + 2);
 });
 
+test('override commands toggle, remove and list the overrides', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-settable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['count', {}]]);
+      count = 1;
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {count: unknown};
+  document.body.append(el);
+  const id = idOf(el);
+  const deliver = (cmd: Record<string, unknown>) =>
+    carrier.deliver(INSPECT_CMD_CHANNEL, cmd);
+  const lastOverrides = () => sentOf(carrier, 'overrides').at(-1);
+
+  deliver({type: 'set-prop', id, name: 'count', value: 7});
+  expect(lastOverrides()).toMatchObject({
+    applied: true,
+    entries: [{id, tagName: tag, name: 'count', value: '7', enabled: true}],
+  });
+  el.count = 2;
+  expect(el.count).toBe(7);
+
+  const before = details(carrier);
+  deliver({type: 'override-toggle', id, name: 'count', enabled: false});
+  expect(el.count).toBe(2);
+  expect(details(carrier)).toBe(before + 1);
+  expect(lastOverrides()).toMatchObject({entries: [{enabled: false}]});
+
+  deliver({type: 'override-toggle', id, name: 'count', enabled: true});
+  deliver({type: 'overrides-apply', applied: false});
+  expect(el.count).toBe(2);
+  expect(lastOverrides()).toMatchObject({applied: false});
+  deliver({type: 'overrides-apply', applied: true});
+  expect(el.count).toBe(7);
+
+  deliver({type: 'override-remove', id, name: 'count'});
+  expect(el.count).toBe(2);
+  expect(lastOverrides()).toMatchObject({entries: []});
+
+  deliver({type: 'set-prop', id, name: 'count', value: 5});
+  deliver({type: 'overrides-clear'});
+  expect(el.count).toBe(2);
+  deliver({type: 'overrides'});
+  expect(lastOverrides()).toMatchObject({applied: true, entries: []});
+});
+
 test('set-prop on an element that is gone says so', async () => {
   const {carrier} = await load();
   carrier.deliver(INSPECT_CMD_CHANNEL, {
