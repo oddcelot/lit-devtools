@@ -13,16 +13,9 @@
  */
 
 import {CALL_SITE_ATTR} from '../source-meta.js';
+import type {ElementKey} from '../../../types/inspector.js';
 
-export interface ElementKey {
-  tag: string;
-  /** The call-site stamp, when there is one. */
-  site?: string;
-  /** With `site`: how many elements with that stamp come before this one. */
-  nth?: number;
-  /** Without `site`: indexes from the document down, `s` entering a shadow root. */
-  path?: string;
-}
+export type {ElementKey};
 
 /** The parent to step up to, and whether that step leaves a shadow root. */
 const up = (el: Element): {parent: Element; shadow: boolean} | undefined => {
@@ -81,4 +74,21 @@ export const matchesKey = (el: Element, key: ElementKey): boolean => {
   const site = el.getAttribute(CALL_SITE_ATTR);
   if ((site ?? undefined) !== key.site) return false;
   return site === null ? pathOf(el) === key.path : nthOf(el, site) === key.nth;
+};
+
+/** The element `key` names in `doc`, if there is one. */
+export const findByKey = (
+  key: ElementKey,
+  doc: Document = document
+): Element | undefined => {
+  let n = 0;
+  for (const el of deepElements(doc)) {
+    if (key.site === undefined) {
+      if (el.localName === key.tag && pathOf(el) === key.path) return el;
+      continue;
+    }
+    if (el.getAttribute(CALL_SITE_ATTR) !== key.site) continue;
+    if (n++ === key.nth) return el.localName === key.tag ? el : undefined;
+  }
+  return undefined;
 };

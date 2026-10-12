@@ -366,8 +366,29 @@ export interface InspectorWarning {
 }
 
 /** Full detail snapshot for a single inspected element. */
+/**
+ * Names an element so a later load of the page can find it again, when ids
+ * have been minted afresh: by its template call site and its place among the
+ * elements stamped with it, or, unstamped, by its path from the document.
+ */
+export interface ElementKey {
+  tag: string;
+  /** The call-site stamp, when there is one. */
+  site?: string;
+  /** With `site`: how many elements with that stamp come before this one. */
+  nth?: number;
+  /** Without `site`: indexes from the document down, `s` entering a shadow root. */
+  path?: string;
+}
+
 export interface InspectorDetails {
   id: number;
+  /**
+   * How to find this element again after a reload. Only on the answer to a
+   * `details` command, not on the pushes a watch sends, and absent from an
+   * older runtime.
+   */
+  key?: ElementKey;
   tagName: string;
   componentName?: string;
   /** Where the component class is declared. */
@@ -464,6 +485,8 @@ export type InspectorMessage =
       children: ValueChild[] | null;
       more?: number;
     }
+  /** The element `key` names on this page, answering `locate`; null if none. */
+  | {type: 'located'; key: ElementKey; id: number | null}
   /**
    * The page's overrides, answering an `overrides` command and sent again
    * whenever one is set, toggled or removed.
@@ -512,6 +535,8 @@ export type InspectorCommand =
       value: string | number | boolean;
       keys?: ValueSegment[];
     }
+  /** Find the element `key` names, answered with a `located` message. */
+  | {type: 'locate'; key: ElementKey}
   /** Ask for the page's overrides, answered with an `overrides` message. */
   | {type: 'overrides'}
   /**

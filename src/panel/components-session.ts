@@ -11,6 +11,7 @@
  */
 
 import type {
+  ElementKey,
   InspectorCommand,
   InspectorDetails,
   InspectorMessage,
@@ -86,6 +87,9 @@ export const findAncestors = (
   return walk(nodes) ? [...trail] : null;
 };
 
+const sameKey = (a: ElementKey, b: ElementKey): boolean =>
+  a.tag === b.tag && a.site === b.site && a.nth === b.nth && a.path === b.path;
+
 const NO_OVERRIDES: InspectorOverrides = {applied: true, entries: []};
 
 /** A command's `keys`, left out for the property itself. */
@@ -108,6 +112,10 @@ export class ComponentsSession {
   #lastPatch: HmrPatchEvent | null = null;
   #overrides: InspectorOverrides = NO_OVERRIDES;
   #dropped: InspectorOverrideEntry[] = [];
+  /** How to find the selection again on another page; from its details. */
+  #key: ElementKey | null = null;
+  /** The key a page change asked the new page to find. */
+  #locating: ElementKey | null = null;
 
   constructor(ports: ComponentsSessionPorts) {
     this.#ports = ports;
@@ -226,6 +234,10 @@ export class ComponentsSession {
         if (message.details.id !== this.#selectedId) return;
         this.#details = message.details;
         this.#gone = false;
+        if (message.details.key !== undefined) this.#key = message.details.key;
+        break;
+      case 'located':
+        if (!this.#located(message.key, message.id)) return;
         break;
       case 'gone':
         if (message.id !== this.#selectedId) return;
@@ -262,12 +274,14 @@ export class ComponentsSession {
   /**
    * Another page took over. Drops the tree and HMR history the old page
    * reported, as the node side does, and asks the new page for its tree. The
-   * selection stays: a reloaded tab mints the same ids in the same order, and
-   * on another tab the details request answers for whatever holds the id
-   * now. Its details do not: they describe the old document, so they are
-   * cleared until the new page answers, and the watch went with the old
-   * document, so the new page is told to watch the id or the pane never
-   * hears of its updates.
+   * selection stays, found again on the new page: ids are minted afresh and
+   * not in a fixed order (with the timeline recording, each element's first
+   * update mints its id), so the selection's key is looked up, and the
+   * element it names selected. Without a key (an older runtime), or when it
+   * names nothing, the id is kept. Its details do not stay: they describe the
+   * old document, so they are cleared until the new page answers, and the
+   * watch went with the old document, so the new page is told to watch the
+   * element or the pane never hears of its updates.
    */
   pageChanged(): void {
     this.#roots = [];
@@ -282,9 +296,37 @@ export class ComponentsSession {
       this.#details = null;
       this.#gone = false;
     }
-    this.#refresh();
-    if (id !== null) this.#send({type: 'watch', id});
+    if (id !== null && this.#key !== null) {
+      this.#send({type: 'tree'});
+      this.#send({type: 'overrides'});
+      this.#locating = this.#key;
+      this.#send({type: 'locate', key: this.#key});
+    } else {
+      this.#refresh();
+      if (id !== null) this.#send({type: 'watch', id});
+    }
     this.#changed();
+  }
+
+  /**
+   * The new page found the selection's key, or not: select what it names,
+   * else keep the id, and ask for its details and a watch. False for an
+   * answer this session is not waiting for.
+   */
+  #located(key: ElementKey, found: number | null): boolean {
+    const asked = this.#locating;
+    if (asked === null || !sameKey(asked, key)) return false;
+    this.#locating = null;
+    const id = found ?? this.#selectedId;
+    if (id === null) return false;
+    if (id !== this.#selectedId) {
+      this.#ports.onSelect?.(id);
+      this.#selectedId = id;
+    }
+    this.#reveal(id);
+    this.#send({type: 'details', id});
+    this.#send({type: 'watch', id});
+    return true;
   }
 
   /** Select an element: from the tree, a pick, or a link elsewhere. */
@@ -417,6 +459,8 @@ export class ComponentsSession {
   #select(id: number): boolean {
     if (this.#selectedId === id) return false;
     this.#ports.onSelect?.(id);
+    this.#key = null;
+    this.#locating = null;
     if (this.#selectedId !== null) this.#send({type: 'watch', id: null});
     this.#selectedId = id;
     this.#details = null;

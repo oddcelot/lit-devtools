@@ -386,3 +386,49 @@ test('Pick is not offered when the source overlay is off', async () => {
   await page.waitForTimeout(500);
   expect(await page.locator('components-view wa-button.pick').count()).toBe(0);
 });
+
+test('the selection is the same element after the page reloads', async () => {
+  const {page} = panel;
+  await page.goto(`${fixture.origin}/__lit/#tab=components`);
+  await page.locator('components-view wa-button.live').waitFor();
+  const idOf = (tag: string) =>
+    fixture.page.evaluate(
+      `globalThis[Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of')](document.querySelector('${tag}'))`
+    );
+  const id = (await idOf('hmr-properties')) as number;
+  await page.evaluate(
+    (id) =>
+      (
+        document
+          .querySelector('lit-devtools-panel')!
+          .shadowRoot!.querySelector('components-view') as unknown as {
+          location: {apply: (l: {componentId: number}) => void};
+        }
+      ).location.apply({componentId: id}),
+    id
+  );
+  const heading = page.locator('components-view .details h2').first();
+  await expect.poll(() => heading.textContent()).toContain('hmr-properties');
+
+  // The reloaded page mints its ids back to front, as the timeline can when
+  // elements first update in an order of their own: the old id now names
+  // another element, and only the element's key finds it again.
+  await fixture.page.addInitScript(() => {
+    const key = Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of');
+    let idOf: ((el: Element) => number) | undefined;
+    Object.defineProperty(globalThis, key, {
+      configurable: true,
+      get: () => idOf,
+      set: (fn: (el: Element) => number) => {
+        idOf = fn;
+        for (const el of [...document.querySelectorAll('*')].reverse()) fn(el);
+      },
+    });
+  });
+  await fixture.page.reload();
+  expect(await idOf('hmr-properties')).not.toBe(id);
+  await expect
+    .poll(() => heading.textContent(), {timeout: 10_000})
+    .toContain('hmr-properties');
+  expect(panel.errors).toEqual([]);
+});

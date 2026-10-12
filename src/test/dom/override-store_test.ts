@@ -1,6 +1,7 @@
 import {afterEach, describe, expect, test, vi} from 'vite-plus/test';
 import {
   deepElements,
+  findByKey,
   keyOf,
   matchesKey,
 } from '../../lib/runtime/inspector/element-key.js';
@@ -25,6 +26,23 @@ describe('element keys', () => {
     expect(keyOf(c!)).toEqual({tag: 'x-row', site: '/b.ts:2:2', nth: 0});
     expect(matchesKey(a!, keyOf(a!))).toBe(true);
     expect(matchesKey(a!, keyOf(b!))).toBe(false);
+  });
+
+  test('findByKey finds what keyOf named, and nothing else', () => {
+    document.body.innerHTML = `
+      <x-row data-lit-source="/a.ts:1:1"></x-row>
+      <x-row data-lit-source="/a.ts:1:1"></x-row>
+      <x-plain></x-plain>`;
+    const [, second] = document.querySelectorAll('x-row');
+    const plain = document.querySelector('x-plain')!;
+    expect(findByKey(keyOf(second!))).toBe(second);
+    expect(findByKey(keyOf(plain))).toBe(plain);
+    expect(
+      findByKey({tag: 'x-row', site: '/a.ts:1:1', nth: 5})
+    ).toBeUndefined();
+    expect(
+      findByKey({tag: 'x-other', site: '/a.ts:1:1', nth: 0})
+    ).toBeUndefined();
   });
 
   test('an unstamped element is its path, through shadow roots', () => {
