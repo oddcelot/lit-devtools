@@ -356,7 +356,10 @@ export const edgePoint = (box: Box, from: Point): Point => {
 };
 
 export interface Leader {
-  /** SVG path data: a stub out of the label, a 45° bend, then the region. */
+  /**
+   * SVG path data: a stub out of the label, then a 45° bend into the
+   * region, or a curve for one of a grouped label's several leaders.
+   */
   d: string;
   end: Point;
 }
@@ -384,8 +387,23 @@ const elbowOf = (stub: Point, end: Point, dir: Point): Point => {
     : {x: end.x, y: stub.y + dir.y * run};
 };
 
-/** The leader from a label to the region `box`. */
-export const leaderTo = (p: Placement, box: Box): Leader => {
+/**
+ * A curve from `stub` to `end` that leaves along `dir` and arrives the same
+ * way, for the leaders of a grouped label: a fan of curves reads as one
+ * bundle where angled runs would criss-cross.
+ */
+const curveTo = (stub: Point, end: Point, dir: Point): string => {
+  const mid = dir.x !== 0 ? (stub.x + end.x) / 2 : (stub.y + end.y) / 2;
+  const c1 = dir.x !== 0 ? `${mid},${stub.y}` : `${stub.x},${mid}`;
+  const c2 = dir.x !== 0 ? `${mid},${end.y}` : `${end.x},${mid}`;
+  return `C${c1} ${c2} ${end.x},${end.y}`;
+};
+
+/**
+ * The leader from a label to the region `box`: angled, or curved when
+ * `fan` says the label leads to several regions.
+ */
+export const leaderTo = (p: Placement, box: Box, fan = false): Leader => {
   const start = leaderStart(p);
   const dir = STUB_DIRECTION[p.side];
   // A column label sits LABEL_RISE above where its leader should land.
@@ -393,8 +411,8 @@ export const leaderTo = (p: Placement, box: Box): Leader => {
   const end = edgePoint(box, {x: start.x, y: start.y + rise});
   const stub = {x: start.x + dir.x * STUB, y: start.y + dir.y * STUB};
   const elbow = elbowOf(stub, end, dir);
-  return {
-    d: `M${start.x},${start.y} L${stub.x},${stub.y} L${elbow.x},${elbow.y} L${end.x},${end.y}`,
-    end,
-  };
+  const rest = fan
+    ? curveTo(stub, end, dir)
+    : `L${elbow.x},${elbow.y} L${end.x},${end.y}`;
+  return {d: `M${start.x},${start.y} L${stub.x},${stub.y} ${rest}`, end};
 };

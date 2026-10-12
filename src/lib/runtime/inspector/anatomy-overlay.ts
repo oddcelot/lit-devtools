@@ -307,9 +307,10 @@ const styleLeader = (
   g: SVGGElement,
   region: Region,
   color: string,
-  place: Placement
+  place: Placement,
+  fan: boolean
 ): void => {
-  const {d, end} = leaderTo(place, region.box);
+  const {d, end} = leaderTo(place, region.box, fan);
   const focused = region.key === focusKey;
   const path = g.firstElementChild!;
   const dot = g.lastElementChild!;
@@ -354,7 +355,13 @@ const drawCallouts = (
     for (const r of g.regions) {
       const isFocus = r.key === focusKey;
       styleBox(ui.boxes.take(), toRect(r.box), r.color, kindOf(r.key), isFocus);
-      styleLeader(ui.leaders.take(), r, g.color, places[i]);
+      styleLeader(
+        ui.leaders.take(),
+        r,
+        g.color,
+        places[i],
+        g.regions.length > 1
+      );
     }
     styleLabel(
       ui.labels.take(),

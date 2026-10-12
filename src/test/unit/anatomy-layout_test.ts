@@ -219,6 +219,14 @@ describe('leaders', () => {
     expect(end.y - start.y).toBe(LABEL_RISE);
   });
 
+  test('a grouped label curves to each of its regions', () => {
+    const b = box(450, 250, 40, 40);
+    const [left] = layoutLabels([group('l', b)], [90], 16, host, view);
+    const {d, end} = leaderTo({...left, top: left.top - 60}, b, true);
+    expect(d).toMatch(/^M[-\d.]+,[-\d.]+ L[-\d.]+,[-\d.]+ C/);
+    expect(d.endsWith(` ${end.x},${end.y}`)).toBe(true);
+  });
+
   test('a region closer than the bend needs gets a steeper straight run', () => {
     const b = box(450, 250, 40, 40);
     const [left] = layoutLabels([group('l', b)], [90], 16, host, view);
