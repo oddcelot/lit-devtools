@@ -486,6 +486,60 @@ test('an app write under an override re-pushes the watched details', async () =>
   expect(last.details.properties[0]?.override?.intrinsic).toBe('3');
 });
 
+test('keyed override commands act on the leaf and answer its level', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-settable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['cfg', {}]]);
+      cfg = {theme: {mode: 'light'}};
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {
+    cfg: {theme: {mode: string}};
+  };
+  document.body.append(el);
+  const id = idOf(el);
+  const keys = ['theme', 'mode'];
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'set-prop',
+    id,
+    name: 'cfg',
+    value: 'dark',
+    keys,
+  });
+  expect(sentOf(carrier, 'overrides').at(-1)).toMatchObject({
+    entries: [{id, name: 'cfg', keys, value: '"dark"', enabled: true}],
+  });
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'override-toggle',
+    id,
+    name: 'cfg',
+    keys,
+    enabled: false,
+  });
+  expect(el.cfg.theme.mode).toBe('light');
+  expect(sentOf(carrier, 'expanded').at(-1)).toMatchObject({
+    path: {section: 'prop', name: 'cfg', keys: ['theme']},
+    children: [
+      {
+        label: 'mode',
+        value: '"light"',
+        override: {value: '"dark"', enabled: false},
+      },
+    ],
+  });
+  carrier.deliver(INSPECT_CMD_CHANNEL, {
+    type: 'override-remove',
+    id,
+    name: 'cfg',
+    keys,
+  });
+  expect(sentOf(carrier, 'overrides').at(-1)).toMatchObject({entries: []});
+});
+
 test('set-prop on an element that is gone says so', async () => {
   const {carrier} = await load();
   carrier.deliver(INSPECT_CMD_CHANNEL, {

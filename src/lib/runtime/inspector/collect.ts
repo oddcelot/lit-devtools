@@ -4,12 +4,7 @@
  * the results are sent over the transport as plain JSON.
  */
 
-import {
-  childrenOf,
-  isExpandable,
-  stepInto,
-  writeInto,
-} from './inspect-value.js';
+import {childrenOf, isExpandable, stepInto} from './inspect-value.js';
 import {idOf} from '../timeline/identity.js';
 import {warningsFor} from '../timeline/lit-warnings.js';
 import {
@@ -22,6 +17,12 @@ import {collectAnatomy} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
 import {serialize, typeTag} from './serialize.js';
 import {
+  leafOverrideOf,
+  listLeafOverrides,
+  setLeafOverride,
+  takeDropped,
+} from './leaf-overrides.js';
+import {
   listOverrides,
   overrideOf,
   overridesApplied,
@@ -30,6 +31,7 @@ import {
 import type {
   ElementSource,
   InspectorDetails,
+  InspectorOverrideEntry,
   InspectorOverrides,
   InspectorProp,
   InspectorPropOption,
@@ -386,11 +388,29 @@ export const expandPath = (
     if (at === undefined) return null;
     at = stepInto(at.value, key);
   }
-  return at === undefined ? null : childrenOf(at.value);
+  if (at === undefined) return null;
+  const listed = childrenOf(at.value);
+  if (path.section !== 'prop') return listed;
+  return {
+    ...listed,
+    children: listed.children.map((c) => {
+      const o = leafOverrideOf(el, path.name, [...path.keys, c.key]);
+      return o === undefined
+        ? c
+        : {
+            ...c,
+            override: {
+              value: serialize(o.value),
+              enabled: o.enabled,
+              intrinsic: serialize(o.intrinsic),
+            },
+          };
+    }),
+  };
 };
 
 /**
- * The nested half of {@link setProp}: write `value` at `keys` below the
+ * The nested half of {@link setProp}: override the leaf at `keys` below the
  * declared property `name`, in the live value, so its identity is kept.
  */
 const setNestedProp = (
@@ -401,30 +421,7 @@ const setNestedProp = (
 ): boolean => {
   const re = el as ReactiveElementLike;
   if (re.constructor.elementProperties?.has(name) !== true) return false;
-  let at: {value: unknown} | undefined;
-  try {
-    at = {value: (el as unknown as Record<string, unknown>)[name]};
-    for (const key of keys.slice(0, -1)) {
-      if (at === undefined) return false;
-      at = stepInto(at.value, key);
-    }
-  } catch {
-    return false;
-  }
-  if (at === undefined || !writeInto(at.value, keys[keys.length - 1]!, value)) {
-    return false;
-  }
-  // The reference is unchanged, so passing the old value would make Lit's
-  // `hasChanged` report no change. `undefined` schedules the render and
-  // lists `name` in `changedProperties`, its old value reading as undefined.
-  if (typeof re.requestUpdate === 'function') {
-    (re.requestUpdate as (n: string, old: unknown) => void).call(
-      el,
-      name,
-      undefined
-    );
-  }
-  return true;
+  return setLeafOverride(el, name, keys, value);
 };
 
 /**
@@ -471,14 +468,31 @@ export const setProp = (
     : setNestedProp(el, name, value, keys);
 };
 
-/** Every override in the page, for an `overrides` message. */
-export const collectOverrides = (): InspectorOverrides => ({
-  applied: overridesApplied(),
-  entries: listOverrides().map(({el, name, value, enabled}) => ({
-    id: idOf(el),
-    tagName: el.localName,
-    name,
-    value: serialize(value),
-    enabled,
-  })),
+const entryOf = (o: {
+  el: Element;
+  name: string;
+  keys?: ValueSegment[];
+  value: unknown;
+  enabled: boolean;
+}): InspectorOverrideEntry => ({
+  id: idOf(o.el),
+  tagName: o.el.localName,
+  name: o.name,
+  ...(o.keys !== undefined ? {keys: o.keys} : {}),
+  value: serialize(o.value),
+  enabled: o.enabled,
 });
+
+/**
+ * Every override in the page, for an `overrides` message, with the leaf
+ * overrides dropped since the last one.
+ */
+export const collectOverrides = (): InspectorOverrides => {
+  const entries = [...listOverrides(), ...listLeafOverrides()].map(entryOf);
+  const dropped = takeDropped().map(entryOf);
+  return {
+    applied: overridesApplied(),
+    entries,
+    ...(dropped.length > 0 ? {dropped} : {}),
+  };
+};

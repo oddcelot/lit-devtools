@@ -143,6 +143,8 @@ export interface InspectorOverrideEntry {
   id: number;
   tagName: string;
   name: string;
+  /** The path to a leaf inside the property's value; absent for the property. */
+  keys?: ValueSegment[];
   /** Serialized preview of the override value. */
   value: string;
   enabled: boolean;
@@ -152,6 +154,11 @@ export interface InspectorOverrideEntry {
 export interface InspectorOverrides {
   applied: boolean;
   entries: InspectorOverrideEntry[];
+  /**
+   * Leaf overrides dropped since the last message because the app replaced
+   * the object holding them. Each is reported once.
+   */
+  dropped?: InspectorOverrideEntry[];
 }
 
 /**
@@ -232,6 +239,8 @@ export interface ValueChild {
    * that cannot be written (a `Set` member), and from an older runtime.
    */
   editable?: 'string' | 'number' | 'boolean';
+  /** The panel's override on this leaf, when it has one. */
+  override?: InspectorPropOverride;
 }
 
 /** An element named in an anatomy entry; `id` is set when the tree lists it. */
@@ -469,8 +478,8 @@ export type InspectorCommand =
    * Set a string, number or boolean on the reactive property `name` on
    * element `id`, then answer with fresh details. Applied only to a declared
    * property of that primitive type; anything else leaves the value as it was.
-   * The property itself takes the value as an override (see
-   * {@link InspectorPropOverride}), switched on. With `keys`, the primitive is written into the live object, array or
+   * It is kept as an override (see {@link InspectorPropOverride}), switched
+   * on. With `keys`, the primitive is written into the live object, array or
    * `Map` the property holds, at the end of that path: the steps from the
    * property's value down to the leaf, numbered as `expand` paths number
    * them. Absent or empty means the property itself.
@@ -486,14 +495,22 @@ export type InspectorCommand =
   | {type: 'overrides'}
   /**
    * Switch the override on `name` of element `id` on or off, keeping it, then
-   * answer with fresh details and the overrides.
+   * answer with fresh details and the overrides. With `keys`, the override
+   * on that leaf inside the property's value, and the level holding it is
+   * answered too.
    */
-  | {type: 'override-toggle'; id: number; name: string; enabled: boolean}
+  | {
+      type: 'override-toggle';
+      id: number;
+      name: string;
+      keys?: ValueSegment[];
+      enabled: boolean;
+    }
   /**
    * Drop the override on `name` of element `id`, giving it back its
    * intrinsic value, then answer as `override-toggle` does.
    */
-  | {type: 'override-remove'; id: number; name: string}
+  | {type: 'override-remove'; id: number; name: string; keys?: ValueSegment[]}
   /**
    * Apply every override, or suspend them all without losing them, then
    * answer with the overrides.
