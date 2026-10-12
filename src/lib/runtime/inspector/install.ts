@@ -592,6 +592,10 @@ if (typeof window !== 'undefined') {
     restoreQueued = true;
     queueMicrotask(() => {
       restoreQueued = false;
+      // Naming the restored elements mints their ids; walk the tree first
+      // so ids still come in tree order, as the panel's selection expects
+      // the same id for the same element after a reload.
+      build();
       replyOverrides();
     });
   });
