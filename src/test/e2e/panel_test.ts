@@ -253,6 +253,41 @@ test('a reloaded panel lists the events recorded before it reloaded', async () =
   expect(panel.errors).toEqual([]);
 });
 
+test('new events follow the list only when it is scrolled to the end', async () => {
+  const {page} = panel;
+  const increment = fixture.page.locator('hmr-counter #increment');
+  const scroller = page.locator('timeline-event-list .scroll');
+  const height = () => scroller.evaluate((el) => el.scrollHeight);
+  const fromEnd = () =>
+    scroller.evaluate((el) => el.scrollHeight - el.scrollTop - el.clientHeight);
+  for (let i = 0; i < 20; i++) {
+    await increment.click();
+  }
+  await expect
+    .poll(() => scroller.evaluate((el) => el.scrollHeight - el.clientHeight))
+    .toBeGreaterThan(500);
+
+  // Scrolled up to read: new events leave the reader where they are.
+  await scroller.evaluate((el) => {
+    el.scrollTop = 0;
+  });
+  let grown = await height();
+  await increment.click();
+  await expect.poll(height).toBeGreaterThan(grown);
+  expect(await scroller.evaluate((el) => el.scrollTop)).toBe(0);
+
+  // At the end: the list keeps up with them.
+  await scroller.evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+  });
+  await expect.poll(fromEnd).toBeLessThan(2);
+  grown = await height();
+  await increment.click();
+  await expect.poll(height).toBeGreaterThan(grown);
+  await expect.poll(fromEnd).toBeLessThan(2);
+  expect(panel.errors).toEqual([]);
+});
+
 test('the regex filter narrows the tracks as well as the list', async () => {
   const {page} = panel;
   const increment = fixture.page.locator('hmr-counter #increment');

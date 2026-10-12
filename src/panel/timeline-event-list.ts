@@ -29,6 +29,8 @@ import './timeline-span-detail.js';
 
 /** How long {@link TimelineEventList.reveal} waits for the virtualizer. */
 const REVEAL_TIMEOUT_MS = 5000;
+/** How close to the bottom still counts as following the newest events. */
+const FOLLOW_SLACK_PX = 24;
 
 /** Lit updates are routinely sub-millisecond, so one decimal is not enough. */
 const formatMs = (ms: number): string =>
@@ -336,6 +338,12 @@ export class TimelineEventList extends LitElement {
   @state() private _hoverChain: number | null = null;
 
   private readonly _scrollRef = createRef<HTMLDivElement>();
+  /** Whether new events keep the list on its newest row. Scrolling up turns
+   *  it off and scrolling back to the end turns it on: new events never pull
+   *  a reader away from the rows they are reading. */
+  private _following = true;
+  /** `scrollTop` at the last scroll event, to tell scrolling up from down. */
+  private _lastScrollTop = 0;
   /** Rows for the current mode, recomputed only when the events,
    *  spans or Raw mode change — deriving in `render()` would re-pair the whole buffer
    *  on every keystroke in the regex box. */
@@ -357,6 +365,12 @@ export class TimelineEventList extends LitElement {
   private _rowsExpanded: ReadonlySet<string> = this._expanded;
 
   override willUpdate(changed: Map<string, unknown>) {
+    if (changed.has('events')) {
+      // An empty list has nothing to read; the next rows start at the end.
+      if (this.events.length === 0) this._following = true;
+      // The scroll event can still be on its way when new events arrive.
+      else if (this._scrollRef.value) this._trackScroll(this._scrollRef.value);
+    }
     if (changed.has('events') || changed.has('spans') || changed.has('_raw')) {
       // A selection that is not among these rows (a span key in Raw mode, or
       // one that fell out of the buffer) just shows as unselected here;
@@ -448,10 +462,46 @@ export class TimelineEventList extends LitElement {
   }
 
   override updated(changed: Map<string, unknown>) {
-    if (changed.has('events')) {
-      const el = this._scrollRef.value;
-      if (el) el.scrollTop = el.scrollHeight;
-    }
+    if (changed.has('events') && this._following) this._followEnd();
+  }
+
+  /**
+   * Scrolls to the newest row, and again once the virtualizer has laid out
+   * the new rows: it sizes the list only then, so the first scroll alone
+   * lands short of the end.
+   */
+  private _followEnd() {
+    const el = this._scrollRef.value as
+      | (HTMLDivElement & VirtualizerHostElement)
+      | undefined;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+    const pinned = el.scrollTop;
+    el[virtualizerRef]?.layoutComplete.then(
+      () => {
+        // Unless something else scrolled meanwhile, such as `reveal` taking
+        // the reader to a linked row.
+        if (this._following && el.scrollTop === pinned) {
+          el.scrollTop = el.scrollHeight;
+        }
+      },
+      // Rejected when the list goes away first (Clear): nothing to scroll.
+      () => {}
+    );
+  }
+
+  private _onScroll = (e: Event) => {
+    this._trackScroll(e.currentTarget as HTMLElement);
+  };
+
+  private _trackScroll(el: HTMLElement) {
+    const atEnd =
+      el.scrollHeight - el.scrollTop - el.clientHeight < FOLLOW_SLACK_PX;
+    // Only a scroll up lets go: the virtualizer's own corrections while it
+    // lays out new rows can land short of the end on the way down.
+    if (atEnd) this._following = true;
+    else if (el.scrollTop < this._lastScrollTop) this._following = false;
+    this._lastScrollTop = el.scrollTop;
   }
 
   private _select(key: string | null) {
@@ -623,6 +673,7 @@ export class TimelineEventList extends LitElement {
               <div
                 class="scroll"
                 ${ref(this._scrollRef)}
+                @scroll=${this._onScroll}
                 @mouseleave=${() => {
                   this._hoverChain = null;
                 }}
