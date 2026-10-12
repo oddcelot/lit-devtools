@@ -21,9 +21,16 @@ import {
 import {collectAnatomy} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
 import {serialize, typeTag} from './serialize.js';
+import {
+  listOverrides,
+  overrideOf,
+  overridesApplied,
+  setOverride,
+} from './prop-overrides.js';
 import type {
   ElementSource,
   InspectorDetails,
+  InspectorOverrides,
   InspectorProp,
   InspectorPropOption,
   InspectorTreeNode,
@@ -260,6 +267,7 @@ const propOf = (
   }
   const options = optionsOf((el as ReactiveElementLike).constructor, decl);
   const editable = threw ? undefined : editableOf(value, decl);
+  const override = typeof key === 'string' ? overrideOf(el, key) : undefined;
   return {
     name: typeof key === 'symbol' ? key.toString() : String(key),
     value: threw ? '[getter threw]' : serialize(value),
@@ -270,6 +278,15 @@ const propOf = (
     ...(options.length > 0 ? {options} : {}),
     ...(!threw && isExpandable(value) ? {expandable: true} : {}),
     ...(editable !== undefined ? {editable} : {}),
+    ...(override !== undefined
+      ? {
+          override: {
+            value: serialize(override.value),
+            enabled: override.enabled,
+            intrinsic: serialize(override.intrinsic),
+          },
+        }
+      : {}),
   };
 };
 
@@ -410,7 +427,10 @@ const setNestedProp = (
   return true;
 };
 
-/** The top-level half of {@link setProp}: assign the property itself. */
+/**
+ * The top-level half of {@link setProp}: override the property itself, so
+ * the app's own writes keep landing underneath (see `prop-overrides.ts`).
+ */
 const setOwnProp = (
   el: Element,
   name: string,
@@ -419,31 +439,22 @@ const setOwnProp = (
   const re = el as ReactiveElementLike;
   const decl = re.constructor.elementProperties?.get(name);
   if (decl === undefined) return false;
-  const target = el as unknown as Record<string, unknown>;
   try {
-    const old = target[name];
-    const kind = editableOf(old, decl);
+    const kind = editableOf(
+      (el as unknown as Record<string, unknown>)[name],
+      decl
+    );
     if (kind === undefined || typeof value !== kind) return false;
-    if (typeof value === 'number' && !Number.isFinite(value)) return false;
-    target[name] = value;
-    // A `noAccessor` property, or one with a custom `hasChanged`, would not
-    // schedule the render the assignment is for.
-    if (typeof re.requestUpdate === 'function') {
-      (re.requestUpdate as (name: string, old: unknown) => void).call(
-        el,
-        name,
-        old
-      );
-    }
-    return true;
   } catch {
     return false;
   }
+  if (typeof value === 'number' && !Number.isFinite(value)) return false;
+  return setOverride(el, name, value);
 };
 
 /**
- * Answer a `set-prop` command: assign `value` to the declared reactive
- * property `name` on `el`. Only a declared property whose current value is a
+ * Answer a `set-prop` command: set `value` on the declared reactive
+ * property `name` on `el`, as an override. Only a declared property whose current value is a
  * primitive of the same type is written, so a command cannot set arbitrary
  * fields or change a property's type. With `keys`, the leaf at that path
  * inside the property's live value is written instead. Returns whether it
@@ -459,3 +470,15 @@ export const setProp = (
     ? setOwnProp(el, name, value)
     : setNestedProp(el, name, value, keys);
 };
+
+/** Every override in the page, for an `overrides` message. */
+export const collectOverrides = (): InspectorOverrides => ({
+  applied: overridesApplied(),
+  entries: listOverrides().map(({el, name, value, enabled}) => ({
+    id: idOf(el),
+    tagName: el.localName,
+    name,
+    value: serialize(value),
+    enabled,
+  })),
+});

@@ -119,6 +119,39 @@ export interface InspectorProp {
    * value cannot be edited from its preview, and from an older runtime.
    */
   editable?: 'string' | 'number' | 'boolean';
+  /**
+   * The panel's override on this property, when it has one. `value` above is
+   * whichever of the two is in effect: the override while it is on and
+   * overrides apply, else the element's intrinsic value.
+   */
+  override?: InspectorPropOverride;
+}
+
+/**
+ * A value the panel set on a property, layered over the element's intrinsic
+ * one (what the element and the app last set). Both are serialized previews.
+ */
+export interface InspectorPropOverride {
+  value: string;
+  /** This override's own switch; the global one is {@link InspectorOverrides}. */
+  enabled: boolean;
+  intrinsic: string;
+}
+
+/** One override in the page, for the panel's list of them. */
+export interface InspectorOverrideEntry {
+  id: number;
+  tagName: string;
+  name: string;
+  /** Serialized preview of the override value. */
+  value: string;
+  enabled: boolean;
+}
+
+/** Every override in the page, and whether they apply at all. */
+export interface InspectorOverrides {
+  applied: boolean;
+  entries: InspectorOverrideEntry[];
 }
 
 /**
@@ -400,7 +433,12 @@ export type InspectorMessage =
       path: ValuePath;
       children: ValueChild[] | null;
       more?: number;
-    };
+    }
+  /**
+   * The page's overrides, answering an `overrides` command and sent again
+   * whenever one is set, toggled or removed.
+   */
+  | ({type: 'overrides'} & InspectorOverrides);
 
 /** Panel → app runtime commands, POSTed to {@link INSPECT_PATH}. */
 export type InspectorCommand =
@@ -428,10 +466,11 @@ export type InspectorCommand =
   /** List the children of the value at `path` on element `id`. */
   | {type: 'expand'; id: number; path: ValuePath}
   /**
-   * Assign a string, number or boolean to the reactive property `name` on
+   * Set a string, number or boolean on the reactive property `name` on
    * element `id`, then answer with fresh details. Applied only to a declared
    * property of that primitive type; anything else leaves the value as it was.
-   * With `keys`, the primitive is written into the live object, array or
+   * The property itself takes the value as an override (see
+   * {@link InspectorPropOverride}), switched on. With `keys`, the primitive is written into the live object, array or
    * `Map` the property holds, at the end of that path: the steps from the
    * property's value down to the leaf, numbered as `expand` paths number
    * them. Absent or empty means the property itself.
@@ -443,6 +482,25 @@ export type InspectorCommand =
       value: string | number | boolean;
       keys?: ValueSegment[];
     }
+  /** Ask for the page's overrides, answered with an `overrides` message. */
+  | {type: 'overrides'}
+  /**
+   * Switch the override on `name` of element `id` on or off, keeping it, then
+   * answer with fresh details and the overrides.
+   */
+  | {type: 'override-toggle'; id: number; name: string; enabled: boolean}
+  /**
+   * Drop the override on `name` of element `id`, giving it back its
+   * intrinsic value, then answer as `override-toggle` does.
+   */
+  | {type: 'override-remove'; id: number; name: string}
+  /**
+   * Apply every override, or suspend them all without losing them, then
+   * answer with the overrides.
+   */
+  | {type: 'overrides-apply'; applied: boolean}
+  /** Drop every override in the page, then answer with the overrides. */
+  | {type: 'overrides-clear'}
   /**
    * Draw element `id`'s slots and parts on the page; `null` clears it. With
    * `only`, draw just that slot or part region (labelled, in the focused

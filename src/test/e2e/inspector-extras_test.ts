@@ -164,6 +164,41 @@ test('set-prop writes a primitive to the live element and answers with it', asyn
   ).toBe(9);
 });
 
+test('an override holds against app writes until it is switched off', async () => {
+  await expect
+    .poll(() => find(roots, 'hmr-properties'), {timeout: 10_000})
+    .toBeDefined();
+  const id = find(roots, 'hmr-properties')!;
+  const el = `document.querySelector('hmr-properties')`;
+  const shown = () =>
+    fixture.page.evaluate(
+      `${el}.shadowRoot.querySelector('#factor').textContent`
+    );
+  const send = (cmd: Record<string, unknown>) =>
+    fixture.server.hot.send(INSPECT_CMD_CHANNEL, cmd);
+
+  send({type: 'set-prop', id, name: 'factor', value: 7});
+  await expect.poll(shown, {timeout: 10_000}).toBe('factor: 7');
+  // The app's own write lands underneath.
+  await fixture.page.evaluate(`${el}.factor = 4`);
+  await fixture.page.evaluate(`${el}.updateComplete`);
+  expect(await shown()).toBe('factor: 7');
+
+  send({type: 'override-toggle', id, name: 'factor', enabled: false});
+  await expect.poll(shown, {timeout: 10_000}).toBe('factor: 4');
+  send({type: 'override-toggle', id, name: 'factor', enabled: true});
+  await expect.poll(shown, {timeout: 10_000}).toBe('factor: 7');
+
+  send({type: 'override-remove', id, name: 'factor'});
+  await expect.poll(shown, {timeout: 10_000}).toBe('factor: 4');
+  expect(await fixture.page.evaluate(`Object.hasOwn(${el}, 'factor')`)).toBe(
+    false
+  );
+  // Lit's own accessor renders app writes again.
+  await fixture.page.evaluate(`${el}.factor = 5`);
+  await expect.poll(shown, {timeout: 10_000}).toBe('factor: 5');
+});
+
 test('a keyed set-prop writes a leaf of a live object and re-renders', async () => {
   await expect
     .poll(() => find(roots, 'hmr-properties'), {timeout: 10_000})
