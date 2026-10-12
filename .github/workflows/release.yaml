@@ -286,9 +286,11 @@ jobs:
             --artifacts-dir "$RUNNER_TEMP/web-ext-artifacts"
 
   # Attaches the release's video to the GitHub Release and uploads it to
-  # YouTube, for a release whose tag commits one: the render of its
-  # HyperFrames project, assets/release-<version>/renders/video.mp4. Releases
-  # without one skip every step. The `youtube` environment holds the OAuth
+  # YouTube: the render of its HyperFrames project,
+  # assets/release-<version>/renders/video.mp4. The job looks for it in the
+  # tag, then on the ref the workflow runs from, since a release video is
+  # usually made after the release: commit it to main and run the job by
+  # hand. Releases without one skip every step. The `youtube` environment holds the OAuth
   # client (YOUTUBE_CLIENT_ID, YOUTUBE_CLIENT_SECRET) and the channel owner's
   # refresh token (YOUTUBE_REFRESH_TOKEN, made once with
   # scripts/youtube-auth.mjs); without them the video is only attached. Put
@@ -322,7 +324,9 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: .release-tools
-          sparse-checkout: scripts/youtube-publish.mjs
+          sparse-checkout: |
+            scripts/youtube-publish.mjs
+            assets/release-*/renders/video.mp4
           sparse-checkout-cone-mode: false
           persist-credentials: false
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -334,14 +338,18 @@ jobs:
           file="assets/release-${TAG#v}/renders/video.mp4"
           if [ -f "$file" ]; then
             echo "file=$file" >> "$GITHUB_OUTPUT"
+          elif [ -f ".release-tools/$file" ]; then
+            echo "file=.release-tools/$file" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::No $file in $TAG; nothing to publish."
+            echo "::notice::No $file in $TAG or on $GITHUB_REF_NAME; nothing to publish."
           fi
       - name: Attach it to the release
         if: steps.video.outputs.file
+        env:
+          VIDEO: ${{ steps.video.outputs.file }}
         run: |
           asset="$RUNNER_TEMP/vite-plugin-lit-${TAG#v}.mp4"
-          cp "${{ steps.video.outputs.file }}" "$asset"
+          cp "$VIDEO" "$asset"
           gh release upload "$TAG" "$asset" --clobber
       - id: youtube
         name: Upload to YouTube
@@ -350,6 +358,7 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          VIDEO: ${{ steps.video.outputs.file }}
         run: |
           if [ -z "$YOUTUBE_REFRESH_TOKEN" ]; then
             echo "::notice::The youtube environment has no credentials; skipping the upload."
@@ -359,7 +368,8 @@ jobs:
             echo "::notice::The $TAG notes already link a YouTube video; not uploading again."
             exit 0
           fi
-          node .release-tools/scripts/youtube-publish.mjs "$TAG"
+          node .release-tools/scripts/youtube-publish.mjs "$TAG" \
+            --video "$VIDEO"
       - name: Link it from the release notes
         if: steps.youtube.outputs.video_id
         env:

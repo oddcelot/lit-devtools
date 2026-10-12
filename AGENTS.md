@@ -70,8 +70,10 @@ publishing, and creates the GitHub Release from the changelog section. Don't
 `pnpm publish` by hand.
 
 A release can carry a video: commit the render of its HyperFrames project as
-`assets/release-<version>/renders/video.mp4` before tagging. The release
-workflow's `youtube` job attaches it to the GitHub Release and uploads it to
+`assets/release-<version>/renders/video.mp4`. Committed before the tag, the
+release picks it up; committed after, run
+`gh workflow run release.yaml -f tag=v<version> -f target=youtube`. The
+release workflow's `youtube` job attaches it to the GitHub Release and uploads it to
 YouTube with the changelog section as its description, then links it from the
 release notes (credentials and the one-time setup: `scripts/youtube-auth.mjs`).
 In `CHANGELOG.md` the video is a poster linking to the release asset, because
