@@ -206,22 +206,7 @@ export class ComponentsSession {
   receive(message: InspectorMessage): void {
     switch (message.type) {
       case 'ready':
-        this.#runtime = {
-          ready: true,
-          litPackages: message.litPackages ?? {},
-          topFrame: message.topFrame ?? true,
-          chromeTracks: message.chromeTracks ?? true,
-        };
-        // The runtime (re)connected with no memory of this panel: refresh
-        // the tree and re-arm the selection's watch. It may also have dropped
-        // Live (it releases the observer when the panel disconnects, and a
-        // reload restarts it with none); `live` is what the user asked for.
-        this.#send({type: 'tree'});
-        this.#send({type: 'overrides'});
-        if (this.#selectedId !== null) {
-          this.#send({type: 'watch', id: this.#selectedId});
-        }
-        if (this.#live) this.#send({type: 'observe', enabled: true});
+        this.#receiveReady(message);
         break;
       case 'tree':
         this.#roots = message.roots;
@@ -231,10 +216,7 @@ export class ComponentsSession {
         if (this.#selectedId !== null) this.#reveal(this.#selectedId);
         break;
       case 'details':
-        if (message.details.id !== this.#selectedId) return;
-        this.#details = message.details;
-        this.#gone = false;
-        if (message.details.key !== undefined) this.#key = message.details.key;
+        if (!this.#receiveDetails(message.details)) return;
         break;
       case 'located':
         if (!this.#located(message.key, message.id)) return;
@@ -429,6 +411,36 @@ export class ComponentsSession {
   clearOverrides(): void {
     this.#send({type: 'overrides-clear'});
     this.#refreshDetails();
+  }
+
+  /**
+   * The runtime (re)connected with no memory of this panel: refresh the tree
+   * and re-arm the selection's watch. It may also have dropped Live (it
+   * releases the observer when the panel disconnects, and a reload restarts
+   * it with none); `live` is what the user asked for.
+   */
+  #receiveReady(message: Extract<InspectorMessage, {type: 'ready'}>): void {
+    this.#runtime = {
+      ready: true,
+      litPackages: message.litPackages ?? {},
+      topFrame: message.topFrame ?? true,
+      chromeTracks: message.chromeTracks ?? true,
+    };
+    this.#send({type: 'tree'});
+    this.#send({type: 'overrides'});
+    if (this.#selectedId !== null) {
+      this.#send({type: 'watch', id: this.#selectedId});
+    }
+    if (this.#live) this.#send({type: 'observe', enabled: true});
+  }
+
+  /** The selection's details; false for another element's. */
+  #receiveDetails(details: InspectorDetails): boolean {
+    if (details.id !== this.#selectedId) return false;
+    this.#details = details;
+    this.#gone = false;
+    if (details.key !== undefined) this.#key = details.key;
+    return true;
   }
 
   #receiveOverrides(message: InspectorOverrides): void {
