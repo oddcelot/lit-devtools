@@ -1,0 +1,136 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Manrope", sans-serif;
+      color: #e3e3e3;
+    }
+    [class~="f08-fixes-layer"] { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    [class~="f08-fixes-ground"] { background: #030308; }
+    [class~="f08-fixes-glow"] {
+      position: absolute; left: 344px; top: -570px; width: 2000px; height: 2000px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(42,44,157,0.35) 0%, rgba(42,44,157,0.14) 40%, rgba(42,44,157,0) 70%);
+    }
+    [class~="f08-fixes-eyebrow"] {
+      position: absolute; left: 115px; top: 230px;
+      font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: #34e0a1;
+    }
+    [class~="f08-fixes-hl"] {
+      position: absolute; left: 115px; top: 273px; width: 576px;
+      font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    [class~="f08-fixes-hl"] em { font-style: normal; color: #00e8ff; }
+    [class~="f08-fixes-panel"] {
+      position: absolute; left: 806px; top: 134px; width: 998px; height: 806px;
+      box-sizing: border-box;
+      background: #121212; border: 1px solid #363636; border-radius: 15px;
+      box-shadow: 0 38px 96px rgba(0,0,0,0.65);
+    }
+    [class~="f08-fixes-row"] {
+      position: absolute; left: 64px; right: 64px; height: 96px;
+      display: flex; align-items: center; gap: 26px;
+      font-weight: 600; font-size: 30px; color: #e3e3e3; white-space: nowrap;
+      opacity: 0;
+    }
+    [class~="f08-fixes-rule"] {
+      position: absolute; left: 64px; right: 64px; height: 1px; background: rgba(54,54,54,0.7);
+    }
+    [class~="f08-fixes-badge"] {
+      position: relative; flex: 0 0 auto; width: 46px; height: 46px; border-radius: 50%;
+      background: rgba(52,224,161,0.12);
+      box-shadow: inset 0 0 0 1px rgba(52,224,161,0.35);
+    }
+    [class~="f08-fixes-badge"] svg { position: absolute; left: 7px; top: 7px; width: 32px; height: 32px; overflow: visible; }
+    [class~="f08-fixes-badge"] path {
+      fill: none; stroke: #34e0a1; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+    }
+  </style>
+
+  <div data-hf-id="hf-4fqp" id="root" data-composition-id="08-fixes" data-width="1920" data-height="1080" data-duration="3.904">
+    <div data-hf-id="hf-7m0q" id="f08-fixes-bg" class="clip f08-fixes-layer f08-fixes-ground" data-start="0" data-duration="3.904" data-track-index="0">
+      <div data-hf-id="hf-g86i" class="f08-fixes-glow"></div>
+    </div>
+
+    <div data-hf-id="hf-g8i4" id="f08-fixes-stage" class="clip f08-fixes-layer" data-start="0" data-duration="3.904" data-track-index="1">
+      <div data-hf-id="hf-0ay4" id="f08-fixes-eyebrow" class="f08-fixes-eyebrow">Fixed</div>
+      <div data-hf-id="hf-ggcn" id="f08-fixes-hl" class="f08-fixes-hl">Six fixes, <em data-hf-id="hf-of3r">small and sharp.</em></div>
+
+      <div data-hf-id="hf-o5yw" id="f08-fixes-panel" class="f08-fixes-panel">
+        <div data-hf-id="hf-dkxo" class="f08-fixes-rule" style="top: 211px"></div>
+        <div data-hf-id="hf-je0c" class="f08-fixes-rule" style="top: 307px"></div>
+        <div data-hf-id="hf-dffb" class="f08-fixes-rule" style="top: 403px"></div>
+        <div data-hf-id="hf-n3zy" class="f08-fixes-rule" style="top: 499px"></div>
+        <div data-hf-id="hf-nzan" class="f08-fixes-rule" style="top: 595px"></div>
+
+        <div data-hf-id="hf-s7e7" class="f08-fixes-row" style="top: 115px"><span data-hf-id="hf-c0j9" class="f08-fixes-badge"><svg data-hf-id="hf-161r" viewBox="0 0 32 32"><path data-hf-id="hf-c3vq" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-5tuk">Custom timeline events line up with Lit's</span></div>
+        <div data-hf-id="hf-513s" class="f08-fixes-row" style="top: 211px"><span data-hf-id="hf-akfd" class="f08-fixes-badge"><svg data-hf-id="hf-o57j" viewBox="0 0 32 32"><path data-hf-id="hf-5e0a" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-ptiv">The selection survives a reload</span></div>
+        <div data-hf-id="hf-up74" class="f08-fixes-row" style="top: 307px"><span data-hf-id="hf-brcg" class="f08-fixes-badge"><svg data-hf-id="hf-joxe" viewBox="0 0 32 32"><path data-hf-id="hf-5sbb" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-82zl">Collapsed Timeline rows say what changed</span></div>
+        <div data-hf-id="hf-wrwb" class="f08-fixes-row" style="top: 403px"><span data-hf-id="hf-bd1f" class="f08-fixes-badge"><svg data-hf-id="hf-jamd" viewBox="0 0 32 32"><path data-hf-id="hf-66mc" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-jxmu">Details sections fold again</span></div>
+        <div data-hf-id="hf-ojqq" class="f08-fixes-row" style="top: 499px"><span data-hf-id="hf-9dia" class="f08-fixes-badge"><svg data-hf-id="hf-q4qo" viewBox="0 0 32 32"><path data-hf-id="hf-6kxd" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-zxfl">Source paths wrap between folders</span></div>
+        <div data-hf-id="hf-xrq3" class="f08-fixes-row" style="top: 595px"><span data-hf-id="hf-8z79" class="f08-fixes-badge"><svg data-hf-id="hf-pqfn" viewBox="0 0 32 32"><path data-hf-id="hf-6z8e" d="M7 16.5 L13.5 23 L25.5 9.5" /></svg></span><span data-hf-id="hf-kn1q">Tooltips follow the keyboard</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var ID = "08-fixes";
+      var DUR = 3.818;
+      var root = document.querySelector('[data-composition-id="' + ID + '"]');
+      var eyebrow = document.getElementById("f08-fixes-eyebrow");
+      var hl = document.getElementById("f08-fixes-hl");
+      var panel = document.getElementById("f08-fixes-panel");
+      var rows = root.querySelectorAll('[class~="f08-fixes-row"]');
+      var rules = root.querySelectorAll('[class~="f08-fixes-rule"]');
+      var ticks = root.querySelectorAll('[class~="f08-fixes-badge"] path');
+
+      // svg-path-draw setup: measured length, dash fully offset
+      Array.prototype.forEach.call(ticks, function (p) {
+        var len = p.getTotalLength() * 1.05;
+        p.style.strokeDasharray = len + "px";
+        p.style.strokeDashoffset = len + "px";
+      });
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0–0.55): headline column set, panel fades up
+      tl.fromTo(eyebrow, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.28, ease: "power3.out" }, 0);
+      tl.fromTo(hl, { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.34, ease: "power3.out" }, 0.04);
+      tl.fromTo(panel, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 0.02);
+      tl.fromTo(rules, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.2);
+      // slow push-in under the whole shot (blueprint hold)
+      tl.fromTo(panel, { scale: 1 }, { scale: 1.012, duration: DUR, ease: "none", immediateRender: false }, 0);
+
+      // Scene 2 (0.55–3.27): one row per beat, binary waterfall arrival, tick draws on the beat
+      var BEAT = 0.5454;
+      for (var i = 0; i < rows.length; i++) {
+        var beat = 0.55 + i * BEAT;
+        var t = beat - 0.1;
+        tl.set(rows[i], { opacity: 1, y: 48 }, t);
+        tl.to(rows[i], { y: 0, duration: 0.16, ease: "power4.out" }, t);
+        tl.to(ticks[i], { strokeDashoffset: 0, duration: 0.26, ease: "power2.out" }, beat - 0.02);
+      }
+
+      // Scene 3 (3.27–3.818): held read; pin timeline length to the frame duration
+      tl.set({}, {}, DUR);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines[ID] = tlOuter;
+    })();
+  </script>
+</template>

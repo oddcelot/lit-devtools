@@ -1,0 +1,74 @@
+## 0.17.0 — 2026-10-12
+
+The Components tab now explains a component and lets you change it. Its details
+pane shows the documentation from your JSDoc or a Custom Elements Manifest, in
+the panel, in Lit Inspector and to agents. Primitive props, also inside
+objects, arrays and Maps, can be edited in place, held as overrides against the
+app's own writes, and pinned to survive a reload. Anatomy labels sit beside the
+component with leader lines, and a CSS example shows each way of styling a
+shadow root. Nothing needs action to upgrade.
+
+### Added
+
+- **The Components tab shows a component's documentation.** The details pane
+  adds the selected element's description, `@example`s, the events it fires,
+  the CSS custom properties it reads and what each property is for, rendered as
+  formatted text with long descriptions folded behind "more". During dev it
+  reads your components' JSDoc straight from source; otherwise it uses a Custom
+  Elements Manifest, from your project or a library such as Web Awesome.
+  Hovering a documented slot or part in the Anatomy rows says what it is for,
+  and the icon in the About heading tells where the docs came from.
+- **Edit a component's props from the details pane.** A string, number or
+  boolean gets an edit button, also inside an expanded object, array or Map;
+  double-click a value to edit it, or a boolean to flip it. The value goes to
+  the live element and lasts until the page reloads.
+- **Overrides you can switch off, undo and pin.** An edited value holds against
+  the app's own writes, with a checkbox to switch it off and see the app's
+  latest value and a button to remove it; a bar lists every override on the
+  page and switches off or clears them all. Pin one and it comes back after a
+  reload from the component's first render, kept per tab and page path. In the
+  browser extension pins live in the extension's storage, never the site's, and
+  are cleared when the browser closes.
+- **Lit Inspector shows component documentation.** On a page that links its
+  Custom Elements Manifests with `<link rel="custom-elements-manifest">`, the
+  Lit tab shows each component's docs. With DevTools on, pages from the dev
+  server link the manifests your project and its dependencies ship, so this
+  works there too.
+- **Agents can read a component's documentation.** The new `lit_component-docs`
+  MCP tool returns a tag's description, examples, events, slots, CSS parts and
+  custom properties, from source or a Custom Elements Manifest.
+- **Hover a slot or part to find it on the page.** Hovering a slot or CSS part
+  row in the details pane outlines that region on the page, even with the
+  Anatomy overlay off.
+- **A CSS example with real UnoCSS utilities.** One card per way of delivering
+  CSS to a shadow root (a shared `?css-sheet`, `?hmr-url`, `?inline` and a
+  `css` literal through Lightning CSS), each counting its renders so an edit
+  shows what restyles in place. UnoCSS reaches every component as one shared
+  sheet.
+
+### Changed
+
+- **Anatomy labels sit beside the component with lines to their regions.** The
+  overlay's labels no longer pile up or drift off on small elements: they line
+  up next to the component, never overlap, and a line leads from each to its
+  slot or part. Repeated part names share one label.
+
+### Fixed
+
+- **Custom timeline events line up with Lit's.** `addTimelineEvent` takes a
+  `performance.now()` time, or none to stamp the event as it is added, and
+  places it on the recording's clock, so a router or store event no longer
+  lands long after the updates it caused.
+- **The selected component stays selected after a reload.** Reloading the page
+  no longer leaves the details pane showing some other component.
+- **Collapsed Timeline rows say what changed.** Each update's row in the list
+  names the reactive properties it changed again, as it did before rows were
+  grouped, without having to open it.
+- **Details sections fold again.** Clicking a section heading in the Components
+  tab hides its rows instead of only turning the caret.
+- **Source paths wrap between folders.** The defined and rendered links in the
+  details header no longer split a file name in the middle when the pane is
+  narrow.
+- **Tooltips follow the keyboard.** Tabbing between controls in the panel shows
+  each one's tooltip, not only the first one focused.
+

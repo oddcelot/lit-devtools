@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>vite-plugin-lit 0.17.0 — storyboard v1</title>
+<style>
+@font-face{font-family:Manrope;font-weight:500;src:url(assets/manrope-medium.woff2)}
+@font-face{font-family:Manrope;font-weight:600;src:url(assets/manrope-semibold.woff2)}
+@font-face{font-family:Manrope;font-weight:700;src:url(assets/manrope-bold.woff2)}
+@font-face{font-family:Manrope;font-weight:800;src:url(assets/manrope-extrabold.woff2)}
+@font-face{font-family:RM;src:url(assets/RobotoMono-Latin-400.woff2)}
+:root{--canvas:#030308;--surface:#121212;--high:#1c1c1c;--top:#292929;--border:#363636;--text:#e3e3e3;--strong:#fff;--muted:#a1a1a1;--dim:#616161;--accent:#4d63ff;--deep:#324fff;--indigo:#2a2c9d;--cyan:#00e8ff;--ok:#34e0a1;--err:#ff6b6b;--kw:#c792ea;--str:#c3e88d;--num:#f78c6c;--tag:#89ddff;--prop:#b2ccd6}
+*{box-sizing:border-box;margin:0}
+body{background:#08080c;color:var(--text);font-family:Manrope,system-ui,sans-serif;padding:48px 56px 80px}
+header.sheet{display:flex;align-items:baseline;gap:24px;margin-bottom:32px}
+header.sheet h1{font-weight:800;font-size:30px;letter-spacing:-.02em;color:var(--strong)}
+header.sheet p{color:var(--muted);font-size:15px;flex:1}
+.tag{font-family:RM;font-size:13px;color:var(--cyan);border:1px solid #00e8ff55;border-radius:99px;padding:4px 12px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px 28px}
+figure{display:flex;flex-direction:column;gap:10px}
+.cell{aspect-ratio:16/9;container-type:inline-size;position:relative;overflow:hidden;border-radius:6px;background:var(--canvas);
+ background-image:radial-gradient(circle at 70% 40%,#2a2c9d59,transparent 60%)}
+.cell *{position:absolute}
+.cell em,.cell code,.cell i,.cell b,.cell br,.hl span,.about span{position:static}
+.lbl{display:flex;justify-content:space-between;font-family:RM;font-size:12px;color:var(--muted)}
+.lbl b{color:var(--strong);font-family:Manrope;font-weight:700;font-size:13px}
+.note{font-size:13px;line-height:1.5;color:var(--muted)}.note b{color:var(--text)}
+.chip{align-self:flex-start;font-family:RM;font-size:11px;color:var(--accent);border:1px solid #4d63ff66;border-radius:4px;padding:2px 8px}
+/* stage atoms (cqw = 1/100 of 1920px frame) */
+.eyebrow{left:6cqw;top:12cqw;font-weight:700;font-size:.95cqw;letter-spacing:.14em;color:var(--accent);text-transform:uppercase}
+.eyebrow i{font-style:normal;color:var(--cyan)}
+.hl{left:6cqw;top:14.2cqw;width:30cqw;font-weight:800;font-size:3.6cqw;line-height:1.05;letter-spacing:-.03em;color:var(--strong)}
+.hl em{font-style:normal;color:var(--cyan)}
+.sub{left:6cqw;width:29cqw;font-size:1.25cqw;line-height:1.4;color:var(--muted)}
+.win{left:40cqw;top:4.5cqw;width:55cqw;height:47.5cqw;background:var(--surface);border-radius:.8cqw;border:1px solid var(--border);box-shadow:0 2cqw 5cqw #000a}
+.win .bar{left:0;top:0;right:0;height:2.9cqw;background:var(--high);border-bottom:1px solid var(--border);border-radius:.8cqw .8cqw 0 0}
+.win .brand{left:1.6cqw;top:.85cqw;font-weight:800;font-size:.95cqw;letter-spacing:.12em;color:var(--text)}
+.win .brand::before{content:"";position:absolute;left:-1.1cqw;top:.05cqw;width:.75cqw;height:1.1cqw;background:linear-gradient(var(--cyan),var(--accent));clip-path:polygon(50% 0,100% 60%,50% 100%,0 60%)}
+.tabs{left:13cqw;top:.9cqw;display:flex;gap:2cqw;font-weight:600;font-size:.9cqw;color:var(--muted)}
+.tabs span{position:static}.tabs .on{color:var(--accent);box-shadow:0 .55cqw 0 -.4cqw var(--accent)}
+.ver{right:1.4cqw;top:.7cqw;font-family:RM;font-size:.85cqw;color:var(--cyan);border:1px solid #00e8ff66;border-radius:99px;padding:.15cqw .8cqw}
+.tree{left:0;top:2.9cqw;width:15cqw;bottom:0;border-right:1px solid var(--border);font-family:RM;font-size:.9cqw;color:var(--muted);padding:1.2cqw}
+.tree div{position:static;line-height:2.1cqw;white-space:nowrap}
+.tree .sel{color:var(--strong);background:#4d63ff29;box-shadow:inset .2cqw 0 0 var(--accent);margin:0 -1.2cqw;padding-left:1.2cqw}
+.det{left:15cqw;right:0;top:2.9cqw;bottom:0;padding:1.4cqw 1.8cqw}
+.det>*{position:static}
+.dh{font-family:RM;font-size:1.2cqw;color:var(--tag);margin-bottom:.4cqw}
+.src{font-family:RM;font-size:.75cqw;color:var(--dim);margin-bottom:1.2cqw}
+.sec{font-weight:700;font-size:.8cqw;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin:1cqw 0 .5cqw;border-top:1px solid var(--border);padding-top:.8cqw}
+.row{display:flex;gap:1cqw;font-family:RM;font-size:.95cqw;line-height:1.9cqw;color:var(--prop)}
+.row span{position:static}.row .v{color:var(--str)}.row .n{color:var(--num)}.row .k{color:var(--kw)}
+.row .d{font-family:Manrope;color:var(--muted);font-size:.85cqw}
+.about{font-size:1cqw;line-height:1.5;color:var(--text);max-width:34cqw}
+.about code{font-family:RM;color:var(--tag);font-size:.9cqw}
+.focus{outline:.2cqw solid var(--cyan);outline-offset:.2cqw;border-radius:.3cqw}
+.page{background:#f6f3ec;border-radius:.6cqw;box-shadow:0 1.5cqw 3cqw #000c}
+.card{background:#fff;border-radius:.5cqw;border:1px solid #e3ded2;overflow:hidden}
+.card .m{left:0;top:0;right:0;height:55%;background:linear-gradient(135deg,#bcd3b8,#6f9a74)}
+.card .t{left:6%;top:60%;font-weight:700;font-size:1.05cqw;color:#1f2a1f}
+.card .p{right:6%;top:60%;font-family:RM;font-size:.95cqw;color:#1f2a1f}
+.card .c{left:6%;bottom:7%;width:40%;height:13%;border:.12cqw solid #2f6f4e;border-radius:.3cqw;color:#2f6f4e;font-weight:700;font-size:.75cqw;display:grid;place-items:center}
+.card .b{left:5%;top:5%;background:#2f6f4e;color:#fff;font-weight:700;font-size:.7cqw;padding:.15cqw .6cqw;border-radius:99px}
+.tip{background:var(--top);border:1px solid var(--border);border-radius:.4cqw;padding:.6cqw .9cqw;font-size:.85cqw;color:var(--text);box-shadow:0 1cqw 2cqw #000a;width:17cqw;line-height:1.4}
+.btn{display:inline-grid;place-items:center;width:1.5cqw;height:1.5cqw;border-radius:.3cqw;background:var(--top);color:var(--cyan);font-size:.8cqw;position:static}
+.input{position:static;border:1px solid var(--accent);border-radius:.25cqw;padding:0 .5cqw;background:#0a0a14;color:var(--str)}
+.cursor{width:1.3cqw;height:1.3cqw;background:var(--strong);clip-path:polygon(0 0,0 100%,30% 72%,52% 100%,64% 94%,44% 66%,85% 66%);filter:drop-shadow(0 0 .3cqw #000)}
+.ovr{display:flex;gap:.8cqw;align-items:center;background:#4d63ff1f;border:1px solid #4d63ff66;border-radius:.4cqw;padding:.5cqw .9cqw;font-size:.85cqw;color:var(--text)}
+.ovr>*{position:static}
+.box{border:1px solid var(--border);border-radius:.6cqw;background:var(--surface)}
+.mono{font-family:RM}
+</style>
+</head>
+<body>
+<header class="sheet">
+  <h1>vite-plugin-lit 0.17.0 · storyboard v1</h1>
+  <p>A changelog walk: the Components tab now explains a component and lets you change it. The DevTools window is the persistent stage; the headline column carries the copy.</p>
+  <span class="tag">1920×1080 · 46s · 9 beats · music: Groche Énergique</span>
+</header>
+
+<div class="grid">
+
+<!-- 01 -->
+<figure>
+<div class="cell" id="frame-01">
+  <div style="left:50cqw;top:15cqw;width:4.5cqw;height:6.5cqw;transform:translateX(-50%);background:linear-gradient(var(--cyan),var(--accent));clip-path:polygon(50% 0,100% 60%,50% 100%,0 60%)"></div>
+  <div style="left:0;right:0;top:24cqw;text-align:center;font-weight:800;font-size:4.4cqw;letter-spacing:-.03em;color:var(--strong)">vite-plugin-lit <span style="position:static;color:var(--cyan)">0.17.0</span></div>
+  <div style="left:0;right:0;top:32cqw;text-align:center;font-weight:700;font-size:2.4cqw;line-height:1.3;color:var(--text)">Your components explain themselves.<br><span style="position:static;color:var(--cyan)">And take edits.</span></div>
+</div>
+<div class="lbl"><b>01 · TITLE</b><span>0.0–4.5s</span></div>
+<p class="note"><b>Flame pops first,</b> name and version append to its right then centre; the two-line value claim rises in on the beat. Exits by the DevTools window sliding up into place.</p>
+<span class="chip">cut → stage builds</span>
+</figure>
+
+<!-- 02 -->
+<figure>
+<div class="cell" id="frame-02">
+  <div class="eyebrow">Added</div>
+  <div class="hl">Docs, right in the <em>details pane.</em></div>
+  <div class="sub" style="top:26cqw">From your JSDoc during dev, or a Custom Elements Manifest.</div>
+  <div class="win"><div class="bar"></div><div class="brand">LIT DEVTOOLS</div>
+    <div class="tabs"><span class="on">Components</span><span>Updates</span><span>Timeline</span><span>Settings</span></div><div class="ver">0.17.0</div>
+    <div class="tree"><div>fh-app</div><div>&nbsp;fh-header</div><div>&nbsp;fh-search</div><div class="sel">&nbsp;fh-product-card</div><div>&nbsp;fh-product-card</div><div>&nbsp;fh-cart-button</div><div>&nbsp;fh-toast</div></div>
+    <div class="det">
+      <div class="dh">&lt;fh-product-card&gt;</div><div class="src">src/components/product-card.ts:4</div>
+      <div class="sec">About</div>
+      <div class="about">A product tile in the shop grid. Fill the <code>media</code> slot with a photo and <code>price</code> with a sale price.</div>
+      <div class="sec">Properties</div>
+      <div class="row"><span>name</span><span class="v">"Monstera"</span></div>
+      <div class="row focus" style="display:inline-flex"><span>price</span><span class="n">24</span></div>
+      <div class="row"><span>badge</span><span class="v">"New"</span></div>
+      <div class="sec">Events</div>
+      <div class="row"><span class="k">add-to-cart</span><span class="d">Fired when the CTA is pressed.</span></div>
+      <div class="sec">CSS properties</div>
+      <div class="row"><span>--card-accent</span><span class="d">Border and CTA colour.</span></div>
+    </div>
+    <div class="tip" style="left:26cqw;top:25cqw">Price in euros. Shown unless the <span class="mono" style="position:static;color:var(--tag)">price</span> slot is filled.</div>
+  </div>
+</div>
+<div class="lbl"><b>02 · DOCS</b><span>4.5–11.5s</span></div>
+<p class="note"><b>The tree selects the card first,</b> then About unfolds top-down, Events and CSS properties follow, and the cursor hovers <span class="mono">price</span> to open its tooltip last.</p>
+<span class="chip">cut · stage persists</span>
+</figure>
+
+<!-- 03 -->
+<figure>
+<div class="cell" id="frame-03">
+  <div class="eyebrow">Added</div>
+  <div class="hl">Edit a prop. <em>Watch the page.</em></div>
+  <div class="sub" style="top:22cqw">Strings, numbers, booleans. Also inside objects, arrays and Maps.</div>
+  <div class="page" style="left:6cqw;top:30cqw;width:30cqw;height:20cqw">
+    <div class="card" style="left:8cqw;top:1.5cqw;width:14cqw;height:17cqw"><div class="m"></div><div class="b">Sale</div><div class="t">Fiddle Leaf</div><div class="p">€24</div><div class="c">Add to cart</div></div>
+  </div>
+  <div class="win"><div class="bar"></div><div class="brand">LIT DEVTOOLS</div>
+    <div class="tabs"><span class="on">Components</span><span>Updates</span><span>Timeline</span><span>Settings</span></div><div class="ver">0.17.0</div>
+    <div class="tree"><div>fh-app</div><div>&nbsp;fh-header</div><div class="sel">&nbsp;fh-product-card</div><div>&nbsp;fh-cart-button</div></div>
+    <div class="det">
+      <div class="dh">&lt;fh-product-card&gt;</div><div class="src">src/components/product-card.ts:4</div>
+      <div class="sec">Properties</div>
+      <div class="row"><span>name</span><span class="input">Fiddle Leaf|</span></div>
+      <div class="row"><span>price</span><span class="n">24</span><span class="btn">✎</span></div>
+      <div class="row"><span>badge</span><span class="v">"Sale"</span><span class="btn">✎</span></div>
+      <div class="row"><span>inStock</span><span class="k">true</span><span class="btn">⇄</span></div>
+      <div class="row"><span>▾ meta</span><span class="d">Object</span></div>
+      <div class="row" style="padding-left:1.5cqw"><span>light</span><span class="input">"bright"</span></div>
+    </div>
+    <div class="cursor" style="left:30cqw;top:20.5cqw"></div>
+  </div>
+</div>
+<div class="lbl"><b>03 · EDIT</b><span>11.5–17.5s</span></div>
+<p class="note"><b>A page card slides in under the headline,</b> then three edits land on the beat: <span class="mono">inStock</span> flips, <span class="mono">name</span> retypes (card title changes with it), a nested <span class="mono">meta.light</span> is double-click edited.</p>
+<span class="chip">cut · stage persists</span>
+</figure>
+
+<!-- 04 -->
+<figure>
+<div class="cell" id="frame-04">
+  <div class="eyebrow">Added</div>
+  <div class="hl">Overrides hold. <em>Pins survive a reload.</em></div>
+  <div class="sub" style="top:26cqw">Switch one off to see the app's value. In the browser extension too, kept in its own storage.</div>
+  <div class="win"><div class="bar"></div><div class="brand">LIT DEVTOOLS</div>
+    <div class="tabs"><span class="on">Components</span><span>Updates</span><span>Timeline</span><span>Settings</span></div><div class="ver">0.17.0</div>
+    <div class="tree"><div>fh-app</div><div class="sel">&nbsp;fh-product-card</div></div>
+    <div class="det">
+      <div class="ovr"><span>2 overrides on this page</span><span style="color:var(--muted)">Switch all off</span><span style="color:var(--muted)">Clear all</span></div>
+      <div class="dh" style="margin-top:1.2cqw">&lt;fh-product-card&gt;</div>
+      <div class="sec">Properties</div>
+      <div class="row"><span style="color:var(--cyan)">☑</span><span>price</span><span class="n">19</span><span class="d">app wrote 24 · held</span><span style="color:var(--cyan)">📌</span><span class="d">✕</span></div>
+      <div class="row"><span style="color:var(--cyan)">☑</span><span>name</span><span class="v">"Fiddle Leaf"</span><span style="color:var(--dim)">📌</span><span class="d">✕</span></div>
+      <div class="row"><span>badge</span><span class="v">"Sale"</span></div>
+    </div>
+    <div style="left:22cqw;top:33cqw;font-family:RM;font-size:1cqw;color:var(--ok);background:#34e0a11a;border:1px solid #34e0a155;border-radius:.4cqw;padding:.5cqw 1cqw">↻ page reloaded · price = 19 (pinned)</div>
+  </div>
+</div>
+<div class="lbl"><b>04 · OVERRIDES</b><span>17.5–24.5s</span></div>
+<p class="note"><b>The app tries to write 24; the 19 holds.</b> The checkbox toggles off (24 shows), back on; the pin lights; a reload sweep passes and the pinned 19 is still there. The overrides bar sits on top.</p>
+<span class="chip">cut · stage persists</span>
+</figure>
+
+<!-- 05 -->
+<figure>
+<div class="cell" id="frame-05">
+  <div class="eyebrow" style="top:6cqw">Added</div>
+  <div class="hl" style="top:8.2cqw;width:80cqw">In Lit Inspector. <em>And for your agent.</em></div>
+  <div class="box" style="left:6cqw;top:17cqw;width:42cqw;height:33cqw">
+    <div style="left:0;right:0;top:0;height:2.6cqw;background:var(--high);border-radius:.6cqw .6cqw 0 0;border-bottom:1px solid var(--border)"></div>
+    <div style="left:1.4cqw;top:.7cqw;font-size:.9cqw;color:var(--muted)">Elements · Console · Sources · <span style="position:static;color:var(--accent)">Lit</span></div>
+    <div style="left:1.6cqw;top:4.2cqw;font-family:RM;font-size:1.2cqw;color:var(--tag)">&lt;fh-product-card&gt;</div>
+    <div style="left:1.6cqw;top:7cqw;font-weight:700;font-size:.8cqw;letter-spacing:.12em;color:var(--dim)">ABOUT</div>
+    <div class="about" style="left:1.6cqw;top:9cqw;width:38cqw">A product tile in the shop grid. Fill the <code>media</code> slot with a photo and <code>price</code> with a sale price.</div>
+    <div style="left:1.6cqw;top:16cqw;font-family:RM;font-size:.85cqw;color:var(--dim)">from &lt;link rel="custom-elements-manifest"&gt;</div>
+  </div>
+  <div class="box" style="left:51cqw;top:17cqw;width:43cqw;height:33cqw;background:#0a0a10">
+    <div class="mono" style="left:1.6cqw;top:1.6cqw;font-size:1cqw;line-height:1.8;color:var(--text);white-space:pre">› <span style="position:static;color:var(--callee,#82aaff)">lit_component-docs</span>({ tag: <span style="position:static;color:var(--str)">"fh-product-card"</span> })
+<span style="position:static;color:var(--dim)">{</span>
+  description: <span style="position:static;color:var(--str)">"A product tile in the shop grid…"</span>,
+  events: [<span style="position:static;color:var(--str)">"add-to-cart"</span>],
+  slots: [<span style="position:static;color:var(--str)">"media"</span>, <span style="position:static;color:var(--str)">""</span>, <span style="position:static;color:var(--str)">"price"</span>],
+  cssParts: [<span style="position:static;color:var(--str)">"title"</span>, <span style="position:static;color:var(--str)">"cta"</span>],
+  cssProperties: [<span style="position:static;color:var(--str)">"--card-accent"</span>]
+<span style="position:static;color:var(--dim)">}</span></div>
+  </div>
+</div>
+<div class="lbl"><b>05 · EVERYWHERE</b><span>24.5–30.0s</span></div>
+<p class="note"><b>The DevTools window splits in two:</b> left becomes the extension's Lit tab with the same About text, right types the MCP call and streams its JSON on the beat.</p>
+<span class="chip">cut · split from stage</span>
+</figure>
+
+<!-- 06 -->
+<figure>
+<div class="cell" id="frame-06">
+  <div class="eyebrow">Added <i>+ Changed</i></div>
+  <div class="hl">Hover a slot. <em>See it on the page.</em></div>
+  <div class="sub" style="top:22cqw">Anatomy labels now sit beside the component, with lines to their regions.</div>
+  <div class="page" style="left:42cqw;top:6cqw;width:52cqw;height:44cqw">
+    <div class="card" style="left:16cqw;top:5cqw;width:20cqw;height:30cqw"><div class="m" style="outline:.25cqw solid var(--cyan);outline-offset:-.25cqw"></div><div class="b">Sale</div><div class="t">Fiddle Leaf</div><div class="p">€19</div><div class="c">Add to cart</div></div>
+    <div style="left:3cqw;top:9cqw;font-family:RM;font-size:.95cqw;color:#fff;background:var(--accent);padding:.2cqw .6cqw;border-radius:.25cqw">slot media</div>
+    <div style="left:9.6cqw;top:10.1cqw;width:6.4cqw;height:.15cqw;background:var(--accent)"></div>
+    <div style="left:39cqw;top:21cqw;font-family:RM;font-size:.95cqw;color:#fff;background:var(--deep);padding:.2cqw .6cqw;border-radius:.25cqw">part title</div>
+    <div style="left:30cqw;top:22.1cqw;width:9cqw;height:.15cqw;background:var(--deep)"></div>
+    <div style="left:39cqw;top:25cqw;font-family:RM;font-size:.95cqw;color:#fff;background:var(--deep);padding:.2cqw .6cqw;border-radius:.25cqw">slot price</div>
+    <div style="left:35cqw;top:26.1cqw;width:4cqw;height:.15cqw;background:var(--deep)"></div>
+    <div style="left:39cqw;top:31cqw;font-family:RM;font-size:.95cqw;color:#fff;background:var(--deep);padding:.2cqw .6cqw;border-radius:.25cqw">part cta</div>
+    <div style="left:26cqw;top:32.1cqw;width:13cqw;height:.15cqw;background:var(--deep)"></div>
+  </div>
+  <div class="box" style="left:6cqw;top:29cqw;width:30cqw;height:17cqw;padding:1cqw 1.4cqw">
+    <div style="left:1.4cqw;top:1cqw;font-weight:700;font-size:.8cqw;letter-spacing:.12em;color:var(--dim)">ANATOMY · SLOTS</div>
+    <div class="row" style="left:1.4cqw;right:1.4cqw;top:3.2cqw;background:#00e8ff1a;padding:0 .5cqw"><span style="color:var(--cyan)">media</span><span class="d">A product photo.</span></div>
+    <div class="row" style="left:1.4cqw;top:5.6cqw;padding:0 .5cqw"><span>(default)</span><span class="d">Short description.</span></div>
+    <div class="row" style="left:1.4cqw;top:8cqw;padding:0 .5cqw"><span>price</span><span class="d">A sale price.</span></div>
+    <div class="cursor" style="left:9cqw;top:3.8cqw"></div>
+  </div>
+</div>
+<div class="lbl"><b>06 · ANATOMY</b><span>30.0–36.5s</span></div>
+<p class="note"><b>Hover first:</b> the <span class="mono">media</span> row lights and the photo region outlines in cyan. <b>Then the overlay turns on:</b> labels settle into the gutters beside the card and leader lines draw to each region.</p>
+<span class="chip">cut · page card fills stage</span>
+</figure>
+
+<!-- 07 -->
+<figure>
+<div class="cell" id="frame-07">
+  <div class="eyebrow" style="top:6cqw">Added · examples/css</div>
+  <div class="hl" style="top:8.2cqw;width:80cqw">Every way to style a shadow root, <em>side by side.</em></div>
+  <div class="sub" style="top:13.4cqw;width:60cqw">With real UnoCSS utilities, one shared sheet for every component.</div>
+  <div class="box" style="left:6cqw;top:20cqw;width:20cqw;height:26cqw"><div class="mono" style="left:1.4cqw;top:1.4cqw;font-size:1.1cqw;color:var(--tag)">?css-sheet</div><div style="left:1.4cqw;top:4cqw;width:17cqw;height:12cqw;border-radius:.4cqw;background:linear-gradient(135deg,var(--accent),var(--indigo))"></div><div class="mono" style="left:1.4cqw;bottom:1.4cqw;font-size:.95cqw;color:var(--muted)">renders <span style="position:static;color:var(--ok)">1</span></div></div>
+  <div class="box" style="left:28cqw;top:20cqw;width:20cqw;height:26cqw"><div class="mono" style="left:1.4cqw;top:1.4cqw;font-size:1.1cqw;color:var(--tag)">?hmr-url</div><div style="left:1.4cqw;top:4cqw;width:17cqw;height:12cqw;border-radius:.4cqw;background:linear-gradient(135deg,var(--accent),var(--indigo))"></div><div class="mono" style="left:1.4cqw;bottom:1.4cqw;font-size:.95cqw;color:var(--muted)">renders <span style="position:static;color:var(--ok)">1</span></div></div>
+  <div class="box" style="left:50cqw;top:20cqw;width:20cqw;height:26cqw"><div class="mono" style="left:1.4cqw;top:1.4cqw;font-size:1.1cqw;color:var(--tag)">?inline</div><div style="left:1.4cqw;top:4cqw;width:17cqw;height:12cqw;border-radius:.4cqw;background:linear-gradient(135deg,var(--accent),var(--indigo))"></div><div class="mono" style="left:1.4cqw;bottom:1.4cqw;font-size:.95cqw;color:var(--muted)">renders <span style="position:static;color:var(--num)">2</span></div></div>
+  <div class="box" style="left:72cqw;top:20cqw;width:20cqw;height:26cqw"><div class="mono" style="left:1.4cqw;top:1.4cqw;font-size:1.1cqw;color:var(--tag)">css`…`</div><div style="left:1.4cqw;top:4cqw;width:17cqw;height:12cqw;border-radius:.4cqw;background:linear-gradient(135deg,var(--accent),var(--indigo))"></div><div class="mono" style="left:1.4cqw;bottom:1.4cqw;font-size:.95cqw;color:var(--muted)">renders <span style="position:static;color:var(--num)">2</span></div></div>
+</div>
+<div class="lbl"><b>07 · CSS EXAMPLE</b><span>36.5–41.5s</span></div>
+<p class="note"><b>Four cards assemble left to right on the beat,</b> then one edit re-tints all four swatches together; the two that re-render tick their counter, the sheet-based two stay at 1.</p>
+<span class="chip">cut · grid assemble</span>
+</figure>
+
+<!-- 08 -->
+<figure>
+<div class="cell" id="frame-08">
+  <div class="eyebrow">Fixed</div>
+  <div class="hl">Six fixes, <em>small and sharp.</em></div>
+  <div class="box" style="left:42cqw;top:7cqw;width:52cqw;height:42cqw;padding:2cqw">
+    <div style="left:2.4cqw;top:2.4cqw;right:2cqw;display:flex;flex-direction:column;gap:2.2cqw;font-size:1.55cqw;font-weight:600;color:var(--text)">
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; Custom timeline events line up with Lit's</div>
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; The selection survives a reload</div>
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; Collapsed Timeline rows say what changed</div>
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; Details sections fold again</div>
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; Source paths wrap between folders</div>
+      <div style="position:static"><span style="position:static;color:var(--ok)">✓</span>&nbsp; Tooltips follow the keyboard</div>
+    </div>
+  </div>
+</div>
+<div class="lbl"><b>08 · FIXES</b><span>41.5–46.5s</span></div>
+<p class="note"><b>Rows stack in one per beat,</b> each tick drawing as it lands; the panel holds for the last beat.</p>
+<span class="chip">cut</span>
+</figure>
+
+<!-- 09 -->
+<figure>
+<div class="cell" id="frame-09">
+  <div style="left:50cqw;top:11cqw;width:4cqw;height:5.8cqw;transform:translateX(-50%);background:linear-gradient(var(--cyan),var(--accent));clip-path:polygon(50% 0,100% 60%,50% 100%,0 60%)"></div>
+  <div style="left:0;right:0;top:19cqw;text-align:center;font-weight:800;font-size:4.4cqw;letter-spacing:-.03em;color:var(--strong)">vite-plugin-lit <span style="position:static;color:var(--cyan)">0.17.0</span></div>
+  <div class="mono" style="left:50cqw;top:28cqw;transform:translateX(-50%);font-size:1.6cqw;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:.9cqw 2.4cqw;white-space:nowrap"><span style="position:static;color:var(--dim)">$</span> pnpm add -D <span style="position:static;color:var(--tag)">@oddsquad/vite-plugin-lit</span><span style="position:static;color:var(--cyan)">▍</span></div>
+  <div style="left:0;right:0;top:36cqw;text-align:center;font-size:1.3cqw;color:var(--muted)">Full notes in CHANGELOG.md</div>
+</div>
+<div class="lbl"><b>09 · LOCKUP</b><span>46.5–51.0s</span></div>
+<p class="note"><b>Flame and name reassemble,</b> the terminal pill springs in and the command types; the caret blinks to the end. Music fades out over the last 2s.</p>
+<span class="chip">cut → end</span>
+</figure>
+
+<!-- seam map -->
+<figure>
+<div class="cell" style="background:var(--surface)">
+  <div style="left:4cqw;top:4cqw;font-weight:800;font-size:2cqw;color:var(--strong)">Seam map</div>
+  <div style="left:4cqw;right:4cqw;top:12cqw;height:5cqw;display:flex;gap:.4cqw">
+    <span style="position:static;flex:4.5;background:var(--indigo);border-radius:.3cqw"></span><span style="position:static;flex:7;background:var(--accent);border-radius:.3cqw"></span><span style="position:static;flex:6;background:var(--accent);border-radius:.3cqw"></span><span style="position:static;flex:7;background:var(--accent);border-radius:.3cqw"></span><span style="position:static;flex:5.5;background:var(--deep);border-radius:.3cqw"></span><span style="position:static;flex:6.5;background:var(--deep);border-radius:.3cqw"></span><span style="position:static;flex:5;background:var(--indigo);border-radius:.3cqw"></span><span style="position:static;flex:5;background:var(--indigo);border-radius:.3cqw"></span><span style="position:static;flex:4.5;background:var(--indigo);border-radius:.3cqw"></span>
+  </div>
+  <div class="mono" style="left:4cqw;right:4cqw;top:19cqw;font-size:1.2cqw;line-height:1.9;color:var(--muted)">01 │ 02 ═ 03 ═ 04 │ 05 │ 06 │ 07 │ 08 │ 09<br>═ window persists across the cut (same position, no pop)<br>│ hard cut on a downbeat · loop seams ≈ 19.5s, 39s (crossfade)</div>
+</div>
+<div class="lbl"><b>SEAMS</b><span>9 cuts</span></div>
+</figure>
+
+<!-- tokens -->
+<figure>
+<div class="cell" style="background:var(--surface)">
+  <div style="left:4cqw;top:4cqw;font-weight:800;font-size:2cqw;color:var(--strong)">Tokens</div>
+  <div style="left:4cqw;top:10cqw;display:flex;gap:1cqw">
+    <span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:var(--canvas);border:1px solid var(--border)"></span><span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:var(--surface);border:1px solid var(--border)"></span><span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:var(--accent)"></span><span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:var(--cyan)"></span><span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:var(--ok)"></span><span style="position:static;width:5cqw;height:5cqw;border-radius:.4cqw;background:#f6f3ec"></span>
+  </div>
+  <div style="left:4cqw;top:18cqw;font-size:1.3cqw;line-height:1.8;color:var(--muted)"><b style="color:var(--strong)">Manrope 800</b> headlines · 700 eyebrows · 500 body<br><span class="mono" style="position:static;color:var(--tag)">Roboto Mono</span> tags, props, code, timings<br>Cyan = the one emphasized word / focus. Fernhouse cream only on the page card.<br>Bans: light canvases, gradients on text, more than one accent per beat.</div>
+</div>
+<div class="lbl"><b>TOKENS</b><span>frame.md</span></div>
+</figure>
+
+</div>
+</body>
+</html>

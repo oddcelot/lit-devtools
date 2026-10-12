@@ -1,0 +1,531 @@
+<template>
+  <div data-hf-id="hf-5rol" id="root" data-composition-id="04-overrides" data-width="1920" data-height="1080" data-start="0" data-duration="5.855">
+    <style>
+      @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+      @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+      @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+      @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+      @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        font-family: "Manrope", sans-serif;
+        color: #e3e3e3;
+      }
+      #root * { box-sizing: border-box; }
+
+      .s04-ground {
+        position: absolute;
+        inset: 0;
+        background-color: #030308;
+        background-image: radial-gradient(circle 1000px at 1344px 430px, rgba(42, 44, 157, 0.35), rgba(42, 44, 157, 0) 100%);
+      }
+
+      /* ---------- headline column ---------- */
+      .s04-eyebrow {
+        position: absolute;
+        left: 115px;
+        top: 230px;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4d63ff;
+        white-space: nowrap;
+      }
+      .s04-col {
+        position: absolute;
+        left: 115px;
+        top: 273px;
+        width: 576px;
+      }
+      .s04-headline {
+        font-weight: 800;
+        font-size: 69px;
+        line-height: 1.05;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        white-space: nowrap;
+      }
+      .s04-headline .s04-cy { color: #00e8ff; }
+      .s04-sub {
+        margin-top: 24px;
+        width: 556px;
+        font-weight: 500;
+        font-size: 24px;
+        line-height: 1.4;
+        color: #a1a1a1;
+      }
+
+      /* ---------- DevTools window (Stage spec, identical across 02/03/04) ---------- */
+      .s04-win {
+        position: absolute;
+        left: 768px;
+        top: 86px;
+        width: 1056px;
+        height: 912px;
+        background: #121212;
+        border: 1px solid #363636;
+        border-radius: 15px;
+        box-shadow: 0 38px 96px rgba(0, 0, 0, 0.65);
+        overflow: hidden;
+      }
+      .s04-win > * { position: absolute; }
+      .s04-bar {
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 56px;
+        background: #1c1c1c;
+        border-bottom: 1px solid #363636;
+        border-radius: 15px 15px 0 0;
+      }
+      .s04-flame { left: 31px; top: 17px; height: 22px; width: auto; }
+      .s04-brand {
+        left: 58px;
+        top: 0;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        font-weight: 800;
+        font-size: 18px;
+        letter-spacing: 0.12em;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      .s04-tabs {
+        left: 250px;
+        top: 0;
+        height: 55px;
+        display: flex;
+        gap: 38px;
+        font-weight: 600;
+        font-size: 17px;
+        color: #a1a1a1;
+      }
+      .s04-tab { position: relative; display: flex; align-items: center; height: 55px; white-space: nowrap; }
+      .s04-tab.s04-on { color: #4d63ff; }
+      .s04-tab.s04-on::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        background: #4d63ff;
+      }
+      .s04-verwrap { right: 27px; top: 0; height: 56px; display: flex; align-items: center; }
+      .s04-ver {
+        font-family: "Roboto Mono", monospace;
+        font-size: 16px;
+        color: #00e8ff;
+        border: 1px solid rgba(0, 232, 255, 0.4);
+        border-radius: 99px;
+        padding: 3px 15px;
+      }
+      .s04-tree {
+        left: 0;
+        top: 56px;
+        width: 288px;
+        bottom: 0;
+        border-right: 1px solid #363636;
+        padding: 23px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 17px;
+        line-height: 40px;
+        color: #a1a1a1;
+      }
+      .s04-tree div { white-space: nowrap; }
+      .s04-tree .s04-d1 { padding-left: 12px; }
+      .s04-tree .s04-sel {
+        color: #ffffff;
+        background: rgba(77, 99, 255, 0.16);
+        box-shadow: inset 4px 0 0 #4d63ff;
+        margin: 0 -23px;
+        padding-left: 35px;
+      }
+
+      /* ---------- details pane (window-relative coords; content x 323 → 1021) ---------- */
+      .s04-pane { left: 288px; top: 56px; width: 768px; height: 856px; }
+      .s04-pane > * { position: absolute; }
+      .s04-ovr {
+        left: 35px;
+        top: 27px;
+        width: 698px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        padding: 0 18px;
+        background: rgba(77, 99, 255, 0.12);
+        border: 1px solid rgba(77, 99, 255, 0.4);
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .s04-ovr-dot { width: 8px; height: 8px; border-radius: 50%; background: #00e8ff; box-shadow: 0 0 10px rgba(0, 232, 255, 0.7); }
+      .s04-ovr-count { color: #e3e3e3; flex: 1; margin-left: -10px; }
+      .s04-ovr-act { color: #a1a1a1; font-size: 15px; }
+      .s04-dh {
+        left: 35px;
+        top: 102px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 23px;
+        line-height: 30px;
+        color: #89ddff;
+        white-space: nowrap;
+      }
+      .s04-src {
+        left: 35px;
+        top: 138px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 14px;
+        color: #616161;
+        white-space: nowrap;
+      }
+      .s04-sec {
+        left: 35px;
+        width: 698px;
+        border-top: 1px solid #363636;
+        padding-top: 15px;
+        font-weight: 700;
+        font-size: 15px;
+        line-height: 20px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #616161;
+      }
+      .s04-row {
+        left: 35px;
+        width: 698px;
+        height: 36px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 18px;
+        line-height: 36px;
+        color: #b2ccd6;
+        white-space: nowrap;
+      }
+      .s04-row > * { position: absolute; top: 0; }
+      .s04-name { left: 34px; }
+      .s04-val { left: 144px; }
+      .s04-str { color: #c3e88d; }
+      .s04-num { color: #f78c6c; }
+      .s04-kw { color: #c792ea; }
+      .s04-desc { font-family: "Manrope", sans-serif; font-weight: 500; font-size: 16px; color: #a1a1a1; }
+      .s04-note {
+        left: 236px;
+        min-width: 300px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 15px;
+        color: #a1a1a1;
+      }
+      .s04-chk {
+        left: 0;
+        top: 8px;
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1.5px solid #00e8ff;
+        background: rgba(0, 232, 255, 0.18);
+      }
+      .s04-chk svg { position: absolute; left: 1px; top: 1px; width: 15px; height: 15px; }
+      .s04-chk path { fill: none; stroke: #00e8ff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+      .s04-pin { left: 617px; top: 7px; width: 22px; height: 22px; }
+      .s04-pin path { stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+      .s04-x { left: 664px; top: 10px; width: 16px; height: 16px; }
+      .s04-x path { stroke: #a1a1a1; stroke-width: 1.8; stroke-linecap: round; fill: none; }
+      .s04-pv { left: 144px; width: 40px; height: 36px; }
+      .s04-pv span { position: absolute; left: 0; top: 0; }
+      .s04-ghost { left: 144px; color: #f78c6c; }
+
+      .s04-flash {
+        left: 311px;
+        top: 271px;
+        width: 722px;
+        height: 36px;
+        border-radius: 6px;
+        background: rgba(0, 232, 255, 0.16);
+        box-shadow: 0 0 24px rgba(0, 232, 255, 0.45), inset 0 0 0 1px rgba(0, 232, 255, 0.55);
+        opacity: 0;
+      }
+
+      .s04-curtain {
+        left: 288px;
+        top: 56px;
+        width: 768px;
+        height: 856px;
+        background: rgba(18, 18, 18, 0.8);
+        transform-origin: 50% 0%;
+      }
+      .s04-sweep {
+        left: 288px;
+        top: 55px;
+        width: 768px;
+        height: 2px;
+        background: #00e8ff;
+        box-shadow: 0 0 24px rgba(0, 232, 255, 0.7);
+      }
+      .s04-pill {
+        left: 323px;
+        top: 734px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 22px 0 18px;
+        background: rgba(52, 224, 161, 0.1);
+        border: 1px solid rgba(52, 224, 161, 0.35);
+        border-radius: 10px;
+        font-family: "Roboto Mono", monospace;
+        font-size: 18px;
+        color: #34e0a1;
+        white-space: nowrap;
+        transform-origin: 0% 50%;
+      }
+      .s04-pill svg { width: 22px; height: 22px; }
+      .s04-pill path { fill: none; stroke: #34e0a1; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+      /* ---------- pointer + ripples (root coords) ---------- */
+      .s04-cursor {
+        position: absolute;
+        left: 1560px;
+        top: 700px;
+        width: 24px;
+        height: 24px;
+        transform-origin: 0% 0%;
+        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7));
+        z-index: 20;
+        pointer-events: none;
+      }
+      .s04-ripple {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 2px solid #00e8ff;
+        opacity: 0;
+        z-index: 19;
+        pointer-events: none;
+      }
+    </style>
+
+    <div data-hf-id="hf-0evk" id="s04-ground" class="clip s04-ground" data-start="0" data-duration="5.855" data-track-index="0"></div>
+
+    <div data-hf-id="hf-qzi6" id="s04-stage" class="clip" data-start="0" data-duration="5.855" data-track-index="1" style="position:absolute;inset:0;">
+      <div data-hf-id="hf-ec9a" id="s04-eyebrow" class="s04-eyebrow">Added</div>
+      <div data-hf-id="hf-kjue" class="s04-col">
+        <div data-hf-id="hf-zzje" id="s04-headline" class="s04-headline">Overrides hold.<br data-hf-id="hf-x5px"><span data-hf-id="hf-5kez" class="s04-cy">Pins survive<br data-hf-id="hf-rsrt">a reload.</span></div>
+        <div data-hf-id="hf-mv27" id="s04-sub" class="s04-sub">Switch one off to see the app's value. In the browser extension too, kept in its own storage.</div>
+      </div>
+
+      <div data-hf-id="hf-cllm" class="s04-win">
+        <div data-hf-id="hf-0y0v" class="s04-bar"></div>
+        <img data-hf-id="hf-4d5z" class="s04-flame" src="assets/flame.svg" alt="">
+        <div data-hf-id="hf-gzbe" class="s04-brand">LIT DEVTOOLS</div>
+        <div data-hf-id="hf-20gs" class="s04-tabs">
+          <div data-hf-id="hf-g0k8" class="s04-tab s04-on">Components</div>
+          <div data-hf-id="hf-cbxx" class="s04-tab">Updates</div>
+          <div data-hf-id="hf-jq86" class="s04-tab">Timeline</div>
+          <div data-hf-id="hf-u6e0" class="s04-tab">Settings</div>
+        </div>
+        <div data-hf-id="hf-xmpz" class="s04-verwrap"><div data-hf-id="hf-7be3" class="s04-ver">0.17.0</div></div>
+
+        <div data-hf-id="hf-m8gw" class="s04-tree">
+          <div data-hf-id="hf-ny88">fh-app</div>
+          <div data-hf-id="hf-tvtv" class="s04-d1">fh-header</div>
+          <div data-hf-id="hf-q2ky" class="s04-d1">fh-search</div>
+          <div data-hf-id="hf-rc62" class="s04-d1 s04-sel">fh-product-card</div>
+          <div data-hf-id="hf-n6uq" class="s04-d1">fh-product-card</div>
+          <div data-hf-id="hf-pc9z" class="s04-d1">fh-cart-button</div>
+          <div data-hf-id="hf-7qi5" class="s04-d1">fh-toast</div>
+        </div>
+
+        <div data-hf-id="hf-pnoa" id="s04-flash" class="s04-flash"></div>
+
+        <div data-hf-id="hf-rrcy" id="s04-pane" class="s04-pane">
+          <div data-hf-id="hf-bkc3" class="s04-ovr">
+            <div data-hf-id="hf-0l0h" class="s04-ovr-dot"></div>
+            <div data-hf-id="hf-w98y" class="s04-ovr-count">2 overrides on this page</div>
+            <div data-hf-id="hf-gyxe" class="s04-ovr-act">Switch all off</div>
+            <div data-hf-id="hf-0b9u" class="s04-ovr-act">Clear all</div>
+          </div>
+          <div data-hf-id="hf-gn25" class="s04-dh">&lt;fh-product-card&gt;</div>
+          <div data-hf-id="hf-01dz" class="s04-src">src/components/product-card.ts:4</div>
+
+          <div data-hf-id="hf-f27l" class="s04-sec" style="top:170px">Properties</div>
+          <div data-hf-id="hf-jqrd" id="s04-row-price" class="s04-row" style="top:215px">
+            <div data-hf-id="hf-fj3i" id="s04-chk" class="s04-chk"><svg data-hf-id="hf-5tvn" viewBox="0 0 16 16"><path data-hf-id="hf-xx58" id="s04-chk-mark" d="M3.5 8.4l3 3 6-6.6" /></svg></div>
+            <span data-hf-id="hf-9kox" class="s04-name">price</span>
+            <span data-hf-id="hf-38bf" class="s04-pv"><span data-hf-id="hf-3q2d" id="s04-v19" class="s04-num">19</span><span data-hf-id="hf-dii4" id="s04-v24" data-layout-allow-overlap class="s04-num" style="opacity:0">24</span></span>
+            <span data-hf-id="hf-e1a6" id="s04-ghost" class="s04-ghost" style="opacity:0">24</span>
+            <span data-hf-id="hf-ojdf" id="s04-note" class="s04-note"></span>
+            <svg data-hf-id="hf-v4mg" id="s04-pin" class="s04-pin" viewBox="0 0 24 24">
+              <path data-hf-id="hf-l2xy" id="s04-pin-head" d="M9 3.5h6l-.9 6.2 3.4 3.3v1.8H6.5V13l3.4-3.3z" style="stroke:#a1a1a1;fill:#00e8ff;fill-opacity:0" />
+              <path data-hf-id="hf-05f1" id="s04-pin-needle" d="M12 14.8v6" style="stroke:#a1a1a1;fill:none" />
+            </svg>
+            <svg data-hf-id="hf-re9s" class="s04-x" viewBox="0 0 16 16"><path data-hf-id="hf-7ndw" d="M3 3l10 10M13 3L3 13" /></svg>
+          </div>
+          <div data-hf-id="hf-0zoj" class="s04-row" style="top:251px">
+            <div data-hf-id="hf-wcfk" class="s04-chk"><svg data-hf-id="hf-51xf" viewBox="0 0 16 16"><path data-hf-id="hf-4fu4" d="M3.5 8.4l3 3 6-6.6" /></svg></div>
+            <span data-hf-id="hf-jqxb" class="s04-name">name</span>
+            <span data-hf-id="hf-w6df" class="s04-val s04-str">"Fiddle Leaf"</span>
+            <svg data-hf-id="hf-54sr" class="s04-pin" viewBox="0 0 24 24">
+              <path data-hf-id="hf-3ui5" d="M9 3.5h6l-.9 6.2 3.4 3.3v1.8H6.5V13l3.4-3.3z" style="stroke:#616161;fill:none" />
+              <path data-hf-id="hf-mbbb" d="M12 14.8v6" style="stroke:#616161;fill:none" />
+            </svg>
+            <svg data-hf-id="hf-yol4" class="s04-x" viewBox="0 0 16 16"><path data-hf-id="hf-orfg" d="M3 3l10 10M13 3L3 13" /></svg>
+          </div>
+          <div data-hf-id="hf-jsza" class="s04-row" style="top:287px">
+            <span data-hf-id="hf-pom7" class="s04-name">badge</span>
+            <span data-hf-id="hf-r7wj" class="s04-val s04-str">"New"</span>
+          </div>
+
+          <div data-hf-id="hf-7upv" class="s04-sec" style="top:338px">Events</div>
+          <div data-hf-id="hf-ydpf" class="s04-row" style="top:383px">
+            <span data-hf-id="hf-97ag" class="s04-kw" style="left:0">add-to-cart</span>
+            <span data-hf-id="hf-a5id" class="s04-desc" style="left:160px">Fired when the CTA is pressed.</span>
+          </div>
+
+          <div data-hf-id="hf-t78p" class="s04-sec" style="top:434px">CSS properties</div>
+          <div data-hf-id="hf-hdvz" class="s04-row" style="top:479px">
+            <span data-hf-id="hf-gqky" style="left:0">--card-accent</span>
+            <span data-hf-id="hf-3r61" class="s04-desc" style="left:180px">Border and CTA colour.</span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-m1zn" id="s04-curtain" class="s04-curtain" style="opacity:0"></div>
+        <div data-hf-id="hf-tub3" id="s04-sweep" class="s04-sweep" style="opacity:0"></div>
+
+        <div data-hf-id="hf-98xz" id="s04-pill" class="s04-pill" style="opacity:0">
+          <svg data-hf-id="hf-ulu9" viewBox="0 0 24 24">
+            <path data-hf-id="hf-hymy" id="s04-pill-arc" d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3" />
+            <path data-hf-id="hf-1sty" id="s04-pill-head" d="M19.6 3.8v4.6H15" />
+          </svg>
+          <span data-hf-id="hf-o82d">reloaded · price = 19 (pinned)</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-vu3r" id="s04-r1" class="s04-ripple" style="left:1071px;top:345px"></div>
+      <div data-hf-id="hf-fbrg" id="s04-r2" class="s04-ripple" style="left:1071px;top:345px"></div>
+      <div data-hf-id="hf-ko0n" id="s04-r3" class="s04-ripple" style="left:1688px;top:345px"></div>
+
+      <svg data-hf-id="hf-uodq" id="s04-cursor" class="s04-cursor" viewBox="0 0 24 24">
+        <path data-hf-id="hf-ajpj" d="M2 1.5v19.2l5-4.8 3.4 7.4 3.5-1.6-3.4-7.2h6.9z" fill="#ffffff" stroke="#121212" stroke-width="1.2" stroke-linejoin="round" />
+      </svg>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      (function () {
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["04-overrides"] = tlOuter;
+
+        const $ = (id) => document.getElementById(id);
+        const D = 6.545;
+
+        // Pointer geometry (tip at cursor origin, rest = 1560,700).
+        const REST = { x: 1560, y: 700 };
+        const CHK = { x: 1101, y: 375 };   // price checkbox centre
+        const PIN = { x: 1718, y: 375 };   // price pin centre
+        const to = (p) => ({ x: p.x - REST.x, y: p.y - REST.y });
+
+        // ---- Scene 1: headline reveals on beats 0 and 0.55 (window is static) ----
+        tl.fromTo($("s04-eyebrow"), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }, 0);
+        tl.fromTo($("s04-headline"), { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.55, ease: "power3.out" }, 0.55);
+        tl.fromTo($("s04-cursor"), { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power1.out" }, 0.6);
+
+        // ---- Scene 2: the app writes 24, it bounces off, 19 holds ----
+        const ghost = $("s04-ghost");
+        tl.fromTo(ghost, { x: 90, opacity: 0 }, { x: 30, opacity: 0.85, duration: 0.2, ease: "power3.in" }, 1.09);
+        tl.to(ghost, { x: 110, opacity: 0, duration: 0.42, ease: "power2.out" }, 1.29);
+        tl.fromTo($("s04-v19"), { x: 0 }, { x: -4, duration: 0.07, ease: "power2.out", immediateRender: false }, 1.29);
+        tl.to($("s04-v19"), { x: 0, duration: 0.25, ease: "back.out(3)" }, 1.36);
+        tl.fromTo($("s04-note"), { opacity: 0, x: -8 }, { opacity: 1, x: 0, duration: 0.35, ease: "power2.out" }, 1.3);
+
+        // Discrete text states for the note (reverse search per frame).
+        const NOTE = [
+          { t: 0, text: "" },
+          { t: 1.29, text: "app wrote 24 · held" },
+          { t: 2.18, text: "off · app value" },
+          { t: 2.73, text: "app wrote 24 · held" },
+          { t: 3.27, text: "pinned · kept on reload" },
+        ];
+        const noteEl = $("s04-note");
+        const noteAt = (time) => {
+          for (let i = NOTE.length - 1; i >= 0; i--) if (time >= NOTE[i].t) return NOTE[i].text;
+          return "";
+        };
+        const driver = { t: 0 };
+        tl.to(driver, { t: D, duration: D, ease: "none", onUpdate: () => { noteEl.textContent = noteAt(driver.t); } }, 0);
+
+        // ---- Scene 3: untick (2.18) → 24 shows; retick (2.73) → 19 returns ----
+        const cur = $("s04-cursor");
+        const chk = $("s04-chk");
+        const mark = $("s04-chk-mark");
+        tl.fromTo(cur, { x: 0, y: 0 }, { x: to(CHK).x, y: to(CHK).y, duration: 0.6, ease: "power3.inOut" }, 1.45);
+
+        const click = (at, target, ring) => {
+          tl.to(cur, { scale: 0.85, duration: 0.08, ease: "power2.in" }, at - 0.08);
+          tl.to(cur, { scale: 1, duration: 0.1, ease: "power2.out" }, at);
+          tl.to(target, { scale: 0.94, duration: 0.08, ease: "power2.in" }, at - 0.08);
+          tl.to(target, { scale: 1, duration: 0.1, ease: "power2.out" }, at);
+          tl.fromTo(ring, { scale: 0, opacity: 1 }, { scale: 3, opacity: 0, duration: 0.6, ease: "power2.out", immediateRender: false }, at);
+        };
+
+        click(2.18, chk, $("s04-r1"));
+        tl.to(mark, { opacity: 0, duration: 0.12, ease: "power1.out" }, 2.18);
+        tl.to(chk, { backgroundColor: "rgba(0,232,255,0)", borderColor: "#616161", duration: 0.15, ease: "power1.out" }, 2.18);
+        tl.to($("s04-v19"), { opacity: 0, duration: 0.22, ease: "power1.inOut" }, 2.18);
+        tl.fromTo($("s04-v24"), { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "power1.inOut", immediateRender: false }, 2.18);
+
+        click(2.73, chk, $("s04-r2"));
+        tl.to(mark, { opacity: 1, duration: 0.12, ease: "power1.out" }, 2.73);
+        tl.to(chk, { backgroundColor: "rgba(0,232,255,0.18)", borderColor: "#00e8ff", duration: 0.15, ease: "power1.out" }, 2.73);
+        tl.to($("s04-v24"), { opacity: 0, duration: 0.22, ease: "power1.inOut" }, 2.73);
+        tl.to($("s04-v19"), { opacity: 1, duration: 0.22, ease: "power1.inOut" }, 2.73);
+        tl.fromTo($("s04-sub"), { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 2.73);
+
+        // ---- Scene 4: pin (3.27) → reload sweep (3.82) → restored (4.36) → flash (4.91) ----
+        tl.to(cur, { x: to(PIN).x, y: to(PIN).y, duration: 0.4, ease: "power3.inOut" }, 2.8);
+        const pin = $("s04-pin");
+        click(3.27, pin, $("s04-r3"));
+        tl.to([$("s04-pin-head"), $("s04-pin-needle")], { stroke: "#00e8ff", duration: 0.15, ease: "power1.out" }, 3.27);
+        tl.to($("s04-pin-head"), { fillOpacity: 1, duration: 0.2, ease: "power1.out" }, 3.27);
+        tl.to(cur, { x: 80, y: -40, duration: 0.5, ease: "power3.inOut" }, 3.42);
+
+        tl.set($("s04-sweep"), { opacity: 1 }, 3.82);
+        tl.fromTo($("s04-sweep"), { y: 0 }, { y: 855, duration: 0.5, ease: "power1.inOut", immediateRender: false }, 3.82);
+        tl.set($("s04-curtain"), { opacity: 1 }, 3.82);
+        tl.fromTo($("s04-curtain"), { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: "power1.inOut" }, 3.82);
+        tl.to($("s04-sweep"), { opacity: 0, duration: 0.08, ease: "power1.out" }, 4.3);
+
+        tl.to($("s04-curtain"), { opacity: 0, duration: 0.3, ease: "power1.out" }, 4.36);
+        tl.fromTo($("s04-pane"), { y: 0 }, { y: 10, duration: 0.01, ease: "none", immediateRender: false }, 4.32);
+        tl.to($("s04-pane"), { y: 0, duration: 0.4, ease: "power3.out" }, 4.36);
+
+        tl.fromTo($("s04-pill"), { opacity: 0, scale: 0.7 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2.2)" }, 4.36);
+        // svg-path-draw on the reload glyph
+        [["s04-pill-arc", 4.42, 0.4], ["s04-pill-head", 4.71, 0.22]].forEach(([id, at, dur]) => {
+          const p = $(id);
+          const len = p.getTotalLength() * 1.05;
+          p.style.strokeDasharray = `${len}`;
+          p.style.strokeDashoffset = `${len}`;
+          tl.to(p, { strokeDashoffset: 0, duration: dur, ease: "power2.out" }, at);
+        });
+
+        tl.fromTo($("s04-flash"), { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power2.out", immediateRender: false }, 4.91);
+        tl.to($("s04-flash"), { opacity: 0, duration: 0.5, ease: "power2.in" }, 5.03);
+
+        // ---- Scene 5 (5.45–6.545): held read. Anchor the timeline to full length. ----
+        tl.set({}, {}, D);
+      })();
+    </script>
+  </div>
+</template>
