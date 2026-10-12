@@ -350,6 +350,20 @@ export class ComponentsSession {
     }
   }
 
+  /**
+   * Keep an override across reloads, or stop keeping it; on the selected
+   * element unless `id` names another.
+   */
+  persistOverride(
+    name: string,
+    persist: boolean,
+    keys: readonly ValueSegment[] = [],
+    id = this.#selectedId
+  ): void {
+    if (id === null) return;
+    this.#send({type: 'override-persist', id, name, ...keysOf(keys), persist});
+  }
+
   /** Overrides the page dropped since they were last dismissed. */
   get droppedOverrides(): readonly InspectorOverrideEntry[] {
     return this.#dropped;
@@ -376,7 +390,13 @@ export class ComponentsSession {
   }
 
   #receiveOverrides(message: InspectorOverrides): void {
-    this.#overrides = {applied: message.applied, entries: message.entries};
+    const {applied, entries, canPersist, waiting} = message;
+    this.#overrides = {
+      applied,
+      entries,
+      ...(canPersist === true ? {canPersist} : {}),
+      ...(waiting !== undefined ? {waiting} : {}),
+    };
     if (message.dropped !== undefined) {
       this.#dropped = [...this.#dropped, ...message.dropped];
     }

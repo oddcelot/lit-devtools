@@ -230,6 +230,19 @@ describe('overrides', () => {
     ];
     session.receive({type: 'overrides', applied: false, entries});
     expect(session.overrides).toEqual({applied: false, entries});
+    session.receive({
+      type: 'overrides',
+      applied: true,
+      entries,
+      canPersist: true,
+      waiting: 2,
+    });
+    expect(session.overrides).toEqual({
+      applied: true,
+      entries,
+      canPersist: true,
+      waiting: 2,
+    });
     session.pageChanged();
     expect(session.overrides).toEqual({applied: true, entries: []});
   });
@@ -246,6 +259,8 @@ describe('overrides', () => {
     session.removeOverride('m', [], 1);
     session.toggleOverride('cfg', true, ['a', 0]);
     session.removeOverride('cfg', ['a', 0]);
+    session.persistOverride('n', true);
+    session.persistOverride('cfg', false, ['a'], 1);
     expect(drain()).toEqual([
       {type: 'override-toggle', id: 3, name: 'n', enabled: false},
       {type: 'override-remove', id: 3, name: 'n'},
@@ -258,6 +273,14 @@ describe('overrides', () => {
         enabled: true,
       },
       {type: 'override-remove', id: 3, name: 'cfg', keys: ['a', 0]},
+      {type: 'override-persist', id: 3, name: 'n', persist: true},
+      {
+        type: 'override-persist',
+        id: 1,
+        name: 'cfg',
+        keys: ['a'],
+        persist: false,
+      },
     ]);
   });
 
