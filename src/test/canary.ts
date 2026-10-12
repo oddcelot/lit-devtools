@@ -26,7 +26,13 @@ export const CANARY_ENABLED = process.env['LIT_CANARY'] === '1';
 // `development/` explicitly.
 const CANARY_PACKAGES = [
   {id: 'lit', dir: 'packages/lit', entry: 'index.js', dev: true},
-  {id: 'lit-html', dir: 'packages/lit-html', entry: 'lit-html.js', dev: true},
+  {
+    id: 'lit-html',
+    dir: 'packages/lit-html',
+    entry: 'lit-html.js',
+    dev: true,
+    node: true,
+  },
   {
     id: 'lit-element',
     dir: 'packages/lit-element',
@@ -38,6 +44,7 @@ const CANARY_PACKAGES = [
     dir: 'packages/reactive-element',
     entry: 'reactive-element.js',
     dev: true,
+    node: true,
   },
   {id: '@lit/context', dir: 'packages/context', entry: 'index.js', dev: true},
   {id: '@lit/task', dir: 'packages/task', entry: 'index.js', dev: true},
@@ -66,8 +73,14 @@ export interface CanarySettings {
  * Vite settings to spread into a server (or vitest) config. Returns `{}` when
  * canary mode is off, so default runs are untouched. Throws with a pointer to
  * `pnpm build:lit-canary` when the submodule is present but not built.
+ *
+ * `node` is for code that runs in Node rather than a browser (the unit
+ * tests): `lit-html` and `@lit/reactive-element` then resolve to their
+ * `node/` builds, which install lit's DOM shim the way the published
+ * packages do under the `node` export condition. The browser builds define
+ * `class extends HTMLElement` at import and throw without a DOM.
  */
-export const canarySettings = (): CanarySettings => {
+export const canarySettings = ({node = false} = {}): CanarySettings => {
   if (!CANARY_ENABLED) {
     return {};
   }
@@ -78,8 +91,15 @@ export const canarySettings = (): CanarySettings => {
   }
   return {
     resolve: {
-      alias: CANARY_PACKAGES.flatMap(({id, dir, entry, dev}) => {
-        const root = path.join(LIT_DIR, dir, dev ? 'development' : '');
+      alias: CANARY_PACKAGES.flatMap((pkg) => {
+        const {id, dir, entry, dev} = pkg;
+        const nodeBuild = node && 'node' in pkg ? 'node' : '';
+        const root = path.join(
+          LIT_DIR,
+          dir,
+          nodeBuild,
+          dev ? 'development' : ''
+        );
         const escaped = id.replace(/[\\^$.*+?()[\]{}|]/g, String.raw`\$&`);
         return [
           {
