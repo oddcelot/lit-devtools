@@ -203,16 +203,15 @@
         >
       </div>
 
-      <!-- Temporarily disabled: the clocks re-render every second and flood the
-           DevTools Timeline. The custom elements stay registered and the `now`
-           signal keeps ticking (harmless with no subscribers); uncomment to
-           demo the clocks again. -->
-      <!--
       <div class="card">
         <hmr-clock></hmr-clock>
         <span class="problem"
           >Analog SVG clock on shared <code>now</code> signal: editing one
-          <code>svg</code> literal leaves the other's DOM untouched</span
+          <code>svg</code> literal leaves the other's DOM untouched. Also the
+          Anatomy stress test: select it with Anatomy on to see 16 parts, 12 of
+          them one grouped <code>::part(tick)</code> label. Both clocks
+          re-render every second, so expect a steady stream in the Timeline and
+          Updates tabs while recording.</span
         >
       </div>
 
@@ -223,7 +222,6 @@
           display and picker survive HMR independently</span
         >
       </div>
-      -->
 
       <h2 class="section-header">Context &amp; Data</h2>
 

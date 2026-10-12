@@ -43,11 +43,14 @@ test('a second tab takes over, says so, and the first one is ignored', async () 
 
     // The first tab is still live, but it is no longer the page being
     // followed, so its events never reach the recording.
+    // Only the counter's rows: the playground's clocks keep adding their own
+    // every second on the followed page.
+    const counterRows = rows.filter({hasText: 'hmr-counter'});
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    const before = await rows.count();
+    const before = await counterRows.count();
     await fixture.page.locator('hmr-counter #increment').click();
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    expect(await rows.count()).toBe(before);
+    expect(await counterRows.count()).toBe(before);
 
     await page.locator('.page-changed wa-button').click();
     expect(await banner.count()).toBe(0);
