@@ -22,6 +22,8 @@ import {canarySettings} from '../canary.js';
 
 const PACKAGE_ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const PLAYGROUND_DIR = path.join(PACKAGE_ROOT, 'playground');
+/** Playwright waits per action; below the 30s test timeout. */
+const ACTION_TIMEOUT_MS = 15_000;
 
 export interface Fixture {
   server: ViteDevServer;
@@ -175,6 +177,9 @@ export const startFixture = async (
     headless: process.env['HMR_E2E_HEADED'] === undefined,
   });
   const page = await browser.newPage();
+  // Under the test timeout, so a stuck step fails as itself (with its call
+  // log) instead of as a bare "Test timed out".
+  page.setDefaultTimeout(ACTION_TIMEOUT_MS);
   const ready = () =>
     page.waitForFunction(
       () => (window as {__hmr?: unknown}).__hmr !== undefined
@@ -224,6 +229,7 @@ export const startFixture = async (
         throw new Error('openPanel needs startFixture({panel: true})');
       }
       const panel = await browser.newPage();
+      panel.setDefaultTimeout(ACTION_TIMEOUT_MS);
       const errors: string[] = [];
       panel.on('pageerror', (error) => errors.push(error.message));
       panel.on('console', (msg) => {

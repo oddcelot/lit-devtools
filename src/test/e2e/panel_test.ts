@@ -12,6 +12,16 @@ let panel: PanelHandle;
 
 beforeAll(async () => {
   fixture = await startFixture({plugin: {timeline: true}, panel: true});
+  // The playground clocks render every second, which would put events in the
+  // timeline that no test asked for: a Clear that does not stay empty, a list
+  // that grows between two reads. Nothing here is about them.
+  await fixture.page.evaluate(() => {
+    for (const clock of document.querySelectorAll(
+      'hmr-clock, hmr-digital-clock'
+    )) {
+      clock.remove();
+    }
+  });
   panel = await fixture.openPanel();
   await panel.page.goto(`${fixture.origin}/__lit/#tab=timeline`);
   // These read the list; the Timeline opens in Tracks.
