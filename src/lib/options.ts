@@ -6,7 +6,11 @@ import type {
 } from '../types/timeline.js';
 import {BUILTIN_EDITORS} from './runtime/source-overlay/editors.js';
 import {SETTINGS, type SourcedKey} from './setting-definitions.js';
+import {type CssSheetBuild, resolveCssSheetBuild} from './css-sheet-build.js';
+import {ENV_PREFIX, envBool, envEnum, envNum} from './env.js';
 import type {ChildStateMode} from './runtime/child-state.js';
+
+export type {CssSheetBuild} from './css-sheet-build.js';
 
 /**
  * On-page HMR feedback: a small pulsing indicator in the corner of the host
@@ -79,25 +83,6 @@ export interface HmrOptions {
    */
   indicator?: boolean | HmrIndicatorOptions;
 }
-
-/**
- * What a `?css-sheet` import compiles to under `vite build`.
- *
- * - `'url'`: fetch-backed sheet over the emitted `.css` asset.
- * - `'inline'`: css text embedded in the JS chunk, processed by the css
- *   pipeline (`?inline`).
- * - `'inline-raw'`: css text embedded verbatim, skipping the css pipeline
- *   (`?raw`).
- * - `'auto'`: `'inline'` when `build.lib` is set, `'url'` otherwise.
- */
-export type CssSheetBuild = 'auto' | 'url' | 'inline' | 'inline-raw';
-
-const CSS_SHEET_BUILD_MODES: readonly CssSheetBuild[] = [
-  'auto',
-  'url',
-  'inline',
-  'inline-raw',
-];
 
 /**
  * Options for the Lit Vite plugin.
@@ -175,43 +160,6 @@ export interface ResolvedOptions {
    */
   sources: SettingSources;
 }
-
-/** Env var prefix consumed at config time. */
-export const ENV_PREFIX = 'LIT_PLUGIN';
-
-/** Parse a boolean-ish env string; `undefined` when unset/unrecognized. */
-const envBool = (v: string | undefined): boolean | undefined =>
-  v === 'true' || v === '1'
-    ? true
-    : v === 'false' || v === '0'
-      ? false
-      : undefined;
-
-/** Parse a numeric env string; `undefined` when unset/non-numeric. */
-const envNum = (v: string | undefined): number | undefined => {
-  if (v === undefined || v === '') return undefined;
-  const n = Number(v);
-  return Number.isNaN(n) ? undefined : n;
-};
-
-/**
- * Parse a string against a closed set of values; `undefined` (with a warning)
- * when set to something outside it, so a typo falls back to the default
- * instead of silently disabling a feature.
- */
-const envEnum = <T extends string>(
-  v: string | undefined,
-  allowed: readonly T[],
-  source: string
-): T | undefined => {
-  if (v === undefined || v === '') return undefined;
-  if ((allowed as readonly string[]).includes(v)) return v as T;
-  console.warn(
-    `[lit-plugin] ignoring ${source}=${JSON.stringify(v)}; expected one of ` +
-      allowed.map((a) => JSON.stringify(a)).join(', ')
-  );
-  return undefined;
-};
 
 /** Keys a `LIT_PLUGIN_SOURCE_OVERLAY_EDITOR` value may name. */
 const EDITOR_KEYS: readonly string[] = Object.keys(BUILTIN_EDITORS);
@@ -397,14 +345,7 @@ export const resolveOptions = (
   );
   sources.timeline = timeline.source;
 
-  const cssSheetBuild =
-    envEnum(options.cssSheetBuild, CSS_SHEET_BUILD_MODES, 'cssSheetBuild') ??
-    envEnum(
-      env[`${ENV_PREFIX}_CSS_SHEET_BUILD`],
-      CSS_SHEET_BUILD_MODES,
-      `${ENV_PREFIX}_CSS_SHEET_BUILD`
-    ) ??
-    'auto';
+  const cssSheetBuild = resolveCssSheetBuild(options.cssSheetBuild, env);
 
   // A boolean-ish env value toggles; anything else names the folder.
   const envWorkspace = env[`${ENV_PREFIX}_DEVTOOLS_WORKSPACE`] || undefined;
