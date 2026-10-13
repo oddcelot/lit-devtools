@@ -23,6 +23,7 @@
     "/dist/standalone/",
     "/types/",
     "/index.{d.ts,d.ts.map,js,js.map}",
+    "/build.{d.ts,d.ts.map,js,js.map}",
     "/client.d.ts",
     "/bin.mjs"
   ],
@@ -33,6 +34,10 @@
     ".": {
       "types": "./index.d.ts",
       "default": "./index.js"
+    },
+    "./build": {
+      "types": "./build.d.ts",
+      "default": "./build.js"
     },
     "./css.js": {
       "types": "./lib/runtime/css.d.ts",

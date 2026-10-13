@@ -3,6 +3,7 @@
   "license": "BSD-3-Clause",
   "exports": {
     ".": "./index.js",
+    "./build": "./build.js",
     "./css.js": "./lib/runtime/css.js",
     "./connect.js": "./lib/runtime/rpc-transport.js"
   },
@@ -17,8 +18,9 @@
       "dist/standalone/",
       "types/",
       "index.*",
+      "build.*",
       "client.d.ts"
     ],
-    "exclude": ["!lib/", "!dist/", "!types/", "!index.*"]
+    "exclude": ["!lib/", "!dist/", "!types/", "!index.*", "!build.*"]
   }
 }

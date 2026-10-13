@@ -8,7 +8,7 @@
 import {globSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 
-const files = globSync(['index.js', 'lib/**/*.js']);
+const files = globSync(['index.js', 'build.js', 'lib/**/*.js']);
 if (files.length === 0) {
   console.error('[@oddsquad/vite-plugin-lit] no build output to format');
   process.exit(1);
