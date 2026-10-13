@@ -3,29 +3,29 @@
 # devEngines needs node >=26 and pnpm, or npm refuses to run in the repo root),
 # and the Claude backend authenticates with CLAUDE_CODE_OAUTH_TOKEN
 # (claude setup-token) so recaps run on the Claude subscription instead of an
-# API key. Re-copy upstream to update, then reapply these changes.
+# API key. Runs only when the repository owner comments `/recap` on a pull
+# request, instead of on every push; a comment event carries the issue, so
+# the gate resolves the PR and the recap job reads it from the gate's
+# outputs. A repeat recap is told which commits came since the head the last
+# one covered. Re-copy upstream to update, then reapply these changes.
 
 name: PR Visual Recap
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review, labeled, closed]
+  issue_comment:
+    types: [created]
 
 permissions:
   contents: read
 
-# Events the gate ignores (see gate.if) get a throwaway group so they never
-# cancel an in-progress recap for the same PR.
+# A new request makes the running recap of the same PR moot. Any other
+# comment gets a group of its own, so it never cancels a recap.
 concurrency:
   group: >-
-    ${{ ((github.event.action == 'labeled'
-          && ((vars.VISUAL_RECAP_AUTO_REFRESH == 'false' && github.event.label.name != 'recap')
-            || (vars.VISUAL_RECAP_AUTO_REFRESH != 'false' && vars.VISUAL_RECAP_REQUIRED_LABELS == '')))
-        || (vars.VISUAL_RECAP_AUTO_REFRESH == 'false'
-          && (github.event.action == 'synchronize'
-            || (github.event.action == 'closed' && !github.event.pull_request.merged))))
-        && format('pr-visual-recap-ignored-{0}', github.run_id)
-        || format('pr-visual-recap-{0}', github.event.pull_request.number) }}
+    pr-visual-recap-${{
+      github.event.issue.pull_request && startsWith(github.event.comment.body, '/recap')
+      && github.event.issue.number
+      || format('ignored-{0}', github.run_id) }}
   cancel-in-progress: true
 
 env:
@@ -38,19 +38,13 @@ env:
 jobs:
   gate:
     name: Gate
-    # VISUAL_RECAP_AUTO_REFRESH=false recaps only on open/reopen/ready, on merge
-    # (to stamp merged state), and when the `recap` label is applied, instead of
-    # on every push. Only `recap` passes here: expressions cannot exact-match the
-    # comma-separated required-label list, and a substring match would let an
-    # unrelated label join the cancelling per-PR group.
+    # Only the owner's `/recap` comment on an open pull request.
     if: >-
-      !((github.event.action == 'labeled'
-         && ((vars.VISUAL_RECAP_AUTO_REFRESH == 'false' && github.event.label.name != 'recap')
-           || (vars.VISUAL_RECAP_AUTO_REFRESH != 'false' && vars.VISUAL_RECAP_REQUIRED_LABELS == '')))
-        || (vars.VISUAL_RECAP_AUTO_REFRESH == 'false'
-         && (github.event.action == 'synchronize'
-           || (github.event.action == 'closed' && !github.event.pull_request.merged))))
-    runs-on: ${{ github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association) && (vars.VISUAL_RECAP_GATE_RUNS_ON || 'ubuntu-latest') || 'ubuntu-latest' }}
+      github.event.issue.pull_request
+      && github.event.issue.state == 'open'
+      && startsWith(github.event.comment.body, '/recap')
+      && github.event.comment.user.login == github.repository_owner
+    runs-on: ${{ vars.VISUAL_RECAP_GATE_RUNS_ON || 'ubuntu-latest' }}
     timeout-minutes: 10
     permissions:
       contents: read
@@ -59,6 +53,13 @@ jobs:
       run: ${{ steps.decide.outputs.run }}
       agent: ${{ steps.decide.outputs.agent }}
       runs_on: ${{ steps.decide.outputs.runs_on }}
+      number: ${{ steps.decide.outputs.number }}
+      state: ${{ steps.decide.outputs.state }}
+      merged: ${{ steps.decide.outputs.merged }}
+      merged_at: ${{ steps.decide.outputs.merged_at }}
+      head_sha: ${{ steps.decide.outputs.head_sha }}
+      base_sha: ${{ steps.decide.outputs.base_sha }}
+      is_fork: ${{ steps.decide.outputs.is_fork }}
     steps:
       - id: decide
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -74,17 +75,18 @@ jobs:
           VISUAL_RECAP_RUNS_ON: ${{ vars.VISUAL_RECAP_RUNS_ON || '"ubuntu-latest"' }}
           VISUAL_RECAP_REQUIRED_LABELS: ${{ env.VISUAL_RECAP_REQUIRED_LABELS }}
           VISUAL_RECAP_SKILL_SOURCE: ${{ env.VISUAL_RECAP_SKILL_SOURCE }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         with:
           script: |
-            const pr = context.payload.pull_request;
+            // A `/recap` comment carries the issue, not the pull request.
+            const pr = context.payload.issue && (await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.issue.number,
+            })).data;
             const reasons = [];
 
             if (!pr) reasons.push('no pull_request payload');
-            if (pr && pr.draft) reasons.push('draft PR');
-            if (pr && context.payload.action === 'closed' && !pr.merged) {
-              reasons.push('closed without merge');
-            }
+            if (pr && pr.state !== 'open') reasons.push('PR is not open');
             const requiredLabels = (process.env.VISUAL_RECAP_REQUIRED_LABELS || '')
               .split(',')
               .map((label) => label.trim().toLowerCase())
@@ -211,6 +213,15 @@ jobs:
             core.setOutput('run', run ? 'true' : 'false');
             core.setOutput('agent', agent);
             core.setOutput('runs_on', JSON.stringify(configuredRunner));
+            if (pr) {
+              core.setOutput('number', String(pr.number));
+              core.setOutput('state', pr.state);
+              core.setOutput('merged', String(!!pr.merged));
+              core.setOutput('merged_at', pr.merged_at || '');
+              core.setOutput('head_sha', pr.head.sha);
+              core.setOutput('base_sha', pr.base.sha);
+              core.setOutput('is_fork', String(isFork));
+            }
             if (run) {
               core.info(`Visual recap will run (${agent}).`);
             } else {
@@ -242,19 +253,27 @@ jobs:
       PLAN_RECAP_TOKEN: ${{ secrets.PLAN_RECAP_TOKEN }}
       GH_TOKEN: ${{ github.token }}
       REPOSITORY_ID: ${{ github.repository_id }}
-      PR_NUMBER: ${{ github.event.pull_request.number }}
-      PR_STATE: ${{ github.event.pull_request.state }}
-      PR_MERGED: ${{ github.event.pull_request.merged }}
-      PR_MERGED_AT: ${{ github.event.pull_request.merged_at }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      PR_NUMBER: ${{ needs.gate.outputs.number }}
+      PR_STATE: ${{ needs.gate.outputs.state }}
+      PR_MERGED: ${{ needs.gate.outputs.merged }}
+      PR_MERGED_AT: ${{ needs.gate.outputs.merged_at }}
+      HEAD_SHA: ${{ needs.gate.outputs.head_sha }}
       VISUAL_RECAP_MODEL: ${{ vars.VISUAL_RECAP_MODEL }}
       VISUAL_RECAP_BASE_URL: ${{ vars.VISUAL_RECAP_BASE_URL || '' }}
       VISUAL_RECAP_REASONING: ${{ vars.VISUAL_RECAP_REASONING }}
       VISUAL_RECAP_SKILL_SOURCE: ${{ vars.VISUAL_RECAP_SKILL_SOURCE || 'auto' }}
       VISUAL_RECAP_SECRET_SCAN: ${{ vars.VISUAL_RECAP_SECRET_SCAN || 'high-confidence' }}
     steps:
+      - name: Acknowledge the request
+        continue-on-error: true
+        env:
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" -f content=eyes --silent
+
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
+          # A comment event checks out the default branch otherwise.
+          ref: ${{ needs.gate.outputs.head_sha }}
           fetch-depth: 0
           # This job runs an agent over untrusted PR diff; don't leave the token
           # in .git/config (it uses GH_TOKEN for gh API calls, never git push).
@@ -274,7 +293,7 @@ jobs:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         if: steps.cli.outputs.local == 'true'
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          ref: ${{ needs.gate.outputs.base_sha }}
           path: .recap-cli-source
           fetch-depth: 1
           persist-credentials: false
@@ -353,7 +372,7 @@ jobs:
 
       - name: Fetch pull request head
         env:
-          PR_NUMBER_ENV: ${{ github.event.pull_request.number }}
+          PR_NUMBER_ENV: ${{ needs.gate.outputs.number }}
         run: |
           set -euo pipefail
           if git cat-file -e "${HEAD_SHA}^{commit}" 2>/dev/null; then
@@ -371,7 +390,7 @@ jobs:
       - name: Collect bounded diff
         id: diff
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: ${{ needs.gate.outputs.base_sha }}
         run: |
           set -euo pipefail
           $RECAP_CLI recap collect-diff --base "$BASE_SHA" --head refs/recap/pr-head --out recap.diff --stat recap.stat
@@ -490,13 +509,43 @@ jobs:
         if: steps.diff.outputs.tiny != 'true' && steps.route_health.outputs.unhealthy != 'true' && steps.scan.outputs.suppressed != 'true'
         env:
           DIFF_HUGE: ${{ steps.diff.outputs.huge }}
-          IS_FORK: ${{ github.event.pull_request.head.repo.full_name != github.repository }}
+          IS_FORK: ${{ needs.gate.outputs.is_fork }}
         run: |
           set -euo pipefail
           ARGS=(--diff recap.diff --stat recap.stat --block-reference recap-blocks.md --pr "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --head "$HEAD_SHA" --app-url "$PLAN_RECAP_APP_URL" --skill-source "$VISUAL_RECAP_SKILL_SOURCE" --out recap-prompt.md)
           if [ "${DIFF_HUGE:-}" = "true" ]; then ARGS+=(--huge); fi
           if [ "${IS_FORK:-}" = "true" ]; then ARGS+=(--fork-pr true); fi
           $RECAP_CLI recap build-prompt "${ARGS[@]}"
+
+      # A repeat recap rewrites the whole recap, and says up front what the
+      # commits since the last one changed. The sticky comment records the
+      # head it covered.
+      - name: Note the commits since the last recap
+        if: steps.prompt.outcome == 'success'
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          PREV_SHA="$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select(.body | contains("<!-- pr-visual-recap -->")) | .body' \
+            | grep -oE 'head-sha: [0-9a-f]{40}' | tail -1 | cut -d' ' -f2 || true)"
+          if [ -z "$PREV_SHA" ] || [ "$PREV_SHA" = "$HEAD_SHA" ]; then exit 0; fi
+          {
+            echo
+            echo '## Since the last recap'
+            echo
+            echo "The previous recap of this PR covered head $PREV_SHA. Recap the whole PR as usual, and open it with a short \"Since the last recap\" section on what changed after that head."
+            echo
+            if git merge-base --is-ancestor "$PREV_SHA" refs/recap/pr-head 2>/dev/null; then
+              echo 'Commits since then:'
+              echo
+              echo '```'
+              git log --oneline "$PREV_SHA..refs/recap/pr-head"
+              git diff --stat "$PREV_SHA" refs/recap/pr-head
+              echo '```'
+            else
+              echo 'That head is no longer in the branch history (it was rebased or force-pushed), so say that instead of listing commits.'
+            fi
+          } >> recap-prompt.md
 
       - name: Run agent (Claude Code)
         id: claude
@@ -1106,7 +1155,7 @@ jobs:
         if: steps.shot.outputs.captured == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: pr-visual-recap-${{ github.event.pull_request.number }}
+          name: pr-visual-recap-${{ needs.gate.outputs.number }}
           path: |
             recap.png
             recap-dark.png
@@ -1117,7 +1166,7 @@ jobs:
         if: always() && !cancelled()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: pr-visual-recap-source-${{ github.event.pull_request.number }}
+          name: pr-visual-recap-source-${{ needs.gate.outputs.number }}
           path: |
             recap-source.json
             recap-source.initial.json
