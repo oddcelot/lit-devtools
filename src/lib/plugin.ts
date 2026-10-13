@@ -1,6 +1,5 @@
 import type {Plugin} from 'vite';
-import {createLitDevframePlugin} from './devframe/vite.js';
-import {PACKAGE_VERSION} from './devframe/paths.js';
+import type {SourceDocsIndex} from './component-docs/source-index.js';
 import {
   type LitPluginOptions,
   configuredEditor,
@@ -10,15 +9,8 @@ import {createOptionsContext} from './plugins/context.js';
 import {litCssQueries} from './plugins/css-queries.js';
 import {litTimelineVirtual} from './plugins/timeline-virtual.js';
 import {litCssLiterals} from './plugins/css-literals.js';
-import {litPrivateFields} from './plugins/private-fields.js';
-import {litSourceOverlay} from './plugins/source-overlay.js';
-import {litHmr} from './plugins/hmr.js';
-import {litDevtoolsWorkspace} from './plugins/devtools-workspace.js';
-import {litManifestLinks} from './plugins/manifest-links.js';
-import {litComponentDocs} from './plugins/component-docs.js';
-import {createSourceDocsIndex} from './component-docs/source-index.js';
+import {lazyServePlugin} from './plugins/lazy.js';
 
-export {createOpenInEditorMiddleware} from './plugins/open-in-editor.js';
 export {litCssQueries} from './plugins/css-queries.js';
 export {litTimelineVirtual} from './plugins/timeline-virtual.js';
 export type {
@@ -43,24 +35,91 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
   // `ctx.get()` inside its hooks: env is only loaded in the context's `config`
   // hook, after this array is built, so nothing can be chosen from options
   // here. The context's plugin goes first so it resolves before the others.
+  //
+  // The dev-only plugins are lazy shells: their code, and the DevTools panel's,
+  // is imported in their `config` hook, which `vite build` never calls. Each
+  // shell declares the hooks its plugin defines and checks them on load.
+  //
   // The project's own components, documented from source as Vite transforms
-  // them; read by the devframe's `componentDocs` action.
-  const sourceDocs = createSourceDocsIndex((id) => ctx.locator().toWire(id));
+  // them; read by the devframe's `componentDocs` action. Shared by the
+  // component-docs and devframe plugins, so loaded once for both.
+  let sourceDocs: Promise<SourceDocsIndex> | undefined;
+  const loadSourceDocs = () =>
+    (sourceDocs ??= import('./component-docs/source-index.js').then((m) =>
+      m.createSourceDocsIndex((id) => ctx.locator().toWire(id))
+    ));
   const devtools = options.timeline !== false;
   const plugins: Plugin[] = [
     ctx.plugin,
     litCssQueries(() => ctx.get().cssSheetBuild),
     litTimelineVirtual(() => ctx.get().timeline),
     litCssLiterals(),
-    litPrivateFields(ctx),
+    lazyServePlugin({name: 'lit-private-fields', hooks: {transform: {}}}, () =>
+      import('./plugins/private-fields.js').then((m) => m.litPrivateFields(ctx))
+    ),
     // Before the source overlay, which rewrites the code it has to read.
     ...(devtools
-      ? [litComponentDocs(ctx, sourceDocs, () => ctx.get().timeline)]
+      ? [
+          lazyServePlugin(
+            {
+              name: 'lit-component-docs',
+              enforce: 'pre',
+              hooks: {transform: {}, watchChange: {}},
+            },
+            async () =>
+              (await import('./plugins/component-docs.js')).litComponentDocs(
+                ctx,
+                await loadSourceDocs(),
+                () => ctx.get().timeline
+              )
+          ),
+        ]
       : []),
-    litSourceOverlay(ctx),
-    litHmr(ctx),
-    litDevtoolsWorkspace(ctx),
-    litManifestLinks(ctx),
+    lazyServePlugin(
+      {
+        name: 'lit-source-overlay',
+        enforce: 'pre',
+        hooks: {
+          configureServer: {},
+          transform: {},
+          transformIndexHtml: {order: 'pre'},
+        },
+      },
+      () =>
+        import('./plugins/source-overlay.js').then((m) =>
+          m.litSourceOverlay(ctx)
+        )
+    ),
+    lazyServePlugin(
+      {
+        name: 'lit-plugin',
+        hooks: {
+          config: {},
+          resolveId: {},
+          load: {},
+          transform: {},
+          transformIndexHtml: {},
+        },
+      },
+      () => import('./plugins/hmr.js').then((m) => m.litHmr(ctx))
+    ),
+    lazyServePlugin(
+      {name: 'lit-devtools-workspace', hooks: {configureServer: {}}},
+      () =>
+        import('./plugins/devtools-workspace.js').then((m) =>
+          m.litDevtoolsWorkspace(ctx)
+        )
+    ),
+    lazyServePlugin(
+      {
+        name: 'lit-manifest-links',
+        hooks: {configResolved: {}, transformIndexHtml: {}},
+      },
+      () =>
+        import('./plugins/manifest-links.js').then((m) =>
+          m.litManifestLinks(ctx)
+        )
+    ),
   ];
   // The one construction-time decision. An explicit `timeline: false` is final
   // (env can't override it), so it keeps the devframe plugin out of Vite
@@ -69,14 +128,29 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
   // `setup()` skips mounting while `enabled()` stays false.
   if (devtools) {
     plugins.push(
-      createLitDevframePlugin({
-        version: PACKAGE_VERSION,
-        enabled: () => ctx.get().timeline,
-        features: () => toFeatureSettings(ctx.get()),
-        configuredEditor: () => configuredEditor(ctx.get()),
-        sourceLocator: () => ctx.locator(),
-        sourceDocs: () => sourceDocs,
-      })
+      lazyServePlugin(
+        {
+          name: 'devframe:lit',
+          hooks: {configureServer: {}},
+          devtools: {capabilities: {dev: true, build: false}},
+        },
+        async () => {
+          const [{createLitDevframePlugin}, {PACKAGE_VERSION}, docs] =
+            await Promise.all([
+              import('./devframe/vite.js'),
+              import('./devframe/paths.js'),
+              loadSourceDocs(),
+            ]);
+          return createLitDevframePlugin({
+            version: PACKAGE_VERSION,
+            enabled: () => ctx.get().timeline,
+            features: () => toFeatureSettings(ctx.get()),
+            configuredEditor: () => configuredEditor(ctx.get()),
+            sourceLocator: () => ctx.locator(),
+            sourceDocs: () => docs,
+          });
+        }
+      )
     );
   }
   return plugins;
