@@ -211,8 +211,19 @@ const SHOTS = [
       await app.locator('fh-product-card').nth(1).scrollIntoViewIfNeeded();
       await rows.filter({hasText: 'fh-product-card'}).nth(1).click();
       await panel.locator('components-view .details h2').waitFor();
-      // Off the tree, so its hover highlight leaves the page.
-      await panel.mouse.move(0, 0);
+      // Marks the price down from the details pane. The card on the page
+      // shows the override, and the row its switch and the price it hides.
+      // Not the Anatomy row of the `price` slot.
+      const price = panel
+        .locator('components-view .entry:not(.region)')
+        .filter({has: panel.locator('.name', {hasText: /^price$/})});
+      await price.locator('.name').hover();
+      await price.locator('.edit').click();
+      await price.locator('.edit-input').fill('39');
+      await price.locator('.edit-input').press('Enter');
+      await price.locator('.override-toggle').waitFor();
+      // On the row, so its edit button shows.
+      await price.locator('.name').hover();
       await sleep(800);
       return {app, panel};
     },
