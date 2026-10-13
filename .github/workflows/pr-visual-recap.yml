@@ -1,8 +1,9 @@
 # Copied from BuilderIO/agent-native .github/workflows/pr-visual-recap.yml (keeps the name `recap setup` and `recap doctor` expect).
-# Changes: node-version 26 (package.json devEngines needs >=26, or npm refuses
-# to run in the repo root), and the Claude backend authenticates with CLAUDE_CODE_OAUTH_TOKEN
+# Changes: node-version 26 and npm_config_force on the recap job (package.json
+# devEngines needs node >=26 and pnpm, or npm refuses to run in the repo root),
+# and the Claude backend authenticates with CLAUDE_CODE_OAUTH_TOKEN
 # (claude setup-token) so recaps run on the Claude subscription instead of an
-# API key. Re-copy upstream to update, then reapply both changes.
+# API key. Re-copy upstream to update, then reapply these changes.
 
 name: PR Visual Recap
 
@@ -234,6 +235,9 @@ jobs:
       issues: write
       pull-requests: write
     env:
+      # package.json devEngines names pnpm, so npm and npx refuse to run in the
+      # repo root (EBADDEVENGINES) unless forced.
+      npm_config_force: 'true'
       PLAN_RECAP_APP_URL: ${{ secrets.PLAN_RECAP_APP_URL || 'https://plan.agent-native.com' }}
       PLAN_RECAP_TOKEN: ${{ secrets.PLAN_RECAP_TOKEN }}
       GH_TOKEN: ${{ github.token }}
