@@ -1,4 +1,5 @@
 import {execFile} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
 import {promisify} from 'node:util';
 import {afterAll, expect, test} from 'vite-plus/test';
 import {fsp, joinPath, tmpRoot} from './utils.js';
@@ -124,7 +125,7 @@ const buildWith = async (
     factory,
     root,
   ]);
-  const own = `file://${PACKAGE_ROOT}/`;
+  const own = `${pathToFileURL(PACKAGE_ROOT).href}/`;
   const modules = (JSON.parse(stdout) as string[])
     .filter((url) => url.startsWith(own) && !url.includes('/node_modules/'))
     .map((url) => url.slice(own.length))

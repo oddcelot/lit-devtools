@@ -51,10 +51,10 @@ alike.
 
 ### Keep dev code out of the build
 
-`litPlugin()` doesn't load its dev-only code until the dev server starts. HMR,
-the source overlay and the DevTools panel are imported in a hook that
-`vite build` never calls, so a build loads only the options and the CSS
-plugins.
+`litPlugin()` doesn't load its dev-only code until the dev server (or
+`vite preview`) starts. HMR, the source overlay and the DevTools panel are
+imported in a hook that `vite build` never calls, so a build loads only the
+options and the CSS plugins.
 
 If you want the build to depend on less than that, use `litCss()` from the
 `/build` entry for builds. It carries only what a build uses: the CSS queries,

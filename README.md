@@ -71,9 +71,9 @@ builds are untouched. The CSS queries (`?hmr-url`, `?css-sheet`) and Lightning
 CSS literal processing apply in both dev and build.
 
 The dev-only code (HMR, the source overlay, DevTools) is imported only when
-the dev server starts, so `vite build` never loads it. For a build config that
-depends on even less, use the build-only entry, which carries just the CSS
-plugins:
+the dev server (or `vite preview`) starts, so `vite build` never loads it. For
+a build config that depends on even less, use the build-only entry, which
+carries just the CSS plugins:
 
 ```ts
 import {litCss} from '@oddsquad/vite-plugin-lit/build';

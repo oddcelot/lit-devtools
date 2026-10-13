@@ -54,6 +54,43 @@ const orderOf = (hook: unknown): Order | undefined =>
     ? (hook as {order?: Order}).order
     : undefined;
 
+const devtoolsMismatch = (
+  shape: LazyPluginShape,
+  real: Plugin
+): string | undefined => {
+  if ('devtools' in real !== (shape.devtools !== undefined)) {
+    return 'devtools hook mismatch';
+  }
+  // The shell publishes the declared capabilities, not the real plugin's.
+  const capabilities = (real as {devtools?: DevtoolsHook}).devtools
+    ?.capabilities;
+  if (
+    shape.devtools &&
+    JSON.stringify(capabilities) !== JSON.stringify(shape.devtools.capabilities)
+  ) {
+    return 'devtools capabilities differ';
+  }
+  return undefined;
+};
+
+const hookMismatch = (
+  hook: string,
+  order: Order | undefined,
+  defined: unknown
+): string | undefined => {
+  if (defined === undefined) return `declared hook ${hook} is missing`;
+  if (orderOf(defined) !== order) return `hook ${hook} has a different order`;
+  // The shell rebuilds an object hook from `order` and `handler` alone, so
+  // a `filter` or `sequential` on the real hook would be lost.
+  const dropped =
+    typeof defined === 'object' && defined !== null
+      ? Object.keys(defined).filter((k) => k !== 'order' && k !== 'handler')
+      : [];
+  return dropped.length > 0
+    ? `hook ${hook} sets ${dropped.join(', ')}, which the shell drops`
+    : undefined;
+};
+
 /**
  * Throws when the real plugin no longer matches its declared shape: a hook the
  * shell doesn't forward would otherwise never run, without any error.
@@ -66,17 +103,15 @@ const assertShape = (shape: LazyPluginShape, real: Plugin): void => {
   };
   if (real.name !== shape.name) fail(`real plugin is named ${real.name}`);
   if (real.enforce !== shape.enforce) fail(`enforce is ${real.enforce}`);
-  if ('devtools' in real !== (shape.devtools !== undefined)) {
-    fail('devtools hook mismatch');
-  }
+  const devtools = devtoolsMismatch(shape, real);
+  if (devtools) fail(devtools);
   for (const key of Object.keys(real)) {
     if (META_KEYS.has(key)) continue;
     if (!(key in shape.hooks)) fail(`hook ${key} is not declared`);
   }
   for (const [hook, {order} = {}] of Object.entries(shape.hooks)) {
-    const defined = hookOf(real, hook);
-    if (defined === undefined) fail(`declared hook ${hook} is missing`);
-    if (orderOf(defined) !== order) fail(`hook ${hook} has a different order`);
+    const mismatch = hookMismatch(hook, order, hookOf(real, hook));
+    if (mismatch) fail(mismatch);
   }
 };
 

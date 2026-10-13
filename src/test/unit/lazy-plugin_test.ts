@@ -76,7 +76,11 @@ describe('lazyServePlugin', () => {
     const setup = vi.fn();
     const shell = lazyServePlugin(
       {name: 'lit-test', hooks: {}, devtools: {capabilities: {dev: true}}},
-      async () => ({name: 'lit-test', devtools: {setup}}) as Plugin
+      async () =>
+        ({
+          name: 'lit-test',
+          devtools: {capabilities: {dev: true}, setup},
+        }) as Plugin
     );
     const devtools = (shell as {devtools: {capabilities: unknown; setup: Hook}})
       .devtools;
@@ -100,11 +104,28 @@ describe('lazyServePlugin', () => {
       ['a different order', {transformIndexHtml: () => []}, /different order/],
       ['a different enforce', {enforce: 'post'}, /enforce is post/],
       ['a different name', {name: 'other'}, /named other/],
+      [
+        'a hook option the shell drops',
+        {transformIndexHtml: {order: 'pre', filter: {}, handler: () => []}},
+        /transformIndexHtml sets filter, which the shell drops/,
+      ],
     ] as const)('%s', async (_, overrides, message) => {
       const shell = lazyServePlugin(SHAPE, async () =>
         realPlugin(overrides as Partial<Plugin>)
       );
       await expect(configOf(shell)).rejects.toThrow(message);
+    });
+
+    test('different devtools capabilities', async () => {
+      const shell = lazyServePlugin(
+        {name: 'lit-test', hooks: {}, devtools: {capabilities: {dev: true}}},
+        async () =>
+          ({
+            name: 'lit-test',
+            devtools: {capabilities: {dev: false}, setup: () => {}},
+          }) as Plugin
+      );
+      await expect(configOf(shell)).rejects.toThrow(/capabilities differ/);
     });
   });
 });
