@@ -1,4 +1,4 @@
-# Copied from BuilderIO/agent-native .github/workflows/pr-visual-recap.yml.
+# Copied from BuilderIO/agent-native .github/workflows/pr-visual-recap.yml (keeps the name `recap setup` and `recap doctor` expect).
 # Only change: the Claude backend authenticates with CLAUDE_CODE_OAUTH_TOKEN
 # (claude setup-token) so recaps run on the Claude subscription instead of an
 # API key. Re-copy upstream to update, then reapply that change.
