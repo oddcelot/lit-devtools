@@ -2,16 +2,16 @@
 /**
  * The build-only half of `litPlugin()`: the plugins a production build needs
  * (CSS import queries, Lightning CSS for `css` literals, the timeline stub)
- * and nothing else. Use it for builds and keep `litPlugin()` for the dev
- * server, so HMR, the source overlay and the DevTools panel are never even
- * imported into the build:
+ * and nothing else. `litPlugin()` already defers its dev-only code to the dev
+ * server; this is for a build config that shouldn't depend on even the
+ * options layer and the lazy shells:
  *
  * ```ts
  * plugins: [command === 'serve' ? litPlugin() : litCss()]
  * ```
  *
  * Nothing reachable from this module may import dev-only code;
- * `build-entry_test.ts` walks its import graph to keep it that way.
+ * `entry-imports_test.ts` walks its import graph to keep it that way.
  *
  * @module
  */

@@ -70,8 +70,10 @@ The HMR feature only applies to the dev server (`apply: 'serve'`); production
 builds are untouched. The CSS queries (`?hmr-url`, `?css-sheet`) and Lightning
 CSS literal processing apply in both dev and build.
 
-To keep dev code out of the build process entirely, use the build-only entry
-for builds: it imports nothing from HMR, the source overlay or DevTools.
+The dev-only code (HMR, the source overlay, DevTools) is imported only when
+the dev server starts, so `vite build` never loads it. For a build config that
+depends on even less, use the build-only entry, which carries just the CSS
+plugins:
 
 ```ts
 import {litCss} from '@oddsquad/vite-plugin-lit/build';

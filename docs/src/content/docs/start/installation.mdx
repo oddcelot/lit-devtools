@@ -51,10 +51,13 @@ alike.
 
 ### Keep dev code out of the build
 
-The dev-only plugins skip themselves under `vite build`, but importing
-`litPlugin()` still loads their code, and that of the DevTools panel, into the
-build process. To keep it out entirely, give builds `litCss()` from the
-`/build` entry instead. It carries only what a build uses: the CSS queries,
+`litPlugin()` doesn't load its dev-only code until the dev server starts. HMR,
+the source overlay and the DevTools panel are imported in a hook that
+`vite build` never calls, so a build loads only the options and the CSS
+plugins.
+
+If you want the build to depend on less than that, use `litCss()` from the
+`/build` entry for builds. It carries only what a build uses: the CSS queries,
 Lightning CSS for `css` literals, and the no-op timeline stub.
 
 ```ts
@@ -69,8 +72,8 @@ export default defineConfig(({command}) => ({
 ```
 
 `litCss()` takes `cssSheetBuild` and reads `LIT_PLUGIN_CSS_SHEET_BUILD` the
-same way `litPlugin()` does. A unit test walks the entry's import graph so it
-can't start pulling in dev code unnoticed.
+same way `litPlugin()` does. A unit test walks both entries' import graphs so
+neither can start pulling in dev code unnoticed.
 
 ## Add the types
 
