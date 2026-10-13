@@ -191,22 +191,30 @@ const sourceMaps = createSourceMapResolver({
 
 /**
  * The page's `<link rel="custom-elements-manifest">` URLs. `href` reads back
- * absolute, resolved against the document's base URL. None outside DevTools.
+ * absolute, resolved against the document's base URL. Outside DevTools (the
+ * test seam) they are read with `chrome.scripting` instead.
  */
-const manifestLinks = (): Promise<string[]> =>
-  new Promise((resolve) => {
-    if (devtools === undefined) {
-      resolve([]);
-      return;
-    }
+const manifestLinks = async (): Promise<string[]> => {
+  const query = `link[rel~=${JSON.stringify(MANIFEST_LINK_REL)}]`;
+  if (devtools === undefined) {
+    const [result] = await chrome.scripting.executeScript({
+      target: {tabId},
+      func: (selector: string) =>
+        [...document.querySelectorAll<HTMLLinkElement>(selector)].map(
+          (l) => l.href
+        ),
+      args: [query],
+    });
+    return Array.isArray(result?.result) ? result.result : [];
+  }
+  return new Promise((resolve) =>
     devtools.inspectedWindow.eval<string[]>(
-      `[...document.querySelectorAll('link[rel~=${JSON.stringify(
-        MANIFEST_LINK_REL
-      )}]')].map((l) => l.href)`,
+      `[...document.querySelectorAll(${JSON.stringify(query)})].map((l) => l.href)`,
       (urls, exception) =>
         resolve(!exception && Array.isArray(urls) ? urls : [])
-    );
-  });
+    )
+  );
+};
 
 // Component docs from the manifests the page links to, under the same rule
 // as sourcemaps: fetched from here, and only from the enabled site.
