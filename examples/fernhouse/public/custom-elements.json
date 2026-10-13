@@ -1,0 +1,544 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-app.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "The shop: the header, this week's plants and the toast. Provides the cart\nto every component below it through `@lit/context`, and adds to it when a\ncard fires `add-to-cart`.",
+          "name": "FhApp",
+          "members": [
+            {
+              "kind": "field",
+              "name": "cart",
+              "type": {
+                "text": "Cart"
+              },
+              "privacy": "private",
+              "default": "{items: []}"
+            },
+            {
+              "kind": "field",
+              "name": "query",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "toast",
+              "type": {
+                "text": "FhToast"
+              },
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#onAdd",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "CustomEvent<CartItem>"
+                  }
+                }
+              ]
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-app",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhApp",
+          "declaration": {
+            "name": "FhApp",
+            "module": "src/fh-app.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-app",
+          "declaration": {
+            "name": "FhApp",
+            "module": "src/fh-app.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-cart-button.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "The cart button with its item count. Reads the cart from the nearest\n`<fh-app>` through `@lit/context`.",
+          "name": "FhCartButton",
+          "members": [
+            {
+              "kind": "field",
+              "name": "cart",
+              "type": {
+                "text": "Cart | undefined"
+              },
+              "privacy": "private"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-cart-button",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhCartButton",
+          "declaration": {
+            "name": "FhCartButton",
+            "module": "src/fh-cart-button.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-cart-button",
+          "declaration": {
+            "name": "FhCartButton",
+            "module": "src/fh-cart-button.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-header.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "The shop's name, the search field and the cart button, along the top of\nthe page.",
+          "name": "FhHeader",
+          "members": [],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-header",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhHeader",
+          "declaration": {
+            "name": "FhHeader",
+            "module": "src/fh-header.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-header",
+          "declaration": {
+            "name": "FhHeader",
+            "module": "src/fh-header.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-product-card.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A plant in the shop: its picture, name, price and an **Add to cart**\nbutton. Adding marks the card as in the cart and tells the page, which\nupdates the cart and shows a toast.",
+          "name": "FhProductCard",
+          "cssParts": [
+            {
+              "description": "The plant's name.",
+              "name": "title"
+            },
+            {
+              "description": "The **Add to cart** button.",
+              "name": "cta"
+            }
+          ],
+          "slots": [
+            {
+              "description": "The plant's picture, filling the top of the card.",
+              "name": "media"
+            },
+            {
+              "description": "Replaces the price, e.g. with a sale price. Falls back to `price` in euros.",
+              "name": "price"
+            },
+            {
+              "description": "A line about the plant, under its name.",
+              "name": ""
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "productId",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The product's id in `products.ts`, sent with `add-to-cart`.",
+              "attribute": "productId"
+            },
+            {
+              "kind": "field",
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The plant's name, shown as the card's title.",
+              "attribute": "name"
+            },
+            {
+              "kind": "field",
+              "name": "price",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The price in euros, shown unless the `price` slot is filled.",
+              "attribute": "price"
+            },
+            {
+              "kind": "field",
+              "name": "badge",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A label over the picture, such as `Bestseller`. Empty for none.",
+              "attribute": "badge"
+            },
+            {
+              "kind": "field",
+              "name": "inCart",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false",
+              "description": "True once something from this card is in the cart."
+            },
+            {
+              "kind": "method",
+              "name": "#add",
+              "privacy": "private"
+            }
+          ],
+          "events": [
+            {
+              "name": "add-to-cart",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "When the button is clicked. `detail` carries the product's `id`, `name` and `price`."
+            }
+          ],
+          "attributes": [
+            {
+              "name": "productId",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The product's id in `products.ts`, sent with `add-to-cart`.",
+              "fieldName": "productId"
+            },
+            {
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The plant's name, shown as the card's title.",
+              "fieldName": "name"
+            },
+            {
+              "name": "price",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The price in euros, shown unless the `price` slot is filled.",
+              "fieldName": "price"
+            },
+            {
+              "name": "badge",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "A label over the picture, such as `Bestseller`. Empty for none.",
+              "fieldName": "badge"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-product-card",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhProductCard",
+          "declaration": {
+            "name": "FhProductCard",
+            "module": "src/fh-product-card.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-product-card",
+          "declaration": {
+            "name": "FhProductCard",
+            "module": "src/fh-product-card.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-reviews.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A product's rating and its reviews, a page at a time. **More reviews**\nloads the next page.",
+          "name": "FhReviews",
+          "members": [
+            {
+              "kind": "field",
+              "name": "productId",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Whose reviews to load: an id from `products.ts`.",
+              "attribute": "product-id"
+            },
+            {
+              "kind": "field",
+              "name": "page",
+              "type": {
+                "text": "number"
+              },
+              "privacy": "private",
+              "default": "0"
+            },
+            {
+              "kind": "field",
+              "name": "#reviews",
+              "privacy": "private",
+              "default": "new Task(this, { task: ([productId, page], {signal}) => fetchReviews(productId, page, signal), args: () => [this.productId, this.page] as const, })"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "product-id",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "Whose reviews to load: an id from `products.ts`.",
+              "fieldName": "productId"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-reviews",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhReviews",
+          "declaration": {
+            "name": "FhReviews",
+            "module": "src/fh-reviews.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-reviews",
+          "declaration": {
+            "name": "FhReviews",
+            "module": "src/fh-reviews.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-search.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "The search field. The shop filters its plants by what is typed.",
+          "name": "FhSearch",
+          "members": [
+            {
+              "kind": "field",
+              "name": "query",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''",
+              "description": "What has been typed. The panel shows it under State."
+            },
+            {
+              "kind": "method",
+              "name": "#onInput",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "e",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ]
+            }
+          ],
+          "events": [
+            {
+              "name": "search-changed",
+              "type": {
+                "text": "CustomEvent"
+              },
+              "description": "On each keystroke. `detail` is the text typed so far."
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-search",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhSearch",
+          "declaration": {
+            "name": "FhSearch",
+            "module": "src/fh-search.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-search",
+          "declaration": {
+            "name": "FhSearch",
+            "module": "src/fh-search.ts"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/fh-toast.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "A short message at the bottom of the page, such as which plant was just\nadded to the cart.",
+          "name": "FhToast",
+          "members": [
+            {
+              "kind": "field",
+              "name": "message",
+              "type": {
+                "text": "string"
+              },
+              "privacy": "private",
+              "default": "''"
+            },
+            {
+              "kind": "field",
+              "name": "visible",
+              "type": {
+                "text": "boolean"
+              },
+              "privacy": "private",
+              "default": "false"
+            },
+            {
+              "kind": "field",
+              "name": "#timer",
+              "privacy": "private",
+              "type": {
+                "text": "number | undefined"
+              }
+            },
+            {
+              "kind": "method",
+              "name": "show",
+              "parameters": [
+                {
+                  "name": "message",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Show a message for a moment. Called by <fh-app> after an add-to-cart."
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "fh-toast",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "FhToast",
+          "declaration": {
+            "name": "FhToast",
+            "module": "src/fh-toast.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "fh-toast",
+          "declaration": {
+            "name": "FhToast",
+            "module": "src/fh-toast.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

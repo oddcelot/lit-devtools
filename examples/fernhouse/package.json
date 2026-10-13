@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "stackblitz": "node stackblitz.mjs"
+    "stackblitz": "node stackblitz.mjs",
+    "manifest": "pnpm dlx --allow-build=rs-module-lexer --package=@custom-elements-manifest/analyzer@0.11.0 cem analyze --litelement --globs 'src/fh-*.ts' --outdir public"
   },
   "dependencies": {
     "@lit/context": "^1.1.6",
@@ -23,5 +24,6 @@
   "stackblitz": {
     "installDependencies": true,
     "startCommand": "npm run stackblitz"
-  }
+  },
+  "customElements": "public/custom-elements.json"
 }

@@ -3,6 +3,10 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {Task} from '@lit/task';
 import {fetchReviews} from './products';
 
+/**
+ * A product's rating and its reviews, a page at a time. **More reviews**
+ * loads the next page.
+ */
 @customElement('fh-reviews')
 export class FhReviews extends LitElement {
   static styles = css`
@@ -39,6 +43,7 @@ export class FhReviews extends LitElement {
     }
   `;
 
+  /** Whose reviews to load: an id from `products.ts`. */
   @property({attribute: 'product-id'}) productId = '';
   @state() private page = 0;
 

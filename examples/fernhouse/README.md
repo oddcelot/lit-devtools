@@ -62,7 +62,9 @@ panel is behind the flame icon:
   slots and parts and what fills each. The price slot shows its fallback,
   except on the Golden Pothos, which fills it with a sale price.
   `<fh-cart-button>` shows the cart context it consumes, with a link to
-  `<fh-app>`, which provides it.
+  `<fh-app>`, which provides it. The details pane also shows each
+  component's docs, read from the JSDoc in its source: the card's
+  description, what each slot and part is for, and its `add-to-cart` event.
 - **Timeline** records once you press **Record**. Turn on the **Mouse**,
   **Keyboard** and **Custom events** layers first; they start off. Then click
   **Add to cart** on the Fiddle Leaf Fig: in the list, a cause rail links the
@@ -85,9 +87,17 @@ npm run preview
 Open the preview with the extension installed, open DevTools and enable it
 for the site from the **Lit** tab. Its panel lists the same components, with
 their slots, parts, context and timeline, and the sourcemaps tell it where
-each is defined: `src/fh-product-card.ts:4` for a card. A production build of
+each is defined: `src/fh-product-card.ts:18` for a card. A production build of
 Lit sends no render events, so those layers stay empty. The dock above is dev-only; the
 extension is how you look at a build.
+
+The extension has no source to read docs from, so `index.html` links
+`public/custom-elements.json`, a Custom Elements Manifest generated from the
+same JSDoc. After changing a component's docs, regenerate it:
+
+```sh
+pnpm run manifest
+```
 
 ## In this repository
 

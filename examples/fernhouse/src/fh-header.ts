@@ -3,6 +3,10 @@ import {customElement} from 'lit/decorators.js';
 import './fh-search';
 import './fh-cart-button';
 
+/**
+ * The shop's name, the search field and the cart button, along the top of
+ * the page.
+ */
 @customElement('fh-header')
 export class FhHeader extends LitElement {
   static styles = css`

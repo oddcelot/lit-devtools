@@ -10,6 +10,11 @@ import './fh-reviews';
 import './fh-toast';
 import type {FhToast} from './fh-toast';
 
+/**
+ * The shop: the header, this week's plants and the toast. Provides the cart
+ * to every component below it through `@lit/context`, and adds to it when a
+ * card fires `add-to-cart`.
+ */
 @customElement('fh-app')
 export class FhApp extends LitElement {
   static styles = css`

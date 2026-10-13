@@ -3,6 +3,10 @@ import {customElement, state} from 'lit/decorators.js';
 import {consume} from '@lit/context';
 import {cartContext, type Cart} from './cart-context';
 
+/**
+ * The cart button with its item count. Reads the cart from the nearest
+ * `<fh-app>` through `@lit/context`.
+ */
 @customElement('fh-cart-button')
 export class FhCartButton extends LitElement {
   static styles = css`
