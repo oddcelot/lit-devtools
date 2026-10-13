@@ -12,7 +12,9 @@ export const stores = {
   },
   firefox: {
     name: 'Firefox Add-ons',
-    url: undefined as string | undefined,
+    url: 'https://addons.mozilla.org/firefox/addon/lit-inspector/' as
+      | string
+      | undefined,
   },
 };
 

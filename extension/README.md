@@ -5,9 +5,9 @@ production builds, sites you don't serve, pages whose CSP would refuse the
 `<script>` tag `lit-devtools dev` prints. The browser injects the runtime
 itself, so the page's `script-src` doesn't apply.
 
-Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/lit-inspector/faojnglflincboehhgkjgehnapjgiieh?utm_source=github&utm_medium=readme&utm_campaign=extension-readme).
-The Firefox version isn't on addons.mozilla.org yet; see
-[Firefox](#firefox). The extension isn't part of the npm package.
+Install it from the [Chrome Web Store](https://chromewebstore.google.com/detail/lit-inspector/faojnglflincboehhgkjgehnapjgiieh?utm_source=github&utm_medium=readme&utm_campaign=extension-readme)
+or [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/lit-inspector/?utm_source=github&utm_medium=readme&utm_campaign=extension-readme).
+The extension isn't part of the npm package.
 It is an independent tool, not affiliated with Google, Mozilla or the Lit
 project.
 Its privacy policy is on the docs site:
