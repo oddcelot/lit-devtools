@@ -3,6 +3,25 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.17.1 — 2026-10-13
+
+A small patch: Lit Inspector is now on Firefox Add-ons, and the Timeline list
+no longer jumps back to the newest event while you read further up. Nothing
+needs action to upgrade.
+
+### Added
+
+- **Lit Inspector is on Firefox Add-ons.** Install it with **Add to Firefox**
+  from addons.mozilla.org and Firefox keeps it up to date, instead of loading
+  a temporary add-on from a release after every restart.
+
+### Fixed
+
+- **The Timeline list stays where you scrolled it.** New events no longer
+  pull the list back to the newest row while you read further up, open an
+  update or follow an `#event=` link; at the end of the list it still follows
+  them, now all the way to the last row.
+
 ## 0.17.0 — 2026-10-12
 
 The Components tab now explains a component and lets you change it. Its details
