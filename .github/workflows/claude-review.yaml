@@ -1,29 +1,72 @@
 name: Claude review
 
+# Runs on request rather than on every push: when the repository owner
+# comments `/review` on a pull request, or marks their own pull request ready
+# for review. A repeat review reads the previous one and checks its findings
+# against the commits since (see .claude/skills/pr-review).
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, reopened]
+    types: [ready_for_review]
+  issue_comment:
+    types: [created]
 
-# A new push makes the review of the previous head moot.
+# A new request makes the running review of the same PR moot. Any other
+# comment gets a group of its own, so it never cancels a review.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  group: >-
+    ${{ github.workflow }}-${{
+      (github.event_name == 'pull_request'
+        || (github.event.issue.pull_request && startsWith(github.event.comment.body, '/review')))
+      && (github.event.pull_request.number || github.event.issue.number)
+      || github.run_id }}
   cancel-in-progress: true
 
 jobs:
   review:
-    # Fork PRs get no secrets, and drafts aren't ready to read.
-    if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
+    # Only the owner's own requests: their PR going ready, or their `/review`
+    # comment. Fork PRs get no secrets and are refused in the first step.
+    if: >-
+      (github.event_name == 'pull_request'
+        && github.event.pull_request.user.login == github.repository_owner
+        && github.event.pull_request.head.repo.full_name == github.repository)
+      || (github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && github.event.issue.state == 'open'
+        && startsWith(github.event.comment.body, '/review')
+        && github.event.comment.user.login == github.repository_owner)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
       pull-requests: write
-      issues: read
+      issues: write
       id-token: write
       actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
     steps:
+      - name: Resolve pull request
+        id: pr
+        env:
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = issue_comment ]; then
+            gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" \
+              -f content=eyes --silent
+          fi
+          read -r HEAD CROSS < <(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json headRefOid,isCrossRepository --jq '"\(.headRefOid) \(.isCrossRepository)"')
+          if [ "$CROSS" = true ]; then
+            echo "::error::Fork pull requests get no review: their code would run with the repository's secrets."
+            exit 1
+          fi
+          echo "head=$HEAD" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # A comment event checks out the default branch otherwise.
+          ref: ${{ steps.pr.outputs.head }}
           fetch-depth: 0
           persist-credentials: false
       - uses: anthropics/claude-code-action@v1
@@ -36,7 +79,7 @@ jobs:
           # Temporary: the first runs failed before any model call with the
           # output hidden. Drop once a review completes.
           show_full_output: true
-          prompt: '/pr-review ${{ github.repository }}/pull/${{ github.event.pull_request.number }}'
+          prompt: '/pr-review ${{ github.repository }}/pull/${{ env.PR_NUMBER }}'
           # The inline-comment MCP server only starts when --allowedTools names it.
           claude_args: |
             --model claude-opus-5-5
