@@ -1,6 +1,12 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
 
+/**
+ * The search field. The shop filters its plants by what is typed.
+ *
+ * @fires search-changed - On each keystroke. `detail` is the text typed so
+ *   far.
+ */
 @customElement('fh-search')
 export class FhSearch extends LitElement {
   static styles = css`

@@ -1,6 +1,20 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 
+/**
+ * A plant in the shop: its picture, name, price and an **Add to cart**
+ * button. Adding marks the card as in the cart and tells the page, which
+ * updates the cart and shows a toast.
+ *
+ * @slot media - The plant's picture, filling the top of the card.
+ * @slot price - Replaces the price, e.g. with a sale price. Falls back to
+ *   `price` in euros.
+ * @slot - A line about the plant, under its name.
+ * @csspart title - The plant's name.
+ * @csspart cta - The **Add to cart** button.
+ * @fires add-to-cart - When the button is clicked. `detail` carries the
+ *   product's `id`, `name` and `price`.
+ */
 @customElement('fh-product-card')
 export class FhProductCard extends LitElement {
   static styles = css`
@@ -113,9 +127,13 @@ export class FhProductCard extends LitElement {
     }
   `;
 
+  /** The product's id in `products.ts`, sent with `add-to-cart`. */
   @property() productId = '';
+  /** The plant's name, shown as the card's title. */
   @property() name = '';
+  /** The price in euros, shown unless the `price` slot is filled. */
   @property({type: Number}) price = 0;
+  /** A label over the picture, such as `Bestseller`. Empty for none. */
   @property() badge = '';
   /** True once something from this card is in the cart. */
   @state() private inCart = false;
