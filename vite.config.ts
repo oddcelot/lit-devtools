@@ -129,6 +129,7 @@ export default defineConfig({
       '/assets/promo-video-v2/',
       '/assets/promo-video-extension/',
       '/assets/release-0.17.0/',
+      '/assets/release-0.18.0/',
     ],
   },
   fmt: {
@@ -154,6 +155,7 @@ export default defineConfig({
       '/assets/promo-video-v2/',
       '/assets/promo-video-extension/',
       '/assets/release-0.17.0/',
+      '/assets/release-0.18.0/',
     ],
   },
 });

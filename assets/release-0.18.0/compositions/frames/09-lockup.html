@@ -1,0 +1,168 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; src: url("assets/manrope-medium.woff2") format("woff2"); font-weight: 500; font-style: normal; }
+    @font-face { font-family: "Manrope"; src: url("assets/manrope-extrabold.woff2") format("woff2"); font-weight: 800; font-style: normal; }
+    @font-face { font-family: "Roboto Mono"; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: "Manrope", sans-serif;
+      color: #e3e3e3;
+    }
+    #root .clip { position: absolute; inset: 0; }
+    .f09-lockup-glow {
+      position: absolute;
+      left: 344px;
+      top: -570px;
+      width: 2000px;
+      height: 2000px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%, rgba(42, 44, 157, 0.35) 0%, rgba(42, 44, 157, 0.16) 40%, rgba(42, 44, 157, 0) 70%);
+    }
+    .f09-lockup-flame {
+      position: absolute;
+      left: 921px;
+      top: 211px;
+      width: 77px;
+      height: 96px;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .f09-lockup-flame img { display: block; width: 100%; height: 100%; }
+    .f09-lockup-title {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 365px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 84px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      white-space: nowrap;
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .f09-lockup-title .f09-lockup-ver { color: #00e8ff; }
+    .f09-lockup-pill-row {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 538px;
+      display: flex;
+      justify-content: center;
+    }
+    .f09-lockup-pill {
+      display: inline-flex;
+      align-items: baseline;
+      font-family: "Roboto Mono", monospace;
+      font-size: 31px;
+      line-height: 1.4;
+      color: #e3e3e3;
+      background: #121212;
+      border: 1px solid #363636;
+      border-radius: 99px;
+      padding: 17px 46px;
+      white-space: nowrap;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+      transform-origin: 50% 50%;
+      will-change: transform;
+    }
+    .f09-lockup-prompt { color: #616161; margin-right: 0.6em; }
+    .f09-lockup-wrap {
+      display: inline-flex;
+      align-items: baseline;
+      white-space: pre;
+    }
+    .f09-lockup-typed { display: inline-block; min-width: calc(37ch + 0.6em); white-space: pre; }
+    .f09-lockup-pkg { color: #89ddff; }
+    .f09-lockup-caret { display: inline-block; width: 0.5em; height: 1.05em; margin-left: 0.08em; background: #00e8ff; vertical-align: -0.18em; }
+    .f09-lockup-note {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 691px;
+      text-align: center;
+      font-weight: 500;
+      font-size: 25px;
+      color: #a1a1a1;
+    }
+  </style>
+
+  <div data-hf-id="hf-p7t5" id="root" data-composition-id="09-lockup" data-width="1920" data-height="1080" data-duration="4.795">
+    <div data-hf-id="hf-xb8b" id="f09-lockup-ground" class="clip" data-start="0" data-duration="4.795" data-track-index="0" style="background:#030308">
+      <div data-hf-id="hf-5e2k" class="f09-lockup-glow"></div>
+    </div>
+
+    <div data-hf-id="hf-rp3u" id="f09-lockup-stage" class="clip" data-start="0" data-duration="4.795" data-track-index="1">
+      <div data-hf-id="hf-k11m" class="f09-lockup-flame" id="f09-lockup-flame"><img data-hf-id="hf-8059" src="assets/flame.svg" alt=""></div>
+      <div data-hf-id="hf-2wn0" class="f09-lockup-title" id="f09-lockup-title">vite-plugin-lit <span data-hf-id="hf-v0gr" class="f09-lockup-ver">0.18.0</span></div>
+      <div data-hf-id="hf-px9t" class="f09-lockup-pill-row">
+        <div data-hf-id="hf-77wq" class="f09-lockup-pill" id="f09-lockup-pill">
+          <span data-hf-id="hf-t01e" class="f09-lockup-prompt">$</span>
+          <span data-hf-id="hf-ea7w" class="f09-lockup-wrap">
+            <span data-hf-id="hf-4tgk" class="f09-lockup-typed"><span data-hf-id="hf-sv5n" id="f09-lockup-cmd"></span><span data-hf-id="hf-aqxz" class="f09-lockup-pkg" id="f09-lockup-pkg"></span><span data-hf-id="hf-0bdj" class="f09-lockup-caret" id="f09-lockup-caret"></span></span>
+          </span>
+        </div>
+      </div>
+      <div data-hf-id="hf-btq0" class="f09-lockup-note" id="f09-lockup-note">Full notes in CHANGELOG.md</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var DUR = 5.3594;
+      var CMD = "pnpm add -D ";
+      var PKG = "@oddsquad/vite-plugin-lit";
+      var FULL = CMD + PKG;
+      var TYPE_START = 0.55;
+      var TYPE_END = 1.64;
+      var BLINK_HALF = 0.5;
+
+      var cmdEl = document.getElementById("f09-lockup-cmd");
+      var pkgEl = document.getElementById("f09-lockup-pkg");
+      var caretEl = document.getElementById("f09-lockup-caret");
+
+      function render(t) {
+        var n;
+        if (t <= TYPE_START) n = 0;
+        else if (t >= TYPE_END) n = FULL.length;
+        else n = Math.floor(((t - TYPE_START) / (TYPE_END - TYPE_START)) * FULL.length);
+        var shown = FULL.substring(0, n);
+        cmdEl.textContent = shown.substring(0, CMD.length);
+        pkgEl.textContent = shown.length > CMD.length ? shown.substring(CMD.length) : "";
+        var on = t < TYPE_END ? true : Math.floor((t - TYPE_END) / BLINK_HALF) % 2 === 0;
+        caretEl.style.opacity = on ? "1" : "0";
+      }
+
+      var tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (beat 0): flame + name spring in together.
+      tl.fromTo(document.getElementById("f09-lockup-flame"), { scale: 0, opacity: 0, y: 12 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0);
+      tl.fromTo(document.getElementById("f09-lockup-title"), { scale: 0.6, opacity: 0, y: 12 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.04);
+
+      // Scene 2 (beat 0.55): terminal pill springs in, command types, caret blinks.
+      tl.fromTo(document.getElementById("f09-lockup-pill"), { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "power3.out" }, 0.55);
+      var driver = { t: 0 };
+      tl.fromTo(driver, { t: 0 }, { t: DUR, duration: DUR, ease: "none", onUpdate: function () { render(driver.t); } }, 0);
+
+      // Scene 3 (beat 2.18): changelog note fades in, holds.
+      tl.fromTo(document.getElementById("f09-lockup-note"), { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 2.18);
+
+      // Final frame: last ~0.3s fades everything to the ground.
+      tl.to(document.getElementById("f09-lockup-stage"), { opacity: 0, duration: 0.3, ease: "power1.in" }, DUR - 0.3);
+
+      render(0);
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["09-lockup"] = tlOuter;
+    })();
+  </script>
+</template>
