@@ -36,6 +36,17 @@ export interface UnoSheetOptions {
   dir?: string;
   /** Files that count as source. Defaults to `.ts`, `.js` and `.html`. */
   include?: RegExp;
+  /**
+   * Emit the presets' preflights along with the utilities. Defaults to
+   * `false`.
+   *
+   * Wind4 needs this: its utilities read the `--spacing`, `--colors-*`
+   * variables from the `theme` preflight, and its `@property --un-*` rules
+   * come from the `properties` one. Turn it on and keep the global reset out
+   * of every shadow root at the preset,
+   * `presetWind4({preflights: {reset: false}})`.
+   */
+  preflights?: boolean;
 }
 
 /**
@@ -56,14 +67,17 @@ export interface UnoSheetOptions {
  * feeds each edited module through the same extractors and rewrites the file
  * when a new class shows up. A build never regenerates after `buildStart`.
  *
- * Preflights are off: the sheet carries utilities only. A preflight is a
- * global reset, and it would be repeated inside every shadow root.
+ * Preflights are off by default: the sheet carries utilities only, because a
+ * reset preflight would be repeated inside every shadow root. Wind4 keeps its
+ * theme variables in preflights too, so set `preflights: true` there and drop
+ * the reset with `presetWind4({preflights: {reset: false}})`.
  *
  * Put it before `litPlugin()`. It runs as an `enforce: 'pre'` plugin, so the
  * extractors read the source the way you wrote it.
  */
 export function unoSheet(options: UnoSheetOptions): Plugin {
   const include = options.include ?? /\.(ts|js|html)$/;
+  const preflights = options.preflights ?? false;
   const tokens = new Set<string>();
   let uno: Awaited<ReturnType<typeof createGenerator>> | undefined;
   let root = process.cwd();
@@ -73,7 +87,7 @@ export function unoSheet(options: UnoSheetOptions): Plugin {
 
   /** Generates the CSS for every token seen so far and writes it if it changed. */
   const write = async (generator: NonNullable<typeof uno>) => {
-    const {css} = await generator.generate(tokens, {preflights: false});
+    const {css} = await generator.generate(tokens, {preflights});
     // Writing identical bytes would still make Vite's watcher fire.
     if (css === written) {
       return;

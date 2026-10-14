@@ -166,8 +166,20 @@ class. In dev, a class you add to a component rewrites the file, and every
 adopter restyles in place. Gitignore `outFile`, since it is regenerated on
 every start.
 
-The sheet carries utilities only. A preflight reset is left out, because it
-would repeat inside every shadow root. Install `unocss` yourself. It is an
+The sheet carries utilities only. Preflights are left out by default, because
+a reset would repeat inside every shadow root. Wind4 keeps its theme variables
+(`--spacing`, `--colors-*`) and `@property` rules in preflights, so with
+`presetWind4()` pass `preflights: true` and drop the reset at the preset:
+
+```ts
+unoSheet({
+  config: {presets: [presetWind4({preflights: {reset: false}})]},
+  outFile: 'src/uno.css',
+  preflights: true,
+}),
+```
+
+Install `unocss` yourself. It is an
 optional peer of the plugin. The
 [CSS example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/css)
 runs this setup.
