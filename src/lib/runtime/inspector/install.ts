@@ -605,7 +605,10 @@ if (typeof window !== 'undefined') {
     if (applied) replyOverrides();
   };
 
-  /** Asks `cmd.id` to update; a watched element re-sends its details after. */
+  /**
+   * Asks `cmd.id` to update; a watched element re-sends its details after.
+   * The update's cause names the command, as for every command.
+   */
   const requestUpdate = (
     cmd: Extract<InspectorCommand, {type: 'request-update'}>
   ): void => {
@@ -616,7 +619,7 @@ if (typeof window !== 'undefined') {
       send({type: 'gone', id: cmd.id});
       return;
     }
-    withDevtoolsCause(() => el.requestUpdate?.());
+    el.requestUpdate?.();
   };
 
   /** Stores a row's value as the next free `tempN` and names it in the console. */
@@ -758,7 +761,9 @@ if (typeof window !== 'undefined') {
     const handler = commandHandlers[cmd.type] as
       | ((c: InspectorCommand) => void)
       | undefined;
-    handler?.(cmd);
+    // An edit, an override or Request update schedules updates the timeline
+    // should blame on the DevTools rather than leave without a cause.
+    if (handler !== undefined) withDevtoolsCause(cmd.type, () => handler(cmd));
   });
 
   // Announce readiness so a panel that loaded first re-requests the tree.

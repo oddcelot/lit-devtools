@@ -95,12 +95,12 @@ export const setUpdateCauseSource = (
 let devtools: SequencedCause | undefined;
 
 /**
- * Run `fn`, a DevTools command, so the updates it schedules carry a
- * `devtools` cause.
+ * Run `fn`, the DevTools command `command`, so the updates it schedules
+ * carry a `devtools` cause naming it.
  */
-export const withDevtoolsCause = <T>(fn: () => T): T => {
+export const withDevtoolsCause = <T>(command: string, fn: () => T): T => {
   const outer = devtools;
-  devtools = {cause: {kind: 'devtools'}, seq: nextCauseSeq()};
+  devtools = {cause: {kind: 'devtools', command}, seq: nextCauseSeq()};
   try {
     return fn();
   } finally {
