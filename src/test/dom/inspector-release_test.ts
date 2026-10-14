@@ -607,3 +607,38 @@ test('a keyed set-prop writes the leaf, then answers details and the parent leve
     },
   ]);
 });
+
+test('$lit in the console is the element the panel watches', async () => {
+  const {carrier, idOf} = await load();
+  const el = make();
+  document.body.append(el);
+  const $lit = () => (globalThis as {$lit?: unknown}).$lit;
+  expect($lit()).toBeUndefined();
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: idOf(el)});
+  expect($lit()).toBe(el);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+  expect($lit()).toBeUndefined();
+});
+
+test("leaves a page's own $lit alone", async () => {
+  const g = globalThis as {$lit?: unknown};
+  // As on a page the runtime never ran on before.
+  delete g.$lit;
+  delete (g as Record<symbol, unknown>)[
+    Symbol.for('@oddsquad/vite-plugin-lit#selection')
+  ];
+  Object.defineProperty(globalThis, '$lit', {
+    value: 'mine',
+    configurable: true,
+    writable: true,
+  });
+  try {
+    const {carrier, idOf} = await load();
+    const el = make();
+    document.body.append(el);
+    carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: idOf(el)});
+    expect(g.$lit).toBe('mine');
+  } finally {
+    delete g.$lit;
+  }
+});

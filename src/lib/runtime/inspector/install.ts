@@ -92,6 +92,29 @@ let onPanelArrived: (() => void) | undefined;
 // one rather than react to the first disconnect.
 const panels = new Set<string>();
 
+/** The console name of the panel's selection, as `$0` is the Elements panel's. */
+const SELECTION_GLOBAL = '$lit';
+/** Set on the global once `$lit` is ours, so a re-run runtime may replace it. */
+const SELECTION_OWNED = Symbol.for('@oddsquad/vite-plugin-lit#selection');
+
+/**
+ * Define `$lit` in the page's console: the element the panel has selected,
+ * or undefined while none is. A page that has a `$lit` of its own keeps it.
+ */
+const exposeSelection = (selected: () => Element | undefined): void => {
+  const g = globalThis as unknown as Record<symbol, unknown>;
+  if (SELECTION_GLOBAL in globalThis && g[SELECTION_OWNED] !== true) return;
+  try {
+    Object.defineProperty(globalThis, SELECTION_GLOBAL, {
+      get: selected,
+      configurable: true,
+    });
+    g[SELECTION_OWNED] = true;
+  } catch {
+    // A frozen global; the console goes without `$lit`.
+  }
+};
+
 if (typeof window !== 'undefined') {
   // The browser extension's "Reveal in Elements": DevTools' `inspectedWindow
   // .eval` runs in the page's main world and holds only the panel's numeric
@@ -228,6 +251,8 @@ if (typeof window !== 'undefined') {
     /** Push fresh details once, at the end of the current task. */
     queuePush: () => void;
   } | null = null;
+
+  exposeSelection(() => watched?.ref.deref());
 
   // An app write under an override renders nothing, so `updated` never
   // hears of it; the intrinsic value the pane shows would go stale.
