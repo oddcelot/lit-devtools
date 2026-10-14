@@ -11,7 +11,7 @@ import {
 } from 'node:fs/promises';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {createServer, type ViteDevServer} from 'vite';
+import {createServer, type Plugin, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {TimelineChannelCodec} from '../../lib/devframe/page-codec.js';
 import {fromViteHot} from '../../lib/runtime/page-transport.js';
@@ -82,6 +82,8 @@ export interface StartFixtureOptions {
   seedSettings?: Record<string, unknown>;
   /** `false` disables the plugin entirely (baseline runs). */
   plugin?: false | LitPluginOptions;
+  /** More plugins, ahead of the lit plugin, as a CSS framework's would be. */
+  plugins?: Plugin[];
 }
 
 export const startFixture = async (
@@ -149,10 +151,12 @@ export const startFixture = async (
     // hmr-custom-layer.ts imports `virtual:lit-plugin/timeline`) but drop the
     // HMR plugin — neither provides an HMR boundary, so the baseline's
     // full-reload claim is unaffected.
-    plugins:
-      options.plugin === false
+    plugins: [
+      ...(options.plugins ?? []),
+      ...(options.plugin === false
         ? [litCssQueries(), litTimelineVirtual()]
-        : [litPlugin(options.plugin ?? {})],
+        : [litPlugin(options.plugin ?? {})]),
+    ],
   });
   // Every watcher `change` since boot, so a timed-out wait after `edit` can
   // say whether the write ever reached Vite (see `stalledLayer`).

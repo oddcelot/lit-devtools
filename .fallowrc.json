@@ -72,7 +72,12 @@
     "updated",
     {
       "implements": "ReactiveController",
-      "members": ["hostConnected", "hostUpdate", "hostDisconnected"]
+      "members": [
+        "hostConnected",
+        "hostUpdate",
+        "hostUpdated",
+        "hostDisconnected"
+      ]
     }
   ],
   "ignoreUnresolvedImports": [
@@ -90,7 +95,8 @@
       "examples/flame",
       "examples/web-awesome",
       "examples/fernhouse",
-      "examples/css"
+      "examples/css",
+      "examples/tailwind"
     ]
   },
   "duplicates": {

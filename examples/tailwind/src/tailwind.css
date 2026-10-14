@@ -1,0 +1,12 @@
+/* Tailwind's theme variables and utilities, without the preflight reset: a
+   reset is global, and adopted into a shadow root it would repeat in every
+   component. `@tailwindcss/vite` fills in the utilities your source uses. */
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* `bg-brand`, `text-brand`, `ring-brand`, `from-brand`: edit the colour and
+   every component that adopts this sheet recolours in place. */
+@theme {
+  --color-brand: oklch(0.55 0.2 265);
+}

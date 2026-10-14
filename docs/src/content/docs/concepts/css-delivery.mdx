@@ -50,10 +50,9 @@ Both ways of sharing one sheet behave identically at runtime: one parse, one
 object, and a hot swap that restyles every adopter without re-rendering a
 component. They differ only in where the bytes live.
 
-`?css-sheet` and `urlSheet()` keep the CSS as a standalone, content-hashed
-`.css` asset. It is cacheable on its own, stays out of the JS chunks, and does
-not churn the bundle when a framework regenerates it on every keystroke in dev.
-The cost is FOUC: a brief flash of unstyled content while the stylesheet is
+In an app build, `?css-sheet` and `urlSheet()` keep the CSS as a standalone,
+content-hashed `.css` asset. It is cacheable on its own and stays out of the JS
+chunks. The cost is FOUC: a brief flash of unstyled content while the stylesheet is
 still loading, because the sheet is filled by a `fetch()` after the first
 components mount.
 
@@ -74,9 +73,12 @@ byte-identical to the import it refers to. Compute it, alias it, or move the
 accept call into a helper, and the update never arrives.
 
 `?css-sheet` exists to write that line for you. The plugin resolves the query to
-a generated module that imports the `.css` file `?url`, builds the sheet through
-`urlSheet()`, and emits the matching literal accept call beside it. You write a
-bare import. The swap is self-accepted at that generated boundary, so it never
+a generated module that imports the `.css` file `?inline`, builds the sheet from
+that text, and emits the matching literal accept call beside it. You write a
+bare import. It accepts the `?inline` module rather than fetching `?url`,
+because a framework that generates CSS from your source, like Tailwind, sends
+its updates through the CSS module it transformed and leaves `?url` imports
+alone. The swap is self-accepted at that generated boundary, so it never
 propagates to the components that adopted the sheet, and none of them
 re-renders.
 
