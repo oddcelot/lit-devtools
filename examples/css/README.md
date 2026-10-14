@@ -87,10 +87,11 @@ putting a copy of the CSS in each component's `<style>`. With many components
 that is many copies of the same bytes and many `CSSStyleSheet` objects.
 
 This example shares one instead. UnoCSS's Vite plugin serves its CSS from
-`virtual:uno.css`, which has no URL, and `?css-sheet` works by fetching a
-file's URL, so the two cannot meet. `uno-sheet.ts` is a small plugin that
-closes the gap. It reads the utility classes out of `src/` and writes them to
-`src/uno.generated.css`, a real file that is gitignored. The lit plugin does
+`virtual:uno.css`, which has no file behind it, and `?css-sheet` works by
+fetching a file's URL, so the two cannot meet. `unoSheet()` from
+`@oddsquad/vite-plugin-lit/uno` closes the gap. It reads the utility classes
+out of `src/` and writes them to `src/uno.generated.css`, a real file that is
+gitignored. The lit plugin does
 the rest: components that import it with `?css-sheet` adopt the same sheet,
 and when a new class makes the file change, the plugin swaps the rules inside
 that sheet without re-rendering the adopters.

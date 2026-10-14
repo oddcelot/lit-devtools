@@ -94,6 +94,50 @@ The `renders:` badge on each component is the proof. It does not move.
   it against your integration.
 </Aside>
 
+## Share UnoCSS utilities
+
+`unoSheet()` writes the UnoCSS utilities your source uses into a real `.css`
+file, so every component can adopt them as one shared sheet. UnoCSS's own
+plugin serves `virtual:uno.css`, which has no file behind it, so `?css-sheet`
+cannot wrap it directly.
+
+Add `unoSheet()` before `litPlugin()` and point it at the file to write.
+
+```ts title="vite.config.ts" ins={2,7-10}
+import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {unoSheet} from '@oddsquad/vite-plugin-lit/uno';
+import {presetWind3} from 'unocss';
+
+export default defineConfig({
+  plugins: [
+    unoSheet({
+      config: {presets: [presetWind3()]},
+      outFile: 'src/uno.css',
+    }),
+    litPlugin(),
+  ],
+});
+```
+
+Import the file with `?css-sheet`, like any other stylesheet.
+
+```ts title="src/my-card.ts"
+import uno from './uno.css?css-sheet';
+
+static styles = [uno];
+```
+
+It scans `src/` on start, so the first dev load and `vite build` have every
+class. In dev, a class you add to a component rewrites the file, and every
+adopter restyles in place. Gitignore `outFile`, since it is regenerated on
+every start.
+
+The sheet carries utilities only. A preflight reset is left out, because it
+would repeat inside every shadow root. Install `unocss` yourself. It is an
+optional peer of the plugin. The
+[CSS example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/css)
+runs this setup.
+
 ## Choose the build output
 
 Dev is always the fetch-backed HMR form. The build picks between a fetch and

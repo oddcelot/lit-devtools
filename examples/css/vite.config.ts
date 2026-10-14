@@ -1,8 +1,7 @@
-import path from 'node:path';
 import {defineConfig} from 'vite';
 import {presetWind3} from 'unocss';
 import {litPlugin} from '@oddsquad/vite-plugin-lit';
-import {unoSheet} from './uno-sheet.ts';
+import {unoSheet} from '@oddsquad/vite-plugin-lit/uno';
 
 export default defineConfig({
   // The Vite DevTools dock, where the plugin adds its Lit panel: the
@@ -44,10 +43,10 @@ export default defineConfig({
   plugins: [
     // Writes `src/uno.generated.css` from the classes in `src/`. It runs
     // before the lit plugin and has to: `css-utility-card.ts` imports the
-    // file with `?css-sheet`. See `uno-sheet.ts` for why it exists.
+    // file with `?css-sheet`. UnoCSS's own `virtual:uno.css` has no file
+    // behind it, so `?css-sheet` cannot wrap it.
     unoSheet({
-      outFile: path.resolve(import.meta.dirname, 'src/uno.generated.css'),
-      dir: 'src',
+      outFile: 'src/uno.generated.css',
       config: {
         // Wind3 is UnoCSS's Tailwind-compatible preset. `preflight: false`
         // drops its global reset, which a shadow root would not see anyway.

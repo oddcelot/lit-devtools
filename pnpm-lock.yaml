@@ -219,6 +219,9 @@ importers:
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
+      unocss:
+        specifier: ^66.10.5
+        version: 66.10.5(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(rolldown@1.2.11)(srvx@1.0.5)
       vite-plus:
         specifier: 'catalog:'
         version: 1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(@vitest/coverage-v8@5.0.1)(@vitest/ui@5.0.1)(esbuild@0.28.2)(happy-dom@20.14.5)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
@@ -5794,6 +5797,24 @@ snapshots:
     dependencies:
       '@unocss/core': 66.10.5
 
+  '@unocss/vite@66.10.5(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(srvx@1.0.5)':
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      '@unocss/config': 66.10.5
+      '@unocss/core': 66.10.5
+      '@unocss/inspector': 66.10.5(@devframes/agentic@1.1.0)(cac@7.0.0)(srvx@1.0.5)
+      chokidar: 5.0.0
+      magic-string: 1.4.2
+      pathe: 2.0.3
+      tinyglobby: 0.2.17
+      unplugin-utils: 0.3.2
+      vite: '@voidzero-dev/vite-plus-core@1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)'
+    transitivePeerDependencies:
+      - '@devframes/agentic'
+      - cac
+      - ocache
+      - srvx
+
   '@unocss/vite@66.10.5(@devframes/agentic@1.1.0)(cac@7.0.0)(srvx@1.0.5)(vite@8.3.2)':
     dependencies:
       '@jridgewell/remapping': 2.3.5
@@ -8241,6 +8262,35 @@ snapshots:
       '@types/unist': 3.0.3
       unist-util-is: 6.0.1
       unist-util-visit-parents: 6.0.2
+
+  unocss@66.10.5(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(rolldown@1.2.11)(srvx@1.0.5):
+    dependencies:
+      '@unocss/cli': 66.10.5
+      '@unocss/core': 66.10.5
+      '@unocss/preset-attributify': 66.10.5
+      '@unocss/preset-icons': 66.10.5
+      '@unocss/preset-mini': 66.10.5
+      '@unocss/preset-tagify': 66.10.5
+      '@unocss/preset-typography': 66.10.5
+      '@unocss/preset-uno': 66.10.5
+      '@unocss/preset-web-fonts': 66.10.5
+      '@unocss/preset-wind': 66.10.5
+      '@unocss/preset-wind3': 66.10.5
+      '@unocss/preset-wind4': 66.10.5
+      '@unocss/rollup': 66.10.5(rolldown@1.2.11)
+      '@unocss/transformer-attributify-jsx': 66.10.5
+      '@unocss/transformer-compile-class': 66.10.5
+      '@unocss/transformer-directives': 66.10.5
+      '@unocss/transformer-variant-group': 66.10.5
+      '@unocss/vite': 66.10.5(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(srvx@1.0.5)
+    transitivePeerDependencies:
+      - '@devframes/agentic'
+      - cac
+      - ocache
+      - rolldown
+      - rollup
+      - srvx
+      - vite
 
   unocss@66.10.5(@devframes/agentic@1.1.0)(cac@7.0.0)(rolldown@1.2.11)(srvx@1.0.5)(vite@8.3.2):
     dependencies:

@@ -6,7 +6,7 @@ import uno from './uno.generated.css?css-sheet';
 
 /**
  * UnoCSS utilities, delivered as one shared sheet. `uno.generated.css` is
- * written by `uno-sheet.ts`; importing it with `?css-sheet` gives every
+ * written by `unoSheet()` in `vite.config.ts`; importing it with `?css-sheet` gives every
  * component that does the same `CSSStyleSheet` object.
  *
  * Try: add a text-transform utility to the button's class list (the README

@@ -15,5 +15,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src", "uno-sheet.ts"]
+  "include": ["src"]
 }

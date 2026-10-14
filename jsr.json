@@ -5,7 +5,8 @@
     ".": "./index.js",
     "./build": "./build.js",
     "./css.js": "./lib/runtime/css.js",
-    "./connect.js": "./lib/runtime/rpc-transport.js"
+    "./connect.js": "./lib/runtime/rpc-transport.js",
+    "./uno": "./lib/uno-sheet.js"
   },
   "publish": {
     "include": [

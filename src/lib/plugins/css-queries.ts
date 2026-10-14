@@ -1,3 +1,4 @@
+import {existsSync} from 'node:fs';
 import type {Plugin} from 'vite';
 import type {CssSheetBuild} from '../css-sheet-build.js';
 import {resolveRuntimeModule} from './shared.js';
@@ -37,6 +38,15 @@ const CSS_SHEET_VIRTUAL_PREFIX = '\0lit-plugin:css-sheet:';
 const CSS_VIRTUAL_SUFFIX = '.js';
 
 /**
+ * Whether `id` is a module some plugin makes up, with no file behind it
+ * (`\0`-prefixed, or a path that isn't on disk, as UnoCSS resolves
+ * `virtual:uno.css` to under `vite build`). `?url` has nothing to serve or
+ * emit for one, so the sheet would load the wrong thing or fail the build.
+ */
+const isVirtualCss = (id: string): boolean =>
+  id.startsWith('\0') || !existsSync(id.split('?')[0]!);
+
+/**
  * Import-query support, served in dev and build alike (source code using
  * `?hmr-url`/`?css-sheet` must keep working under `vite build`, where the HMR
  * plugin doesn't apply). Exported for the baseline e2e run, which needs the
@@ -52,6 +62,7 @@ export const litCssQueries = (
 ): Plugin => {
   let isBuild = false;
   let isLib = false;
+  const warned = new Set<string>();
   return {
     name: 'lit-css-query',
     // Vite's core resolver claims `./x.css?hmr-url` for the CSS pipeline
@@ -74,6 +85,15 @@ export const litCssQueries = (
       const resolved = await this.resolve(file, importer);
       if (resolved === null) {
         return null;
+      }
+      if (isVirtualCss(resolved.id) && !warned.has(file)) {
+        warned.add(file);
+        this.warn(
+          `${id}: there is no file behind ${JSON.stringify(file)}, and ` +
+            `?css-sheet and ?hmr-url need one. For UnoCSS's virtual:uno.css, ` +
+            `write the utilities to a file with unoSheet() from ` +
+            `@oddsquad/vite-plugin-lit/uno and import that instead.`
+        );
       }
       return prefix + resolved.id + CSS_VIRTUAL_SUFFIX;
     },
