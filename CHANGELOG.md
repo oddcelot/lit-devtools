@@ -3,6 +3,89 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.18.0 — 2026-10-14
+
+Shared stylesheets now work with utility frameworks: UnoCSS utilities become
+one adopted sheet through `unoSheet()`, and Tailwind v4 classes you add in dev
+reach a `?css-sheet` with their shadows, rings and gradients intact. Builds got
+leaner: `vite build` no longer loads the dev tooling, and what the CSS queries
+emit carries no HMR code. The Components tab gains a Request update button, and
+the console gets `$lit` and Store as global variable. Nothing needs action to
+upgrade.
+
+### Added
+
+- **UnoCSS utilities can be one shared sheet across shadow roots.**
+  `unoSheet()` from `@oddsquad/vite-plugin-lit/uno` writes the utilities your
+  source uses to a `.css` file; import it with `?css-sheet` and every component
+  adopts the same `CSSStyleSheet`, swapped in place when a new class shows up.
+- **A Tailwind example.** Three components share Tailwind v4 utilities as one
+  adopted sheet, each counting its renders: change the brand colour and
+  everything recolours in place, add a class and the shared sheet gains it,
+  with shadows, rings and gradients working inside shadow roots.
+- **Production builds can leave the dev tooling out entirely.** Use `litCss()`
+  from `@oddsquad/vite-plugin-lit/build` for `vite build` and HMR, the source
+  overlay and DevTools are never imported into the build; it keeps the CSS
+  queries, `css` literal minification and `cssSheetBuild`.
+- **Request update from the Components tab.** A button beside the tag name
+  calls `requestUpdate()` on the selected element, and the Updates and Timeline
+  tabs name the DevTools as that update's cause.
+- **`$lit` in the console is the selected component.** Like `$0` in Elements,
+  it returns the element selected in the Components tab, in every host, so you
+  can call its methods or read its fields directly.
+- **Store a property as a global variable.** A button on each Properties,
+  State and Instance row puts the live value in `temp1`, `temp2`… on the page
+  and logs it in the console, so you can work with the object itself instead
+  of its preview.
+
+### Changed
+
+- **Builds carry no dev code, with no config change.** With plain
+  `litPlugin()`, `vite build` no longer imports HMR, the source overlay or the
+  DevTools panel, and a `?css-sheet` or `?hmr-url` import compiles without the
+  hot-swap callback and the dev-server fetch rewrite. `urlSheet()` and
+  `devCacheBust()` fold their dev branches away when minified.
+- **Edits and overrides show up as the update's cause.** Updates you cause by
+  editing or overriding a property in the Components tab now read "after edit
+  in DevTools" or "after override in DevTools" in the Updates and Timeline
+  tabs, instead of having no cause.
+- **`?css-sheet` on `virtual:uno.css` now tells you what to do instead.**
+  Importing a virtual CSS module with `?css-sheet` or `?hmr-url` warns that
+  there is no file behind it and points to `unoSheet()`, instead of failing
+  later with an error that doesn't mention the query.
+
+### Fixed
+
+- **`@property` rules in a `?css-sheet` now apply inside shadow roots.**
+  Browsers ignore `@property` in a shadow root, so properties a shared sheet
+  registered had no initial value there, and utilities built on them
+  (Tailwind's shadows, rings, transforms and gradients) rendered nothing. The
+  plugin now registers them on the document as well, and a build only ships
+  that code for sheets that have such a rule.
+- **Tailwind classes you add in dev reach the shared `?css-sheet`.** A class
+  written in a component now lands in the sheet every adopter shares and swaps
+  in place; before, only edits to the CSS file itself did. In dev the sheet is
+  built from the file's `?inline` text, so it no longer waits on a fetch
+  either.
+- **Component docs stay current.** Changing a component's JSDoc updates its
+  About, property and event descriptions on the next hot patch, and a Custom
+  Elements Manifest an analyzer rewrites shows up within a second or so, both
+  without selecting another tag and coming back.
+- **Sites that enforce Trusted Types keep working with the extension on.** On
+  a page whose CSP allows only Lit's own `lit-html` policy, enabling Lit
+  Inspector stopped the page's components from rendering. The injected runtime
+  no longer creates that policy, and its picker no longer needs one.
+- **Rendered at links into `index.html` open the right line.** In Chrome's
+  extension, an element written in `index.html` now opens that file at its
+  line in the Sources panel, instead of Vite's inline-script module at the top.
+- **SVG files on an enabled site open cleanly.** Viewing an `.svg` file
+  directly on a site where Lit Inspector is on no longer logs a
+  `configure is not a function` error.
+- **Unminified builds no longer print your project's absolute path.** With
+  `build.minify: false`, a `?css-sheet` or `?hmr-url` import's region comment
+  named the css file by its full path on disk; it now names it relative to the
+  project root.
+
 ## 0.17.1 — 2026-10-13
 
 A small patch: Lit Inspector is now on Firefox Add-ons, and the Timeline list
