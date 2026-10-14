@@ -112,7 +112,11 @@ const firefox = spawn(
     profile,
     '--no-remote',
   ],
-  {stdio: ['ignore', 'ignore', 'pipe']}
+  {
+    stdio: ['ignore', 'ignore', 'pipe'],
+    // Newer Firefox ignores the flag above and reads this instead.
+    env: {...process.env, MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1'},
+  }
 );
 let stderr = '';
 firefox.stderr.on('data', (chunk) => (stderr += chunk));
