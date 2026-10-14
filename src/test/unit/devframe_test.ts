@@ -5,7 +5,10 @@ import {TIMELINE_LAYERS} from '../../types/timeline.js';
 import {createLitDevframe} from '../../lib/devframe/definition.js';
 import {createStandaloneLitDevframe} from '../../lib/devframe/rpc-source.js';
 import {createSourceLocator} from '../../lib/source-locator.js';
-import {createNodeActions} from '../../lib/devframe/node-actions.js';
+import {
+  createNodeActions,
+  type NodeActions,
+} from '../../lib/devframe/node-actions.js';
 import type {SessionState} from '../../lib/devframe/protocol.js';
 import type {SessionSnapshot} from '../../types/snapshot.js';
 import type {TimelineSink, TimelineSource} from '../../lib/devframe/source.js';
@@ -82,6 +85,7 @@ const boot = async (
     roots?: string[];
     configuredEditor?: string;
     inspectorTimeoutMs?: number;
+    nodeActions?: NodeActions;
   } = {}
 ) => {
   const source = new FakeSource();
@@ -90,13 +94,15 @@ const boot = async (
     source,
     version: '9.9.9',
     features: () => null,
-    nodeActions: createNodeActions({
-      sourceLocator: () =>
-        options.roots === undefined
-          ? undefined
-          : createSourceLocator(options.roots),
-      configuredEditor: () => options.configuredEditor,
-    }),
+    nodeActions:
+      options.nodeActions ??
+      createNodeActions({
+        sourceLocator: () =>
+          options.roots === undefined
+            ? undefined
+            : createSourceLocator(options.roots),
+        configuredEditor: () => options.configuredEditor,
+      }),
     inspectorTimeoutMs: options.inspectorTimeoutMs,
   });
   instance = initDevframe(def, {
@@ -203,6 +209,24 @@ describe('lit devframe definition', () => {
       ],
     ]);
     expect((await ctx.rpc.invokeLocal('lit:get-meta')).activePageId).toBe('b');
+  });
+
+  test('a changed manifest reaches the panel as a broadcast', async () => {
+    const listeners: Array<() => void> = [];
+    const {ctx} = await boot({
+      nodeActions: {
+        ...createNodeActions(),
+        onComponentDocsChanged: (listener) => listeners.push(listener),
+      },
+    });
+    const spy = vi.spyOn(ctx.rpc, 'broadcast');
+    expect(listeners).toHaveLength(1);
+    listeners[0]!();
+    expect(spy).toHaveBeenCalledWith({
+      method: 'lit:component-docs-changed',
+      args: [],
+      optional: true,
+    });
   });
 
   test('page events reach the timeline stream and history', async () => {
@@ -639,6 +663,7 @@ describe('lit devframe definition', () => {
             return {outDir: 'x', events: 0, components: 0, details: 0};
           },
           componentDocs: async () => ({docs: null}),
+          onComponentDocsChanged: () => {},
         },
       }),
       {

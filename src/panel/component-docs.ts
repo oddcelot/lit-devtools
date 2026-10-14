@@ -4,7 +4,8 @@
  * element, so selecting another `<sl-button>` keeps what is already here;
  * selecting a different tag asks again, which also picks up a manifest that
  * was regenerated since. A hot patch of the tag on show asks again too, since
- * docs read from source change with the edit.
+ * docs read from source change with the edit, and so does a regenerated
+ * manifest.
  *
  * Kept apart from the inspector stream on purpose: details come from the
  * page, docs from the host's disk, and a host that can't read manifests
@@ -45,6 +46,11 @@ export class ComponentDocsSource {
    */
   refresh(tagName: string): void {
     if (tagName === this.#tagName) void this.#fetch(tagName);
+  }
+
+  /** Asks again for the tag on show, after a manifest changed on disk. */
+  reload(): void {
+    if (this.#tagName !== undefined) void this.#fetch(this.#tagName);
   }
 
   async #fetch(tagName: string): Promise<void> {

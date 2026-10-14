@@ -66,6 +66,8 @@ export interface NodeActions {
     build: {features: FeatureSettings | null; clientAssets?: string}
   ): Promise<ExportSnapshotResult>;
   componentDocs(args: ComponentDocsArgs): Promise<ComponentDocsResult>;
+  /** Call `listener` when a manifest `componentDocs` has read changes. */
+  onComponentDocsChanged(listener: () => void): void;
 }
 
 export const createNodeActions = (
@@ -73,6 +75,7 @@ export const createNodeActions = (
 ): NodeActions => {
   // Built on first use, then kept: it caches parsed manifests by mtime.
   let docsIndex: Promise<ComponentDocsIndex> | undefined;
+  const docsListeners = new Set<() => void>();
   return {
     // Resolving here rather than in the panel is the whole point of the hop:
     // `file` is relative to the Vite root, while the open service resolves
@@ -133,9 +136,16 @@ export const createNodeActions = (
             // has no locator and serves from its working directory.
             root: () => options.sourceLocator?.()?.roots[0] ?? process.cwd(),
             fs: nodeDocsFs,
+            onChange: () => {
+              for (const listener of docsListeners) listener();
+            },
           })
       );
       return {docs: await (await docsIndex).get(tagName)};
+    },
+
+    onComponentDocsChanged(listener) {
+      docsListeners.add(listener);
     },
   };
 };

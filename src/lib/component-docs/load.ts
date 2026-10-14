@@ -21,7 +21,8 @@
  *
  * Parsed manifests are cached by modification time, discovery by the project
  * `package.json`'s, and each lookup re-stats them so edits show up without a
- * restart.
+ * restart. Each manifest read is watched from then on, so a regenerated one
+ * can be announced to the panel.
  */
 
 import type {ComponentDocs} from '../../types/component-docs.js';
@@ -32,6 +33,8 @@ export interface DocsFs {
   readFile(path: string): string | undefined;
   /** Modification time in ms, for regular files only. */
   mtime(path: string): number | undefined;
+  /** Call `onChange` whenever the file at `path` changes from now on. */
+  watch?(path: string, onChange: () => void): void;
 }
 
 /** A synchronous `DocsFs` over `node:fs`, imported on first use. */
@@ -52,6 +55,14 @@ export const nodeDocsFs = async (): Promise<DocsFs> => {
       } catch {
         return undefined;
       }
+    },
+    // Polled rather than `fs.watch`ed: a generator that replaces the file
+    // (write a temp file, rename it over) would end an `fs.watch`. Not
+    // persistent, so it never keeps the process alive.
+    watch: (path, onChange) => {
+      fs.watchFile(path, {interval: 1000, persistent: false}, (cur, prev) => {
+        if (cur.mtimeMs !== prev.mtimeMs) onChange();
+      });
     },
   };
 };
@@ -260,16 +271,20 @@ export const findManifests = (fs: DocsFs, root: string): ManifestSource[] => {
  *   unknown early on. Without one, every lookup misses.
  * @param options.fs The file access, awaited per lookup so `nodeDocsFs` can
  *   load on first use.
+ * @param options.onChange Called when a manifest a lookup has read changes,
+ *   so whoever shows its docs can ask again.
  */
 export const createComponentDocsIndex = (options: {
   root: () => string | undefined;
   fs: () => Promise<DocsFs> | DocsFs;
+  onChange?: () => void;
 }): ComponentDocsIndex => {
   const discovered = new Map<
     string,
     {mtime: number; sources: ManifestSource[]}
   >();
   const parsed = new Map<string, {mtime: number; docs: ComponentDocs[]}>();
+  const watched = new Set<string>();
 
   const docsOf = (fs: DocsFs, source: ManifestSource): ComponentDocs[] => {
     const mtime = fs.mtime(source.path);
@@ -279,6 +294,10 @@ export const createComponentDocsIndex = (options: {
     }
     const cached = parsed.get(source.path);
     if (cached?.mtime === mtime) return cached.docs;
+    if (options.onChange !== undefined && !watched.has(source.path)) {
+      watched.add(source.path);
+      fs.watch?.(source.path, options.onChange);
+    }
     const manifest = readJson(fs, source.path);
     const origin: {package?: string; manifest: string} = {
       manifest: source.relative,

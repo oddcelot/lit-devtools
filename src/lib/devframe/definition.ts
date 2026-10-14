@@ -45,6 +45,7 @@ import {
   RPC_HMR_INCOMPATIBILITIES,
   RPC_HMR_INCOMPATIBLE,
   RPC_HMR_PATCHED,
+  RPC_COMPONENT_DOCS_CHANGED,
   RPC_INSPECT,
   RPC_INSPECTOR_MESSAGE,
   RPC_LIST_COMPONENTS,
@@ -343,6 +344,15 @@ export function createLitDevframe(
           channel.start({id: TIMELINE_STREAM_ID});
 
         writeEvents = (stamped) => ensureStream().write(stamped);
+
+        // A regenerated manifest: the panel asks again for the docs it shows.
+        nodeActions?.onComponentDocsChanged(() => {
+          void ctx.rpc.broadcast({
+            method: `${LIT_DEVFRAME_ID}:${RPC_COMPONENT_DOCS_CHANGED}`,
+            args: [],
+            optional: true,
+          });
+        });
         source.attach(followed.sink);
 
         // Single push point for recording/layer changes: fires for the
