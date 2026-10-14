@@ -101,13 +101,16 @@ describe('options context shouldTransform', () => {
 });
 
 describe('litPlugin feature gating', () => {
-  const run = (options: LitPluginOptions) => {
+  // Runs every `config` hook in order, as the dev server does: the options
+  // plugin resolves env, and the dev-only plugins load their code.
+  const run = async (options: LitPluginOptions) => {
     const plugins = litPlugin(options);
-    const pre = plugins.find((p) => p.name === 'lit-plugin-options')!;
-    (pre.config as Hook)(
-      {root: '/nonexistent-lit-plugin-env'},
-      {mode: 'development', command: 'serve'}
-    );
+    for (const plugin of plugins) {
+      await (plugin.config as Hook | undefined)?.(
+        {root: '/nonexistent-lit-plugin-env'},
+        {mode: 'development', command: 'serve'}
+      );
+    }
     return plugins;
   };
   const tagsOf = (plugins: ReturnType<typeof litPlugin>) =>
@@ -126,7 +129,7 @@ describe('litPlugin feature gating', () => {
 
   test('the env turning the timeline on activates the devframe feature', async () => {
     process.env.LIT_PLUGIN_TIMELINE = '1';
-    const plugins = run({});
+    const plugins = await run({});
     const devframe = plugins.find((p) => p.name === 'devframe:lit')!;
     expect(devframe).toBeDefined();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -136,15 +139,15 @@ describe('litPlugin feature gating', () => {
     expect(text(tagsOf(plugins))).toContain('timeline/install');
   });
 
-  test('an explicit timeline: false keeps the devframe out entirely', () => {
+  test('an explicit timeline: false keeps the devframe out entirely', async () => {
     process.env.LIT_PLUGIN_TIMELINE = '1';
-    const plugins = run({timeline: false});
+    const plugins = await run({timeline: false});
     expect(plugins.some((p) => p.name === 'devframe:lit')).toBe(false);
     expect(text(tagsOf(plugins))).not.toContain('timeline/install');
   });
 
   test('with everything off nothing is injected, mounted or served', async () => {
-    const plugins = run({
+    const plugins = await run({
       timeline: false,
       sourceOverlay: false,
       hmr: {indicator: false},
@@ -162,9 +165,9 @@ describe('litPlugin feature gating', () => {
     ).toBeNull();
   });
 
-  test('the env turning the source overlay on activates it', () => {
+  test('the env turning the source overlay on activates it', async () => {
     process.env.LIT_PLUGIN_SOURCE_OVERLAY = '1';
-    const plugins = run({});
+    const plugins = await run({});
     const overlay = plugins.find((p) => p.name === 'lit-source-overlay')!;
     const use = vi.fn();
     (overlay.configureServer as Hook)({
@@ -175,8 +178,8 @@ describe('litPlugin feature gating', () => {
     expect(text(tagsOf(plugins))).toContain('initSourceOverlay');
   });
 
-  test('HMR off removes its virtual modules and private-field rewrite', () => {
-    const plugins = run({hmr: false, timeline: false});
+  test('HMR off removes its virtual modules and private-field rewrite', async () => {
+    const plugins = await run({hmr: false, timeline: false});
     const hmr = plugins.find((p) => p.name === 'lit-plugin')!;
     expect((hmr.resolveId as Hook).call({}, 'virtual:lit-plugin/x')).toBeNull();
     const priv = plugins.find((p) => p.name === 'lit-private-fields')!;

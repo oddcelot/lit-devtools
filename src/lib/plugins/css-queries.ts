@@ -1,5 +1,5 @@
 import type {Plugin} from 'vite';
-import type {CssSheetBuild} from '../options.js';
+import type {CssSheetBuild} from '../css-sheet-build.js';
 import {resolveRuntimeModule} from './shared.js';
 
 /**

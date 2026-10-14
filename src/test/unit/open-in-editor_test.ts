@@ -4,7 +4,7 @@ import {IncomingMessage} from 'node:http';
 import {Socket} from 'node:net';
 import {join} from 'node:path';
 import {afterAll, beforeEach, describe, expect, test, vi} from 'vite-plus/test';
-import {createOpenInEditorMiddleware} from '../../lib/plugin.js';
+import {createOpenInEditorMiddleware} from '../../lib/plugins/open-in-editor.js';
 
 /**
  * The middleware spawns the user's editor on the requested path, so its path

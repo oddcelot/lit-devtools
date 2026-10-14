@@ -1,5 +1,6 @@
 # Build outputs
 /index.*
+/build.*
 /lib/
 /types/
 /panel/

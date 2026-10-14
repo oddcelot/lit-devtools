@@ -49,6 +49,32 @@ The patching applies to the dev server only, so a production build is
 untouched. The `?css-sheet` and `?hmr-url` queries resolve in dev and build
 alike.
 
+### Keep dev code out of the build
+
+`litPlugin()` doesn't load its dev-only code until the dev server (or
+`vite preview`) starts. HMR, the source overlay and the DevTools panel are
+imported in a hook that `vite build` never calls, so a build loads only the
+options and the CSS plugins.
+
+If you want the build to depend on less than that, use `litCss()` from the
+`/build` entry for builds. It carries only what a build uses: the CSS queries,
+Lightning CSS for `css` literals, and the no-op timeline stub.
+
+```ts
+// vite.config.ts
+import {defineConfig} from 'vite';
+import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litCss} from '@oddsquad/vite-plugin-lit/build';
+
+export default defineConfig(({command}) => ({
+  plugins: [command === 'serve' ? litPlugin() : litCss()],
+}));
+```
+
+`litCss()` takes `cssSheetBuild` and reads `LIT_PLUGIN_CSS_SHEET_BUILD` the
+same way `litPlugin()` does. A unit test walks both entries' import graphs so
+neither can start pulling in dev code unnoticed.
+
 ## Add the types
 
 The import queries ship ambient declarations in

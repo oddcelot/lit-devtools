@@ -1,7 +1,6 @@
-import {resolve as resolvePath} from 'node:path';
-import {loadEnv, type Plugin} from 'vite';
+import type {Plugin} from 'vite';
+import {loadPluginEnv} from '../env.js';
 import {
-  ENV_PREFIX,
   type LitPluginOptions,
   type ResolvedOptions,
   resolveOptions,
@@ -58,15 +57,7 @@ export const createOptionsContext = (
     name: 'lit-plugin-options',
     enforce: 'pre',
     config(viteConfig, {mode}) {
-      // `loadEnv` reads `.env*` files from the env dir (root by default) and
-      // merges in matching `process.env` keys, filtered to the `LIT_PLUGIN`
-      // prefix. Explicit options still win (handled in resolveOptions).
-      const envDir = viteConfig.envDir
-        ? resolvePath(viteConfig.envDir)
-        : viteConfig.root
-          ? resolvePath(viteConfig.root)
-          : process.cwd();
-      resolved = resolveOptions(options, loadEnv(mode, envDir, ENV_PREFIX));
+      resolved = resolveOptions(options, loadPluginEnv(viteConfig, mode));
     },
     configResolved(config) {
       locator = createSourceLocator(sourceRootsOf(config));
