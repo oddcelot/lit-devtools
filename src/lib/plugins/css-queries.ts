@@ -1,4 +1,5 @@
 import {existsSync} from 'node:fs';
+import * as path from 'node:path';
 import type {Plugin} from 'vite';
 import type {CssSheetBuild} from '../css-sheet-build.js';
 import {resolveRuntimeModule} from './shared.js';
@@ -41,6 +42,25 @@ const CSS_SHEET_VIRTUAL_PREFIX = '\0lit-plugin:css-sheet:';
 const CSS_VIRTUAL_SUFFIX = '.js';
 
 /**
+ * The css file as the virtual id carries it: relative to Vite's root, so the
+ * id, which an unminified chunk prints in its `//#region` comments, doesn't
+ * spell out the developer's directories. A leading `./` or `../` marks it as
+ * relative. An id that isn't a path, or a file on another drive, stays as is.
+ */
+const toIdPath = (file: string, root: string): string => {
+  if (!path.isAbsolute(file)) return file;
+  const rel = path.relative(root, file).replace(/\\/g, '/');
+  if (path.isAbsolute(rel)) return file;
+  return rel.startsWith('../') ? rel : `./${rel}`;
+};
+
+/** The css file's path back from {@link toIdPath}. */
+const fromIdPath = (idPath: string, root: string): string =>
+  idPath.startsWith('./') || idPath.startsWith('../')
+    ? path.resolve(root, idPath).replace(/\\/g, '/')
+    : idPath;
+
+/**
  * Whether `id` is a module some plugin makes up, with no file behind it
  * (`\0`-prefixed, or a path that isn't on disk, as UnoCSS resolves
  * `virtual:uno.css` to under `vite build`). `?url` has nothing to serve or
@@ -65,6 +85,7 @@ export const litCssQueries = (
 ): Plugin => {
   let isBuild = false;
   let isLib = false;
+  let root = process.cwd();
   const warned = new Set<string>();
   return {
     name: 'lit-css-query',
@@ -73,6 +94,7 @@ export const litCssQueries = (
     enforce: 'pre',
     configResolved(config) {
       isBuild = config.command === 'build';
+      root = config.root;
       isLib = config.build.lib !== false && config.build.lib !== undefined;
     },
     async resolveId(id, importer) {
@@ -98,14 +120,14 @@ export const litCssQueries = (
             `@oddsquad/vite-plugin-lit/uno and import that instead.`
         );
       }
-      return prefix + resolved.id + CSS_VIRTUAL_SUFFIX;
+      return prefix + toIdPath(resolved.id, root) + CSS_VIRTUAL_SUFFIX;
     },
     load(id) {
       const helperPath = resolveRuntimeModule('css');
       if (id.startsWith(CSS_URL_VIRTUAL_PREFIX)) {
-        const file = id.slice(
-          CSS_URL_VIRTUAL_PREFIX.length,
-          -CSS_VIRTUAL_SUFFIX.length
+        const file = fromIdPath(
+          id.slice(CSS_URL_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length),
+          root
         );
         const url = JSON.stringify(`${file}?url`);
         return {
@@ -119,9 +141,9 @@ export const litCssQueries = (
         };
       }
       if (id.startsWith(CSS_SHEET_VIRTUAL_PREFIX)) {
-        const file = id.slice(
-          CSS_SHEET_VIRTUAL_PREFIX.length,
-          -CSS_VIRTUAL_SUFFIX.length
+        const file = fromIdPath(
+          id.slice(CSS_SHEET_VIRTUAL_PREFIX.length, -CSS_VIRTUAL_SUFFIX.length),
+          root
         );
         if (!isBuild) {
           // The accept specifier must be byte-identical to the import above —

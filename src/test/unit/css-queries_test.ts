@@ -1,3 +1,4 @@
+import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {describe, expect, test, vi} from 'vite-plus/test';
 import {litCssQueries} from '../../lib/plugins/css-queries.js';
@@ -27,7 +28,10 @@ const resolveWith = async (id: string, resolvedId: string) => {
 describe('litCssQueries resolveId', () => {
   test('wraps a CSS file on disk without a warning', async () => {
     const {warn, result} = await resolveWith('./card.css?css-sheet', REAL_FILE);
-    expect(result).toBe(`\0lit-plugin:css-sheet:${REAL_FILE}.js`);
+    // Relative to the root (the cwd, before `configResolved`), so no
+    // absolute path reaches a chunk's region comments.
+    const rel = path.relative(process.cwd(), REAL_FILE).replace(/\\/g, '/');
+    expect(result).toBe(`\0lit-plugin:css-sheet:./${rel}.js`);
     expect(warn).not.toHaveBeenCalled();
   });
 

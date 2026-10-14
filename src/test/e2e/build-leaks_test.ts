@@ -101,6 +101,8 @@ interface Variant {
   mode?: 'production' | 'development';
   /** `vite build` with `build.lib` instead of the `index.html` app. */
   lib?: boolean;
+  /** `build.minify: false`, which keeps Rolldown's `//#region` comments. */
+  unminified?: boolean;
 }
 
 /**
@@ -110,7 +112,7 @@ interface Variant {
  */
 const RUN_SCRIPT = `
 const [entry, root, json] = process.argv.slice(2);
-const {options, mode, lib, serve} = JSON.parse(json);
+const {options, mode, lib, unminified, serve} = JSON.parse(json);
 const vite = await import('vite');
 const plugins = [(await import(entry)).litPlugin(options)];
 const config = {
@@ -121,6 +123,7 @@ const config = {
   plugins,
   build: {
     outDir: 'dist',
+    ...(unminified && {minify: false}),
     rollupOptions: {external: [/^lit/]},
     ...(lib && {lib: {entry: 'entry.js', formats: ['es'], fileName: 'lib'}}),
   },
@@ -174,6 +177,7 @@ const run = async (root: string, variant: Variant, serve: boolean) => {
         options: variant.options ?? {},
         mode,
         lib: variant.lib ?? false,
+        unminified: variant.unminified ?? false,
         serve,
       }),
     ],
@@ -210,15 +214,16 @@ const ROOT_KEY = '\0root';
 
 const leaksIn = (files: Record<string, string>): string[] => {
   const root = files[ROOT_KEY]!;
-  // Absolute only: unminified chunks name their modules in relative
-  // `//#region` comments, as any Rolldown build does.
-  const markers = [...DEV_MARKERS, root];
   const leaks: string[] = [];
   for (const [file, code] of Object.entries(files)) {
     if (file === ROOT_KEY) continue;
-    for (const marker of markers) {
-      if (code.includes(marker)) leaks.push(`${file}: ${marker}`);
+    // Region comments name each module by id, ours included; they hold no
+    // code, so only the developer's own path counts there.
+    const body = code.replace(/^\/\/#(?:end)?region.*$/gm, '');
+    for (const marker of DEV_MARKERS) {
+      if (body.includes(marker)) leaks.push(`${file}: ${marker}`);
     }
+    if (code.includes(root)) leaks.push(`${file}: ${root}`);
   }
   return leaks;
 };
@@ -246,6 +251,7 @@ const APP: Record<string, Variant> = {
     },
   },
   'development mode, all on': {options: ALL_ON, mode: 'development'},
+  'unminified, all on': {options: ALL_ON, unminified: true},
   "cssSheetBuild 'inline'": {options: {cssSheetBuild: 'inline'}},
   "cssSheetBuild 'inline-raw'": {options: {cssSheetBuild: 'inline-raw'}},
 };
