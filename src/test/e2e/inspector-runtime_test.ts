@@ -22,6 +22,7 @@ import {
 } from './utils.js';
 
 let fixture: Fixture;
+let written = 100;
 const ready: Extract<InspectorMessage, {type: 'ready'}>[] = [];
 
 beforeAll(async () => {
@@ -86,36 +87,44 @@ test('reveal scrolls the element into view', async () => {
   );
 });
 
-test('request-update runs a tick whose cause names the DevTools', async () => {
-  const {page} = fixture;
-  const tree: InspectorTreeNode[][] = [];
-  fixture.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
-    if (data.type === 'tree') tree.push(data.roots);
-  });
-  const {source, events} = await connectTimelineSource(fixture, page);
-  recordLifecycleOnly(source);
-  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
-  await expect.poll(() => tree.length).toBeGreaterThan(0);
-  const id = tree
-    .at(-1)!
-    .find((n) => n.tagName.toLowerCase() === 'hmr-counter')!.id;
+test.each([
+  ['request-update', (id: number) => ({type: 'request-update', id})],
+  // A new value each round, or the setter schedules nothing.
+  [
+    'set-prop',
+    (id: number) => ({type: 'set-prop', id, name: 'count', value: ++written}),
+  ],
+] as const)(
+  'a %s command runs a tick whose cause names it',
+  async (command, cmdFor) => {
+    const {page} = fixture;
+    const tree: InspectorTreeNode[][] = [];
+    fixture.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+      if (data.type === 'tree') tree.push(data.roots);
+    });
+    const {source, events} = await connectTimelineSource(fixture, page);
+    recordLifecycleOnly(source);
+    fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+    await expect.poll(() => tree.length).toBeGreaterThan(0);
+    const id = tree
+      .at(-1)!
+      .find((n) => n.tagName.toLowerCase() === 'hmr-counter')!.id;
 
-  // Recording may not be wired on the first command, so ask each round.
-  await expect
-    .poll(
-      () => {
-        fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
-          type: 'request-update',
-          id,
-        });
-        return events.some(
-          (e) =>
-            e.title === 'performUpdate:start' &&
-            e.meta?.elementId === id &&
-            e.cause?.kind === 'devtools'
-        );
-      },
-      {timeout: 10_000}
-    )
-    .toBe(true);
-});
+    // Recording may not be wired on the first command, so send each round.
+    await expect
+      .poll(
+        () => {
+          fixture.server.hot.send(INSPECT_CMD_CHANNEL, cmdFor(id));
+          return events.some(
+            (e) =>
+              e.title === 'performUpdate:start' &&
+              e.meta?.elementId === id &&
+              e.cause?.kind === 'devtools' &&
+              e.cause.command === command
+          );
+        },
+        {timeout: 10_000}
+      )
+      .toBe(true);
+  }
+);

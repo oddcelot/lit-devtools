@@ -33,8 +33,12 @@ export type TimelineCause =
    * update; `groupId` names the run's `task` span.
    */
   | {kind: 'task'; groupId: string}
-  /** The DevTools asked for the update (Request update in the panel). */
-  | {kind: 'devtools'};
+  /**
+   * A DevTools command asked for the update: Request update, or editing or
+   * overriding a property. `command` is the command's `type`, such as
+   * `request-update` or `set-prop`.
+   */
+  | {kind: 'devtools'; command: string};
 
 export interface TimelineEvent<TData = unknown> {
   /**

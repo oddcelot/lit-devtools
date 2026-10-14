@@ -44,8 +44,13 @@ const ROOT_PHASE = 'performUpdate';
  * layer with an element, but not a phase of any update tick.
  */
 export const TASK_SPAN = 'task';
-/** What an update the panel's Request update button asked for is caused by. */
-export const DEVTOOLS_CAUSE = 'Request update in DevTools';
+/** How a `devtools` cause reads: what the panel did, then "in DevTools". */
+export const devtoolsCauseType = (command: string): string => {
+  if (command === 'request-update') return 'Request update in DevTools';
+  if (command === 'set-prop') return 'edit in DevTools';
+  if (command.startsWith('override')) return 'override in DevTools';
+  return 'DevTools';
+};
 
 /** Point event a component's `shouldUpdate` returning false produces. */
 const SKIP_EVENT = 'update skipped';
@@ -559,7 +564,7 @@ const tally = (
  * `update` cause to the causing cycle in `cycles` (`cause` reads "<tag>
  * update" on the `lit-lifecycle` layer and `causedBy` names its key), and a
  * `task` cause to that run's `task:start` ("<name> task"), and a `devtools`
- * cause reads {@link DEVTOOLS_CAUSE}. A recorded cause whose target is not in the buffer falls back to the
+ * cause reads as {@link devtoolsCauseType} names its command. A recorded cause whose target is not in the buffer falls back to the
  * heuristic: the nearest mouse or keyboard event before the cycle, within
  * `windowMs`.
  *
@@ -668,7 +673,7 @@ const recordedCause = (
       ...cycle,
       cause: {
         layerId: LIFECYCLE_LAYER_ID,
-        type: DEVTOOLS_CAUSE,
+        type: devtoolsCauseType(recorded.command),
         time: cycle.start,
       },
     };

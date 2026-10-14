@@ -502,7 +502,10 @@ describe('attributeInput with recorded causes', () => {
   });
 
   test('names the DevTools for a tick they requested, over a nearby input', () => {
-    const events = [click(95), ...causedTick(100, {kind: 'devtools'})];
+    const events = [
+      click(95),
+      ...causedTick(100, {kind: 'devtools', command: 'request-update'}),
+    ];
     const [cycle] = attributeInput(toUpdateCycles(toSpans(events)), events);
     expect(cycle!.cause).toEqual({
       layerId: 'lit-lifecycle',
@@ -510,6 +513,17 @@ describe('attributeInput with recorded causes', () => {
       time: 100,
     });
     expect(cycle!.causedBy).toBeUndefined();
+  });
+
+  test.each([
+    ['set-prop', 'edit in DevTools'],
+    ['override-toggle', 'override in DevTools'],
+    ['overrides-clear', 'override in DevTools'],
+    ['anything-else', 'DevTools'],
+  ])('a %s command reads as "%s"', (command, type) => {
+    const events = causedTick(100, {kind: 'devtools', command});
+    const [cycle] = attributeInput(toUpdateCycles(toSpans(events)), events);
+    expect(cycle!.cause?.type).toBe(type);
   });
 
   test('falls back to the heuristic when the event left the buffer', () => {

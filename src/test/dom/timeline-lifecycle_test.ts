@@ -973,9 +973,12 @@ describe('update causes', () => {
     el.performUpdate();
     events.length = 0;
 
-    withDevtoolsCause(() => el.requestUpdate());
+    withDevtoolsCause('request-update', () => el.requestUpdate());
     el.performUpdate();
-    expect(starts(el)[0]!.cause).toEqual({kind: 'devtools'});
+    expect(starts(el)[0]!.cause).toEqual({
+      kind: 'devtools',
+      command: 'request-update',
+    });
   });
 
   test("a render inside a DevTools request names the render's tick", async () => {
@@ -990,13 +993,16 @@ describe('update causes', () => {
     events.length = 0;
 
     parent.onRender = () => child.requestUpdate('value', 0);
-    withDevtoolsCause(() => {
+    withDevtoolsCause('request-update', () => {
       parent.requestUpdate();
       parent.performUpdate();
     });
     child.performUpdate();
     const [parentStart] = starts(parent);
-    expect(parentStart!.cause).toEqual({kind: 'devtools'});
+    expect(parentStart!.cause).toEqual({
+      kind: 'devtools',
+      command: 'request-update',
+    });
     expect(starts(child)[0]!.cause).toEqual({
       kind: 'update',
       groupId: parentStart!.groupId,
