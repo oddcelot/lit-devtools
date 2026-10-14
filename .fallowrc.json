@@ -79,7 +79,7 @@
     // Chrome DevTools frontend modules, imported inside the trace viewer page
     // by scripts/docs-shots.mjs.
     "/devtools/**",
-    // Written by examples/css/uno-sheet.ts when Vite starts, and gitignored,
+    // Written by unoSheet() in examples/css/vite.config.ts when Vite starts, and gitignored,
     // so it is missing from a fresh checkout until a dev server or build runs.
     "./uno.generated.css*"
   ],
