@@ -88,11 +88,44 @@ reserved for updates that do not re-render anything.
 
 The `renders:` badge on each component is the proof. It does not move.
 
-<Aside type="caution" title="Generated stylesheets">
-  When Tailwind or UnoCSS regenerates the file, the swap depends on that
-  framework's Vite plugin emitting an HMR update for the `.css` module. Verify
-  it against your integration.
+<Aside title="Generated stylesheets">
+  A framework that generates CSS from your source swaps in the same way. When
+  you add a class to a component, the framework regenerates the `.css` module,
+  and the sheet picks the new rules up in place. Tailwind and `unoSheet()` both
+  work this way.
 </Aside>
+
+## Share Tailwind utilities
+
+Tailwind v4 needs no helper. Its Vite plugin fills in a real `.css` file, so
+you import that file with `?css-sheet` like any other.
+
+Leave the preflight reset out. It is global, and adopted into a shadow root
+it would repeat in every component. Import Tailwind's theme and utilities
+layers instead of all of `tailwindcss`.
+
+```css title="src/tailwind.css"
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+```
+
+Add `@tailwindcss/vite` beside `litPlugin()`, then adopt the file in each
+component.
+
+```ts title="src/my-card.ts"
+import tw from './tailwind.css?css-sheet';
+
+static styles = [tw];
+```
+
+Add a class to a component and Tailwind regenerates the sheet, which swaps
+in place for every adopter. Shadows, rings, transforms and gradients work
+too. Tailwind builds them on properties it registers with `@property`, which
+browsers ignore inside a shadow root, so the plugin registers those rules on
+the document. The
+[Tailwind example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/tailwind)
+runs this setup.
 
 ## Share UnoCSS utilities
 

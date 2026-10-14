@@ -1,0 +1,26 @@
+{
+  "name": "vite-plugin-lit-tailwind-example",
+  "description": "Tailwind v4 utilities as one CSSStyleSheet that every shadow root adopts, through @oddsquad/vite-plugin-lit's ?css-sheet query. Add a class to a component and the shared sheet swaps in place; shadows, rings and gradients render inside shadow roots. Opens on StackBlitz straight from the repo URL.",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "stackblitz": "node stackblitz.mjs"
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "*",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.2"
+  },
+  "stackblitz": {
+    "installDependencies": true,
+    "startCommand": "npm run stackblitz"
+  }
+}

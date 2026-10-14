@@ -78,6 +78,20 @@ edit a card's own `.css` file and only that card re-renders. See the
   title="The CSS example running on StackBlitz"
 />
 
+## Tailwind
+
+Tailwind v4 utilities shared as one adopted sheet across three components,
+each counting its renders. Change `--color-brand` in `src/tailwind.css` and
+everything recolours with no badge moving; add a class to a component and
+the sheet gains it in place. See the
+[example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/tailwind).
+
+<StackBlitzEmbed
+  path="examples/tailwind"
+  file="src/tailwind.css"
+  title="The Tailwind example running on StackBlitz"
+/>
+
 ## Playground
 
 The repo's playground, with the Vite DevTools dock. Click the counter, edit

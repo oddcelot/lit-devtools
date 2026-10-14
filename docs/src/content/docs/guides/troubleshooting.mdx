@@ -321,9 +321,11 @@ the same literal. See
 **Symptom.** The generated file changes on disk, and the page does not.
 
 **Cause.** The swap rides the HMR update for the `.css` module. The integration
-that writes the file has to emit one.
+that generates the CSS has to emit one. Tailwind's Vite plugin does, and so does
+`unoSheet()`; UnoCSS's own `virtual:uno.css` has no file to swap.
 
-**Fix.** Check that the integration triggers HMR for that module. See
+**Fix.** For UnoCSS, use `unoSheet()`. For another integration, check that it
+triggers HMR for that module. See
 [Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
 
 ### CSSStyleSheet is not defined in jsdom or Node
