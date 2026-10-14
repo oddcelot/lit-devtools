@@ -144,6 +144,13 @@ beforeAll(async () => {
       'content-security-policy',
       req.url === '/trusted-types' ? TRUSTED_TYPES_CSP : CSP
     );
+    if (req.url === '/plain') {
+      res.setHeader('content-type', 'text/html');
+      res.end(
+        '<!doctype html><html><head></head><body><p>plain</p></body></html>'
+      );
+      return;
+    }
     if (req.url === '/image.svg') {
       res.setHeader('content-type', 'image/svg+xml');
       res.end(
@@ -299,6 +306,41 @@ test("the runtime leaves a Trusted Types site's own Lit policy to it", async () 
     .toContain('hello');
   expect(errors).toEqual([]);
   await page.close();
+});
+
+test('the runtime adds only $lit to the globals of a page without Lit', async () => {
+  await registry('lit:enable');
+  const globalsAt = async (url: string) => {
+    const page = await context.newPage();
+    await page.goto(url);
+    await page.waitForTimeout(300);
+    const names = await page.evaluate(() => Object.getOwnPropertyNames(window));
+    const storage = await page.evaluate(() => ({
+      local: Object.keys(localStorage),
+      session: Object.keys(sessionStorage),
+    }));
+    await page.close();
+    return {names, storage};
+  };
+  // The same server under a host the extension may not touch.
+  const plainOrigin = appOrigin.replace('127.0.0.1', 'localhost');
+  const enabled = await globalsAt(`${appOrigin}/plain`);
+  const plain = await globalsAt(`${plainOrigin}/plain`);
+  // `$lit` is the console's selection; `litIssuedWarnings` is Lit's own
+  // name, created early so its dev warnings reach the panel. Neither takes
+  // the place of anything the page had.
+  expect(enabled.names.filter((n) => !plain.names.includes(n)).sort()).toEqual([
+    '$lit',
+    'litIssuedWarnings',
+  ]);
+  expect(plain.names.filter((n) => !enabled.names.includes(n))).toEqual([]);
+  // Nothing in the site's localStorage; sessionStorage holds the tab ids the
+  // privacy page lists.
+  expect(enabled.storage.local).toEqual([]);
+  expect(enabled.storage.session.sort()).toEqual([
+    '@oddsquad/vite-plugin-lit#tab-id',
+    'devframe:in-page-channel:instance',
+  ]);
 });
 
 test('an SVG document on an enabled site opens without errors', async () => {
