@@ -1755,6 +1755,26 @@ test('names the source module for docs read from source', async () => {
   );
 });
 
+test('a hot patch of the selected tag asks for its docs again', async () => {
+  let summary = 'A button.';
+  answers.set('component-docs', () => ({docs: {...buttonDocs, summary}}));
+  const {el, root} = await mount(true);
+  await pickButton(el);
+  const about = () =>
+    root.querySelector('.details .about p')?.textContent ?? null;
+  expect(about()).toBe('A button.');
+  summary = 'A pressable button.';
+  // Another tag's patch leaves the docs alone.
+  push('hmr-patched', {...patched, tagName: 'x-card'});
+  await flush(el);
+  expect(calls.filter((c) => c.name === 'component-docs')).toHaveLength(1);
+  push('hmr-patched', patched);
+  await flush(el);
+  await flush(el);
+  expect(calls.filter((c) => c.name === 'component-docs')).toHaveLength(2);
+  expect(about()).toBe('A pressable button.');
+});
+
 test('asks for no docs where the host cannot read manifests', async () => {
   meta.capabilities.componentDocs = false;
   answers.set('component-docs', () => ({docs: buttonDocs}));
