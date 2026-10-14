@@ -270,7 +270,7 @@ jobs:
           COMMENT_ID: ${{ github.event.comment.id }}
         run: gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" -f content=eyes --silent
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # A comment event checks out the default branch otherwise.
           ref: ${{ needs.gate.outputs.head_sha }}
@@ -290,7 +290,7 @@ jobs:
             echo "local=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         if: steps.cli.outputs.local == 'true'
         with:
           ref: ${{ needs.gate.outputs.base_sha }}
