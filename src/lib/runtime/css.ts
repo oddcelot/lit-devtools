@@ -10,11 +10,13 @@
  * across module re-executions, so the browser would keep the stale
  * stylesheet. These helpers close that gap.
  *
- * This module is dependency-free and must stay safe to load in any
- * environment.
+ * This module imports nothing outside the package's runtime and must stay
+ * safe to load in any environment.
  *
  * @module
  */
+
+import {hoistPropertyRules} from './property-rules.js';
 
 /**
  * Vite's dev flag. Accessed as a direct member expression (`import.meta.env.DEV`)
@@ -22,10 +24,10 @@
  * (`const env = import.meta.env`) instead defeats that replacement and makes
  * Vite inline the ENTIRE serialized `import.meta.env` — every env var — into the
  * consumer bundle. Optional chaining keeps this safe where `import.meta.env` is
- * absent (non-Vite runtimes).
+ * absent (non-Vite runtimes). A constant rather than a function, so a
+ * minifier folds the dev branches below out of a build.
  */
-const isDev = (): boolean =>
-  (import.meta as {env?: {DEV?: boolean}}).env?.DEV === true;
+const IS_DEV = (import.meta as {env?: {DEV?: boolean}}).env?.DEV === true;
 
 /**
  * Appends a cache-busting query to a `?url`-imported CSS file URL in dev.
@@ -47,7 +49,7 @@ const isDev = (): boolean =>
  * ```
  */
 export const devCacheBust = (url: string): string => {
-  return isDev() ? `${url}?t=${Date.now()}` : url;
+  return IS_DEV ? `${url}?t=${Date.now()}` : url;
 };
 
 /**
@@ -63,49 +65,10 @@ export const devCacheBust = (url: string): string => {
  * it carries `?t=…`).
  */
 const devDirect = (url: string): string => {
-  if (!isDev()) {
+  if (!IS_DEV) {
     return url;
   }
   return `${url}${url.includes('?') ? '&' : '?'}direct`;
-};
-
-/** `@property` rules in `rules`, including those nested in `@layer`/`@supports`. */
-const propertyRules = (rules: CSSRuleList): string[] =>
-  [...rules].flatMap((rule) =>
-    rule instanceof CSSPropertyRule
-      ? [rule.cssText]
-      : 'cssRules' in rule
-        ? propertyRules((rule as CSSGroupingRule).cssRules)
-        : []
-  );
-
-/**
- * Keeps a copy of `sheet`'s `@property` rules in a sheet adopted by the
- * document; call the returned function after every `replaceSync()`.
- *
- * Browsers ignore `@property` inside a shadow root, so a custom property the
- * sheet registers there keeps no initial value, and every declaration built
- * on it is invalid. Tailwind v4's shadow, ring, transform and gradient
- * utilities all read properties registered that way. A registration in the
- * document applies in every shadow root, so the copy makes them work.
- */
-const hoistPropertyRules = (sheet: CSSStyleSheet): (() => void) => {
-  if (
-    typeof document === 'undefined' ||
-    typeof CSSPropertyRule === 'undefined'
-  ) {
-    return () => {};
-  }
-  const hoisted = new CSSStyleSheet();
-  let adopted = false;
-  return () => {
-    const rules = propertyRules(sheet.cssRules);
-    hoisted.replaceSync(rules.join('\n'));
-    if (!adopted && rules.length > 0) {
-      adopted = true;
-      document.adoptedStyleSheets = [...document.adoptedStyleSheets, hoisted];
-    }
-  };
 };
 
 /** A sheet plus the function that replaces its rules, keeping `@property` hoisted. */

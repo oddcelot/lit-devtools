@@ -1,4 +1,5 @@
 import {existsSync} from 'node:fs';
+import * as path from 'node:path';
 import type {Plugin} from 'vite';
 import type {CssSheetBuild} from '../css-sheet-build.js';
 import {resolveRuntimeModule} from './shared.js';
@@ -41,6 +42,47 @@ const CSS_SHEET_VIRTUAL_PREFIX = '\0lit-plugin:css-sheet:';
 const CSS_VIRTUAL_SUFFIX = '.js';
 
 /**
+ * The css file as the virtual id carries it: relative to Vite's root, so the
+ * id, which an unminified chunk prints in its `//#region` comments, doesn't
+ * spell out the developer's directories. A leading `./` or `../` marks it as
+ * relative. An id that isn't a path, or a file on another drive, stays as is.
+ */
+const toIdPath = (file: string, root: string): string => {
+  if (!path.isAbsolute(file)) return file;
+  const rel = path.relative(root, file).replace(/\\/g, '/');
+  if (path.isAbsolute(rel)) return file;
+  return rel.startsWith('../') ? rel : `./${rel}`;
+};
+
+/** The css file's path back from {@link toIdPath}. */
+const fromIdPath = (idPath: string, root: string): string =>
+  idPath.startsWith('./') || idPath.startsWith('../')
+    ? path.resolve(root, idPath).replace(/\\/g, '/')
+    : idPath;
+
+/** The part of a build's plugin context {@link hasPropertyRule} uses. */
+interface ModuleLoader {
+  resolve(source: string): Promise<{id: string} | null>;
+  load(options: {id: string}): Promise<{code: string | null}>;
+}
+
+/**
+ * Whether the css that `specifier` compiles to registers a custom property.
+ * Read after the whole css pipeline, so `@property` rules a plugin generates
+ * (Tailwind's) count. When it can't tell, it says yes and the sheet keeps
+ * the hoisting.
+ */
+const hasPropertyRule = async (
+  ctx: ModuleLoader,
+  specifier: string
+): Promise<boolean> => {
+  const resolved = await ctx.resolve(specifier);
+  if (resolved === null) return true;
+  const {code} = await ctx.load({id: resolved.id});
+  return code === null || code.includes('@property');
+};
+
+/**
  * Whether `id` is a module some plugin makes up, with no file behind it
  * (`\0`-prefixed, or a path that isn't on disk, as UnoCSS resolves
  * `virtual:uno.css` to under `vite build`). `?url` has nothing to serve or
@@ -48,6 +90,66 @@ const CSS_VIRTUAL_SUFFIX = '.js';
  */
 const isVirtualCss = (id: string): boolean =>
   id.startsWith('\0') || !existsSync(id.split('?')[0]!);
+
+/** `?hmr-url`: the `?url` asset, cache-busted per HMR re-execution in dev. */
+const hmrUrlCode = (file: string, isBuild: boolean): string => {
+  const url = JSON.stringify(`${file}?url`);
+  // A build's URL is a hashed asset, so there is nothing to bust.
+  return isBuild
+    ? `export {default} from ${url};\n`
+    : `import url from ${url};\n` +
+        `import {devCacheBust} from ${JSON.stringify(resolveRuntimeModule('css'))};\n` +
+        `export default devCacheBust(url);\n`;
+};
+
+/**
+ * `?css-sheet` in dev. The accept specifier must be byte-identical to the
+ * import above it — Vite resolves accepted HMR deps by static analysis.
+ * Generating both here is exactly what frees the caller from writing it. The
+ * swap is self-accepted at this boundary, so it never propagates to adopters.
+ */
+const devSheetCode = (file: string): string => {
+  const inlineSpecifier = JSON.stringify(`${file}?inline`);
+  return (
+    `import css from ${inlineSpecifier};\n` +
+    `import {inlineSheet} from ${JSON.stringify(resolveRuntimeModule('css'))};\n` +
+    `const {sheet, onHotUpdate} = inlineSheet(css);\n` +
+    `export default sheet;\n` +
+    `if (import.meta.hot) {\n` +
+    `  import.meta.hot.accept(${inlineSpecifier}, onHotUpdate);\n` +
+    `}\n`
+  );
+};
+
+/**
+ * `?css-sheet` in a build: the sheet is built once, with none of the dev
+ * helpers. Either way it is constructed once per virtual module, so adopters
+ * share it. The `@property` hoisting only comes along for a sheet that needs
+ * it; the url form checks the same css compiled inline.
+ */
+const buildSheetCode = async (
+  ctx: ModuleLoader,
+  file: string,
+  mode: CssSheetBuild,
+  isLib: boolean
+): Promise<string> => {
+  const fetched = mode === 'url' || (mode === 'auto' && !isLib);
+  const inlineQuery = mode === 'inline-raw' ? '?raw' : '?inline';
+  const css = `${file}${fetched ? '?inline' : inlineQuery}`;
+  const hoist = await hasPropertyRule(ctx, css);
+  const helper = fetched ? 'fetchedSheet' : 'inlinedSheet';
+  const imports =
+    `import {${helper}} from ${JSON.stringify(resolveRuntimeModule('css-build'))};\n` +
+    (hoist
+      ? `import {hoistPropertyRules} from ` +
+        `${JSON.stringify(resolveRuntimeModule('property-rules'))};\n`
+      : '');
+  const source = fetched
+    ? `import url from ${JSON.stringify(`${file}?url`)};\n`
+    : `import css from ${JSON.stringify(css)};\n`;
+  const args = `${fetched ? 'url' : 'css'}${hoist ? ', hoistPropertyRules' : ''}`;
+  return `${source}${imports}export default ${helper}(${args});\n`;
+};
 
 /**
  * Import-query support, served in dev and build alike (source code using
@@ -65,6 +167,7 @@ export const litCssQueries = (
 ): Plugin => {
   let isBuild = false;
   let isLib = false;
+  let root = process.cwd();
   const warned = new Set<string>();
   return {
     name: 'lit-css-query',
@@ -73,6 +176,7 @@ export const litCssQueries = (
     enforce: 'pre',
     configResolved(config) {
       isBuild = config.command === 'build';
+      root = config.root;
       isLib = config.build.lib !== false && config.build.lib !== undefined;
     },
     async resolveId(id, importer) {
@@ -98,68 +202,26 @@ export const litCssQueries = (
             `@oddsquad/vite-plugin-lit/uno and import that instead.`
         );
       }
-      return prefix + resolved.id + CSS_VIRTUAL_SUFFIX;
+      return prefix + toIdPath(resolved.id, root) + CSS_VIRTUAL_SUFFIX;
     },
-    load(id) {
-      const helperPath = resolveRuntimeModule('css');
-      if (id.startsWith(CSS_URL_VIRTUAL_PREFIX)) {
-        const file = id.slice(
-          CSS_URL_VIRTUAL_PREFIX.length,
-          -CSS_VIRTUAL_SUFFIX.length
-        );
-        return {
-          code:
-            `import url from ${JSON.stringify(`${file}?url`)};\n` +
-            `import {devCacheBust} from ${JSON.stringify(helperPath)};\n` +
-            `export default devCacheBust(url);\n`,
-          moduleType: 'js',
-        };
+    async load(id) {
+      const prefix = [CSS_URL_VIRTUAL_PREFIX, CSS_SHEET_VIRTUAL_PREFIX].find(
+        (p) => id.startsWith(p)
+      );
+      if (prefix === undefined) {
+        return null;
       }
-      if (id.startsWith(CSS_SHEET_VIRTUAL_PREFIX)) {
-        const file = id.slice(
-          CSS_SHEET_VIRTUAL_PREFIX.length,
-          -CSS_VIRTUAL_SUFFIX.length
-        );
-        if (!isBuild) {
-          // The accept specifier must be byte-identical to the import above —
-          // Vite resolves accepted HMR deps by static analysis. Generating both
-          // here is exactly what frees the caller from writing it. The swap is
-          // self-accepted at this boundary, so it never propagates to adopters.
-          const inlineSpecifier = JSON.stringify(`${file}?inline`);
-          return {
-            code:
-              `import css from ${inlineSpecifier};\n` +
-              `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
-              `const {sheet, onHotUpdate} = inlineSheet(css);\n` +
-              `export default sheet;\n` +
-              `if (import.meta.hot) {\n` +
-              `  import.meta.hot.accept(${inlineSpecifier}, onHotUpdate);\n` +
-              `}\n`,
-            moduleType: 'js',
-          };
-        }
-        // A build, so no `import.meta.hot` block. Either way the sheet is
-        // constructed once per virtual module, so adopters share it.
-        const mode = getCssSheetBuild();
-        if (mode === 'url' || (mode === 'auto' && !isLib)) {
-          return {
-            code:
-              `import url from ${JSON.stringify(`${file}?url`)};\n` +
-              `import {urlSheet} from ${JSON.stringify(helperPath)};\n` +
-              `export default urlSheet(url).sheet;\n`,
-            moduleType: 'js',
-          };
-        }
-        const inlineQuery = mode === 'inline-raw' ? '?raw' : '?inline';
-        return {
-          code:
-            `import css from ${JSON.stringify(`${file}${inlineQuery}`)};\n` +
-            `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
-            `export default inlineSheet(css).sheet;\n`,
-          moduleType: 'js',
-        };
-      }
-      return null;
+      const file = fromIdPath(
+        id.slice(prefix.length, -CSS_VIRTUAL_SUFFIX.length),
+        root
+      );
+      const code =
+        prefix === CSS_URL_VIRTUAL_PREFIX
+          ? hmrUrlCode(file, isBuild)
+          : isBuild
+            ? await buildSheetCode(this, file, getCssSheetBuild(), isLib)
+            : devSheetCode(file);
+      return {code, moduleType: 'js'};
     },
   };
 };

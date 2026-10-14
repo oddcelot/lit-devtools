@@ -204,11 +204,18 @@ describe('litPlugin ?hmr-url css query', () => {
       ) => Promise<string | null>
     ).call(fakeCtx, id, importer);
   const callLoad = (id: string) =>
-    (plugin.load as unknown as (id: string) => {code: string} | null)(id);
+    (plugin.load as unknown as (id: string) => Promise<{code: string} | null>)(
+      id
+    );
+  (plugin.configResolved as unknown as (config: object) => void)({
+    command: 'serve',
+    root: '/app',
+    build: {lib: false},
+  });
 
-  test('resolves css hmr-url imports to a virtual JS id', async () => {
+  test('resolves css hmr-url imports to a root-relative virtual JS id', async () => {
     expect(await callResolveId('./box.css?hmr-url', '/app/src/el.ts')).toBe(
-      '\0lit-plugin:hmr-url:/app/src/box.css.js'
+      '\0lit-plugin:hmr-url:./src/box.css.js'
     );
   });
 
@@ -217,11 +224,11 @@ describe('litPlugin ?hmr-url css query', () => {
     expect(await callResolveId('./box.css', '/app/src/el.ts')).toBeNull();
   });
 
-  test('loads a wrapper importing ?url through devCacheBust', () => {
-    const result = callLoad('\0lit-plugin:hmr-url:/app/src/box.css.js')!;
+  test('loads a wrapper importing ?url through devCacheBust', async () => {
+    const result = (await callLoad('\0lit-plugin:hmr-url:./src/box.css.js'))!;
     expect(result.code).toContain('"/app/src/box.css?url"');
     expect(result.code).toContain('devCacheBust(url)');
-    expect(callLoad('/app/src/el.ts')).toBeNull();
+    expect(await callLoad('/app/src/el.ts')).toBeNull();
   });
 });
 
