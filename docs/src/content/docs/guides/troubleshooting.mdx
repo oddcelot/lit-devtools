@@ -254,7 +254,8 @@ keeping `vite/client` alongside it. See
 ### The shared sheet applies nothing
 
 **Symptom.** Adopters render unstyled, and the console shows
-`[lit-plugin] urlSheet: failed to load …`.
+`[lit-plugin] ?css-sheet: failed to load …` (a built `?css-sheet`) or
+`[lit-plugin] urlSheet: failed to load …` (a `urlSheet()` you wired yourself).
 
 **Cause.** The sheet is fetch-backed. When the request fails or returns an
 error status, the `CSSStyleSheet` stays empty (or keeps its last good css

@@ -123,7 +123,8 @@ Add a class to a component and Tailwind regenerates the sheet, which swaps
 in place for every adopter. Shadows, rings, transforms and gradients work
 too. Tailwind builds them on properties it registers with `@property`, which
 browsers ignore inside a shadow root, so the plugin registers those rules on
-the document. The
+the document. A build only includes that code for a sheet whose compiled css
+has a `@property` rule. The
 [Tailwind example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/tailwind)
 runs this setup.
 

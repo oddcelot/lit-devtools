@@ -56,6 +56,10 @@ alike.
 imported in a hook that `vite build` never calls, so a build loads only the
 options and the CSS plugins.
 
+What those CSS plugins emit carries no dev code either: under `vite build`, a
+`?css-sheet` compiles to a sheet that is filled once, with no hot-swap
+callback, and a `?hmr-url` to the plain asset URL.
+
 If you want the build to depend on less than that, use `litCss()` from the
 `/build` entry for builds. It carries only what a build uses: the CSS queries,
 Lightning CSS for `css` literals, and the no-op timeline stub.
