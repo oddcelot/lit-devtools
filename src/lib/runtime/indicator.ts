@@ -9,7 +9,7 @@ import {FLAME_ICON} from '../icons.js';
 import {subscribeOverrideKeys} from './overrides.js';
 import type {ViteHotLike} from './page-channel.js';
 import {observeEdgeInsets} from './edge-panel.js';
-import {injectTokens} from '../tokens.js';
+import {injectTokens} from '../token-text.js';
 
 /** One entry of a Vite `vite:afterUpdate` payload. */
 interface ViteUpdate {

@@ -55,6 +55,8 @@ const DIST = decodeURIComponent(
 );
 
 const CSP = "script-src 'self'";
+// A site that allows one Trusted Types policy, the one its own Lit creates.
+const TRUSTED_TYPES_CSP = `${CSP}; require-trusted-types-for 'script'; trusted-types lit-html`;
 
 let workDir: string;
 let server: Server;
@@ -138,7 +140,10 @@ beforeAll(async () => {
   const appJs = built[0].output[0].code;
 
   server = createServer((req, res) => {
-    res.setHeader('content-security-policy', CSP);
+    res.setHeader(
+      'content-security-policy',
+      req.url === '/trusted-types' ? TRUSTED_TYPES_CSP : CSP
+    );
     if (req.url === '/probe.js' || req.url === '/app.js') {
       res.setHeader('content-type', 'text/javascript');
       res.end(req.url === '/probe.js' ? PROBE_JS : appJs);
@@ -261,6 +266,30 @@ test('once enabled, the runtime is in the page before its first script', async (
       return performUpdate[brand];
     })
   ).toBe(true);
+  expect(errors).toEqual([]);
+  await page.close();
+});
+
+test("the runtime leaves a Trusted Types site's own Lit policy to it", async () => {
+  await registry('lit:enable');
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (msg) => {
+    // The page's inline script is refused on purpose, as on every page here.
+    if (msg.type() === 'error' && !msg.text().includes('inline script'))
+      errors.push(msg.text());
+  });
+  await page.goto(`${appOrigin}/trusted-types`);
+  expect(await probe(page)).toEqual({defineWrapped: true, channel: true});
+  // The page's Lit created its policy and rendered through it.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => document.querySelector('probe-hello')?.shadowRoot?.textContent
+      )
+    )
+    .toContain('hello');
   expect(errors).toEqual([]);
   await page.close();
 });

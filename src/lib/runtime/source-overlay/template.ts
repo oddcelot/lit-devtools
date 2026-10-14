@@ -1,14 +1,13 @@
 import {FONT_MONO_VAR} from '../fonts.js';
 import {CODE_ICON, CUBE_ICON} from '../../icons.js';
 
-// Shadow DOM markup for the overlay: a transparent modal <dialog> hosting the
+// Shadow DOM for the overlay: a transparent modal <dialog> hosting the
 // dimming mask, the highlight ring, and the bottom-fixed tooltip panel. The
 // panel is a two-section split: declaration icon (the Components tab's
 // cube) | tag + path + arrow-key steps. A second row of the same shape, with
 // a code icon, shows where the element is written in a template (its call
 // site), when known.
-export const OVERLAY_HTML = `
-  <style>
+const OVERLAY_CSS = `
     dialog {
       background: transparent;
       border: none;
@@ -116,25 +115,94 @@ export const OVERLAY_HTML = `
       font-size: 11px;
       white-space: pre;
     }
-  </style>
-  <dialog id="overlay">
-    <div id="mask"></div>
-    <div id="highlight"></div>
-    <div id="tooltip">
-      <div id="source-row" class="row">
-        <span id="open" class="icon" aria-hidden="true">${CUBE_ICON}</span>
-        <div id="meta">
-          <span id="tag"></span>
-          <span id="path"></span>
-          <span id="step"></span>
-        </div>
-      </div>
-      <div id="site-row" class="row">
-        <span id="site-open" class="icon" aria-hidden="true">${CODE_ICON}</span>
-        <div id="site-meta">
-          <span id="site-path"><span class="label">rendered at </span><span id="site-text"></span></span>
-        </div>
-      </div>
-    </div>
-  </dialog>
-`;
+  `;
+
+/** An element with attributes and children, built without parsing markup. */
+const el = (
+  tag: string,
+  attrs: Record<string, string>,
+  ...children: Node[]
+): HTMLElement => {
+  const node = document.createElement(tag);
+  for (const [name, value] of Object.entries(attrs))
+    node.setAttribute(name, value);
+  node.append(...children);
+  return node;
+};
+
+/** One of the `icons.ts` SVGs, rebuilt from its viewBox and path. */
+const icon = (svg: string): SVGSVGElement => {
+  const ns = 'http://www.w3.org/2000/svg';
+  const root = document.createElementNS(ns, 'svg');
+  root.setAttribute(
+    'viewBox',
+    /viewBox="([^"]*)"/.exec(svg)?.[1] ?? '0 0 256 256'
+  );
+  root.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS(ns, 'path');
+  path.setAttribute('d', /\sd="([^"]*)"/.exec(svg)?.[1] ?? '');
+  root.append(path);
+  return root;
+};
+
+/**
+ * Fill `root` with the overlay. Built with DOM calls rather than `innerHTML`,
+ * which a page enforcing Trusted Types refuses: the runtime has no policy of
+ * its own there, and must not take the name of the page's.
+ */
+export const renderOverlay = (root: ShadowRoot): void => {
+  const style = document.createElement('style');
+  style.textContent = OVERLAY_CSS;
+  root.append(
+    style,
+    el(
+      'dialog',
+      {id: 'overlay'},
+      el('div', {id: 'mask'}),
+      el('div', {id: 'highlight'}),
+      el(
+        'div',
+        {id: 'tooltip'},
+        el(
+          'div',
+          {id: 'source-row', class: 'row'},
+          el(
+            'span',
+            {id: 'open', class: 'icon', 'aria-hidden': 'true'},
+            icon(CUBE_ICON)
+          ),
+          el(
+            'div',
+            {id: 'meta'},
+            el('span', {id: 'tag'}),
+            el('span', {id: 'path'}),
+            el('span', {id: 'step'})
+          )
+        ),
+        el(
+          'div',
+          {id: 'site-row', class: 'row'},
+          el(
+            'span',
+            {id: 'site-open', class: 'icon', 'aria-hidden': 'true'},
+            icon(CODE_ICON)
+          ),
+          el(
+            'div',
+            {id: 'site-meta'},
+            el(
+              'span',
+              {id: 'site-path'},
+              el(
+                'span',
+                {class: 'label'},
+                document.createTextNode('rendered at ')
+              ),
+              el('span', {id: 'site-text'})
+            )
+          )
+        )
+      )
+    )
+  );
+};
