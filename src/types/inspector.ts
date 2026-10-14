@@ -521,6 +521,12 @@ export type InspectorCommand =
    * `devtools` cause. Answered with `gone` when the element no longer exists.
    */
   | {type: 'request-update'; id: number}
+  /**
+   * Store the value at `path` on element `id` in the next free `temp1`,
+   * `temp2`… global, and log it to the console under that name, as the
+   * browser's own "Store as global variable" does.
+   */
+  | {type: 'store-global'; id: number; path: ValuePath}
   /** List the children of the value at `path` on element `id`. */
   | {type: 'expand'; id: number; path: ValuePath}
   /**

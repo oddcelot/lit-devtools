@@ -370,7 +370,7 @@ export const collectDetails = (el: Element): InspectorDetails => {
  * properties and listed extras are reachable, so a path cannot read
  * arbitrary fields.
  */
-const valueAt = (
+export const valueAt = (
   el: Element,
   path: ValuePath
 ): {value: unknown} | undefined => {

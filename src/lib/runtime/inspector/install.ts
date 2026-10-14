@@ -23,6 +23,7 @@ import {
   expandPath,
   listedIdOf,
   setProp,
+  valueAt,
 } from './collect.js';
 import {
   clearLeafOverrides,
@@ -618,6 +619,24 @@ if (typeof window !== 'undefined') {
     withDevtoolsCause(() => el.requestUpdate?.());
   };
 
+  /** Stores a row's value as the next free `tempN` and names it in the console. */
+  const storeGlobal = (
+    cmd: Extract<InspectorCommand, {type: 'store-global'}>
+  ): void => {
+    const el = elementById(cmd.id);
+    if (el === undefined) {
+      send({type: 'gone', id: cmd.id});
+      return;
+    }
+    const at = valueAt(el, cmd.path);
+    if (at === undefined) return;
+    let n = 1;
+    while (`temp${n}` in globalThis) n++;
+    const name = `temp${n}`;
+    (globalThis as Record<string, unknown>)[name] = at.value;
+    console.log(name, at.value);
+  };
+
   /**
    * A leaf deeper than the row's preview would leave the open level that
    * holds it stale, so answer that level too. Nothing for the property itself.
@@ -725,6 +744,7 @@ if (typeof window !== 'undefined') {
     'highlight-all': (cmd) => highlightAll(cmd.ids),
     reveal: (cmd) => revealById(cmd.id),
     'request-update': requestUpdate,
+    'store-global': storeGlobal,
     anatomy: (cmd) => anatomyById(cmd.id, cmd.only),
     'anatomy-focus': (cmd) => focusAnatomy(cmd.focus),
     observe: (cmd) => setObserving(cmd.enabled),

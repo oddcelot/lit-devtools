@@ -642,3 +642,42 @@ test("leaves a page's own $lit alone", async () => {
     delete g.$lit;
   }
 });
+
+test('store-global keeps a reachable value as the next free tempN', async () => {
+  const {carrier, idOf} = await load();
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  const tag = `x-storable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['items', {}]]);
+      items = [{label: 'a'}];
+      secret = 'not declared';
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {
+    items: unknown[];
+  };
+  document.body.append(el);
+  const g = globalThis as Record<string, unknown>;
+  g.temp1 = 'taken';
+  try {
+    const store = (path: object) =>
+      carrier.deliver(INSPECT_CMD_CHANNEL, {
+        type: 'store-global',
+        id: idOf(el),
+        path,
+      });
+    store({section: 'prop', name: 'items', keys: []});
+    expect(g.temp2).toBe(el.items);
+    expect(log).toHaveBeenCalledWith('temp2', el.items);
+    store({section: 'prop', name: 'items', keys: [0]});
+    expect(g.temp3).toBe(el.items[0]);
+    // Only declared properties are reachable.
+    store({section: 'prop', name: 'secret', keys: []});
+    expect('temp4' in g).toBe(false);
+  } finally {
+    for (const name of ['temp1', 'temp2', 'temp3']) delete g[name];
+  }
+});

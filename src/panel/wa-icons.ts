@@ -49,6 +49,7 @@ import pushPin from '@phosphor-icons/core/assets/regular/push-pin.svg?raw';
 import record from '@phosphor-icons/core/assets/regular/record.svg?raw';
 import stop from '@phosphor-icons/core/assets/regular/stop.svg?raw';
 import target from '@phosphor-icons/core/assets/regular/target.svg?raw';
+import terminal from '@phosphor-icons/core/assets/regular/terminal.svg?raw';
 import toggleLeft from '@phosphor-icons/core/assets/regular/toggle-left.svg?raw';
 import toggleRight from '@phosphor-icons/core/assets/regular/toggle-right.svg?raw';
 import trash from '@phosphor-icons/core/assets/regular/trash.svg?raw';
@@ -84,6 +85,7 @@ const ICONS = {
   record,
   stop,
   target,
+  terminal,
   'toggle-left': toggleLeft,
   'toggle-right': toggleRight,
   trash,

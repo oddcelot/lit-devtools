@@ -980,7 +980,8 @@ export class ComponentsView extends LitElement {
       .child {
         position: relative;
       }
-      .copy {
+      .copy,
+      .store {
         position: absolute;
         top: 0;
         right: 0;
@@ -992,6 +993,10 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-muted);
         cursor: pointer;
         opacity: 0;
+      }
+      /* Left of the copy button: its padding plus one icon. */
+      .store {
+        right: calc(2 * var(--lit-devtools-space-2) + 1em);
       }
       /* Sits right after the value, so it is found where the eye already is. */
       .edit {
@@ -1008,14 +1013,17 @@ export class ComponentsView extends LitElement {
       }
       /* Direct children only: an ancestor's hover must not reveal a leaf's. */
       .entry:hover > .copy,
+      .entry:hover > .store,
       .entry:hover > .val > .edit,
       .child:hover > .t-value > .edit,
       .copy:focus-visible,
+      .store:focus-visible,
       .edit:focus-visible,
       .copy.copied {
         opacity: 1;
       }
       .copy:hover,
+      .store:hover,
       .edit:hover {
         color: var(--lit-devtools-text);
       }
@@ -1023,6 +1031,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-success);
       }
       .copy:focus-visible,
+      .store:focus-visible,
       .edit:focus-visible {
         outline: 2px solid var(--lit-devtools-accent-ring);
       }
@@ -1933,6 +1942,8 @@ export class ComponentsView extends LitElement {
       expand?: {path: ValuePath; type: string};
       /** What the copy button puts on the clipboard; no button without it. */
       copy?: string;
+      /** The value a "Store as global variable" button stores. */
+      store?: ValuePath;
       /** The primitive the row can be set to, and the text to start from. */
       edit?: PropEdit;
       /** Extra classes on the row. */
@@ -1945,6 +1956,7 @@ export class ComponentsView extends LitElement {
       key,
       expand,
       copy,
+      store,
       edit,
       rowClass = '',
     } = opts;
@@ -1970,7 +1982,7 @@ export class ComponentsView extends LitElement {
           if (open) return html`${caret}${summarize(expand.type)}`;
           return code ? renderCode(value, caret) : html`${caret}${value}`;
         })()}${hooks.button}${trailing}${open ? this._renderLevel(expand.path) : nothing}</span
-      >${
+      >${store === undefined ? nothing : this._renderStore(store)}${
         copy === undefined || key === undefined
           ? nothing
           : this._renderCopy(key, copy)
@@ -2129,6 +2141,25 @@ export class ComponentsView extends LitElement {
         void this._copy(key, text, e.currentTarget as HTMLElement)}
     >
       <wa-icon name=${copied ? 'check' : 'copy'}></wa-icon>
+    </button>`;
+  }
+
+  /**
+   * A button that stores the live value behind a row in a `tempN` global on
+   * the page, named in the page's console. None in a snapshot.
+   */
+  private _renderStore(path: ValuePath) {
+    if (this._snapshot) return nothing;
+    return html`<button
+      class="store"
+      data-tip="Store as global variable (named in the console)"
+      aria-label="Store as global variable"
+      @click=${() => {
+        const id = this._session.details?.id;
+        if (id !== undefined) sendToPage({type: 'store-global', id, path});
+      }}
+    >
+      <wa-icon name="terminal"></wa-icon>
     </button>`;
   }
 
@@ -2410,6 +2441,7 @@ export class ComponentsView extends LitElement {
               code: true,
               key: propKey(p.name),
               copy: p.value,
+              store: {section: 'prop', name: p.name, keys: []},
               edit: editOf(p, this._snapshot),
               ...(p.expandable === true
                 ? {
@@ -2653,6 +2685,7 @@ export class ComponentsView extends LitElement {
                   : this._renderContextLinks(e.context),
               key: extraKey(e.name),
               copy: e.value,
+              store: {section: 'extra', name: e.name, keys: []},
               ...(e.expandable === true
                 ? {
                     expand: {
