@@ -607,3 +607,77 @@ test('a keyed set-prop writes the leaf, then answers details and the parent leve
     },
   ]);
 });
+
+test('$lit in the console is the element the panel watches', async () => {
+  const {carrier, idOf} = await load();
+  const el = make();
+  document.body.append(el);
+  const $lit = () => (globalThis as {$lit?: unknown}).$lit;
+  expect($lit()).toBeUndefined();
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: idOf(el)});
+  expect($lit()).toBe(el);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+  expect($lit()).toBeUndefined();
+});
+
+test("leaves a page's own $lit alone", async () => {
+  const g = globalThis as {$lit?: unknown};
+  // As on a page the runtime never ran on before.
+  delete g.$lit;
+  delete (g as Record<symbol, unknown>)[
+    Symbol.for('@oddsquad/vite-plugin-lit#selection')
+  ];
+  Object.defineProperty(globalThis, '$lit', {
+    value: 'mine',
+    configurable: true,
+    writable: true,
+  });
+  try {
+    const {carrier, idOf} = await load();
+    const el = make();
+    document.body.append(el);
+    carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: idOf(el)});
+    expect(g.$lit).toBe('mine');
+  } finally {
+    delete g.$lit;
+  }
+});
+
+test('store-global keeps a reachable value as the next free tempN', async () => {
+  const {carrier, idOf} = await load();
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  const tag = `x-storable-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      static elementProperties = new Map([['items', {}]]);
+      items = [{label: 'a'}];
+      secret = 'not declared';
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {
+    items: unknown[];
+  };
+  document.body.append(el);
+  const g = globalThis as Record<string, unknown>;
+  g.temp1 = 'taken';
+  try {
+    const store = (path: object) =>
+      carrier.deliver(INSPECT_CMD_CHANNEL, {
+        type: 'store-global',
+        id: idOf(el),
+        path,
+      });
+    store({section: 'prop', name: 'items', keys: []});
+    expect(g.temp2).toBe(el.items);
+    expect(log).toHaveBeenCalledWith('temp2', el.items);
+    store({section: 'prop', name: 'items', keys: [0]});
+    expect(g.temp3).toBe(el.items[0]);
+    // Only declared properties are reachable.
+    store({section: 'prop', name: 'secret', keys: []});
+    expect('temp4' in g).toBe(false);
+  } finally {
+    for (const name of ['temp1', 'temp2', 'temp3']) delete g[name];
+  }
+});

@@ -991,6 +991,21 @@ test('Scroll into view reveals the selected element in the page', async () => {
   expect(inspects()).toContainEqual({type: 'reveal', id: 2});
 });
 
+test('Store as global variable sends the row path to the page', async () => {
+  const {el, root, inspects} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: filterable()});
+  await flush(el);
+  root
+    .querySelector<HTMLElement>('.details .entry[data-key="p:label"] .store')!
+    .click();
+  expect(inspects()).toContainEqual({
+    type: 'store-global',
+    id: 2,
+    path: {section: 'prop', name: 'label', keys: []},
+  });
+});
+
 test('Request update asks the selected element to update', async () => {
   const {el, root, inspects} = await mount(true);
   push('inspector-message', {type: 'pick', id: 2});

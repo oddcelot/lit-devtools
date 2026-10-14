@@ -23,6 +23,7 @@ import {
   expandPath,
   listedIdOf,
   setProp,
+  valueAt,
 } from './collect.js';
 import {
   clearLeafOverrides,
@@ -91,6 +92,29 @@ let onPanelArrived: (() => void) | undefined;
 // predecessor's heartbeat times out, so a release has to wait for the *last*
 // one rather than react to the first disconnect.
 const panels = new Set<string>();
+
+/** The console name of the panel's selection, as `$0` is the Elements panel's. */
+const SELECTION_GLOBAL = '$lit';
+/** Set on the global once `$lit` is ours, so a re-run runtime may replace it. */
+const SELECTION_OWNED = Symbol.for('@oddsquad/vite-plugin-lit#selection');
+
+/**
+ * Define `$lit` in the page's console: the element the panel has selected,
+ * or undefined while none is. A page that has a `$lit` of its own keeps it.
+ */
+const exposeSelection = (selected: () => Element | undefined): void => {
+  const g = globalThis as unknown as Record<symbol, unknown>;
+  if (SELECTION_GLOBAL in globalThis && g[SELECTION_OWNED] !== true) return;
+  try {
+    Object.defineProperty(globalThis, SELECTION_GLOBAL, {
+      get: selected,
+      configurable: true,
+    });
+    g[SELECTION_OWNED] = true;
+  } catch {
+    // A frozen global; the console goes without `$lit`.
+  }
+};
 
 if (typeof window !== 'undefined') {
   // The browser extension's "Reveal in Elements": DevTools' `inspectedWindow
@@ -228,6 +252,8 @@ if (typeof window !== 'undefined') {
     /** Push fresh details once, at the end of the current task. */
     queuePush: () => void;
   } | null = null;
+
+  exposeSelection(() => watched?.ref.deref());
 
   // An app write under an override renders nothing, so `updated` never
   // hears of it; the intrinsic value the pane shows would go stale.
@@ -593,6 +619,24 @@ if (typeof window !== 'undefined') {
     withDevtoolsCause(() => el.requestUpdate?.());
   };
 
+  /** Stores a row's value as the next free `tempN` and names it in the console. */
+  const storeGlobal = (
+    cmd: Extract<InspectorCommand, {type: 'store-global'}>
+  ): void => {
+    const el = elementById(cmd.id);
+    if (el === undefined) {
+      send({type: 'gone', id: cmd.id});
+      return;
+    }
+    const at = valueAt(el, cmd.path);
+    if (at === undefined) return;
+    let n = 1;
+    while (`temp${n}` in globalThis) n++;
+    const name = `temp${n}`;
+    (globalThis as Record<string, unknown>)[name] = at.value;
+    console.log(name, at.value);
+  };
+
   /**
    * A leaf deeper than the row's preview would leave the open level that
    * holds it stale, so answer that level too. Nothing for the property itself.
@@ -700,6 +744,7 @@ if (typeof window !== 'undefined') {
     'highlight-all': (cmd) => highlightAll(cmd.ids),
     reveal: (cmd) => revealById(cmd.id),
     'request-update': requestUpdate,
+    'store-global': storeGlobal,
     anatomy: (cmd) => anatomyById(cmd.id, cmd.only),
     'anatomy-focus': (cmd) => focusAnatomy(cmd.focus),
     observe: (cmd) => setObserving(cmd.enabled),
