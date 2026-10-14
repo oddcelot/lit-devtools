@@ -1,19 +1,16 @@
 import type MagicString from 'magic-string';
 
-/** Stable key shared between transform output and runtime resolution. */
-export const SOURCE_META_KEY = '@oddsquad/vite-plugin-lit#source';
+/**
+ * The `Symbol.for` key shared between transform output and runtime resolution;
+ * the runtime's `SOURCE_META_KEY` is the symbol itself.
+ */
+export const SOURCE_META_SYMBOL_KEY = '@oddsquad/vite-plugin-lit#source';
 
 /**
  * The expression string used in generated code to reference the shared
  * symbol at runtime.
  */
-export const SOURCE_META_SYM = `Symbol.for('${SOURCE_META_KEY}')`;
-
-export interface InjectedSourceMeta {
-  filePath: string;
-  lineNumber: number;
-  componentName?: string;
-}
+export const SOURCE_META_SYM = `Symbol.for('${SOURCE_META_SYMBOL_KEY}')`;
 
 /** 1-based line number for an index in source text. */
 export const lineNumberAt = (code: string, index: number): number =>

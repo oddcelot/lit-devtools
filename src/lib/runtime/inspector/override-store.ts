@@ -46,7 +46,7 @@ export const OVERRIDES_SS_KEY = 'lit-devtools-overrides';
 type Leaf = string | number | boolean;
 
 /** One saved override. */
-export interface SavedOverride {
+interface SavedOverride {
   key: ElementKey;
   name: string;
   keys?: ValueSegment[];

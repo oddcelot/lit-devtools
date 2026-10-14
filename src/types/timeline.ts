@@ -259,10 +259,3 @@ export const CHANNEL_CUSTOM_LAYER = 'lit:timeline:custom-layer';
 export const CHANNEL_RUNTIME_READY = 'lit:timeline:runtime-ready';
 export const CHANNEL_RECORDING_CHANGED = 'lit:timeline:recording-changed';
 export const CHANNEL_LAYERS_CHANGED = 'lit:timeline:layers-changed';
-
-/**
- * Vite HMR channel the DevTools "toggle source overlay" command uses to tell
- * the app runtime to toggle the overlay (the command handler runs server-side).
- */
-export const SOURCE_OVERLAY_TOGGLE_CHANNEL =
-  'lit-devtools:toggle-source-overlay';

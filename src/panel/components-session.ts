@@ -56,7 +56,7 @@ export interface ComponentsPrime {
 }
 
 /** The newest patch among `entries` (oldest first), skipping failures. */
-export const lastPatchOf = (
+const lastPatchOf = (
   entries: readonly HmrHistoryEntry[]
 ): HmrPatchEvent | null => {
   for (let i = entries.length - 1; i >= 0; i--) {
@@ -322,11 +322,6 @@ export class ComponentsSession {
     else next.add(id);
     this.#expanded = next;
     this.#changed();
-  }
-
-  /** Ask the page again for the tree and the selection's details. */
-  refresh(): void {
-    this.#refresh();
   }
 
   togglePick(): void {

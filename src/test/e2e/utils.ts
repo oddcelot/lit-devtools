@@ -287,25 +287,6 @@ export const startFixture = async (
   };
 };
 
-/**
- * The headers a browser on the dev server's own page puts on a request to the
- * DevTools endpoints.
- *
- * `isTrustedRequest` (src/lib/http.ts) rejects anything that carries neither
- * `Origin` nor `Sec-Fetch-Site`, which is every request Node's `http` client
- * makes unless it is told otherwise. Tests that drive these endpoints outside
- * a page have to spell out what the page would have sent: `Sec-Fetch-Site` on
- * everything, plus `Origin` on the non-GET requests that a browser would
- * attach it to.
- */
-export const sameOriginHeaders = (
-  port: number,
-  method: 'GET' | 'POST' = 'POST'
-): Record<string, string> => ({
-  'sec-fetch-site': 'same-origin',
-  ...(method === 'GET' ? {} : {origin: `http://127.0.0.1:${port}`}),
-});
-
 // Selector paths are `>>`-separated, hopping into a shadow root at each
 // step (e.g. `'hmr-parent >> hmr-child >> #badge'`). Each `page.evaluate`
 // embeds the same tiny resolver loop — evaluate callbacks are serialized,
@@ -381,11 +362,6 @@ export const dataRenders = (page: Page, path: string): Promise<string | null> =>
       return node?.getAttribute('data-renders') ?? null;
     }, path)
     .catch(() => null);
-
-export const hmrUpdates = (page: Page): Promise<number> =>
-  page.evaluate(
-    () => (window as unknown as {__hmr: {updates: number}}).__hmr.updates
-  );
 
 /**
  * Appends `<tag>` to the page and waits for its first render.

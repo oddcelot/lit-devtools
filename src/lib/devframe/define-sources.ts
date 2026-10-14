@@ -32,7 +32,7 @@ export type DefineSourceResolver = (
   frames: GeneratedFrame[]
 ) => Promise<ElementSource | undefined>;
 
-export const RESOLVE_TIMEOUT_MS = 5000;
+const RESOLVE_TIMEOUT_MS = 5000;
 
 const withTimeout = <T>(
   promise: Promise<T>,

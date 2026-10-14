@@ -26,7 +26,7 @@ const findPackageRoot = (): string => {
 };
 
 /** Absolute path of this package's root directory. */
-export const PACKAGE_ROOT: string = findPackageRoot();
+const PACKAGE_ROOT: string = findPackageRoot();
 
 /** This package's version, as published. Surfaced by the `get-meta` query. */
 export const PACKAGE_VERSION: string =

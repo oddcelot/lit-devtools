@@ -1596,6 +1596,8 @@ export class ComponentsView extends LitElement {
   }
 
   /** Count of cached HMR-incompatibility events; the panel shell's tab badge. */
+  // Read by the panel-shell and components-view DOM tests.
+  // fallow-ignore-next-line unused-class-member
   get hmrIncompatibilityCount(): number {
     return this._session.hmrIncompatibilities.length;
   }

@@ -12,12 +12,8 @@
 
 import {SOURCE_META_KEY, readCallSite} from '../source-meta.js';
 import {defineIdOf} from '../define-sites.js';
+import type {ElementSource} from '../../../types/inspector.js';
 import type {TimelineEvent} from '../../../types/timeline.js';
-
-export interface ElementSource {
-  file: string;
-  line: number;
-}
 
 /** A place in a file with a column, which a call site always has. */
 export interface ElementCallSite extends ElementSource {

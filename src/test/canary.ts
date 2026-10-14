@@ -8,9 +8,9 @@ import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {Alias} from 'vite';
 
-export const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+const REPO_ROOT = fileURLToPath(new URL('../..', import.meta.url));
 
-export const CANARY_ENABLED = process.env['LIT_CANARY'] === '1';
+const CANARY_ENABLED = process.env['LIT_CANARY'] === '1';
 
 // Bare specifier -> package directory inside the lit submodule, plus the
 // bare entry file. The lit family is aliased as a unit: `lit` re-exports from

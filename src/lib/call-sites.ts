@@ -151,10 +151,7 @@ const scanTag = (
  * Tags inside comments, attribute values and raw-text elements are skipped,
  * and so is a name that runs into an expression.
  */
-export const scanCustomTags = (
-  chunks: readonly Quasi[],
-  found: Found
-): void => {
+const scanCustomTags = (chunks: readonly Quasi[], found: Found): void => {
   let state: State = {kind: 'text'};
   for (const {start, raw} of chunks) {
     let i = 0;

@@ -15,7 +15,6 @@
  */
 
 export type {PageTransport, ViteHotLike} from './page-transport.js';
-export {fromViteHot} from './page-transport.js';
 import {
   fromViteHot,
   type PageTransport,

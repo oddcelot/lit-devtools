@@ -85,11 +85,11 @@ import {hostProfile, type HostKind} from './host-profile.js';
 import type {NodeActions} from './node-actions.js';
 import {createInspectorQueries} from './inspector-queries.js';
 import {createFollowedPage} from './followed-page.js';
-import {createNullSource, type TimelineSource} from './source.js';
+import type {TimelineSource} from './source.js';
 import type {SessionSnapshot} from '../../types/snapshot.js';
 
 export interface CreateLitDevframeOptions {
-  /** Page-runtime bridge. Use {@link createNullSource} when no page is attached. */
+  /** Page-runtime bridge. Use `createNullSource()` when no page is attached. */
   source: TimelineSource;
   /** Plugin version, surfaced by `get-meta` and the devframe's own `version`. */
   version: string;
@@ -671,9 +671,3 @@ export function createLitDevframe(
     },
   });
 }
-
-export default createLitDevframe({
-  host: 'none',
-  source: createNullSource(),
-  version: '0.0.0',
-});

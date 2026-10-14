@@ -25,7 +25,7 @@ export type ChildStateMode = 'reset' | 'transfer' | 'reuse';
 export const PRIVATE_KEY_PREFIX = '@oddsquad/vite-plugin-lit#private:';
 
 /** Hard cap on how long a transfer window stays open. */
-export const WINDOW_CAP_MS = 1000;
+const WINDOW_CAP_MS = 1000;
 
 const ATTRIBUTE_PART = 1;
 const CHILD_PART = 2;
@@ -297,7 +297,7 @@ export const isReuseSafe = (
  * light-DOM children, then replaces it. `old` keeps its identity, state,
  * shadow DOM and controllers, and reconnects.
  */
-export const swapBack = (old: ElementLike, fresh: ElementLike): void => {
+const swapBack = (old: ElementLike, fresh: ElementLike): void => {
   for (const attr of Array.from(old.attributes)) {
     if (!fresh.hasAttribute(attr.name)) {
       old.removeAttribute(attr.name);

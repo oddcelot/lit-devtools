@@ -25,7 +25,7 @@ export const hasSourceMeta: HostTest = (el) =>
  * (`lit-devtools dev`). `elementProperties` is the static map every
  * `ReactiveElement` class carries; a plain custom element has none.
  */
-export const isLitElement: HostTest = (el) =>
+const isLitElement: HostTest = (el) =>
   (el.constructor as {elementProperties?: unknown}).elementProperties instanceof
   Map;
 
@@ -80,7 +80,7 @@ export const findEnclosingHost = (
 // Pierce nested shadow roots to find the deepest element under the cursor.
 // document.elementFromPoint retargets shadow content to the top-level host, so
 // we descend through each shadowRoot to reach the innermost element.
-export const deepElementFromPoint = (x: number, y: number): Element | null => {
+const deepElementFromPoint = (x: number, y: number): Element | null => {
   let el = document.elementFromPoint(x, y);
   let deepest: Element | null = el;
   while (el?.shadowRoot) {

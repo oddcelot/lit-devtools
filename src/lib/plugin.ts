@@ -13,13 +13,7 @@ import {lazyServePlugin} from './plugins/lazy.js';
 
 export {litCssQueries} from './plugins/css-queries.js';
 export {litTimelineVirtual} from './plugins/timeline-virtual.js';
-export type {
-  HmrIndicatorOptions,
-  HmrOptions,
-  CssSheetBuild,
-  LitPluginOptions,
-  ResolvedOptions,
-} from './options.js';
+export type {LitPluginOptions} from './options.js';
 export {resolveOptions} from './options.js';
 
 /**
