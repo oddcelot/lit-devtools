@@ -63,7 +63,11 @@ export class HmrProbe extends LitElement {
     }
   }
 
+  // The three methods below are called by src/test/e2e/dom-refs_test.ts from
+  // inside page.evaluate, where fallow cannot see them.
+
   /** The cached node is still the one in the live shadow DOM. */
+  // fallow-ignore-next-line unused-class-member
   isCachedAlive(): boolean {
     return (
       this.cached !== undefined &&
@@ -73,12 +77,14 @@ export class HmrProbe extends LitElement {
   }
 
   /** Toggles the observed target's visibility to provoke an observation. */
+  // fallow-ignore-next-line unused-class-member
   pokeObserver(): void {
     if (this.cached !== undefined) {
       this.cached.hidden = !this.cached.hidden;
     }
   }
 
+  // fallow-ignore-next-line unused-class-member
   getObserverFired(): number {
     return this.observerFired;
   }

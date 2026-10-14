@@ -10,12 +10,41 @@
     // Run by hand once, to make the release workflow's YouTube credentials.
     "scripts/youtube-auth.mjs",
     // Run by hand when new docs screenshots land.
-    "docs/scripts/place-shots.mjs"
+    "docs/scripts/place-shots.mjs",
+    // Built by `vp build <dir>` from package.json scripts, which fallow no
+    // longer reads (see ignoreCommandEntries), so name each build's roots.
+    "src/panel/{index.html,vite.config.ts}",
+    "src/standalone/vite.config.ts",
+    "extension/{*.html,vite.config.ts}",
+    // extension/vite.config.ts names these as rollup inputs and an alias.
+    "extension/src/{background,content,page,snapshot-stub}.ts",
+    // Served by bench/run.mjs.
+    "bench/index.html",
+    // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
+    "docs/src/routeData.ts"
   ],
+  // The plugin serves these to the page by `/@fs/` URL
+  // (resolveRuntimeModule in src/lib/plugins/hmr.ts and source-overlay.ts), and
+  // src/standalone/vite.config.ts builds runtime/standalone.ts by path.
+  "dynamicallyLoaded": [
+    "src/lib/runtime/{css,indicator,intern,patch,source-overlay,standalone}.ts",
+    "src/lib/runtime/timeline/{install,public-api,warnings-boot}.ts",
+    "src/lib/runtime/inspector/{install,persist}.ts"
+  ],
+  // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
+  // an entry, so no shipped source could be reported unused. The other `vp`
+  // commands take directories, not files, so nothing real is lost.
+  "ignoreCommandEntries": ["vp"],
   // lit/ is the upstream Lit submodule (canary builds only); assets/ holds the
   // HyperFrames promo-video projects; examples/tutorial/ is a set of files
   // copied over a `npm create vite` scaffold, not a project of its own.
-  "ignorePatterns": ["lit/**", "assets/**", "examples/tutorial/**"],
+  // docs/public/ is copied to the site as-is.
+  "ignorePatterns": [
+    "lit/**",
+    "assets/**",
+    "examples/tutorial/**",
+    "docs/public/**"
+  ],
   "ignoreDependencies": [
     // CI calls ./node_modules/.bin/jsr for the publish dry run.
     "jsr",
@@ -23,7 +52,28 @@
     "rolldown",
     // The e2e fixtures serve playground sources from the repo root, so the
     // playground's temporal-polyfill import resolves from the root install.
-    "temporal-polyfill"
+    "temporal-polyfill",
+    // Bundled into dist/client by `vp build src/panel`, so users never install
+    // them; fallow sees src/panel importing them and expects dependencies.
+    "@awesome.me/webawesome",
+    "@phosphor-icons/core",
+    "sugar-high"
+  ],
+  "ignoreExports": [
+    // Stand-ins for src/panel modules, loaded with
+    // `vi.mock(path, () => import('./fakes/…'))`: they mirror the real
+    // module's surface, so every export counts whether a test reads it or not.
+    {"file": "src/test/dom/fakes/**", "exports": ["*"]}
+  ],
+  "usedClassMembers": [
+    // Lit calls these itself. fallow's lit plugin covers `extends LitElement`
+    // but not a mixin such as `extends SignalWatcher(LitElement)`.
+    "styles",
+    "updated",
+    {
+      "implements": "ReactiveController",
+      "members": ["hostConnected", "hostUpdate", "hostDisconnected"]
+    }
   ],
   "ignoreUnresolvedImports": [
     // Chrome DevTools frontend modules, imported inside the trace viewer page

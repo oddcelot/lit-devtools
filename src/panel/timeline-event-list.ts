@@ -520,6 +520,8 @@ export class TimelineEventList extends LitElement {
    * list was hidden while the selection moved, so its own auto-scroll could
    * not follow.
    */
+  // Called through a `createRef`, which fallow does not follow.
+  // fallow-ignore-next-line unused-class-member
   reveal(): void {
     const el = this._scrollRef.value as
       | (HTMLDivElement & VirtualizerHostElement)
