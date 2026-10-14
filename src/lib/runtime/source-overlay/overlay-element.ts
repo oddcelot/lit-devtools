@@ -584,6 +584,9 @@ export const initSourceOverlay = (
   initOptions: SourceOverlayInitOptions = {}
 ) => {
   if (typeof window === 'undefined') return;
+  // An SVG or XML document makes a plain element that never upgrades, and
+  // has no <body> to hold it; there is nothing to pick there anyway.
+  if (!(document.body instanceof HTMLElement)) return;
   const el = document.createElement('lit-source-overlay') as LitSourceOverlay;
   el.configure(initOptions);
   document.body.append(el);

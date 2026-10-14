@@ -144,6 +144,13 @@ beforeAll(async () => {
       'content-security-policy',
       req.url === '/trusted-types' ? TRUSTED_TYPES_CSP : CSP
     );
+    if (req.url === '/image.svg') {
+      res.setHeader('content-type', 'image/svg+xml');
+      res.end(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect id="r" width="40" height="40" fill="red"/></svg>'
+      );
+      return;
+    }
     if (req.url === '/probe.js' || req.url === '/app.js') {
       res.setHeader('content-type', 'text/javascript');
       res.end(req.url === '/probe.js' ? PROBE_JS : appJs);
@@ -290,6 +297,25 @@ test("the runtime leaves a Trusted Types site's own Lit policy to it", async () 
       )
     )
     .toContain('hello');
+  expect(errors).toEqual([]);
+  await page.close();
+});
+
+test('an SVG document on an enabled site opens without errors', async () => {
+  await registry('lit:enable');
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('console', (msg) => {
+    if (msg.type() === 'error') errors.push(msg.text());
+  });
+  await page.goto(`${appOrigin}/image.svg`);
+  await page.waitForLoadState('load');
+  // Long enough for anything deferred to DOMContentLoaded or a first tick.
+  await page.waitForTimeout(500);
+  expect(await page.evaluate(() => document.documentElement.localName)).toBe(
+    'svg'
+  );
   expect(errors).toEqual([]);
   await page.close();
 });
