@@ -63,6 +63,11 @@ const DEV_MARKERS = [
   'lit-source-overlay',
   'data-lit-source',
   'lit:timeline',
+  // The css helpers' HMR halves: the swap callback, `devCacheBust`'s
+  // cache-busting query, and `urlSheet`'s `?direct` fetch.
+  'onHotUpdate',
+  '?t=',
+  'direct',
 ];
 
 /** Every dev feature on, through options. */

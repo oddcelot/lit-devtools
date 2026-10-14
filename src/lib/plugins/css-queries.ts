@@ -107,11 +107,14 @@ export const litCssQueries = (
           CSS_URL_VIRTUAL_PREFIX.length,
           -CSS_VIRTUAL_SUFFIX.length
         );
+        const url = JSON.stringify(`${file}?url`);
         return {
-          code:
-            `import url from ${JSON.stringify(`${file}?url`)};\n` +
-            `import {devCacheBust} from ${JSON.stringify(helperPath)};\n` +
-            `export default devCacheBust(url);\n`,
+          // A build's URL is a hashed asset, so there is nothing to bust.
+          code: isBuild
+            ? `export {default} from ${url};\n`
+            : `import url from ${url};\n` +
+              `import {devCacheBust} from ${JSON.stringify(helperPath)};\n` +
+              `export default devCacheBust(url);\n`,
           moduleType: 'js',
         };
       }
@@ -138,15 +141,21 @@ export const litCssQueries = (
             moduleType: 'js',
           };
         }
-        // A build, so no `import.meta.hot` block. Either way the sheet is
-        // constructed once per virtual module, so adopters share it.
+        // A build: the sheet is built once, with none of the dev helpers.
+        // Either way it is constructed once per virtual module, so adopters
+        // share it.
+        const buildPath = JSON.stringify(resolveRuntimeModule('css-build'));
+        const hoist =
+          `import {hoistPropertyRules} from ` +
+          `${JSON.stringify(resolveRuntimeModule('property-rules'))};\n`;
         const mode = getCssSheetBuild();
         if (mode === 'url' || (mode === 'auto' && !isLib)) {
           return {
             code:
               `import url from ${JSON.stringify(`${file}?url`)};\n` +
-              `import {urlSheet} from ${JSON.stringify(helperPath)};\n` +
-              `export default urlSheet(url).sheet;\n`,
+              `import {fetchedSheet} from ${buildPath};\n` +
+              hoist +
+              `export default fetchedSheet(url, hoistPropertyRules);\n`,
             moduleType: 'js',
           };
         }
@@ -154,8 +163,9 @@ export const litCssQueries = (
         return {
           code:
             `import css from ${JSON.stringify(`${file}${inlineQuery}`)};\n` +
-            `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
-            `export default inlineSheet(css).sheet;\n`,
+            `import {inlinedSheet} from ${buildPath};\n` +
+            hoist +
+            `export default inlinedSheet(css, hoistPropertyRules);\n`,
           moduleType: 'js',
         };
       }

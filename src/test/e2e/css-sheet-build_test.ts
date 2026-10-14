@@ -182,10 +182,10 @@ test('a lib build inlines ?css-sheet into the JS chunk by default', async () => 
   const built = await buildLib(CHIP_CSS);
 
   // The css text rides along in the chunk, constructed at module scope — no
-  // `urlSheet()` helper, so nothing fetches anything at runtime.
+  // `fetchedSheet()` helper, so nothing fetches anything at runtime.
   expect(built.chunk).toContain('replaceSync');
   expect(built.chunk).toContain('.chip');
-  expect(built.chunk).not.toContain('urlSheet');
+  expect(built.chunk).not.toContain('fetchedSheet');
   // Nothing references `?url` anymore, so no standalone asset is emitted —
   // the whole point: a consumer bundling only our JS would never get it.
   expect(built.emitted.filter((f) => f.endsWith('.css'))).toEqual([]);
@@ -206,7 +206,7 @@ test(`cssSheetBuild: 'url' restores the asset-emitting form`, async () => {
 
   // Fetch-backed: the helper is bundled, the css text is not, and the sheet's
   // bytes live in a standalone asset the app is expected to serve.
-  expect(built.chunk).toContain('urlSheet');
+  expect(built.chunk).toContain('fetchedSheet');
   expect(built.chunk).not.toContain('.chip');
   expect(built.emitted.filter((f) => f.endsWith('.css'))).not.toEqual([]);
 });
@@ -233,6 +233,6 @@ test(`cssSheetBuild: 'inline-raw' skips a css pipeline that rejects the source`,
   // Verbatim: the rule the pipeline choked on is in the chunk as authored.
   expect(built.chunk).toContain('initial-value: var(--brand)');
   expect(built.chunk).toContain('replaceSync');
-  expect(built.chunk).not.toContain('urlSheet');
+  expect(built.chunk).not.toContain('fetchedSheet');
   expect(built.emitted.filter((f) => f.endsWith('.css'))).toEqual([]);
 });
