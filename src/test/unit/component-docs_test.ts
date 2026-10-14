@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vite-plus/test';
+import {describe, expect, it, vi} from 'vite-plus/test';
 import {
   createComponentDocsIndex,
   findManifests,
@@ -210,6 +210,26 @@ const indexOver = (fs: DocsFs, root: string | undefined) =>
   createComponentDocsIndex({root: () => root, fs: () => fs});
 
 describe('createComponentDocsIndex', () => {
+  it('watches each manifest it reads once, and reports changes', async () => {
+    const {fs} = memoryFs({
+      '/p/package.json': '{}',
+      '/p/custom-elements.json': manifestJson('own-tag', 'other-tag'),
+    });
+    const watches = new Map<string, () => void>();
+    fs.watch = (path, onChange) => void watches.set(path, onChange);
+    const onChange = vi.fn();
+    const index = createComponentDocsIndex({
+      root: () => '/p',
+      fs: () => fs,
+      onChange,
+    });
+    await index.get('own-tag');
+    await index.get('other-tag');
+    expect([...watches.keys()]).toEqual(['/p/custom-elements.json']);
+    watches.get('/p/custom-elements.json')!();
+    expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
   it('reads the project manifest from the customElements field', async () => {
     const {fs} = memoryFs({
       '/p/package.json': JSON.stringify({customElements: 'dist/cem.json'}),

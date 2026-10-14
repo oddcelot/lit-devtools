@@ -294,7 +294,7 @@ A component inherits the members of the classes it extends when those live in
 your project, even in another module. A class built by a mixin call
 (`extends SignalWatcher(LitElement)`) isn't followed, so members it adds don't
 show. Docs read from source win over a manifest for the same tag, and an edit
-shows the next time you select a component with a different tag.
+shows as soon as its hot patch lands.
 
 ### Libraries and manifests
 
@@ -306,8 +306,8 @@ Awesome come documented with nothing to set up. You can still have a tool such
 as the
 [Custom Elements Manifest analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/)
 or [`cem`](https://bennypowers.dev/cem/) write one for your own package, for
-the components the dev server hasn't transformed. A manifest regenerated while
-the server runs is read again the next time you select a different tag.
+the components the dev server hasn't transformed. When a manifest is
+regenerated while the server runs, the pane updates within a second or so.
 
 The browser extension has no disk to read and doesn't see the dev server's
 transforms, so it shows the manifests the page links to with

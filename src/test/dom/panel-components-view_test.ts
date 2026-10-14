@@ -1813,6 +1813,21 @@ test('a hot patch of the selected tag asks for its docs again', async () => {
   expect(about()).toBe('A pressable button.');
 });
 
+test('a changed manifest asks for the docs on show again', async () => {
+  let summary = 'A button.';
+  answers.set('component-docs', () => ({docs: {...buttonDocs, summary}}));
+  const {el, root} = await mount(true);
+  await pickButton(el);
+  summary = 'A regenerated button.';
+  push('component-docs-changed');
+  await flush(el);
+  await flush(el);
+  expect(calls.filter((c) => c.name === 'component-docs')).toHaveLength(2);
+  expect(root.querySelector('.details .about p')?.textContent).toBe(
+    'A regenerated button.'
+  );
+});
+
 test('asks for no docs where the host cannot read manifests', async () => {
   meta.capabilities.componentDocs = false;
   answers.set('component-docs', () => ({docs: buttonDocs}));

@@ -1648,6 +1648,11 @@ export class ComponentsView extends LitElement {
           this._docs.refresh(event.tagName);
         },
       });
+      rpc.rpc.register({
+        name: 'component-docs-changed',
+        type: 'event',
+        handler: () => this._docs.reload(),
+      });
       void hostInfo().then((host) => {
         this._canPick = host.picker;
         this._canOpen = host.openInEditor;

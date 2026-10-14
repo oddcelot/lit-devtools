@@ -170,6 +170,13 @@ export const RPC_HMR_INCOMPATIBLE = 'hmr-incompatible';
 /** Bare name of the `hmr-patched` client (node → panel) event. */
 export const RPC_HMR_PATCHED = 'hmr-patched';
 
+/**
+ * Bare name of the `component-docs-changed` client (node → panel) event: a
+ * manifest `component-docs` read has changed, so docs shown from it may be
+ * stale.
+ */
+export const RPC_COMPONENT_DOCS_CHANGED = 'component-docs-changed';
+
 /** One entry of the `hmr-history` result: a patch that landed, or one that could not. */
 export type HmrHistoryEntry =
   | {kind: 'patched'; at: number; patch: HmrPatchEvent}
@@ -506,6 +513,7 @@ declare module 'devframe' {
     'lit:inspector-message': (message: InspectorMessage) => void;
     'lit:hmr-incompatible': (event: HmrIncompatibilityEvent) => void;
     'lit:hmr-patched': (event: HmrPatchEvent) => void;
+    'lit:component-docs-changed': () => void;
     'lit:page-changed': (event: PageChangedEvent) => void;
     'lit:page-receive': (channel: string, data?: unknown) => void;
   }
