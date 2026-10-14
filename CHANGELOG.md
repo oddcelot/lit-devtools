@@ -13,6 +13,8 @@ emit carries no HMR code. The Components tab gains a Request update button, and
 the console gets `$lit` and Store as global variable. Nothing needs action to
 upgrade.
 
+[![Watch the 0.18.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.18.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.18.0/vite-plugin-lit-0.18.0.mp4)
+
 ### Added
 
 - **UnoCSS utilities can be one shared sheet across shadow roots.**
