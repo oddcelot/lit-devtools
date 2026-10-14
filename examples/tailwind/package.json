@@ -16,6 +16,7 @@
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "*",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/devtools": "^0.7.6",
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.2"
   },
