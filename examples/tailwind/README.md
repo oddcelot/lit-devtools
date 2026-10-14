@@ -34,6 +34,10 @@ Then, with the page open, edit and save:
    button's `class`. Tailwind adds the utility to the sheet, and the button's
    label goes upper case. The profile card's badge goes up because its own
    template changed. The page's and the stat card's stay.
+3. **The DevTools.** Open the Vite DevTools dock (the button in the corner)
+   and its Lit tab. The Components tree lists the three components; pick one
+   on the page with Ctrl/⌘+Shift+S to jump to its source. The Timeline
+   records each edit above and what it updated.
 
 ## How Tailwind gets into shadow roots
 
