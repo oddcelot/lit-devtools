@@ -6,11 +6,11 @@ import card from './card.css?css-sheet';
 /**
  * A plain `css` literal in `static styles`. The plugin runs it through
  * Lightning CSS with the targets in `vite.config.ts`, as it would a `.css`
- * file, so the nesting, `oklch()` and `light-dark()` below are downlevelled
- * for those browsers. Only a literal with no `${}` holes is handled.
+ * file, so the nesting and `light-dark()` below are downlevelled for those
+ * browsers. Only a literal with no `${}` holes is handled.
  *
  * Try: `npm run build`, then find `.sample` in `dist/assets/*.js`. The
- * nesting is flattened and each colour has a fallback.
+ * nesting is flattened and `light-dark()` has a fallback.
  */
 @customElement('css-literal-card')
 export class CssLiteralCard extends LitElement {

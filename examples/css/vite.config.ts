@@ -1,5 +1,5 @@
 import {defineConfig} from 'vite';
-import {presetWind3} from 'unocss';
+import {presetWind4} from 'unocss';
 import {litPlugin} from '@oddsquad/vite-plugin-lit';
 import {unoSheet} from '@oddsquad/vite-plugin-lit/uno';
 
@@ -23,13 +23,16 @@ export default defineConfig({
     // Lightning CSS runs over every stylesheet the build pipeline sees: the
     // `.css` files, the `?css-sheet` and `?hmr-url` imports, and the `css`
     // literals in components. The targets are old on purpose, so the
-    // downlevelling is visible: nesting is flattened and `oklch()` and
-    // `light-dark()` get fallbacks. Drop `targets` to leave modern CSS alone.
+    // downlevelling is visible: nesting is flattened and `light-dark()` gets
+    // a fallback. They stop at Chrome 111 and Safari 16.2, the first with
+    // `color-mix()`, which every Wind4 colour utility is built on and which
+    // Lightning CSS cannot downlevel around a `var()`. Drop `targets` to
+    // leave modern CSS alone.
     // (`?raw` skips the pipeline, so it stays as you wrote it.)
     transformer: 'lightningcss',
     lightningcss: {
       // major << 16 | minor << 8 (Lightning CSS version encoding).
-      targets: {chrome: 100 << 16, safari: 15 << 16},
+      targets: {chrome: 111 << 16, safari: (16 << 16) | (2 << 8)},
     },
   },
   build: {
@@ -47,15 +50,20 @@ export default defineConfig({
     // behind it, so `?css-sheet` cannot wrap it.
     unoSheet({
       outFile: 'src/uno.generated.css',
+      // Wind4's utilities read their values from its preflights: the theme
+      // variables (`p-4` is `calc(var(--spacing) * 4)`) and the `@property`
+      // rules. Keep them in the sheet.
+      preflights: true,
       config: {
-        // Wind3 is UnoCSS's Tailwind-compatible preset. `preflight: false`
-        // drops its global reset, which a shadow root would not see anyway.
-        presets: [presetWind3({preflight: false})],
+        // Wind4 is UnoCSS's Tailwind 4 preset. `reset: false` drops its
+        // global reset, which would repeat in every shadow root, and keeps
+        // the theme and `@property` preflights.
+        presets: [presetWind4({preflights: {reset: false}})],
         theme: {
           // `bg-brand`, `text-brand`, `border-brand`: the utilities read the
           // `--brand` token from `src/tokens.css`, so editing the token
-          // recolours them too. (Opacity modifiers like `bg-brand/20` need a
-          // colour UnoCSS can parse, which a `var()` is not.)
+          // recolours them too. Wind4 mixes colours with `color-mix()`, so
+          // opacity modifiers like `bg-brand/20` work on the `var()` as well.
           colors: {brand: 'var(--brand)'},
         },
         // Collect classes from `.ts` and `.html` only. UnoCSS's default

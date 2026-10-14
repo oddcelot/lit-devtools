@@ -55,8 +55,8 @@ Then, with the page open, edit and save:
 5. **A literal.** In `src/css-literal-card.ts`, change the `oklch(0.55 0.22 25)`
    on `em`. Only the literal card re-renders. To see what the plugin did
    to the literal, run `npm run build` and look for `.sample` in
-   `dist/assets/index-*.js`: the nesting is flattened and each colour has a
-   fallback.
+   `dist/assets/index-*.js`: the nesting is flattened and `light-dark()` has
+   a fallback.
 
 None of these reloads the page. The counter in the corner shows how many
 updates were applied in place.
@@ -98,9 +98,11 @@ that sheet without re-rendering the adopters.
 
 Two things to know:
 
-- **Preflights are off.** The sheet has utilities only, not Wind3's global
-  reset. A few utilities lean on variables the reset defines, so `rotate-*`
-  and `shadow-*` render nothing here.
+- **Preflights are on, the reset is off.** Wind4's utilities read theme
+  variables (`--spacing`, `--colors-*`) and `@property` rules that come from
+  its preflights, so `unoSheet({preflights: true})` keeps them in the sheet.
+  `presetWind4({preflights: {reset: false}})` leaves out the global reset,
+  which would otherwise repeat in every shadow root.
 - **UnoCSS reads comments too.** Any word in a `.ts` file that is a utility
   name, in a comment included, ends up in the sheet. It is harmless: a rule
   matters only on an element that has the class.
@@ -119,8 +121,10 @@ npm run preview
 (`uno.generated-<hash>.css`, `tokens-<hash>.css`, `card-<hash>.css`), the linked card's CSS the
 same way, and the inlined and literal CSS inside the JS chunk. The `css`
 options in `vite.config.ts` run everything through Lightning CSS with old
-browser targets, so the output shows what it does: nesting flattened, `oklch()`
-and `light-dark()` with fallbacks. `build.cssMinify` is off so the files stay
+browser targets (Chrome 111, Safari 16.2), so the output shows what it does:
+nesting flattened, `light-dark()` with a fallback. They go no lower because
+Wind4 builds every colour utility on `color-mix()`, which those browsers were
+the first to ship. `build.cssMinify` is off so the files stay
 readable. The same build has sourcemaps, which the Lit Inspector browser
 extension reads.
 
