@@ -7,7 +7,7 @@ import {
 } from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {presetWind3} from 'unocss';
+import {presetWind3, presetWind4} from 'unocss';
 import type {Plugin, ResolvedConfig, ViteDevServer} from 'vite';
 import {afterEach, beforeEach, describe, expect, test} from 'vite-plus/test';
 import {unoSheet} from '../../lib/uno-sheet.js';
@@ -72,6 +72,22 @@ describe('unoSheet', () => {
     await call(plugin, 'buildStart');
     expect(sheet()).not.toContain('box-sizing');
   });
+
+  test.each([false, true])(
+    'emits wind4 theme variables only with preflights: %s',
+    async (preflights) => {
+      const plugin = unoSheet({
+        config: {presets: [presetWind4({preflights: {reset: false}})]},
+        outFile: 'src/uno.css',
+        preflights,
+      });
+      await call(plugin, 'configResolved', {root} as ResolvedConfig);
+      await call(plugin, 'buildStart');
+      expect(sheet()).toContain('.p-4');
+      expect(sheet().includes('--spacing:')).toBe(preflights);
+      expect(sheet()).not.toContain('box-sizing');
+    }
+  );
 
   test('adds a class from an edited module in dev', async () => {
     const plugin = await start({serve: true});
