@@ -61,7 +61,7 @@ interface ControlEnvelope {
   type: 'connected' | 'hello';
 }
 
-export type Envelope = DataEnvelope | ControlEnvelope;
+type Envelope = DataEnvelope | ControlEnvelope;
 
 /**
  * The envelope in `event`, if it is one of ours posted from the window the
@@ -69,7 +69,7 @@ export type Envelope = DataEnvelope | ControlEnvelope;
  * object as `event.source` for a same-window message, and unlike a captured
  * `window` it also holds where a global is wrapped (happy-dom).
  */
-export const envelopeOf = (event: MessageEvent): Envelope | undefined => {
+const envelopeOf = (event: MessageEvent): Envelope | undefined => {
   if (event.source !== event.currentTarget) return undefined;
   const message = event.data as Partial<Envelope> | null;
   if (typeof message !== 'object' || message === null) return undefined;

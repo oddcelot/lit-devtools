@@ -24,7 +24,7 @@ const MAX_SLOT_ELEMENTS = 12;
  * Where the element renders. Lit's `renderRoot` reaches a closed shadow root
  * too, which `shadowRoot` hides; anything else falls back to `shadowRoot`.
  */
-export const renderRootOf = (el: Element): ShadowRoot | Element | null => {
+const renderRootOf = (el: Element): ShadowRoot | Element | null => {
   const root = (el as {renderRoot?: unknown}).renderRoot;
   if (root instanceof ShadowRoot) return root;
   if (root === el) return el;

@@ -36,7 +36,7 @@ const LIT_DOCK_ID = 'lit';
  * is validated in two places and cast in a third; adding a view should not
  * mean remembering all of them.
  */
-export const DEEP_LINK_TABS = [
+const DEEP_LINK_TABS = [
   'components',
   'updates',
   'timeline',
@@ -94,7 +94,7 @@ export const fromParams = (params: URLSearchParams): DeepLink => {
 };
 
 /** Read the link encoded in the current URL hash, if any. */
-export const readHashLink = (): DeepLink =>
+const readHashLink = (): DeepLink =>
   fromParams(new URLSearchParams(location.hash.replace(/^#/, '')));
 
 /**

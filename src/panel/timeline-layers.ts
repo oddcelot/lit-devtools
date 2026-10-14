@@ -13,7 +13,7 @@ export interface LayerState {
 }
 
 /** A layer's `0xRRGGBB` colour as a CSS hex string. */
-export const hexColor = (color: number): string =>
+const hexColor = (color: number): string =>
   '#' + color.toString(16).padStart(6, '0');
 
 /** CSS colour of layer `id`, grey for a layer `layers` does not know. */

@@ -28,8 +28,6 @@ import {TimelineChannelCodec} from './page-codec.js';
 import {PANEL_DIST_DIR} from './paths.js';
 import {LIT_DEVFRAME_ID} from './protocol.js';
 
-export {createLitDevframe};
-
 /**
  * The slice of the Vite DevTools hub context this plugin uses. Structurally a
  * subset of `ViteDevToolsNodeContext` from `@vitejs/devtools-kit/node`;

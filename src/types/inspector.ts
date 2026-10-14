@@ -5,9 +5,9 @@
  * components on the page plus a detail view (reactive properties, internal
  * state, attributes, source) of a selected element. The panel can't touch the
  * page DOM directly (separate iframe document), so everything flows over the
- * existing transport: panel → server (POST {@link INSPECT_PATH}) → app runtime
- * (HMR {@link INSPECT_CMD_CHANNEL}); app → server (HMR
- * {@link INSPECT_DATA_CHANNEL}) → panel (SSE `event: {@link INSPECT_SSE_EVENT}`).
+ * existing transport: panel → host (devframe RPC `inspect`) → app runtime
+ * (page channel {@link INSPECT_CMD_CHANNEL}); app → host (page channel
+ * {@link INSPECT_DATA_CHANNEL}) → panel (devframe).
  *
  * Elements are referenced across the boundary by the stable numeric id from the
  * timeline's `idOf()` WeakMap, so a tree node, a details payload, and an
@@ -493,7 +493,7 @@ export type InspectorMessage =
    */
   | ({type: 'overrides'} & InspectorOverrides);
 
-/** Panel → app runtime commands, POSTed to {@link INSPECT_PATH}. */
+/** Panel → app runtime commands, sent over the devframe `inspect` RPC. */
 export type InspectorCommand =
   | {type: 'tree'}
   | {type: 'details'; id: number}
@@ -630,9 +630,3 @@ export const INSPECT_DATA_CHANNEL = 'lit:inspect:data';
 
 /** Vite HMR channel the DevTools "inspect element" command broadcasts on. */
 export const INSPECT_OVERLAY_TOGGLE_CHANNEL = 'lit-devtools:toggle-inspect';
-
-/** POST endpoint the panel uses to send an {@link InspectorCommand}. */
-export const INSPECT_PATH = '/__lit-devtools-inspect';
-
-/** Named SSE event the server relays {@link InspectorMessage}s to the panel on. */
-export const INSPECT_SSE_EVENT = 'inspect';

@@ -33,7 +33,7 @@ import {LIT_DEVFRAME_ID, RPC_PAGE_RECEIVE, RPC_PAGE_SEND} from './protocol.js';
  * Built from the context `setup()` runs against, since that is where
  * `page-send` is registered.
  */
-export const rpcPageTransport = (ctx: DevframeNodeContext): PageTransport => {
+const rpcPageTransport = (ctx: DevframeNodeContext): PageTransport => {
   const listeners = channelListeners();
   ctx.scope(LIT_DEVFRAME_ID).rpc.register(
     defineRpcFunction({

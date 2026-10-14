@@ -33,7 +33,7 @@ export interface Track {
  * out of the buffer) occupies the rest of the recording, because that is
  * where it is drawn — up to the live edge.
  */
-export const occupiedEnd = (span: TimelineSpan): number => {
+const occupiedEnd = (span: TimelineSpan): number => {
   if (span.end !== undefined) return span.end;
   return span.groupId === undefined ? span.start : Infinity;
 };

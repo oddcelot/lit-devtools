@@ -28,7 +28,7 @@ import {createStandaloneLitDevframe} from './rpc-source.js';
 import type {DefineSourceResolver} from './define-sources.js';
 import type {CreateLitDevframeOptions} from './definition.js';
 
-export type {PortLike, PortMessage} from './port-message.js';
+export type {PortLike} from './port-message.js';
 
 /**
  * `postMessage` that stops once the port disconnects: Chrome throws on a

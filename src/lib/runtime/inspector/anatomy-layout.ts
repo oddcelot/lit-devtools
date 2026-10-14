@@ -66,7 +66,7 @@ const STUB = 8;
  */
 export const LABEL_RISE = 12;
 
-export const centreOf = (b: Box): Point => ({
+const centreOf = (b: Box): Point => ({
   x: (b.left + b.right) / 2,
   y: (b.top + b.bottom) / 2,
 });
@@ -320,7 +320,7 @@ export const layoutLabels = (
 };
 
 /** Where a label's leader leaves it: the middle of the edge facing the host. */
-export const leaderStart = (p: Placement): Point => {
+const leaderStart = (p: Placement): Point => {
   const mid = {x: p.left + p.width / 2, y: p.top + p.height / 2};
   switch (p.side) {
     case 'left':

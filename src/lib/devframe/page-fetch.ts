@@ -19,7 +19,7 @@ import type {InspectorMessage} from '../../types/inspector.js';
 import type {TimelineSink, TimelineSource} from './source.js';
 import type {FetchedResponse} from './source-maps.js';
 
-export const FETCH_TIMEOUT_MS = 10_000;
+const FETCH_TIMEOUT_MS = 10_000;
 
 type Fetched = Extract<InspectorMessage, {type: 'fetched-text'}>;
 

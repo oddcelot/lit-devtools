@@ -3,10 +3,10 @@ import MagicString from 'magic-string';
 import {
   injectSourceMeta,
   lineNumberAt,
-  SOURCE_META_KEY,
   SOURCE_META_SYM,
+  SOURCE_META_SYMBOL_KEY,
 } from '../../lib/source-meta.js';
-import {SOURCE_META_KEY as RUNTIME_SOURCE_META_KEY} from '../../lib/runtime/source-meta.js';
+import {SOURCE_META_KEY} from '../../lib/runtime/source-meta.js';
 
 const run = (code: string, filePath = '/app/src/my-el.ts') => {
   const ms = new MagicString(code);
@@ -18,7 +18,7 @@ test('the transform and the runtime agree on the source-meta key', () => {
   // The transform writes the key as a string into generated code; the page
   // reads it as a symbol. A rename that touches only one side silently drops
   // every component's source link.
-  expect(Symbol.for(SOURCE_META_KEY)).toBe(RUNTIME_SOURCE_META_KEY);
+  expect(Symbol.for(SOURCE_META_SYMBOL_KEY)).toBe(SOURCE_META_KEY);
 });
 
 describe('injectSourceMeta', () => {

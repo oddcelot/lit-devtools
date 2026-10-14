@@ -45,7 +45,7 @@ const shownHidden = (value: boolean) => (value ? 'shown' : 'hidden');
 const enabled = (value: boolean) => (value ? 'enabled' : 'disabled');
 
 /** An editor key's display name; a custom `EditorConfig` reads "Custom". */
-export const editorLabel = (value: string): string =>
+const editorLabel = (value: string): string =>
   SOURCE_OVERLAY_EDITORS.find((editor) => editor.value === value)?.label ??
   (value === 'custom' ? 'Custom' : value);
 
@@ -54,7 +54,7 @@ export const editorLabel = (value: string): string =>
 const indicatorOff = ({config}: SettingContext) =>
   config?.hmr.indicatorEnabled === false;
 
-export const PRESENTATION = {
+const PRESENTATION = {
   hmr: {
     label: 'HMR',
     tip: 'Hot-patch Lit components in place. Default: enabled',

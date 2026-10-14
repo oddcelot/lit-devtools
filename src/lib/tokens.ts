@@ -227,13 +227,6 @@ const lightThemeCSS = `
 const lightSchemeCSS = `color-scheme: light;`;
 
 /**
- * Default dark theme tokens as a flat string, primarily for use by
- * {@link injectTokens}. Prefer importing `tokens` for Lit components so the
- * semantic aliases are inherited from `:root`.
- */
-export const tokenCSS = `${baseTokenCSS}\n${radiusTokenCSS}\n${darkThemeCSS}`;
-
-/**
  * Lit `css` template for use in panel component shadow roots.
  *
  * ```ts

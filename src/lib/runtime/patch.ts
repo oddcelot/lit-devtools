@@ -352,7 +352,7 @@ const readoptStyles = (
  * survives the `location.reload()` that may follow it can only be checked by
  * hand against a real dev server.
  */
-export const buildHmrIncompatibleEvent = (
+const buildHmrIncompatibleEvent = (
   tagName: string,
   reason: HmrIncompatibilityReason,
   action: HmrIncompatibilityEvent['action']
