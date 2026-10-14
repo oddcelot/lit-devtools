@@ -1,0 +1,98 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; color: #e3e3e3; }
+    #root * { box-sizing: border-box; }
+
+    .f07-cs-ground { position: absolute; inset: 0; background: radial-gradient(circle 1000px at 1344px 430px, rgba(42,44,157,0.35), rgba(42,44,157,0) 100%), #030308; }
+    .f07-cs-stage { position: absolute; inset: 0; }
+
+    .f07-cs-eyebrow { position: absolute; left: 115px; top: 230px; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; }
+    .f07-cs-hl { position: absolute; left: 115px; top: 273px; width: 576px; font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em; color: #ffffff; }
+    .f07-cs-line { display: block; white-space: nowrap; opacity: 0; }
+    .f07-cs-cy { color: #00e8ff; }
+    .f07-cs-sub { position: absolute; left: 115px; top: 514px; width: 556px; font-weight: 500; font-size: 24px; line-height: 1.4; color: #a1a1a1; opacity: 0; }
+
+    .f07-cs-panel { position: absolute; left: 806px; top: 245px; width: 998px; height: 590px; background: #121212; border: 1px solid #363636; border-radius: 15px; box-shadow: 0 38px 96px rgba(0,0,0,0.65); overflow: hidden; }
+    .f07-cs-bar { height: 56px; background: #1c1c1c; border-bottom: 1px solid #363636; display: flex; align-items: center; gap: 38px; padding: 0 31px; font-weight: 600; font-size: 17px; color: #a1a1a1; white-space: nowrap; }
+    .f07-cs-bar img { height: 22px; width: auto; margin-right: -22px; }
+    .f07-cs-on { position: relative; color: #4d63ff; line-height: 55px; }
+    .f07-cs-on::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #4d63ff; }
+    .f07-cs-body { padding: 26px 40px; }
+    .f07-cs-head { display: flex; padding-bottom: 12px; border-bottom: 1px solid #363636; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: #616161; }
+    .f07-cs-col { width: 320px; flex: 0 0 auto; }
+    .f07-cs-row { display: flex; align-items: center; height: 120px; border-bottom: 1px solid rgba(54,54,54,0.7); font-family: "Roboto Mono", monospace; font-size: 22px; color: #89ddff; white-space: nowrap; opacity: 0; }
+    .f07-cs-chip { display: inline-block; height: 48px; padding: 0 22px; border-radius: 99px; font-family: "Manrope", sans-serif; font-weight: 600; font-size: 23px; line-height: 46px; border: 1px solid rgba(77,99,255,0.45); background: rgba(77,99,255,0.16); color: #e3e3e3; }
+  </style>
+
+  <div data-hf-id="hf-ghr9" id="root" data-composition-id="07-causes" data-width="1920" data-height="1080" data-duration="4.354">
+    <div data-hf-id="hf-iye6" id="f07-cs-ground" class="f07-cs-ground clip" data-start="0" data-duration="4.354" data-track-index="0"></div>
+
+    <div data-hf-id="hf-6nnh" id="f07-cs-stage" class="f07-cs-stage clip" data-start="0" data-duration="4.354" data-track-index="1">
+      <div data-hf-id="hf-7xpy" class="f07-cs-eyebrow" id="f07-cs-eyebrow">Changed</div>
+      <div data-hf-id="hf-nc75" class="f07-cs-hl">
+        <span data-hf-id="hf-ff6h" class="f07-cs-line" id="f07-cs-l1">Your DevTools</span>
+        <span data-hf-id="hf-dsa1" class="f07-cs-line" id="f07-cs-l2">changes name</span>
+        <span data-hf-id="hf-ytrs" class="f07-cs-line" id="f07-cs-l3"><span data-hf-id="hf-fmxp" class="f07-cs-cy">their cause.</span></span>
+      </div>
+      <div data-hf-id="hf-jp7d" class="f07-cs-sub" id="f07-cs-sub">In the Updates and Timeline tabs, instead of no cause at all.</div>
+
+      <div data-hf-id="hf-0yty" class="f07-cs-panel" id="f07-cs-panel">
+        <div data-hf-id="hf-h7xs" class="f07-cs-bar"><img data-hf-id="hf-8059" src="assets/flame.svg" alt=""><span data-hf-id="hf-esot">Components</span><span data-hf-id="hf-lq5t" class="f07-cs-on">Updates</span><span data-hf-id="hf-71cy">Timeline</span><span data-hf-id="hf-6erw">Settings</span></div>
+        <div data-hf-id="hf-7y6t" class="f07-cs-body">
+          <div data-hf-id="hf-p0db" class="f07-cs-head"><span data-hf-id="hf-wp1j" class="f07-cs-col">Component</span><span data-hf-id="hf-ptsk">Cause</span></div>
+          <div data-hf-id="hf-ev19" class="f07-cs-row" id="f07-cs-r1"><span data-hf-id="hf-dqg1" class="f07-cs-col">fh-product-card</span><span data-hf-id="hf-eihx" class="f07-cs-chip">after edit in DevTools</span></div>
+          <div data-hf-id="hf-l0r2" class="f07-cs-row" id="f07-cs-r2"><span data-hf-id="hf-cvg5" class="f07-cs-col">fh-product-card</span><span data-hf-id="hf-lpfl" class="f07-cs-chip">after override in DevTools</span></div>
+          <div data-hf-id="hf-oyv3" class="f07-cs-row" id="f07-cs-r3"><span data-hf-id="hf-e2d8" class="f07-cs-col">fh-product-card</span><span data-hf-id="hf-exdx" class="f07-cs-chip">Request update in DevTools</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById("f07-cs-" + id); };
+      var tl = gsap.timeline({ paused: true });
+      var F = 1 / 60;
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, { opacity: 1, y: dy }, at);
+        tl.to(el, { y: 0, duration: dur, ease: "power4.out" }, at);
+      }
+
+      tl.fromTo($("eyebrow"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.05);
+      arrive($("l1"), 0.1, 80, 0.2);
+      arrive($("l2"), 0.3 - F, 60, 0.18);
+      arrive($("l3"), 0.48 - 2 * F, 70, 0.17);
+      tl.fromTo($("panel"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0);
+
+      // One row per beat; the newest cause is the cyan one.
+      var rows = [$("r1"), $("r2"), $("r3")];
+      for (var i = 0; i < 3; i++) {
+        var at = 0.55 + i * 0.5454;
+        var chip = rows[i].querySelector(".f07-cs-chip");
+        arrive(rows[i], at, 40, 0.2);
+        tl.fromTo(chip, { borderColor: "rgba(0,232,255,0.6)", backgroundColor: "rgba(0,232,255,0.12)", color: "#00e8ff" },
+          { borderColor: "rgba(0,232,255,0.6)", backgroundColor: "rgba(0,232,255,0.12)", color: "#00e8ff", duration: 0.01 }, at);
+        if (i < 2) {
+          tl.to(chip, { borderColor: "rgba(77,99,255,0.45)", backgroundColor: "rgba(77,99,255,0.16)", color: "#e3e3e3", duration: 0.25 }, at + 0.5454);
+        }
+      }
+      arrive($("sub"), 1.64, 30, 0.2);
+
+      // 2.18 → end: held read.
+      tl.set({}, {}, 4.363);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["07-causes"] = tlOuter;
+    })();
+  </script>
+</template>

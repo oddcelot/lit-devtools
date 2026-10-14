@@ -1,0 +1,168 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 600; src: url("assets/manrope-semibold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; color: #e3e3e3; }
+    #root * { box-sizing: border-box; }
+
+    .f06-con-ground { position: absolute; inset: 0; background: radial-gradient(circle 1000px at 1344px 430px, rgba(42,44,157,0.35), rgba(42,44,157,0) 100%), #030308; }
+    .f06-con-stage { position: absolute; inset: 0; }
+
+    .f06-con-eyebrow { position: absolute; left: 115px; top: 115px; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; }
+    .f06-con-hl { position: absolute; left: 115px; top: 158px; font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em; color: #ffffff; white-space: nowrap; }
+    .f06-con-hl span { display: inline-block; opacity: 0; }
+    .f06-con-cy { color: #00e8ff; }
+
+    .f06-con-panel { position: absolute; top: 326px; height: 634px; border: 1px solid #363636; border-radius: 12px; box-shadow: 0 38px 96px rgba(0,0,0,0.65); overflow: hidden; }
+    .f06-con-left { left: 115px; width: 806px; background: #121212; }
+    .f06-con-right { left: 979px; width: 826px; background: #0a0a10; }
+    .f06-con-bar { height: 52px; background: #1c1c1c; border-bottom: 1px solid #363636; display: flex; align-items: center; gap: 30px; padding: 0 26px; font-weight: 600; font-size: 17px; color: #a1a1a1; white-space: nowrap; }
+    .f06-con-on { color: #4d63ff; }
+    .f06-con-bar img { height: 20px; width: auto; margin-right: -18px; }
+
+    .f06-con-det { padding: 26px 32px; }
+    .f06-con-dh { font-family: "Roboto Mono", monospace; font-size: 23px; color: #89ddff; }
+    .f06-con-sec { margin-top: 18px; padding-top: 15px; padding-bottom: 10px; border-top: 1px solid #363636; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: #616161; }
+    .f06-con-row { position: relative; display: flex; align-items: center; gap: 19px; height: 48px; margin: 0 -32px; padding: 0 32px; font-family: "Roboto Mono", monospace; font-size: 20px; color: #b2ccd6; white-space: nowrap; }
+    .f06-con-hover { position: absolute; inset: 0; background: rgba(77,99,255,0.12); opacity: 0; }
+    .f06-con-s { color: #c3e88d; }
+    .f06-con-n { color: #f78c6c; }
+    .f06-con-d { color: #a1a1a1; }
+    .f06-con-store { position: absolute; left: 330px; top: 8px; width: 32px; height: 32px; border-radius: 6px; background: #292929; opacity: 0; }
+    .f06-con-store svg { position: absolute; left: 6px; top: 6px; width: 20px; height: 20px; }
+    .f06-con-ripple { position: absolute; left: 16px; top: 16px; width: 0; height: 0; border-radius: 50%; border: 2px solid #00e8ff; opacity: 0; }
+    .f06-con-tip { position: absolute; left: 44px; top: -2px; width: max-content; background: #292929; border: 1px solid #363636; border-radius: 8px; padding: 8px 14px; font-family: "Manrope", sans-serif; font-weight: 500; font-size: 16px; color: #e3e3e3; box-shadow: 0 19px 38px rgba(0,0,0,0.6); opacity: 0; }
+    .f06-con-ptr { position: absolute; left: 16px; top: 16px; width: 24px; height: 24px; opacity: 0; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)); }
+
+    .f06-con-log { padding: 22px 30px; font-family: "Roboto Mono", monospace; font-size: 22px; line-height: 44px; }
+    .f06-con-ln { white-space: nowrap; opacity: 0; }
+    .f06-con-in { color: #e3e3e3; }
+    .f06-con-in i { font-style: normal; color: #4d63ff; margin-right: 14px; }
+    .f06-con-out { color: #a1a1a1; }
+    .f06-con-out i { font-style: normal; color: #616161; margin-right: 14px; }
+    .f06-con-tag { color: #89ddff; }
+    .f06-con-var { color: #00e8ff; }
+    .f06-con-cl { display: block; height: 1px; margin: 4px 0; background: rgba(54,54,54,0.7); }
+  </style>
+
+  <div data-hf-id="hf-fbqx" id="root" data-composition-id="06-console" data-width="1920" data-height="1080" data-duration="7.281">
+    <div data-hf-id="hf-7yu8" id="f06-con-ground" class="f06-con-ground clip" data-start="0" data-duration="7.281" data-track-index="0"></div>
+
+    <div data-hf-id="hf-67v5" id="f06-con-stage" class="f06-con-stage clip" data-start="0" data-duration="7.281" data-track-index="1">
+      <div data-hf-id="hf-41te" class="f06-con-eyebrow" id="f06-con-eyebrow">Added</div>
+      <div data-hf-id="hf-hef0" class="f06-con-hl"><span data-hf-id="hf-6r08" id="f06-con-h1"><span data-hf-id="hf-g8gc" class="f06-con-cy" style="opacity: 1">$lit</span> in the console.</span> <span data-hf-id="hf-e7ow" id="f06-con-h2">Store any value.</span></div>
+
+      <div data-hf-id="hf-ck84" class="f06-con-panel f06-con-left" id="f06-con-left">
+        <div data-hf-id="hf-1i8n" class="f06-con-bar"><img data-hf-id="hf-8059" src="assets/flame.svg" alt=""><span data-hf-id="hf-24g6" class="f06-con-on">Components</span><span data-hf-id="hf-02vd">Updates</span><span data-hf-id="hf-71cy">Timeline</span></div>
+        <div data-hf-id="hf-fqav" class="f06-con-det">
+          <div data-hf-id="hf-jbdx" class="f06-con-dh">&lt;fh-product-card&gt;</div>
+          <div data-hf-id="hf-5s9i" class="f06-con-sec">Properties</div>
+          <div data-hf-id="hf-nv38" class="f06-con-row"><span data-hf-id="hf-jfkq">name</span><span data-hf-id="hf-p2ub" class="f06-con-s">"Monstera"</span></div>
+          <div data-hf-id="hf-7cv0" class="f06-con-row"><span data-hf-id="hf-rsme">price</span><span data-hf-id="hf-tiyj" class="f06-con-n">24</span></div>
+          <div data-hf-id="hf-65xx" class="f06-con-row"><span data-hf-id="hf-b644">badge</span><span data-hf-id="hf-te9q" class="f06-con-s">"New"</span></div>
+          <div data-hf-id="hf-o21p" class="f06-con-row" id="f06-con-meta">
+            <div data-hf-id="hf-ci9u" class="f06-con-hover" id="f06-con-hover"></div>
+            <span data-hf-id="hf-kcss">▸ meta</span><span data-hf-id="hf-wlfo" class="f06-con-d">Object</span>
+            <span data-hf-id="hf-y6s1" class="f06-con-store" id="f06-con-store">
+              <svg data-hf-id="hf-0n2h" viewBox="0 0 20 20"><path data-hf-id="hf-8m7c" d="M4 8v8h12V8" fill="none" stroke="#00e8ff" stroke-width="1.8" stroke-linejoin="round" /><path data-hf-id="hf-pivh" d="M10 2.5v9M6.5 8l3.5 3.5L13.5 8" fill="none" stroke="#00e8ff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+              <span data-hf-id="hf-mfgj" class="f06-con-ripple" id="f06-con-ripple"></span>
+              <span data-hf-id="hf-mcmf" class="f06-con-tip" id="f06-con-tip">Store as global variable</span>
+              <svg data-hf-id="hf-gy2e" class="f06-con-ptr" id="f06-con-ptr" viewBox="0 0 24 24"><path data-hf-id="hf-2f4j" d="M3 2 L3 20 L8 15.5 L11.5 22.5 L14.5 21 L11 14.5 L18 14.5 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="1.2" stroke-linejoin="round" /></svg>
+            </span>
+          </div>
+          <div data-hf-id="hf-x7ps" class="f06-con-sec">State</div>
+          <div data-hf-id="hf-6k8y" class="f06-con-row"><span data-hf-id="hf-os6a">_open</span><span data-hf-id="hf-y0ua" style="color: #c792ea">false</span></div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-3qog" class="f06-con-panel f06-con-right" id="f06-con-right">
+        <div data-hf-id="hf-n253" class="f06-con-bar"><span data-hf-id="hf-9rww">Elements</span><span data-hf-id="hf-x4ff" class="f06-con-on">Console</span><span data-hf-id="hf-gcpp">Sources</span><span data-hf-id="hf-88oa">Lit</span></div>
+        <div data-hf-id="hf-x65q" class="f06-con-log">
+          <div data-hf-id="hf-qtgv" class="f06-con-ln f06-con-in" id="f06-con-q1"><i data-hf-id="hf-d4vm">›</i><span data-hf-id="hf-9pto" class="f06-con-type">$lit</span></div>
+          <div data-hf-id="hf-zini" class="f06-con-ln f06-con-out" id="f06-con-a1"><i data-hf-id="hf-aouc">←</i><span data-hf-id="hf-zibo" class="f06-con-tag">&lt;fh-product-card&gt;</span></div>
+          <div data-hf-id="hf-fxz8" class="f06-con-ln f06-con-in" id="f06-con-q2"><i data-hf-id="hf-ywfq">›</i><span data-hf-id="hf-93nr" class="f06-con-type">$lit.price</span></div>
+          <div data-hf-id="hf-vkjh" class="f06-con-ln f06-con-out" id="f06-con-a2"><i data-hf-id="hf-yp30">←</i><span data-hf-id="hf-utjf" style="color: #f78c6c">24</span></div>
+          <div data-hf-id="hf-6lbh" class="f06-con-ln" id="f06-con-cl"><span data-hf-id="hf-nw70" class="f06-con-cl"></span></div>
+          <div data-hf-id="hf-34fl" class="f06-con-ln f06-con-var" id="f06-con-v1">temp1</div>
+          <div data-hf-id="hf-9q0p" class="f06-con-ln f06-con-out" id="f06-con-v2">▸ {light: <span data-hf-id="hf-a10z" style="color: #c3e88d">"bright"</span>, water: <span data-hf-id="hf-5qf2" style="color: #c3e88d">"weekly"</span>}</div>
+          <div data-hf-id="hf-gpn1" class="f06-con-ln f06-con-in" id="f06-con-q3"><i data-hf-id="hf-zaqr">›</i><span data-hf-id="hf-8utg" class="f06-con-type">temp1.light</span></div>
+          <div data-hf-id="hf-usvo" class="f06-con-ln f06-con-out" id="f06-con-a3"><i data-hf-id="hf-xi5x">←</i><span data-hf-id="hf-ch77" style="color: #c3e88d">"bright"</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById("f06-con-" + id); };
+      var tl = gsap.timeline({ paused: true });
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, { opacity: 1, y: dy }, at);
+        tl.to(el, { y: 0, duration: dur, ease: "power4.out" }, at);
+      }
+      // A console input: the line shows its prompt, then the text types in.
+      function typeLine(id, at) {
+        var line = $(id);
+        var span = line.querySelector(".f06-con-type");
+        var text = span.textContent;
+        span.textContent = "";
+        for (var c = 0; c < text.length; c++) {
+          var ch = document.createElement("span");
+          ch.textContent = text[c];
+          ch.style.opacity = "0";
+          span.appendChild(ch);
+          tl.set(ch, { opacity: 1 }, at + 0.05 + c * 0.035);
+        }
+        tl.set(line, { opacity: 1 }, at);
+      }
+      function answer(id, at) {
+        tl.fromTo($(id), { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out" }, at);
+      }
+
+      // 0: headline.
+      tl.fromTo($("eyebrow"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.05);
+      arrive($("h1"), 0.1, 70, 0.2);
+      arrive($("h2"), 0.38, 70, 0.2);
+
+      // 0.55: the two panels split in from opposite wings, settling flat on 1.09.
+      tl.fromTo($("left"), { x: -140, rotationY: 12, opacity: 0, transformPerspective: 1600 }, { x: 0, rotationY: 0, opacity: 1, duration: 0.54, ease: "power3.out" }, 0.55);
+      tl.fromTo($("right"), { x: 140, rotationY: -12, opacity: 0, transformPerspective: 1600 }, { x: 0, rotationY: 0, opacity: 1, duration: 0.54, ease: "power3.out" }, 0.55);
+
+      // 1.09: $lit is the selection; 2.18: read a field off it.
+      typeLine("q1", 1.09);
+      answer("a1", 1.5);
+      typeLine("q2", 2.18);
+      answer("a2", 2.62);
+
+      // 3.27: the pointer reaches meta, Store shows; 3.82: the click logs temp1.
+      tl.to($("hover"), { opacity: 1, duration: 0.15 }, 3.2);
+      tl.to($("store"), { opacity: 1, duration: 0.15 }, 3.2);
+      tl.fromTo($("ptr"), { x: 360, y: 300, opacity: 0 }, { x: 0, y: 0, opacity: 1, duration: 0.5, ease: "power3.inOut" }, 2.85);
+      tl.fromTo($("tip"), { opacity: 0, x: -6 }, { opacity: 1, x: 0, duration: 0.2, ease: "power3.out" }, 3.4);
+      tl.to($("store"), { scale: 0.88, duration: 0.06, ease: "power2.in" }, 3.8);
+      tl.to($("store"), { scale: 1, duration: 0.2, ease: "back.out(3)" }, 3.86);
+      tl.fromTo($("ripple"), { width: 0, height: 0, x: 0, y: 0, opacity: 0.9 }, { width: 70, height: 70, x: -35, y: -35, opacity: 0, duration: 0.45, ease: "power2.out" }, 3.82);
+      answer("cl", 3.86);
+      answer("v1", 3.9);
+      answer("v2", 3.98);
+
+      // 4.91: the stored value is a real object to work with.
+      typeLine("q3", 4.91);
+      answer("a3", 5.38);
+
+      // 5.45 → end: held read.
+      tl.set({}, {}, 7.635);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["06-console"] = tlOuter;
+    })();
+  </script>
+</template>

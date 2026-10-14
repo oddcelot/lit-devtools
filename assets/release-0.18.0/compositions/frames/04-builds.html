@@ -1,0 +1,138 @@
+<template>
+  <style>
+    @font-face { font-family: "Manrope"; font-weight: 500; src: url("assets/manrope-medium.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 700; src: url("assets/manrope-bold.woff2") format("woff2"); }
+    @font-face { font-family: "Manrope"; font-weight: 800; src: url("assets/manrope-extrabold.woff2") format("woff2"); }
+    @font-face { font-family: "Roboto Mono"; font-weight: 400; src: url("assets/RobotoMono-Latin-400.woff2") format("woff2"); }
+
+    #root { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: "Manrope", sans-serif; color: #e3e3e3; }
+    #root * { box-sizing: border-box; }
+
+    .f04-bld-ground { position: absolute; inset: 0; background: radial-gradient(circle 1000px at 1344px 430px, rgba(42,44,157,0.35), rgba(42,44,157,0) 100%), #030308; }
+    .f04-bld-stage { position: absolute; inset: 0; }
+
+    .f04-bld-eyebrow { position: absolute; left: 115px; top: 230px; font-weight: 700; font-size: 18px; letter-spacing: 0.14em; text-transform: uppercase; color: #4d63ff; }
+    .f04-bld-eyebrow b { font-weight: 700; color: #00e8ff; }
+    .f04-bld-hl { position: absolute; left: 115px; top: 273px; width: 576px; font-weight: 800; font-size: 69px; line-height: 1.05; letter-spacing: -0.03em; color: #ffffff; }
+    .f04-bld-line { display: block; white-space: nowrap; opacity: 0; }
+    .f04-bld-cy { color: #00e8ff; }
+    .f04-bld-sub { position: absolute; left: 115px; top: 442px; width: 556px; font-weight: 500; font-size: 24px; line-height: 1.4; color: #a1a1a1; opacity: 0; }
+    .f04-bld-sub code { font-family: "Roboto Mono", monospace; font-size: 21px; color: #89ddff; }
+
+    .f04-bld-term { position: absolute; left: 806px; top: 134px; width: 998px; background: #0a0a10; border: 1px solid #363636; border-radius: 15px; box-shadow: 0 38px 96px rgba(0,0,0,0.65); padding: 44px 52px; font-family: "Roboto Mono", monospace; }
+    .f04-bld-cmd { font-size: 26px; line-height: 36px; color: #e3e3e3; white-space: nowrap; }
+    .f04-bld-cmd i { font-style: normal; color: #616161; }
+    .f04-bld-label { margin-top: 30px; margin-bottom: 10px; font-family: "Manrope", sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.12em; text-transform: uppercase; color: #616161; opacity: 0; }
+    .f04-bld-row { position: relative; height: 62px; overflow: hidden; opacity: 0; }
+    .f04-bld-in { position: absolute; left: 0; top: 0; height: 62px; display: flex; align-items: center; gap: 22px; font-size: 25px; white-space: nowrap; color: #e3e3e3; }
+    .f04-bld-dev .f04-bld-in { color: #a1a1a1; }
+    .f04-bld-mark { position: relative; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 50%; background: #1c1c1c; box-shadow: inset 0 0 0 1px #363636; }
+    .f04-bld-ok { position: absolute; inset: 0; border-radius: 50%; background: rgba(52,224,161,0.14); box-shadow: inset 0 0 0 1px rgba(52,224,161,0.4); opacity: 0; }
+    .f04-bld-ok svg { position: absolute; left: 6px; top: 6px; width: 22px; height: 22px; }
+    .f04-bld-ok path { fill: none; stroke: #34e0a1; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+    .f04-bld-strike { position: absolute; left: 56px; top: 30px; width: 0; height: 2px; background: #ff6b6b; transform-origin: 0 50%; }
+    .f04-bld-t { color: #89ddff; }
+    .f04-bld-foot { margin-top: 34px; border-top: 1px solid #363636; padding-top: 26px; font-size: 22px; line-height: 36px; white-space: nowrap; opacity: 0; }
+    .f04-bld-c { color: #616161; }
+    .f04-bld-k { color: #c792ea; }
+    .f04-bld-s { color: #c3e88d; }
+  </style>
+
+  <div data-hf-id="hf-v32b" id="root" data-composition-id="04-builds" data-width="1920" data-height="1080" data-duration="6.305">
+    <div data-hf-id="hf-z624" id="f04-bld-ground" class="f04-bld-ground clip" data-start="0" data-duration="6.305" data-track-index="0"></div>
+
+    <div data-hf-id="hf-ov5p" id="f04-bld-stage" class="f04-bld-stage clip" data-start="0" data-duration="6.305" data-track-index="1">
+      <div data-hf-id="hf-cf1p" class="f04-bld-eyebrow" id="f04-bld-eyebrow">Changed + <b data-hf-id="hf-cm3p">Added</b></div>
+      <div data-hf-id="hf-u51c" class="f04-bld-hl">
+        <span data-hf-id="hf-d4je" class="f04-bld-line" id="f04-bld-l1">Builds carry</span>
+        <span data-hf-id="hf-n4k7" class="f04-bld-line" id="f04-bld-l2"><span data-hf-id="hf-aiqc" class="f04-bld-cy">no dev code.</span></span>
+      </div>
+      <div data-hf-id="hf-8ek9" class="f04-bld-sub" id="f04-bld-sub">No config change. Or build with <code data-hf-id="hf-7b2z">litCss()</code> from <code data-hf-id="hf-2t9j">/build</code> and the dev tooling is never imported.</div>
+
+      <div data-hf-id="hf-urs2" class="f04-bld-term" id="f04-bld-term">
+        <div data-hf-id="hf-1se4" class="f04-bld-cmd"><i data-hf-id="hf-4qq0">$</i> <span data-hf-id="hf-jc3m" id="f04-bld-typed"></span></div>
+        <div data-hf-id="hf-vvxi" class="f04-bld-label" id="f04-bld-label">In the bundle</div>
+        <div data-hf-id="hf-mbe1" id="f04-bld-list">
+          <div data-hf-id="hf-brdj" class="f04-bld-row f04-bld-keep"><div data-hf-id="hf-rj6a" class="f04-bld-in"><span data-hf-id="hf-t7nm" class="f04-bld-mark"><span data-hf-id="hf-rsw7" class="f04-bld-ok"><svg data-hf-id="hf-q5y9" viewBox="0 0 22 22"><path data-hf-id="hf-5m2n" d="M4.5 11.5 L9 16 L17.5 6.5" /></svg></span></span>lit</div></div>
+          <div data-hf-id="hf-wotd" class="f04-bld-row f04-bld-dev"><div data-hf-id="hf-6al3" class="f04-bld-in"><span data-hf-id="hf-4odi" class="f04-bld-mark"></span>HMR client</div><div data-hf-id="hf-dbv6" class="f04-bld-strike"></div></div>
+          <div data-hf-id="hf-7p7b" class="f04-bld-row f04-bld-keep"><div data-hf-id="hf-rm72" class="f04-bld-in"><span data-hf-id="hf-52oj" class="f04-bld-mark"><span data-hf-id="hf-93c7" class="f04-bld-ok"><svg data-hf-id="hf-tkfp" viewBox="0 0 22 22"><path data-hf-id="hf-dfcv" d="M4.5 11.5 L9 16 L17.5 6.5" /></svg></span></span>your components</div></div>
+          <div data-hf-id="hf-szw5" class="f04-bld-row f04-bld-dev"><div data-hf-id="hf-5nhw" class="f04-bld-in"><span data-hf-id="hf-5gzk" class="f04-bld-mark"></span>source overlay</div><div data-hf-id="hf-6kd2" class="f04-bld-strike"></div></div>
+          <div data-hf-id="hf-7awa" class="f04-bld-row f04-bld-keep"><div data-hf-id="hf-jnh7" class="f04-bld-in"><span data-hf-id="hf-2oud" class="f04-bld-mark"><span data-hf-id="hf-8p16" class="f04-bld-ok"><svg data-hf-id="hf-urcs" viewBox="0 0 22 22"><path data-hf-id="hf-d11u" d="M4.5 11.5 L9 16 L17.5 6.5" /></svg></span></span><span data-hf-id="hf-hyv5" class="f04-bld-t">?css-sheet</span> styles</div></div>
+          <div data-hf-id="hf-u6t8" class="f04-bld-row f04-bld-dev"><div data-hf-id="hf-upap" class="f04-bld-in"><span data-hf-id="hf-335e" class="f04-bld-mark"></span>DevTools panel</div><div data-hf-id="hf-6yo3" class="f04-bld-strike"></div></div>
+          <div data-hf-id="hf-6wl9" class="f04-bld-row f04-bld-keep"><div data-hf-id="hf-wupq" class="f04-bld-in"><span data-hf-id="hf-3hgf" class="f04-bld-mark"><span data-hf-id="hf-8aq5" class="f04-bld-ok"><svg data-hf-id="hf-ud1r" viewBox="0 0 22 22"><path data-hf-id="hf-cmqt" d="M4.5 11.5 L9 16 L17.5 6.5" /></svg></span></span><span data-hf-id="hf-rzii" class="f04-bld-t">css</span> literals, minified</div></div>
+          <div data-hf-id="hf-tsi7" class="f04-bld-row f04-bld-dev"><div data-hf-id="hf-vlpy" class="f04-bld-in"><span data-hf-id="hf-3vrg" class="f04-bld-mark"></span>hot-swap + dev fetch rewrite</div><div data-hf-id="hf-7cz4" class="f04-bld-strike"></div></div>
+        </div>
+        <div data-hf-id="hf-i8p6" class="f04-bld-foot" id="f04-bld-foot">
+          <div data-hf-id="hf-y1qn" class="f04-bld-c">// or leave the dev tooling out entirely</div>
+          <div data-hf-id="hf-8mlc"><span data-hf-id="hf-83j1" class="f04-bld-k">import</span> { litCss } <span data-hf-id="hf-x1qo" class="f04-bld-k">from</span> <span data-hf-id="hf-c6sh" class="f04-bld-s">'@oddsquad/vite-plugin-lit/build'</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) { return document.getElementById("f04-bld-" + id); };
+      var root = document.querySelector('[data-composition-id="04-builds"]');
+      var tl = gsap.timeline({ paused: true });
+      var F = 1 / 60;
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, { opacity: 1, y: dy }, at);
+        tl.to(el, { y: 0, duration: dur, ease: "power4.out" }, at);
+      }
+
+      // 0–0.55: headline column and the terminal.
+      tl.fromTo($("eyebrow"), { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.out" }, 0.05);
+      arrive($("l1"), 0.1, 80, 0.2);
+      arrive($("l2"), 0.3 - F, 60, 0.18);
+      tl.fromTo($("term"), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: "power3.out" }, 0);
+
+      // 0.55: `vite build` types, one character per frame-pair.
+      var cmd = "vite build";
+      var typed = $("typed");
+      for (var c = 0; c < cmd.length; c++) {
+        var ch = document.createElement("span");
+        ch.textContent = cmd[c];
+        ch.style.opacity = "0";
+        typed.appendChild(ch);
+        tl.set(ch, { opacity: 1 }, 0.55 + c * 0.04);
+      }
+
+      // 1.09: the module list waterfalls in, one row per quarter-beat.
+      tl.fromTo($("label"), { opacity: 0 }, { opacity: 1, duration: 0.25 }, 1.0);
+      var rows = root.querySelectorAll(".f04-bld-row");
+      for (var i = 0; i < rows.length; i++) arrive(rows[i], 1.09 + i * 0.1364, 30, 0.16);
+
+      // 2.73: the dev rows strike through, then collapse out together on 3.27.
+      var dev = root.querySelectorAll(".f04-bld-dev");
+      for (var w = 0; w < dev.length; w++) {
+        dev[w].querySelector(".f04-bld-strike").style.width = (dev[w].querySelector(".f04-bld-in").offsetWidth - 56) + "px";
+      }
+      for (var d = 0; d < dev.length; d++) {
+        tl.fromTo(dev[d].querySelector(".f04-bld-strike"), { scaleX: 0 }, { scaleX: 1, duration: 0.14, ease: "power2.out" }, 2.73 + d * 0.1364);
+        tl.to(dev[d].querySelector(".f04-bld-in"), { color: "#ff6b6b", duration: 0.14 }, 2.73 + d * 0.1364);
+      }
+      tl.to(dev, { height: 0, opacity: 0, duration: 0.4, ease: "power3.inOut" }, 3.27);
+
+      // 3.82: what stays gets its check.
+      var oks = root.querySelectorAll(".f04-bld-ok");
+      for (var k = 0; k < oks.length; k++) {
+        tl.fromTo(oks[k], { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.25, ease: "back.out(2)" }, 3.82 + k * 0.07);
+      }
+
+      // 4.36: the opt-in entry, and the sub.
+      arrive($("foot"), 4.36, 24, 0.22);
+      arrive($("sub"), 4.36, 30, 0.2);
+
+      // 4.91 → end: held read.
+      tl.set({}, {}, 6.545);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(1.117715); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({ paused: true }).add(tl, 0);
+      window.__timelines["04-builds"] = tlOuter;
+    })();
+  </script>
+</template>
