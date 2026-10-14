@@ -191,6 +191,9 @@ describe('litPlugin ?hmr-url css query', () => {
   const plugin = litPlugin().find((p) => p.name === 'lit-css-query')!;
   const fakeCtx = {
     resolve: async (source: string) => ({id: `/app/src/${source.slice(2)}`}),
+    // `/app/src/box.css` isn't on disk, so the no-file warning fires;
+    // css-queries_test.ts covers it.
+    warn: () => {},
   };
   const callResolveId = (id: string, importer?: string) =>
     (
