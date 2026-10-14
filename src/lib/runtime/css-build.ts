@@ -3,9 +3,9 @@
  *
  * The helpers in `css.ts` carry what dev needs (the `?direct` fetch, an
  * `onHotUpdate` callback, `@property` hoisting on every swap), and a build
- * that called them would ship all of it. These build the sheet once; the
- * plugin passes `hoistPropertyRules` as `hoist` to register the sheet's
- * `@property` rules on the document.
+ * that called them would ship all of it. These build the sheet once. The
+ * plugin passes `hoistPropertyRules` as `hoist` only for a sheet that has a
+ * `@property` rule, so a build without one leaves the hoisting out.
  *
  * @module
  */

@@ -103,6 +103,8 @@ interface Variant {
   lib?: boolean;
   /** `build.minify: false`, which keeps Rolldown's `//#region` comments. */
   unminified?: boolean;
+  /** Replaces `sheet.css`. */
+  sheet?: string;
 }
 
 /**
@@ -161,6 +163,9 @@ const setUp = async (variant: Variant): Promise<string> => {
     await fsp.writeFile(joinPath(root, name), code);
   }
   if (variant.env) await fsp.writeFile(joinPath(root, '.env'), variant.env);
+  if (variant.sheet) {
+    await fsp.writeFile(joinPath(root, 'sheet.css'), variant.sheet);
+  }
   await fsp.writeFile(joinPath(root, 'run.mjs'), RUN_SCRIPT);
   return root;
 };
@@ -255,10 +260,20 @@ const APP: Record<string, Variant> = {
   "cssSheetBuild 'inline'": {options: {cssSheetBuild: 'inline'}},
   "cssSheetBuild 'inline-raw'": {options: {cssSheetBuild: 'inline-raw'}},
 };
+/** A sheet that registers a custom property, so it needs the hoisting. */
+const PROPERTY_SHEET =
+  '@property --chip-size {\n  syntax: "<length>";\n  inherits: false;\n' +
+  '  initial-value: 4px;\n}\n.chip {\n  padding: var(--chip-size);\n}\n';
+
 const LIB: Record<string, Variant> = {
   default: {lib: true},
   'all dev features on': {options: ALL_ON, lib: true},
   'all dev features on via env': {env: ALL_ON_ENV, lib: true},
+};
+
+const propertyBuilds = {
+  app: build({sheet: PROPERTY_SHEET}),
+  lib: build({sheet: PROPERTY_SHEET, lib: true}),
 };
 
 const appBuilds = Object.fromEntries(
@@ -294,6 +309,21 @@ test.each(SAME_AS_DEFAULT)(
       builds['default']!,
     ]);
     expect(comparable(variant)).toEqual(comparable(base));
+  }
+);
+
+/** Whether the build ships the `@property` hoisting. */
+const hoists = (files: Record<string, string>) =>
+  Object.values(comparable(files)).some((code) =>
+    code.includes('CSSPropertyRule')
+  );
+
+test.each(['app', 'lib'] as const)(
+  '%s build: @property hoisting ships only with a sheet that needs it',
+  async (kind) => {
+    const plain = kind === 'app' ? appBuilds : libBuilds;
+    expect(hoists(await plain['default']!)).toBe(false);
+    expect(hoists(await propertyBuilds[kind])).toBe(true);
   }
 );
 
