@@ -69,6 +69,80 @@ const devDirect = (url: string): string => {
   return `${url}${url.includes('?') ? '&' : '?'}direct`;
 };
 
+/** `@property` rules in `rules`, including those nested in `@layer`/`@supports`. */
+const propertyRules = (rules: CSSRuleList): string[] =>
+  [...rules].flatMap((rule) =>
+    rule instanceof CSSPropertyRule
+      ? [rule.cssText]
+      : 'cssRules' in rule
+        ? propertyRules((rule as CSSGroupingRule).cssRules)
+        : []
+  );
+
+/**
+ * Keeps a copy of `sheet`'s `@property` rules in a sheet adopted by the
+ * document; call the returned function after every `replaceSync()`.
+ *
+ * Browsers ignore `@property` inside a shadow root, so a custom property the
+ * sheet registers there keeps no initial value, and every declaration built
+ * on it is invalid. Tailwind v4's shadow, ring, transform and gradient
+ * utilities all read properties registered that way. A registration in the
+ * document applies in every shadow root, so the copy makes them work.
+ */
+const hoistPropertyRules = (sheet: CSSStyleSheet): (() => void) => {
+  if (
+    typeof document === 'undefined' ||
+    typeof CSSPropertyRule === 'undefined'
+  ) {
+    return () => {};
+  }
+  const hoisted = new CSSStyleSheet();
+  let adopted = false;
+  return () => {
+    const rules = propertyRules(sheet.cssRules);
+    hoisted.replaceSync(rules.join('\n'));
+    if (!adopted && rules.length > 0) {
+      adopted = true;
+      document.adoptedStyleSheets = [...document.adoptedStyleSheets, hoisted];
+    }
+  };
+};
+
+/** A sheet plus the function that replaces its rules, keeping `@property` hoisted. */
+const replaceableSheet = () => {
+  const sheet = new CSSStyleSheet();
+  const hoist = hoistPropertyRules(sheet);
+  return {
+    sheet,
+    replace: (css: string) => {
+      sheet.replaceSync(css);
+      hoist();
+    },
+  };
+};
+
+/**
+ * A shared `CSSStyleSheet` built from CSS text, plus the callback to hot-swap
+ * it in place. What a `?css-sheet` import compiles to in dev and in an
+ * inlined build, over Vite's `?inline` (or `?raw`) text.
+ *
+ * Any `@property` rules in the text are also registered on the document,
+ * where shadow roots can see them.
+ */
+export const inlineSheet = (css: string): UrlSheet => {
+  const {sheet, replace} = replaceableSheet();
+  replace(css);
+  return {
+    sheet,
+    onHotUpdate: (mod) => {
+      const next = mod?.['default'];
+      if (typeof next === 'string') {
+        replace(next);
+      }
+    },
+  };
+};
+
 /**
  * A shared `CSSStyleSheet` backed by a `?url` CSS asset, plus the callback to
  * hot-swap it in place. Returned by {@link urlSheet}.
@@ -124,7 +198,7 @@ export interface UrlSheet {
  * ```
  */
 export const urlSheet = (url: string): UrlSheet => {
-  const sheet = new CSSStyleSheet();
+  const {sheet, replace} = replaceableSheet();
   // Guards against out-of-order fetch resolution: two rapid edits fire
   // overlapping fetches, and a slower earlier one must not land after (and
   // clobber) a newer one. Only the most recently issued request applies.
@@ -139,7 +213,7 @@ export const urlSheet = (url: string): UrlSheet => {
       })
       .then((css) => {
         if (token === latest) {
-          sheet.replaceSync(css);
+          replace(css);
         }
       })
       .catch((err: unknown) => {

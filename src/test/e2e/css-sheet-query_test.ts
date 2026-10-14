@@ -71,3 +71,36 @@ test('?css-sheet hot-swaps a shared sheet across adopters without re-render', as
   expect(await dataRenders(fixture.page, A)).toBe('1');
   expect(await dataRenders(fixture.page, B)).toBe('1');
 });
+
+test('?css-sheet registers its @property rules where shadow roots see them', async () => {
+  const {edit} = fixture;
+  const outline = () =>
+    fixture.page
+      .evaluate(() => {
+        const chip = document
+          .querySelector('hmr-vsheet-a')
+          ?.shadowRoot?.querySelector('#chip');
+        return chip ? getComputedStyle(chip).outlineWidth : null;
+      })
+      .catch(() => null);
+
+  // A property only `@property` gives a value: inside the shadow root the
+  // rule alone is ignored, and `outline` would be invalid at computed time.
+  await edit(
+    'src/hmr-vsheet.css',
+    (css) =>
+      css +
+      `@property --chip-ring {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 7px;
+}
+.chip {
+  outline: var(--chip-ring) solid red;
+}
+`
+  );
+
+  await expect.poll(outline, {timeout: 10_000}).toBe('7px');
+  expect(await dataRenders(fixture.page, 'hmr-vsheet-a')).toBe('1');
+});

@@ -131,9 +131,8 @@ export const litCssQueries = (
           return {
             code:
               `import css from ${JSON.stringify(`${file}${inlineQuery}`)};\n` +
-              `const sheet = new CSSStyleSheet();\n` +
-              `sheet.replaceSync(css);\n` +
-              `export default sheet;\n`,
+              `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
+              `export default inlineSheet(css).sheet;\n`,
             moduleType: 'js',
           };
         }
