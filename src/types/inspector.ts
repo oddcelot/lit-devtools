@@ -516,6 +516,11 @@ export type InspectorCommand =
   | {type: 'highlight-all'; ids: number[]}
   /** Scroll element `id` into view in the page and outline it briefly. */
   | {type: 'reveal'; id: number}
+  /**
+   * Call `requestUpdate()` on element `id`, so its next tick runs with a
+   * `devtools` cause. Answered with `gone` when the element no longer exists.
+   */
+  | {type: 'request-update'; id: number}
   /** List the children of the value at `path` on element `id`. */
   | {type: 'expand'; id: number; path: ValuePath}
   /**

@@ -985,8 +985,31 @@ test('Scroll into view reveals the selected element in the page', async () => {
   push('inspector-message', {type: 'pick', id: 2});
   push('inspector-message', {type: 'details', details: detailsFor([])});
   await flush(el);
-  root.querySelector<HTMLElement>('.details wa-button.reveal')!.click();
+  root
+    .querySelector<HTMLElement>('.details [aria-label="Scroll into view"]')!
+    .click();
   expect(inspects()).toContainEqual({type: 'reveal', id: 2});
+});
+
+test('Request update asks the selected element to update', async () => {
+  const {el, root, inspects} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: detailsFor([])});
+  await flush(el);
+  root.querySelector<HTMLElement>('[data-action="request-update"]')!.click();
+  expect(inspects()).toContainEqual({type: 'request-update', id: 2});
+});
+
+test('offers no Request update for an element that is not Lit', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor([]), notLit: true},
+  });
+  await flush(el);
+  expect(root.querySelector('.details h2')).not.toBeNull();
+  expect(root.querySelector('[data-action="request-update"]')).toBeNull();
 });
 
 test('never offers Scroll into view in a snapshot', async () => {

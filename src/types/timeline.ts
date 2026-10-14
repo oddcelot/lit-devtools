@@ -16,7 +16,7 @@ export interface TimelineLayer {
  * that scheduled it: another element's update tick (a parent's render set a
  * property on it, or created it), an event whose handler ran it (an input
  * event the browser dispatched, or a custom event a component dispatched), or
- * a `@lit/task` run that settled. Recorded, not inferred from timing. Only
+ * a `@lit/task` run that settled, or the DevTools themselves. Recorded, not inferred from timing. Only
  * `performUpdate:start` carries one, and `task:start`, for what started the
  * run.
  */
@@ -32,7 +32,9 @@ export type TimelineCause =
    * A `@lit/task` run's completion (or its pending state) asked for the
    * update; `groupId` names the run's `task` span.
    */
-  | {kind: 'task'; groupId: string};
+  | {kind: 'task'; groupId: string}
+  /** The DevTools asked for the update (Request update in the panel). */
+  | {kind: 'devtools'};
 
 export interface TimelineEvent<TData = unknown> {
   /**

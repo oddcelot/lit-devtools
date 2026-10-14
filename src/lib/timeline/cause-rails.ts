@@ -83,12 +83,16 @@ const indexPoint = (
   if (!points.has(exact)) points.set(exact, span);
 };
 
-/** The span a cause names: a point span for an event, else a root by groupId. */
+/**
+ * The span a cause names: a point span for an event, a root by groupId for an
+ * update or task, and none for the DevTools.
+ */
 const findCauseParent = (
   cause: NonNullable<TimelineSpan['cause']>,
   roots: ReadonlyMap<string, TimelineSpan>,
   points: ReadonlyMap<string, TimelineSpan>
 ): TimelineSpan | undefined => {
+  if (cause.kind === 'devtools') return undefined;
   if (cause.kind !== 'event') return roots.get(cause.groupId);
   const loose = `${cause.layerId}\0${cause.time}`;
   const exact =

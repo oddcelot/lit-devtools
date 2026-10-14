@@ -963,6 +963,45 @@ describe('update causes', () => {
     expect(child.isUpdatePending).toBe(false);
     expect(starts(child)[0]).not.toHaveProperty('cause');
   });
+
+  test('a request the DevTools made names the DevTools', async () => {
+    const {parentTag} = await setup();
+    const {withDevtoolsCause} =
+      await import('../../lib/runtime/timeline/cause-context.js');
+    const el = document.createElement(parentTag) as SchedulingElement;
+    document.body.append(el);
+    el.performUpdate();
+    events.length = 0;
+
+    withDevtoolsCause(() => el.requestUpdate());
+    el.performUpdate();
+    expect(starts(el)[0]!.cause).toEqual({kind: 'devtools'});
+  });
+
+  test("a render inside a DevTools request names the render's tick", async () => {
+    const {parentTag, childTag} = await setup();
+    const {withDevtoolsCause} =
+      await import('../../lib/runtime/timeline/cause-context.js');
+    const parent = document.createElement(parentTag) as SchedulingElement;
+    const child = document.createElement(childTag) as SchedulingElement;
+    document.body.append(parent, child);
+    parent.performUpdate();
+    child.performUpdate();
+    events.length = 0;
+
+    parent.onRender = () => child.requestUpdate('value', 0);
+    withDevtoolsCause(() => {
+      parent.requestUpdate();
+      parent.performUpdate();
+    });
+    child.performUpdate();
+    const [parentStart] = starts(parent);
+    expect(parentStart!.cause).toEqual({kind: 'devtools'});
+    expect(starts(child)[0]!.cause).toEqual({
+      kind: 'update',
+      groupId: parentStart!.groupId,
+    });
+  });
 });
 
 describe('@lit/task runs', () => {

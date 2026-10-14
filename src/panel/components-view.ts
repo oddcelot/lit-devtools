@@ -1787,6 +1787,12 @@ export class ComponentsView extends LitElement {
     if (this._anatomy) sendToPage({type: 'anatomy-focus', focus});
   }
 
+  /** Ask the selected element to update; the tick's cause names the DevTools. */
+  private _requestUpdate(): void {
+    const id = this._session.details?.id;
+    if (id !== undefined) sendToPage({type: 'request-update', id});
+  }
+
   /** Scroll the selected element into view in the page. */
   private _reveal(): void {
     const id = this._session.details?.id;
@@ -3066,6 +3072,54 @@ export class ComponentsView extends LitElement {
       : html`<span class="${cls} src-text">${text}</span>`;
   }
 
+  /** The buttons at the end of the details heading; none in a snapshot. */
+  private _renderHeadActions(d: InspectorDetails) {
+    if (this._snapshot) return nothing;
+    const revealer = elementRevealer();
+    return html`
+      ${
+        d.notLit === true || d.notDefined === true
+          ? nothing
+          : html`<wa-button
+              class="reveal"
+              data-action="request-update"
+              appearance="plain"
+              size="small"
+              data-tip="Call requestUpdate() on this element"
+              aria-label="Request update"
+              @click=${this._requestUpdate}
+            >
+              <wa-icon name="arrows-clockwise"></wa-icon>
+            </wa-button>`
+      }
+      <wa-button
+        class="reveal"
+        appearance="plain"
+        size="small"
+        data-tip="Scroll this element into view on the page"
+        aria-label="Scroll into view"
+        @click=${this._reveal}
+      >
+        <wa-icon name="target"></wa-icon>
+      </wa-button>
+      ${
+        revealer === undefined
+          ? nothing
+          : html`<wa-button
+              class="reveal"
+              data-action="reveal-in-elements"
+              appearance="plain"
+              size="small"
+              data-tip="Reveal in the Elements panel"
+              aria-label="Reveal in Elements"
+              @click=${() => void revealer(d.id)}
+            >
+              <wa-icon name="cursor-click"></wa-icon>
+            </wa-button>`
+      }
+    `;
+  }
+
   private _renderDetails(): TemplateResult {
     const {details: d, gone, selectedId} = this._session;
     if (d === null) {
@@ -3105,7 +3159,6 @@ export class ComponentsView extends LitElement {
       anatomyHit ||
       docs.anyMatch;
     const rootLabel = describeRoot(d);
-    const revealer = elementRevealer();
     return html`
       <div class="head">
         <h2>
@@ -3150,35 +3203,7 @@ export class ComponentsView extends LitElement {
                 >not rendered</span
               >`
         }
-        ${
-          this._snapshot
-            ? nothing
-            : html`<wa-button
-                class="reveal"
-                appearance="plain"
-                size="small"
-                data-tip="Scroll this element into view on the page"
-                aria-label="Scroll into view"
-                @click=${this._reveal}
-              >
-                <wa-icon name="target"></wa-icon>
-              </wa-button>`
-        }
-        ${
-          revealer === undefined || this._snapshot
-            ? nothing
-            : html`<wa-button
-                class="reveal"
-                data-action="reveal-in-elements"
-                appearance="plain"
-                size="small"
-                data-tip="Reveal in the Elements panel"
-                aria-label="Reveal in Elements"
-                @click=${() => void revealer(d.id)}
-              >
-                <wa-icon name="cursor-click"></wa-icon>
-              </wa-button>`
-        }
+        ${this._renderHeadActions(d)}
       </div>
       <dl class="meta">
         ${
