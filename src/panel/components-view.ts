@@ -1634,7 +1634,10 @@ export class ComponentsView extends LitElement {
       rpc.rpc.register({
         name: 'hmr-patched',
         type: 'event',
-        handler: (event: HmrPatchEvent) => this._session.hmrPatched(event),
+        handler: (event: HmrPatchEvent) => {
+          this._session.hmrPatched(event);
+          this._docs.refresh(event.tagName);
+        },
       });
       void hostInfo().then((host) => {
         this._canPick = host.picker;

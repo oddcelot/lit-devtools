@@ -3,7 +3,8 @@
  * the host found for its tag (`component-docs`). Docs are per tag, not per
  * element, so selecting another `<sl-button>` keeps what is already here;
  * selecting a different tag asks again, which also picks up a manifest that
- * was regenerated since.
+ * was regenerated since. A hot patch of the tag on show asks again too, since
+ * docs read from source change with the edit.
  *
  * Kept apart from the inspector stream on purpose: details come from the
  * page, docs from the host's disk, and a host that can't read manifests
@@ -35,6 +36,15 @@ export class ComponentDocsSource {
       void this.#fetch(tagName);
     }
     return this.#docs;
+  }
+
+  /**
+   * Asks again for `tagName` if it is the tag on show, after a hot patch
+   * changed its source. The current docs stay up until the answer replaces
+   * them, so the pane doesn't flicker.
+   */
+  refresh(tagName: string): void {
+    if (tagName === this.#tagName) void this.#fetch(tagName);
   }
 
   async #fetch(tagName: string): Promise<void> {
