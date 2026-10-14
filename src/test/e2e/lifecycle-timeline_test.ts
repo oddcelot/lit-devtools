@@ -1,5 +1,10 @@
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
-import {connectTimelineSource, type Fixture, startFixture} from './utils.js';
+import {
+  connectTimelineSource,
+  recordLifecycleOnly,
+  type Fixture,
+  startFixture,
+} from './utils.js';
 
 let fixture: Fixture;
 
@@ -116,18 +121,7 @@ test('async updated() rejections and failed tasks are attributed to their elemen
   const {page} = fixture;
 
   const {source, events} = await connectTimelineSource(fixture, page);
-  source.setRecording(true);
-  source.setLayers({
-    recordingState: true,
-    litLifecycleEnabled: true,
-    litRenderEnabled: false,
-    litRenderVerboseEnabled: false,
-    litChangedValuesEnabled: false,
-    mouseEventEnabled: false,
-    keyboardEventEnabled: false,
-    customEventsEnabled: false,
-    litWarningsEnabled: false,
-  });
+  recordLifecycleOnly(source);
   // Recording reaches the page over HMR; wait until updates are recorded.
   await expect
     .poll(
@@ -200,18 +194,7 @@ test('a component whose shouldUpdate returns false records an update skipped eve
   const {page} = fixture;
 
   const {source, events} = await connectTimelineSource(fixture, page);
-  source.setRecording(true);
-  source.setLayers({
-    recordingState: true,
-    litLifecycleEnabled: true,
-    litRenderEnabled: false,
-    litRenderVerboseEnabled: false,
-    litChangedValuesEnabled: false,
-    mouseEventEnabled: false,
-    keyboardEventEnabled: false,
-    customEventsEnabled: false,
-    litWarningsEnabled: false,
-  });
+  recordLifecycleOnly(source);
   await expect
     .poll(
       async () => {

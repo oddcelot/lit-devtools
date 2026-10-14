@@ -225,7 +225,10 @@ in an `html` template, the **rendered** link opens that template at the line
 and column of the tag, so you can tell which usage produced this instance.
 Elements created any other way have no such line. Click the target
 button beside the tag name to scroll the element into the middle of the page and outline it for a
-moment, which helps when it sits below the fold. If the element leaves the
+moment, which helps when it sits below the fold. The arrows button next to it
+calls `requestUpdate()` on the element. If the render then shows something
+different, it depends on state outside its reactive properties. The update is
+recorded with **Request update in DevTools** as its cause. If the element leaves the
 page, the pane says so instead of showing stale values.
 
 ## Read a component's documentation

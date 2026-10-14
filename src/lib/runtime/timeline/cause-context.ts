@@ -2,11 +2,12 @@
  * What is running right now that could have scheduled an update: the answer
  * the lifecycle layer's `requestUpdate` wrapper records as a tick's cause.
  *
- * Two kinds of context, and the innermost wins: an event being dispatched
+ * Three kinds of context, and the innermost wins: an event being dispatched
  * (an input event the browser raised, marked by the mouse and keyboard
  * layers' capture listeners, or a custom event a component dispatched, marked
- * by the custom events layer), and the element inside `performUpdate`, whose
- * render set a property on, or created, the requester.
+ * by the custom events layer), the element inside `performUpdate`, whose
+ * render set a property on, or created, the requester, and a DevTools
+ * command running ({@link withDevtoolsCause}).
  *
  * An event is "in flight" while its `eventPhase` is not `NONE`, which the DOM
  * flips for exactly the duration of its dispatch. That is what makes marked
@@ -90,12 +91,33 @@ export const setUpdateCauseSource = (
   updateCause = source;
 };
 
+/** The DevTools command running right now, if any. */
+let devtools: SequencedCause | undefined;
+
+/**
+ * Run `fn`, a DevTools command, so the updates it schedules carry a
+ * `devtools` cause.
+ */
+export const withDevtoolsCause = <T>(fn: () => T): T => {
+  const outer = devtools;
+  devtools = {cause: {kind: 'devtools'}, seq: nextCauseSeq()};
+  try {
+    return fn();
+  } finally {
+    devtools = outer;
+  }
+};
+
 /** The cause an update scheduled at this moment should carry, if any. */
 export const currentCause = (): TimelineCause | undefined => {
   prune();
-  const event = inFlight.length > 0 ? inFlight[inFlight.length - 1] : undefined;
-  const update = updateCause();
-  if (event === undefined) return update?.cause;
-  if (update === undefined) return event.cause;
-  return event.seq > update.seq ? event.cause : update.cause;
+  let inner: SequencedCause | undefined = inFlight[inFlight.length - 1];
+  for (const context of [updateCause(), devtools]) {
+    if (
+      context !== undefined &&
+      (inner === undefined || context.seq > inner.seq)
+    )
+      inner = context;
+  }
+  return inner?.cause;
 };

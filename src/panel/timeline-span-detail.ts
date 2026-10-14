@@ -6,7 +6,7 @@ import '@awesome.me/webawesome/dist/components/button/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
 import {formatMs} from '../lib/timeline/range.js';
-import type {TimelineSpan} from '../lib/timeline/derive.js';
+import {DEVTOOLS_CAUSE, type TimelineSpan} from '../lib/timeline/derive.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {layerColor} from './timeline-layers.js';
@@ -306,6 +306,7 @@ export class TimelineSpanDetail extends LitElement {
 
   private _causeText(cause: NonNullable<TimelineSpan['cause']>): string {
     if (cause.kind === 'update') return `update ${cause.groupId}`;
+    if (cause.kind === 'devtools') return DEVTOOLS_CAUSE;
     if (cause.kind === 'task') {
       const task = (
         this.causeSpan?.events[0]?.data as {task?: unknown} | null | undefined
@@ -516,11 +517,15 @@ export class TimelineSpanDetail extends LitElement {
           row.cause
             ? this._fact(
                 'caused by',
-                html`<span>${this._causeText(row.cause)}</span>${this._action(
-                    'show',
-                    'Select the row that caused this update',
-                    () => this._jump(row.cause!)
-                  )}`
+                html`<span>${this._causeText(row.cause)}</span>${
+                    row.cause.kind === 'devtools'
+                      ? nothing
+                      : this._action(
+                          'show',
+                          'Select the row that caused this update',
+                          () => this._jump(row.cause!)
+                        )
+                  }`
               )
             : nothing
         }

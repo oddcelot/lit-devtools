@@ -145,7 +145,8 @@ export const foldParentKey = (
  * The key of the span that caused the tick or task run `span`, if it has a
  * recorded cause whose target is among `spans`: the tick root the `update`
  * cause names, the `task` span the `task` cause names, or the point span (no
- * `groupId`) at the `event` cause's layer and time.
+ * `groupId`) at the `event` cause's layer and time. A `devtools` cause names
+ * no row.
  */
 export const causeParentKey = (
   span: TimelineSpan,
@@ -165,6 +166,7 @@ export const causeParentKey = (
       (s) => isTaskRun(s) && String(s.groupId) === cause.groupId
     )?.key;
   }
+  if (cause.kind === 'devtools') return undefined;
   // Input rows can share one coarsened `time` (mouseup and click), so a
   // cause that names the title picks that row; without one, the first.
   const atTime = spans.filter(

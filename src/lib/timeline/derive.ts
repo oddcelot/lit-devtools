@@ -44,6 +44,8 @@ const ROOT_PHASE = 'performUpdate';
  * layer with an element, but not a phase of any update tick.
  */
 export const TASK_SPAN = 'task';
+/** What an update the panel's Request update button asked for is caused by. */
+export const DEVTOOLS_CAUSE = 'Request update in DevTools';
 
 /** Point event a component's `shouldUpdate` returning false produces. */
 const SKIP_EVENT = 'update skipped';
@@ -556,7 +558,8 @@ const tally = (
  * guessing: an `event` cause is resolved to that event in `events`, and an
  * `update` cause to the causing cycle in `cycles` (`cause` reads "<tag>
  * update" on the `lit-lifecycle` layer and `causedBy` names its key), and a
- * `task` cause to that run's `task:start` ("<name> task"). A recorded cause whose target is not in the buffer falls back to the
+ * `task` cause to that run's `task:start` ("<name> task"), and a `devtools`
+ * cause reads {@link DEVTOOLS_CAUSE}. A recorded cause whose target is not in the buffer falls back to the
  * heuristic: the nearest mouse or keyboard event before the cycle, within
  * `windowMs`.
  *
@@ -658,6 +661,16 @@ const recordedCause = (
         time: causing.start,
       },
       causedBy: {groupId: causing.key},
+    };
+  }
+  if (recorded?.kind === 'devtools') {
+    return {
+      ...cycle,
+      cause: {
+        layerId: LIFECYCLE_LAYER_ID,
+        type: DEVTOOLS_CAUSE,
+        time: cycle.start,
+      },
     };
   }
   if (recorded?.kind === 'task') {

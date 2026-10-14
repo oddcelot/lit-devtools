@@ -11,6 +11,7 @@ import {createPageScriptChannel} from 'devframe/in-page-channel';
 import {chromeTracksSupported} from '../timeline/chrome-tracks.js';
 import {defineFramesById} from '../define-sites.js';
 import {elementById, idOf} from '../timeline/identity.js';
+import {withDevtoolsCause} from '../timeline/cause-context.js';
 import {findByKey, keyOf} from './element-key.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
@@ -578,6 +579,20 @@ if (typeof window !== 'undefined') {
     if (applied) replyOverrides();
   };
 
+  /** Asks `cmd.id` to update; a watched element re-sends its details after. */
+  const requestUpdate = (
+    cmd: Extract<InspectorCommand, {type: 'request-update'}>
+  ): void => {
+    const el = elementById(cmd.id) as
+      | (Element & {requestUpdate?: () => void})
+      | undefined;
+    if (el === undefined) {
+      send({type: 'gone', id: cmd.id});
+      return;
+    }
+    withDevtoolsCause(() => el.requestUpdate?.());
+  };
+
   /**
    * A leaf deeper than the row's preview would leave the open level that
    * holds it stale, so answer that level too. Nothing for the property itself.
@@ -684,6 +699,7 @@ if (typeof window !== 'undefined') {
     // Fallback path, as for `highlight`.
     'highlight-all': (cmd) => highlightAll(cmd.ids),
     reveal: (cmd) => revealById(cmd.id),
+    'request-update': requestUpdate,
     anatomy: (cmd) => anatomyById(cmd.id, cmd.only),
     'anatomy-focus': (cmd) => focusAnatomy(cmd.focus),
     observe: (cmd) => setObserving(cmd.enabled),

@@ -501,6 +501,17 @@ describe('attributeInput with recorded causes', () => {
     });
   });
 
+  test('names the DevTools for a tick they requested, over a nearby input', () => {
+    const events = [click(95), ...causedTick(100, {kind: 'devtools'})];
+    const [cycle] = attributeInput(toUpdateCycles(toSpans(events)), events);
+    expect(cycle!.cause).toEqual({
+      layerId: 'lit-lifecycle',
+      type: 'Request update in DevTools',
+      time: 100,
+    });
+    expect(cycle!.causedBy).toBeUndefined();
+  });
+
   test('falls back to the heuristic when the event left the buffer', () => {
     const events = [
       click(95),

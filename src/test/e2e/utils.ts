@@ -445,6 +445,22 @@ export const connectTimelineSource = async (
   return {source, events};
 };
 
+/** Start recording on `source` with only the Lit Lifecycle layer on. */
+export const recordLifecycleOnly = (source: TimelineChannelCodec): void => {
+  source.setRecording(true);
+  source.setLayers({
+    recordingState: true,
+    litLifecycleEnabled: true,
+    litRenderEnabled: false,
+    litRenderVerboseEnabled: false,
+    litChangedValuesEnabled: false,
+    mouseEventEnabled: false,
+    keyboardEventEnabled: false,
+    customEventsEnabled: false,
+    litWarningsEnabled: false,
+  });
+};
+
 /**
  * Waits for a spawned `lit-devtools` CLI to print its script tag and returns
  * the origin of the server it started.

@@ -14,7 +14,12 @@ import {
   type InspectorMessage,
   type InspectorTreeNode,
 } from '../../types/inspector.js';
-import {type Fixture, startFixture} from './utils.js';
+import {
+  connectTimelineSource,
+  recordLifecycleOnly,
+  type Fixture,
+  startFixture,
+} from './utils.js';
 
 let fixture: Fixture;
 const ready: Extract<InspectorMessage, {type: 'ready'}>[] = [];
@@ -79,4 +84,38 @@ test('reveal scrolls the element into view', async () => {
   expect(await box.evaluate((el) => getComputedStyle(el).display)).toBe(
     'block'
   );
+});
+
+test('request-update runs a tick whose cause names the DevTools', async () => {
+  const {page} = fixture;
+  const tree: InspectorTreeNode[][] = [];
+  fixture.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+    if (data.type === 'tree') tree.push(data.roots);
+  });
+  const {source, events} = await connectTimelineSource(fixture, page);
+  recordLifecycleOnly(source);
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+  await expect.poll(() => tree.length).toBeGreaterThan(0);
+  const id = tree
+    .at(-1)!
+    .find((n) => n.tagName.toLowerCase() === 'hmr-counter')!.id;
+
+  // Recording may not be wired on the first command, so ask each round.
+  await expect
+    .poll(
+      () => {
+        fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+          type: 'request-update',
+          id,
+        });
+        return events.some(
+          (e) =>
+            e.title === 'performUpdate:start' &&
+            e.meta?.elementId === id &&
+            e.cause?.kind === 'devtools'
+        );
+      },
+      {timeout: 10_000}
+    )
+    .toBe(true);
 });
