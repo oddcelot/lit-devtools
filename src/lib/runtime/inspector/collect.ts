@@ -365,31 +365,43 @@ export const collectDetails = (el: Element): InspectorDetails => {
 };
 
 /**
- * Answer an `expand` command: the children of the value at `path` on `el`,
- * or null when a step no longer resolves (the value changed shape since the
- * panel saw it). Only declared reactive properties and listed extras are
- * reachable, so a path cannot read arbitrary fields.
+ * The value at `path` on `el`, or undefined when a step no longer resolves
+ * (the value changed shape since the panel saw it). Only declared reactive
+ * properties and listed extras are reachable, so a path cannot read
+ * arbitrary fields.
  */
-export const expandPath = (
+const valueAt = (
   el: Element,
   path: ValuePath
-): {children: ValueChild[]; more: number} | null => {
+): {value: unknown} | undefined => {
   let at: {value: unknown} | undefined;
   if (path.section === 'prop') {
     const declared = (el as ReactiveElementLike).constructor.elementProperties;
-    if (declared?.has(path.name) !== true) return null;
+    if (declared?.has(path.name) !== true) return undefined;
     try {
       at = {value: (el as unknown as Record<string, unknown>)[path.name]};
     } catch {
-      return null;
+      return undefined;
     }
   } else {
     at = extraValue(el, path.name);
   }
   for (const key of path.keys) {
-    if (at === undefined) return null;
+    if (at === undefined) return undefined;
     at = stepInto(at.value, key);
   }
+  return at;
+};
+
+/**
+ * Answer an `expand` command: the children of the value at `path` on `el`,
+ * or null when it no longer resolves (see {@link valueAt}).
+ */
+export const expandPath = (
+  el: Element,
+  path: ValuePath
+): {children: ValueChild[]; more: number} | null => {
+  const at = valueAt(el, path);
   if (at === undefined) return null;
   const listed = childrenOf(at.value);
   if (path.section !== 'prop') return listed;
