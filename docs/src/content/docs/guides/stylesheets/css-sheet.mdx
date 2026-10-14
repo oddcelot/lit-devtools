@@ -140,12 +140,13 @@ runs this setup.
 
 ## Choose the build output
 
-Dev is always the fetch-backed HMR form. The build picks between a fetch and
-inlined text based on what you are building.
+Dev always builds the sheet from the file's processed text, with the HMR swap
+wired up. The build picks between a fetch and inlined text based on what you
+are building.
 
 | Where                      | `?css-sheet` compiles to                                      |
 | -------------------------- | ------------------------------------------------------------- |
-| dev server                 | fetch over the dev-served file, with the HMR swap wired up    |
+| dev server                 | `replaceSync()` over the `?inline` text, swapped on each edit |
 | `vite build` (app)         | fetch over the emitted content-hashed `.css` asset            |
 | `vite build` + `build.lib` | `new CSSStyleSheet()` + `replaceSync()` over inlined css text |
 

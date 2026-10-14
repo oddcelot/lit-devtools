@@ -16,20 +16,23 @@ const CSS_URL_VIRTUAL_PREFIX = '\0lit-plugin:hmr-url:';
 
 /**
  * `import sheet from './x.css?css-sheet'` — a constructed, shareable
- * `CSSStyleSheet` backed by the `.css` asset that hot-swaps in place. Adopt it
- * from any number of components (`static styles = [sheet]`); a source edit
- * re-fetches and `replaceSync()`s it, updating every shadow root that adopted
- * it without re-rendering a component or reloading the page.
+ * `CSSStyleSheet` that hot-swaps in place. Adopt it from any number of
+ * components (`static styles = [sheet]`); a source edit `replaceSync()`s it,
+ * updating every shadow root that adopted it without re-rendering a component
+ * or reloading the page.
  *
- * This is the `urlSheet()` helper plus its irreducible HMR wiring, lifted into
- * a plugin-generated module: the `import.meta.hot.accept` lives here (where
- * Vite's static analysis sees the literal specifier), so callers write a bare
- * import and never touch `import.meta.hot` themselves.
+ * In dev the generated module builds the sheet from the file's `?inline` text
+ * and accepts updates to that module: the `import.meta.hot.accept` lives here
+ * (where Vite's static analysis sees the literal specifier), so callers write
+ * a bare import and never touch `import.meta.hot` themselves. `?inline` rather
+ * than a fetch of `?url`, because a plugin that generates the CSS from other
+ * files (Tailwind) ties its updates to the CSS module it transformed, and
+ * Tailwind leaves `?url` imports alone.
  *
- * Under `vite build` the generated module can instead inline the css text (see
- * `cssSheetBuild`) — a library's consumers bundle its JS only, so a
- * fetch-backed sheet would 404 on the `.css` asset that never reached their
- * build.
+ * Under `vite build` it is fetch-backed over the emitted `.css` asset, or
+ * inlines the css text (see `cssSheetBuild`): a library's consumers bundle its
+ * JS only, so a fetch-backed sheet would 404 on the `.css` asset that never
+ * reached their build.
  */
 const CSS_SHEET_QUERY_RE = /^([^?]+\.css)\?(?:[^&]*&)*css-sheet(?:&.*)?$/;
 const CSS_SHEET_VIRTUAL_PREFIX = '\0lit-plugin:css-sheet:';
@@ -117,39 +120,42 @@ export const litCssQueries = (
           CSS_SHEET_VIRTUAL_PREFIX.length,
           -CSS_VIRTUAL_SUFFIX.length
         );
-        const mode = getCssSheetBuild();
-        const inlineQuery =
-          !isBuild || mode === 'url' || (mode === 'auto' && !isLib)
-            ? null
-            : mode === 'inline-raw'
-              ? '?raw'
-              : '?inline';
-        if (inlineQuery !== null) {
-          // Build only, so no `import.meta.hot` block. The sheet is still
-          // constructed once per virtual module, so adopters share it exactly
-          // as they do in the fetch-backed form.
+        if (!isBuild) {
+          // The accept specifier must be byte-identical to the import above —
+          // Vite resolves accepted HMR deps by static analysis. Generating both
+          // here is exactly what frees the caller from writing it. The swap is
+          // self-accepted at this boundary, so it never propagates to adopters.
+          const inlineSpecifier = JSON.stringify(`${file}?inline`);
           return {
             code:
-              `import css from ${JSON.stringify(`${file}${inlineQuery}`)};\n` +
+              `import css from ${inlineSpecifier};\n` +
               `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
-              `export default inlineSheet(css).sheet;\n`,
+              `const {sheet, onHotUpdate} = inlineSheet(css);\n` +
+              `export default sheet;\n` +
+              `if (import.meta.hot) {\n` +
+              `  import.meta.hot.accept(${inlineSpecifier}, onHotUpdate);\n` +
+              `}\n`,
             moduleType: 'js',
           };
         }
-        // The accept specifier must be byte-identical to the import above —
-        // Vite resolves accepted HMR deps by static analysis. Generating both
-        // here is exactly what frees the caller from writing it. The swap is
-        // self-accepted at this boundary, so it never propagates to adopters.
-        const urlSpecifier = JSON.stringify(`${file}?url`);
+        // A build, so no `import.meta.hot` block. Either way the sheet is
+        // constructed once per virtual module, so adopters share it.
+        const mode = getCssSheetBuild();
+        if (mode === 'url' || (mode === 'auto' && !isLib)) {
+          return {
+            code:
+              `import url from ${JSON.stringify(`${file}?url`)};\n` +
+              `import {urlSheet} from ${JSON.stringify(helperPath)};\n` +
+              `export default urlSheet(url).sheet;\n`,
+            moduleType: 'js',
+          };
+        }
+        const inlineQuery = mode === 'inline-raw' ? '?raw' : '?inline';
         return {
           code:
-            `import url from ${urlSpecifier};\n` +
-            `import {urlSheet} from ${JSON.stringify(helperPath)};\n` +
-            `const {sheet, onHotUpdate} = urlSheet(url);\n` +
-            `export default sheet;\n` +
-            `if (import.meta.hot) {\n` +
-            `  import.meta.hot.accept(${urlSpecifier}, onHotUpdate);\n` +
-            `}\n`,
+            `import css from ${JSON.stringify(`${file}${inlineQuery}`)};\n` +
+            `import {inlineSheet} from ${JSON.stringify(helperPath)};\n` +
+            `export default inlineSheet(css).sheet;\n`,
           moduleType: 'js',
         };
       }
