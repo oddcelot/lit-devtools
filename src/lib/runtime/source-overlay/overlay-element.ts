@@ -10,12 +10,12 @@ import {
   type HostTest,
 } from './source-host.js';
 import {buildSpotlightClipPath} from './mask-path.js';
-import {OVERLAY_HTML} from './template.js';
+import {renderOverlay} from './template.js';
 import {observeEdgeInsets} from '../edge-panel.js';
 import {subscribeOverrideKeys} from '../overrides.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
-import {injectTokens} from '../../tokens.js';
+import {injectTokens} from '../../token-text.js';
 import {idOf} from '../timeline/identity.js';
 import {
   INSPECT_OVERLAY_TOGGLE_CHANNEL,
@@ -112,7 +112,7 @@ class LitSourceOverlay extends HTMLElement {
   constructor() {
     super();
     const root = this.attachShadow({mode: 'closed'});
-    root.innerHTML = OVERLAY_HTML;
+    renderOverlay(root);
     this.#dialog = root.getElementById('overlay') as HTMLDialogElement;
     this.#mask = root.getElementById('mask')!;
     this.#highlight = root.getElementById('highlight')!;
@@ -584,6 +584,9 @@ export const initSourceOverlay = (
   initOptions: SourceOverlayInitOptions = {}
 ) => {
   if (typeof window === 'undefined') return;
+  // An SVG or XML document makes a plain element that never upgrades, and
+  // has no <body> to hold it; there is nothing to pick there anyway.
+  if (!(document.body instanceof HTMLElement)) return;
   const el = document.createElement('lit-source-overlay') as LitSourceOverlay;
   el.configure(initOptions);
   document.body.append(el);

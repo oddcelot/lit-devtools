@@ -147,6 +147,50 @@ GitHub release carries the Firefox zip next to the Chrome one.
 checks AMO does; the `innerHTML` warnings come from lit-html and Web
 Awesome.
 
+## Before a release
+
+`pnpm run test:e2e` drives the built extension in Chromium. Besides the
+panel and the relay, it covers what other DevTools extensions have broken
+on real sites:
+
+- **The page's globals.** On a page without Lit, the runtime adds `$lit` and
+  Lit's own `litIssuedWarnings` to `window` and replaces nothing. It writes
+  nothing to the site's `localStorage`, and two tab ids to `sessionStorage`.
+  A new global fails the test until it is listed there.
+- **Trusted Types.** A site whose CSP allows only Lit's `lit-html` policy
+  keeps rendering. The injected runtime must not bundle lit-html, or its
+  policy would take that name first.
+- **SVG documents** open without errors.
+- **A strict `script-src`** doesn't stop the injection.
+
+`pnpm run extension:smoke:firefox` installs the Firefox build and checks
+that the Lit tab lists a page's components.
+
+Neither can drive DevTools' own panels, so check these by hand in Chrome
+and in Firefox:
+
+1. Select a component, press **Reveal in Elements**: the Elements panel
+   opens on that element. Select a node in Elements: the Lit tab selects
+   it, or its host when it's inside a component's shadow root, and keeps
+   its selection for unrelated markup.
+2. In Chrome, the **defined** and **rendered** links open the Sources panel
+   at that line: a `/src/` file, a template in `index.html`, and an original
+   from a page's sourcemap (`webpack://` included). With a DevTools
+   workspace connected, they open the editable file. In Firefox they stay
+   plain text.
+3. In Firefox, the toolbar popup enables a site and the Lit tab follows.
+4. With a site enabled, record 10 s of an idle page that has no custom
+   elements in the Firefox Profiler: the runtime should barely show. In
+   Chromium it takes about 2 ms of script time over those 10 s, most of it
+   a 15 s startup check for the Vite DevTools edge panel.
+5. Enable a single-page app that routes with `history` and one that
+   reloads itself: neither reloads more than the app does. The extension
+   reloads a page only when you press **Enable**, **Disable** or **Reload
+   page**.
+
+`file://` pages can't be enabled (`extension-registry_test`); the Lit tab
+says the page isn't a web page.
+
 ## Icons
 
 The mark is `public/icon.svg`: a magnifying glass with a faceted lens in the
