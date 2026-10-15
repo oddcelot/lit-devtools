@@ -12,6 +12,12 @@ import starlightChangelogs, {
 // links validator checks every one of them against the real page set.
 // The redirect map for moved pages lives next to this file.
 import {base, redirects} from './redirects.mjs';
+import {readFileSync} from 'node:fs';
+import {latestRelease} from './src/lib/latest-release.mjs';
+
+const latest = latestRelease(
+  readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8')
+);
 
 export default defineConfig({
   site: 'https://oddcelot.github.io',
@@ -109,6 +115,9 @@ export default defineConfig({
       components: {
         // Adds the font tags; see the file for why this override exists.
         Head: './src/components/Head.astro',
+        // The landing page's hero: Lit Inspector beside the pitch and a pill
+        // for the newest release.
+        Hero: './src/components/Hero.astro',
       },
       // Starlight >= 0.39 requires the autogenerate config inside `items`;
       // a group with a bare `autogenerate` key is a hard error.
@@ -116,6 +125,14 @@ export default defineConfig({
       // would be labelled with its raw dirname.
       sidebar: [
         {label: 'Start here', items: [{autogenerate: {directory: 'start'}}]},
+        // Top level rather than under Reference, badged with the newest
+        // version, so what shipped is one click from every page.
+        ...makeChangelogsSidebarLinks([
+          {type: 'all', base: 'reference/changelog', label: 'Changelog'},
+        ]).map((link) => ({
+          ...link,
+          badge: {text: `v${latest.version}`, variant: 'tip'},
+        })),
         {
           label: 'Guides',
           items: [
@@ -136,12 +153,7 @@ export default defineConfig({
         {label: 'Concepts', items: [{autogenerate: {directory: 'concepts'}}]},
         {
           label: 'Reference',
-          items: [
-            {autogenerate: {directory: 'reference'}},
-            ...makeChangelogsSidebarLinks([
-              {type: 'all', base: 'reference/changelog', label: 'Changelog'},
-            ]),
-          ],
+          items: [{autogenerate: {directory: 'reference'}}],
         },
         {
           label: 'Contributing',
