@@ -730,3 +730,46 @@ describe('skipped updates', () => {
     expect(entry).not.toHaveProperty('skipped');
   });
 });
+
+describe('self-caused updates', () => {
+  test('flags a tick its own element scheduled, and counts it', () => {
+    const events = [
+      ...tick(100, {tick: 1, changed: ['items']}),
+      ...causedTick(
+        102,
+        {kind: 'update', groupId: '1:1'},
+        {tick: 2, changed: ['count']}
+      ),
+    ];
+    const cycles = attributeInput(toUpdateCycles(toSpans(events)), events);
+    expect(cycles[0]!).not.toHaveProperty('selfCaused');
+    expect(cycles[1]!.selfCaused).toBe(true);
+    const [entry] = rollup(cycles);
+    expect(entry).toMatchObject({updates: 2, selfCaused: 1});
+  });
+
+  test('a tick another element scheduled is not self-caused', () => {
+    const events = [
+      ...tick(100, {elementId: 1, tag: 'my-parent', tick: 1}),
+      ...causedTick(
+        101,
+        {kind: 'update', groupId: '1:1'},
+        {elementId: 2, tag: 'my-child', tick: 1}
+      ),
+      // `12:…` starts with "1" but names element 12.
+      ...causedTick(
+        103,
+        {kind: 'update', groupId: '12:4'},
+        {elementId: 1, tag: 'my-parent', tick: 2}
+      ),
+    ];
+    const cycles = toUpdateCycles(toSpans(events));
+    expect(cycles.some((c) => c.selfCaused)).toBe(false);
+    expect(rollup(cycles)[0]).not.toHaveProperty('selfCaused');
+  });
+
+  test('needs no causing tick in the buffer', () => {
+    const events = causedTick(100, {kind: 'update', groupId: '1:6'}, {tick: 7});
+    expect(toUpdateCycles(toSpans(events))[0]!.selfCaused).toBe(true);
+  });
+});

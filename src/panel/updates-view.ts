@@ -230,7 +230,8 @@ export class UpdatesView extends LitElement {
       .change .badge {
         flex-shrink: 0;
       }
-      .skipped {
+      .skipped,
+      .self-caused {
         flex-shrink: 0;
       }
       .redundant {
@@ -452,6 +453,18 @@ export class UpdatesView extends LitElement {
             : nothing
         }
         ${
+          entry.selfCaused
+            ? html`<wa-badge
+                class="self-caused"
+                variant="warning"
+                appearance="outlined"
+                data-tip="Updates the component scheduled itself, rendering twice for one change; usually a property set in updated()"
+              >
+                ${entry.selfCaused} re-rendered
+              </wa-badge>`
+            : nothing
+        }
+        ${
           entry.errors > 0
             ? html`<wa-badge
                 class="errors"
@@ -580,6 +593,17 @@ export class UpdatesView extends LitElement {
                         appearance="outlined"
                         data-tip="shouldUpdate returned false, so nothing re-rendered"
                         >skipped</wa-badge
+                      >`
+                    : nothing
+                }
+                ${
+                  cycle.selfCaused
+                    ? html`<wa-badge
+                        class="self-caused"
+                        variant="warning"
+                        appearance="outlined"
+                        data-tip="Its own previous update scheduled this one, so it rendered twice; usually a property set in updated()"
+                        >re-rendered</wa-badge
                       >`
                     : nothing
                 }
