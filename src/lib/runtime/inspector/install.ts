@@ -431,10 +431,11 @@ if (typeof window !== 'undefined') {
   /**
    * Build the tree, and for each undefined tag in it wait for its definition:
    * defining one upgrades its elements without touching the DOM, so the live
-   * observer never hears of it and the row would stay flagged.
+   * observer never hears of it and the row would stay flagged. Rows still
+   * waiting to hydrate are waited on the same way ({@link awaitHydration}).
    */
-  const build = (): InspectorTreeNode[] =>
-    buildTree((tag) => {
+  const build = (): InspectorTreeNode[] => {
+    const roots = buildTree((tag) => {
       if (awaiting.has(tag)) return;
       awaiting.add(tag);
       void customElements.whenDefined(tag).then(
@@ -446,6 +447,9 @@ if (typeof window !== 'undefined') {
         () => awaiting.delete(tag)
       );
     });
+    awaitHydration(roots);
+    return roots;
+  };
 
   const pushTreeIfChanged = (): void => {
     const roots = build();
@@ -453,6 +457,37 @@ if (typeof window !== 'undefined') {
     if (json === lastTreeJson) return;
     lastTreeJson = json;
     send({type: 'tree', roots});
+  };
+
+  // Elements already awaited, so a row rebuilt many times gets one wait.
+  const hydrating = new WeakSet<Element>();
+
+  /**
+   * For each server-rendered row that has not hydrated yet, wait for its
+   * first update: hydration reuses the server's nodes, and waking a deferred
+   * element only removes an attribute, so the observer never hears of it
+   * and the row (and the details, when selected) would keep the old state.
+   */
+  const awaitHydration = (nodes: readonly InspectorTreeNode[]): void => {
+    for (const node of nodes) {
+      awaitHydration(node.children);
+      if (node.ssr !== 'deferred' && node.ssr !== 'pending') continue;
+      const el = elementById(node.id) as
+        | (Element & {updateComplete?: Promise<unknown>})
+        | undefined;
+      if (el === undefined || hydrating.has(el)) continue;
+      if (el.updateComplete === undefined) continue;
+      hydrating.add(el);
+      void Promise.resolve(el.updateComplete).then(
+        () => {
+          hydrating.delete(el);
+          if (watched?.ref.deref() === el) watched.queuePush();
+          // A paused tree (Live off) stays a snapshot until refreshed.
+          if (observer !== null) setTimeout(pushTreeIfChanged, 0);
+        },
+        () => hydrating.delete(el)
+      );
+    }
   };
 
   // A warning lands after the element rendered, with no DOM change to tell
