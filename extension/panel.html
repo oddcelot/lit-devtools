@@ -24,32 +24,14 @@
     <!-- The panel SPA mounts <lit-devtools-panel> before this bar. -->
     <footer id="bar" hidden>
       <span id="page">Waiting for the page…</span>
-      <!-- A manifest for pages that host one without linking it; see
-           src/manifest-url.ts. -->
-      <form id="manifest-form" hidden>
-        <input
-          id="manifest-url"
-          type="text"
-          spellcheck="false"
-          aria-label="Custom Elements Manifest URL"
-          placeholder="/dist/custom-elements.json"
-        />
-        <span id="manifest-error" role="alert"></span>
-        <button type="submit">Save</button>
-        <button type="button" id="manifest-cancel">Cancel</button>
-      </form>
-      <span id="manifest-offer" hidden>
-        Found a Custom Elements Manifest at
-        <code id="manifest-offer-url"></code>
-        <button type="button" id="manifest-use">Use it</button>
-        <button type="button" id="manifest-skip">Not now</button>
+      <!-- A manifest found beside the page's scripts; the Settings tab has
+           the choice (src/manifest-discovery.ts). -->
+      <span id="manifest-nudge" hidden>
+        Found a Custom Elements Manifest for this site ·
+        <button type="button" id="manifest-nudge-open">
+          Review in Settings
+        </button>
       </span>
-      <button
-        id="manifest"
-        title="Custom Elements Manifest to read component docs from, when the page links none"
-      >
-        Manifest…
-      </button>
       <button id="reload" hidden>Reload page</button>
       <button id="disable">Disable on this site</button>
     </footer>

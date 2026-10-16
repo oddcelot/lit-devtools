@@ -84,6 +84,7 @@ import {
   writeManifestUrl,
 } from './manifest-url.js';
 import {findManifest, manifestCandidates} from './manifest-discovery.js';
+import {useManifestSetting} from '../../src/panel/manifest-setting.js';
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -97,15 +98,8 @@ const barEl = $('bar');
 const pageEl = $('page');
 const reloadButton = $<HTMLButtonElement>('reload');
 const disableButton = $<HTMLButtonElement>('disable');
-const manifestButton = $<HTMLButtonElement>('manifest');
-const manifestForm = $<HTMLFormElement>('manifest-form');
-const manifestInput = $<HTMLInputElement>('manifest-url');
-const manifestError = $('manifest-error');
-const manifestCancel = $<HTMLButtonElement>('manifest-cancel');
-const manifestOffer = $('manifest-offer');
-const manifestOfferUrl = $('manifest-offer-url');
-const manifestUse = $<HTMLButtonElement>('manifest-use');
-const manifestSkip = $<HTMLButtonElement>('manifest-skip');
+const manifestNudge = $('manifest-nudge');
+const manifestNudgeOpen = $<HTMLButtonElement>('manifest-nudge-open');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -509,14 +503,21 @@ const render = (status: OriginStatus | undefined): void => {
   hintEl.hidden = !needsPopup || status === undefined;
 };
 
-/** Show what is set: the button names it, the form starts from it. */
-const showManifest = (): void => {
-  manifestButton.textContent =
-    manifestUrl === undefined ? 'Manifest…' : 'Manifest ✓';
-  manifestButton.title =
-    manifestUrl === undefined
-      ? 'Custom Elements Manifest to read component docs from, when the page links none'
-      : `Component docs from ${manifestUrl}, when the page links no manifest`;
+/** A manifest found on the site and offered to the user; see `manifest-discovery.ts`. */
+let offered: string | undefined;
+/** The manifests the page links, as last read. */
+let linked: string[] = [];
+const manifestListeners = new Set<() => void>();
+const manifestChanged = (): void => {
+  for (const listener of manifestListeners) listener();
+};
+
+/** The footer nudges toward Settings while a found manifest is on offer. */
+const offer = (url: string | undefined): void => {
+  offered = url;
+  manifestNudge.hidden = url === undefined;
+  pageEl.hidden = url !== undefined;
+  manifestChanged();
 };
 
 const loadManifestUrl = async (): Promise<void> => {
@@ -527,26 +528,9 @@ const loadManifestUrl = async (): Promise<void> => {
   if (next === manifestUrl) return;
   manifestUrl = next;
   if (next !== undefined) offer(undefined);
-  showManifest();
+  manifestChanged();
   manifestDocs.reset();
   docsChanged?.();
-};
-
-/** A manifest found on the site and offered to the user; see `manifest-discovery.ts`. */
-let offered: string | undefined;
-
-/** The footer's middle: the form, else an offer, else the page status. */
-const showFooter = (): void => {
-  const editing = !manifestForm.hidden;
-  manifestOffer.hidden = editing || offered === undefined;
-  pageEl.hidden = editing || offered !== undefined;
-  manifestButton.hidden = editing;
-};
-
-const offer = (url: string | undefined): void => {
-  offered = url;
-  if (url !== undefined) manifestOfferUrl.textContent = new URL(url).pathname;
-  showFooter();
 };
 
 /**
@@ -557,10 +541,15 @@ const worthLooking = async (at: string): Promise<boolean> =>
   manifestUrl === undefined &&
   offered === undefined &&
   (await readDismissedManifest(chrome.storage.local, at)) === undefined &&
-  (await manifestLinks()).length === 0;
+  linked.length === 0;
 
-/** Look for a manifest the site hosts without linking it; offer the first. */
+/**
+ * Read the page's links again, then look for a manifest the site hosts
+ * without linking it and offer the first found.
+ */
 const suggestManifest = async (): Promise<void> => {
+  linked = await manifestLinks();
+  manifestChanged();
   const at = origin;
   if (at === undefined || !(await worthLooking(at))) return;
   const candidates = manifestCandidates(
@@ -579,46 +568,44 @@ const suggestSoon = (): void => {
   setTimeout(() => void suggestManifest(), 1500);
 };
 
-manifestUse.addEventListener('click', async () => {
-  if (origin === undefined || offered === undefined) return;
-  // The storage listener below picks it up, here and in other windows.
-  await writeManifestUrl(chrome.storage.local, origin, offered);
-  offer(undefined);
+// The Settings tab's Component docs section; the panel renders it.
+useManifestSetting({
+  state: () =>
+    origin === undefined
+      ? undefined
+      : {
+          site: origin,
+          linked,
+          ...(manifestUrl === undefined ? {} : {url: manifestUrl}),
+          ...(offered === undefined ? {} : {found: offered}),
+        },
+  async set(input) {
+    const base = await inspectedUrl();
+    if (origin === undefined || base === undefined) return 'No page to read';
+    const parsed = parseManifestUrl(input, base, origin, site);
+    if ('error' in parsed) return parsed.error;
+    // The storage listener below picks it up, here and in other windows.
+    await writeManifestUrl(chrome.storage.local, origin, parsed.url);
+    return undefined;
+  },
+  async use() {
+    if (origin === undefined || offered === undefined) return;
+    await writeManifestUrl(chrome.storage.local, origin, offered);
+    offer(undefined);
+  },
+  async dismiss() {
+    if (origin === undefined || offered === undefined) return;
+    await dismissManifest(chrome.storage.local, origin, offered);
+    offer(undefined);
+  },
+  subscribe(listener) {
+    manifestListeners.add(listener);
+    return () => manifestListeners.delete(listener);
+  },
 });
 
-manifestSkip.addEventListener('click', async () => {
-  if (origin === undefined || offered === undefined) return;
-  await dismissManifest(chrome.storage.local, origin, offered);
-  offer(undefined);
-});
-
-const closeManifestForm = (): void => {
-  manifestForm.hidden = true;
-  showFooter();
-};
-
-manifestButton.addEventListener('click', () => {
-  manifestInput.value = manifestUrl ?? offered ?? '';
-  manifestError.textContent = '';
-  manifestForm.hidden = false;
-  showFooter();
-  manifestInput.focus();
-});
-
-manifestCancel.addEventListener('click', closeManifestForm);
-
-manifestForm.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const base = await inspectedUrl();
-  if (origin === undefined || base === undefined) return;
-  const parsed = parseManifestUrl(manifestInput.value, base, origin, site);
-  if ('error' in parsed) {
-    manifestError.textContent = parsed.error;
-    return;
-  }
-  await writeManifestUrl(chrome.storage.local, origin, parsed.url);
-  // The storage listener below picks it up, here and in other windows.
-  closeManifestForm();
+manifestNudgeOpen.addEventListener('click', () => {
+  location.replace(`#${new URLSearchParams({tab: 'settings'})}`);
 });
 
 const refresh = async (): Promise<void> => {

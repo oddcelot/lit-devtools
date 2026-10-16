@@ -671,6 +671,22 @@ test("the Lit tab finds where an element is rendered by its template's text", as
   await page.close();
 }, 60_000);
 
+/** In the Settings tab: type `value` as the manifest URL and save it. */
+const saveManifest = async (panel: Page, value: string) => {
+  await panel.evaluate(() => location.replace('#tab=settings'));
+  const section = panel
+    .locator('devtools-settings section')
+    .filter({hasText: 'Component docs'});
+  await section.locator('wa-input input').fill(value);
+  await section.getByRole('button', {name: 'Save'}).click();
+};
+
+/** Back in the Components tab, the details pane as text. */
+const detailsText = async (panel: Page) => {
+  await panel.evaluate(() => location.replace('#tab=components'));
+  return panel.locator('components-view .details').textContent();
+};
+
 test('the Lit tab reads docs from a manifest the user points it at', async () => {
   const page = await context.newPage();
   await page.goto(appOrigin);
@@ -687,27 +703,23 @@ test('the Lit tab reads docs from a manifest the user points it at', async () =>
     .filter({hasText: 'probe-hello'})
     .first()
     .click({timeout: 15_000});
-  const view = panel.locator('components-view .details');
-  await expect.poll(() => view.textContent()).toContain('greeting');
-  expect(await view.textContent()).not.toContain('unlinked manifest');
+  await expect.poll(() => detailsText(panel)).toContain('greeting');
+  expect(await detailsText(panel)).not.toContain('unlinked manifest');
 
-  await panel.getByRole('button', {name: 'Manifest…'}).click();
-  await panel
-    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
-    .fill('/assets/cem.json');
-  await panel.getByRole('button', {name: 'Save'}).click();
+  await saveManifest(panel, 'https://elsewhere.test/cem.json');
   await expect
-    .poll(() => view.textContent(), {timeout: 15_000})
+    .poll(() => panel.locator('devtools-settings [role=alert]').textContent())
+    .toContain(`Must be on ${appOrigin}`);
+
+  await saveManifest(panel, '/assets/cem.json');
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain('Says hello from an unlinked manifest.');
 
   // Cleared, so later tests see the page as it is.
-  await panel.getByRole('button', {name: 'Manifest ✓'}).click();
-  await panel
-    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
-    .fill('');
-  await panel.getByRole('button', {name: 'Save'}).click();
+  await saveManifest(panel, '');
   await expect
-    .poll(() => view.textContent(), {timeout: 15_000})
+    .poll(() => detailsText(panel), {timeout: 15_000})
     .not.toContain('Says hello from an unlinked manifest.');
   await panel.close();
   await page.close();
@@ -722,41 +734,43 @@ test('the Lit tab offers a manifest it finds beside the scripts, and remembers a
     appOrigin
   );
   const panel = await context.newPage();
-  const openPanel = () =>
-    panel.goto(
+  const openPanel = async () => {
+    await panel.goto(
       `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
     );
+    await panel.reload();
+  };
   await openPanel();
-  const offer = panel.locator('#manifest-offer');
-  await expect.poll(() => offer.isVisible(), {timeout: 15_000}).toBe(true);
-  expect(await offer.textContent()).toContain('/assets/custom-elements.json');
-
+  // The footer nudges; the choice is in Settings.
+  const nudge = panel.locator('#manifest-nudge');
+  await expect.poll(() => nudge.isVisible(), {timeout: 15_000}).toBe(true);
   await panel
     .locator('components-view .row')
     .filter({hasText: 'mapped-hello'})
     .first()
     .click({timeout: 15_000});
-  await panel.getByRole('button', {name: 'Use it'}).click();
-  const details = panel.locator('components-view .details');
+  await panel.getByRole('button', {name: 'Review in Settings'}).click();
+  const found = panel.locator('devtools-settings .manifest-found');
   await expect
-    .poll(() => details.textContent(), {timeout: 15_000})
+    .poll(() => found.textContent())
+    .toContain('/assets/custom-elements.json');
+  await found.getByRole('button', {name: 'Use it'}).click();
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain('Found next to the bundle.');
-  expect(await offer.isVisible()).toBe(false);
+  expect(await nudge.isVisible()).toBe(false);
 
   // Forget it again: the next panel offers it anew, and a no sticks.
-  await panel.getByRole('button', {name: 'Manifest ✓'}).click();
-  await panel
-    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
-    .fill('');
-  await panel.getByRole('button', {name: 'Save'}).click();
+  await saveManifest(panel, '');
   await openPanel();
-  await panel.reload();
-  await expect.poll(() => offer.isVisible(), {timeout: 15_000}).toBe(true);
-  await panel.getByRole('button', {name: 'Not now'}).click();
-  await panel.reload();
+  await expect.poll(() => nudge.isVisible(), {timeout: 15_000}).toBe(true);
+  await panel.getByRole('button', {name: 'Review in Settings'}).click();
+  await found.getByRole('button', {name: 'Not now'}).click();
+  expect(await nudge.isVisible()).toBe(false);
+  await openPanel();
   await panel.locator('components-view .row').first().waitFor();
   await panel.waitForTimeout(3000);
-  expect(await offer.isVisible()).toBe(false);
+  expect(await nudge.isVisible()).toBe(false);
 
   await extensionPage.evaluate(() =>
     chrome.storage.local.remove('lit:manifest-dismissed')

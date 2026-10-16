@@ -4,10 +4,12 @@ import '@awesome.me/webawesome/dist/components/badge/badge.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 import '@awesome.me/webawesome/dist/components/card/card.js';
+import '@awesome.me/webawesome/dist/components/input/input.js';
 import './wa-icons.js';
 import '@awesome.me/webawesome/dist/components/option/option.js';
 import '@awesome.me/webawesome/dist/components/select/select.js';
 import '@awesome.me/webawesome/dist/components/switch/switch.js';
+import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
 import type WaSelect from '@awesome.me/webawesome/dist/components/select/select.js';
 import type WaSwitch from '@awesome.me/webawesome/dist/components/switch/switch.js';
 import {tokens} from '../lib/tokens.js';
@@ -29,6 +31,7 @@ import {getMeta, litSettingsRpc, type LitClient} from './client.js';
 import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
 import type {OverridableKey} from '../lib/settings-override.js';
 import {overrides} from './settings-override.js';
+import {manifestSetting} from './manifest-setting.js';
 
 /** The guide sections on where the Lit tracks appear: Chrome's, then the rest. */
 const CHROME_TRACKS_DOCS =
@@ -211,6 +214,50 @@ export class DevtoolsSettings extends LitElement {
       .loading {
         color: var(--lit-devtools-text-muted);
       }
+      .manifest {
+        display: flex;
+        gap: var(--lit-devtools-space-2);
+        align-items: center;
+      }
+      .manifest wa-input {
+        flex: 1;
+        min-width: 0;
+      }
+      /* The label names the input for assistive tech; the key cell beside it
+         already says it on screen. */
+      .manifest wa-input::part(form-control-label) {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      .manifest-error {
+        color: var(--lit-devtools-error);
+        margin: var(--lit-devtools-space-1) 0 0;
+      }
+      .manifest-note {
+        color: var(--lit-devtools-text-muted);
+        padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
+        margin: 0;
+      }
+      .manifest-note code {
+        color: var(--lit-devtools-accent);
+        font-family: var(--lit-devtools-font-mono);
+      }
+      .manifest-found {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--lit-devtools-space-2);
+        align-items: center;
+        padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
+        border-top: 1px solid var(--lit-devtools-border);
+      }
+      .manifest-found code {
+        color: var(--lit-devtools-accent);
+        font-family: var(--lit-devtools-font-mono);
+      }
     `,
   ];
 
@@ -222,6 +269,9 @@ export class DevtoolsSettings extends LitElement {
   @state() private _colorScheme: ColorSchemePreference = 'auto';
 
   private _unsubscribeOverride: (() => void) | null = null;
+  private _unsubscribeManifest: (() => void) | null = null;
+  /** Why the manifest URL typed last was refused, until the next try. */
+  @state() private _manifestError = '';
 
   override connectedCallback() {
     super.connectedCallback();
@@ -237,6 +287,8 @@ export class DevtoolsSettings extends LitElement {
       this._recorded = overrides.baselines();
     });
     this._colorScheme = overrides.appearance();
+    this._unsubscribeManifest =
+      manifestSetting()?.subscribe(() => this.requestUpdate()) ?? null;
     void this._fetch();
     void this._hydrate();
   }
@@ -245,6 +297,8 @@ export class DevtoolsSettings extends LitElement {
     super.disconnectedCallback();
     this._unsubscribeOverride?.();
     this._unsubscribeOverride = null;
+    this._unsubscribeManifest?.();
+    this._unsubscribeManifest = null;
   }
 
   /**
@@ -637,6 +691,88 @@ export class DevtoolsSettings extends LitElement {
    * Versions, layers and picker as `get-meta` reports them: the first thing
    * to check when the panel or the Components tab looks wrong.
    */
+  private async _saveManifest(e: Event): Promise<void> {
+    e.preventDefault();
+    const input = this.renderRoot.querySelector<WaInput>('.manifest wa-input');
+    const error = await manifestSetting()?.set(String(input?.value ?? ''));
+    this._manifestError = error ?? '';
+  }
+
+  /**
+   * Which Custom Elements Manifest the panel reads docs from, where the
+   * host lets the user choose (`manifest-setting.ts`): the URL they set,
+   * the page's own links that take precedence, and one found on offer.
+   */
+  private _renderManifest() {
+    const setting = manifestSetting();
+    const m = setting?.state();
+    if (setting === undefined || m === undefined) return nothing;
+    const path = (url: string) =>
+      url.startsWith(`${m.site}/`) ? url.slice(m.site.length) : url;
+    return html`<section>
+      <wa-card>
+        <h3 slot="header">Component docs</h3>
+        <table>
+          <tr>
+            <td
+              class="key"
+              data-tip="A Custom Elements Manifest on ${m.site} to read component docs from, for pages that link none. A path or a URL on the site; leave empty to read none."
+            >
+              manifest
+            </td>
+            <td class="val">
+              <form class="manifest" @submit=${this._saveManifest}>
+                <wa-input
+                  size="small"
+                  label="Custom Elements Manifest URL"
+                  placeholder="Path or URL on this site"
+                  spellcheck="false"
+                  .value=${m.url === undefined ? '' : path(m.url)}
+                ></wa-input>
+                <wa-button size="small" type="submit">Save</wa-button>
+              </form>
+              ${
+                this._manifestError === ''
+                  ? nothing
+                  : html`<p class="manifest-error" role="alert">
+                      ${this._manifestError}
+                    </p>`
+              }
+            </td>
+          </tr>
+        </table>
+        ${
+          m.linked.length > 0
+            ? html`<p class="manifest-note">
+                This page links its own:
+                ${m.linked.map((url) => html`<code>${path(url)}</code> `)}. It
+                is read instead.
+              </p>`
+            : nothing
+        }
+        ${
+          m.found === undefined
+            ? nothing
+            : html`<div class="manifest-found">
+                <span
+                  >Found <code>${path(m.found)}</code> beside the page's
+                  scripts.</span
+                >
+                <wa-button size="small" @click=${() => void setting.use()}
+                  >Use it</wa-button
+                >
+                <wa-button
+                  size="small"
+                  appearance="plain"
+                  @click=${() => void setting.dismiss()}
+                  >Not now</wa-button
+                >
+              </div>`
+        }
+      </wa-card>
+    </section>`;
+  }
+
   private _renderAbout() {
     const meta = this._meta;
     if (meta === null) return nothing;
@@ -728,7 +864,7 @@ export class DevtoolsSettings extends LitElement {
                 </section>`
             : nothing
         }
-        ${this._renderAbout()}`;
+        ${this._renderManifest()} ${this._renderAbout()}`;
     }
     const hasOverride = Object.keys(this._override).length > 0;
     return html`
@@ -802,7 +938,7 @@ export class DevtoolsSettings extends LitElement {
         </wa-card>
       </section>
 
-      ${this._renderAbout()}
+      ${this._renderManifest()} ${this._renderAbout()}
     `;
   }
 }

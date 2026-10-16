@@ -147,16 +147,16 @@ Some sites host a manifest without linking it. Web Awesome's docs, for one,
 serve theirs at `/dist/custom-elements.json`. When a page links none, the
 extension looks for a `custom-elements.json` beside the page's scripts and in
 the folders above them, a few requests to the site itself. If it finds one,
-the bottom of the **Lit** tab offers it: **Use it** turns it on, and **Not
-now** stops the offer, and the search, for that site.
+the bottom of the **Lit** tab says so; **Review in Settings** opens the
+**Component docs** section of the **Settings** tab, where **Use it** turns it
+on and **Not now** stops the offer, and the search, for that site.
 
-To set one yourself, click **Manifest…** at the bottom of the **Lit** tab and
-enter its URL, either a path such as `/dist/custom-elements.json` or a full
-URL on the same site, then **Save**.
-The details pane picks the docs up straight away. The extension remembers
-the URL for that site and reads it only while the page links no manifest of
-its own. The button then reads **Manifest ✓**; save an empty field to forget
-it.
+The same section takes a manifest of your choosing: enter a path such as
+`/dist/custom-elements.json` or a full URL on the same site in **manifest**
+and **Save**. The details pane picks the docs up straight away. The
+extension remembers the URL for that site and reads it only while the page
+links no manifest of its own; the section says when the page links one.
+Save an empty field to forget it.
 
 ## Open in the browser's own panels
 
