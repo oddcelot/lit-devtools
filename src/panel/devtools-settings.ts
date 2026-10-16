@@ -766,7 +766,7 @@ export class DevtoolsSettings extends LitElement {
                   ?disabled=${i === 0}
                   @click=${() => void setting.move(entry.url, -1)}
                   ><wa-icon
-                    name="chevron-up"
+                    name="caret-up"
                     label="Move ${path(entry.url)} up"
                   ></wa-icon
                 ></wa-button>
@@ -776,7 +776,7 @@ export class DevtoolsSettings extends LitElement {
                   ?disabled=${i === last}
                   @click=${() => void setting.move(entry.url, 1)}
                   ><wa-icon
-                    name="chevron-down"
+                    name="caret-down"
                     label="Move ${path(entry.url)} down"
                   ></wa-icon
                 ></wa-button>

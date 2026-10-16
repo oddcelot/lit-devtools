@@ -65,6 +65,7 @@ const ICONS = {
   'bounding-box': boundingBox,
   'caret-down': caretDown,
   'caret-right': caretRight,
+  'caret-up': caretUp,
   check,
   clock,
   copy,
