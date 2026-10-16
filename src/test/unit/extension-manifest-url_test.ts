@@ -2,12 +2,11 @@ import {describe, expect, test} from 'vite-plus/test';
 import {
   MANIFEST_IGNORED_KEY,
   MANIFEST_URLS_KEY,
-  addManifestUrl,
   parseManifestUrl,
   readIgnoredManifests,
-  readManifestUrls,
-  removeManifestUrl,
+  readManifests,
   setManifestIgnored,
+  writeManifests,
 } from '../../../extension/src/manifest-url.js';
 
 // `chrome.storage.local` as far as the setting uses it.
@@ -73,28 +72,30 @@ describe('parseManifestUrl', () => {
   });
 });
 
-test('keeps a list per origin: added once each, in order, dropped when empty', async () => {
+test('stores a list per origin, and drops an empty one', async () => {
   const area = fakeArea();
-  await addManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
-  await addManifestUrl(area, ORIGIN, `${ORIGIN}/b.json`);
-  await addManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
-  await addManifestUrl(area, 'https://other.test', 'https://other.test/c.json');
-  expect(await readManifestUrls(area, ORIGIN)).toEqual([
-    `${ORIGIN}/a.json`,
-    `${ORIGIN}/b.json`,
+  const list = [
+    {url: `${ORIGIN}/a.json`, enabled: true},
+    {url: `${ORIGIN}/l.json`, enabled: false, linked: true as const},
+  ];
+  await writeManifests(area, ORIGIN, list);
+  await writeManifests(area, 'https://other.test', [
+    {url: 'https://other.test/c.json', enabled: true},
   ]);
-  await removeManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
-  await removeManifestUrl(area, ORIGIN, `${ORIGIN}/b.json`);
-  expect(await readManifestUrls(area, ORIGIN)).toEqual([]);
-  expect(area.store[MANIFEST_URLS_KEY]).toEqual({
-    'https://other.test': ['https://other.test/c.json'],
-  });
+  expect(await readManifests(area, ORIGIN)).toEqual(list);
+  await writeManifests(area, ORIGIN, []);
+  expect(await readManifests(area, ORIGIN)).toEqual([]);
+  expect(Object.keys(area.store[MANIFEST_URLS_KEY] as object)).toEqual([
+    'https://other.test',
+  ]);
 });
 
-test('reads a single URL an earlier build stored as a list of it', async () => {
+test('reads URLs an earlier build stored as switched-on entries', async () => {
   const area = fakeArea();
   area.store[MANIFEST_URLS_KEY] = {[ORIGIN]: `${ORIGIN}/old.json`};
-  expect(await readManifestUrls(area, ORIGIN)).toEqual([`${ORIGIN}/old.json`]);
+  expect(await readManifests(area, ORIGIN)).toEqual([
+    {url: `${ORIGIN}/old.json`, enabled: true},
+  ]);
 });
 
 test('ignores and resets found manifests one by one', async () => {

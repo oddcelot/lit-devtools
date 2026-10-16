@@ -1,8 +1,7 @@
 /**
- * The Custom Elements Manifests the user pointed the panel at, per site, for
- * pages that host them but don't link them with
- * `<link rel="custom-elements-manifest">` (`component-docs/linked.ts`), and
- * the found ones they ignore. Read only when the page links none.
+ * Per site, the user's arrangement of Custom Elements Manifests (which to
+ * read, in what order; see `manifest-list.ts`) and the found ones they
+ * ignore.
  *
  * Kept in `storage.local` next to the enabled origins, a list per origin,
  * and held to the same rule as every other fetch the panel makes: on the
@@ -13,8 +12,9 @@
  */
 
 import type {StorageAreaLike} from './registry.js';
+import {asStored, type StoredManifest} from './manifest-list.js';
 
-/** The `storage.local` key holding the manifest URLs of each origin. */
+/** The `storage.local` key holding each origin's manifests. */
 export const MANIFEST_URLS_KEY = 'lit:manifest-urls';
 
 /**
@@ -23,10 +23,7 @@ export const MANIFEST_URLS_KEY = 'lit:manifest-urls';
  */
 export const MANIFEST_IGNORED_KEY = 'lit:manifest-ignored';
 
-/**
- * A stored list. A single string, as an earlier build saved a site's one
- * manifest, reads as a list of it.
- */
+/** A stored list of URLs; a single string reads as a list of it. */
 const asList = (value: unknown): string[] => {
   if (typeof value === 'string') return [value];
   return Array.isArray(value)
@@ -34,23 +31,24 @@ const asList = (value: unknown): string[] => {
     : [];
 };
 
-const readList = async (
+/** The value stored under `key` for `origin`. */
+const readStored = async (
   storage: StorageAreaLike,
   key: string,
   origin: string
-): Promise<string[]> => {
+): Promise<unknown> => {
   const all = (await storage.get(key))[key];
   return all !== null && typeof all === 'object'
-    ? asList((all as Record<string, unknown>)[origin])
-    : [];
+    ? (all as Record<string, unknown>)[origin]
+    : undefined;
 };
 
-/** Change `origin`'s list under `key`; an emptied list is dropped. */
-const updateList = async (
+/** Store `value` for `origin` under `key`; an empty list is dropped. */
+const writeStored = async (
   storage: StorageAreaLike,
   key: string,
   origin: string,
-  change: (list: string[]) => string[]
+  value: unknown[]
 ): Promise<void> => {
   const stored = (await storage.get(key))[key];
   const all = {
@@ -58,56 +56,49 @@ const updateList = async (
       ? (stored as Record<string, unknown>)
       : {}),
   };
-  const next = [...new Set(change(asList(all[origin])))];
-  if (next.length === 0) delete all[origin];
-  else all[origin] = next;
+  if (value.length === 0) delete all[origin];
+  else all[origin] = value;
   await storage.set({[key]: all});
 };
 
-const adding = (url: string) => (list: string[]) => [...list, url];
-const removing = (url: string) => (list: string[]) =>
-  list.filter((u) => u !== url);
-
-/** The manifest URLs set for `origin`, in the order they were added. */
-export const readManifestUrls = (
+/** `origin`'s manifests as the user arranged them. */
+export const readManifests = async (
   storage: StorageAreaLike,
   origin: string
-): Promise<string[]> => readList(storage, MANIFEST_URLS_KEY, origin);
+): Promise<StoredManifest[]> =>
+  asStored(await readStored(storage, MANIFEST_URLS_KEY, origin));
 
-/** Read `url` on `origin` too. */
-export const addManifestUrl = (
+/** Store `origin`'s arrangement of manifests. */
+export const writeManifests = (
   storage: StorageAreaLike,
   origin: string,
-  url: string
-): Promise<void> => updateList(storage, MANIFEST_URLS_KEY, origin, adding(url));
-
-/** Stop reading `url` on `origin`. */
-export const removeManifestUrl = (
-  storage: StorageAreaLike,
-  origin: string,
-  url: string
-): Promise<void> =>
-  updateList(storage, MANIFEST_URLS_KEY, origin, removing(url));
+  manifests: StoredManifest[]
+): Promise<void> => writeStored(storage, MANIFEST_URLS_KEY, origin, manifests);
 
 /** The found manifests the user ignores on `origin`. */
-export const readIgnoredManifests = (
+export const readIgnoredManifests = async (
   storage: StorageAreaLike,
   origin: string
-): Promise<string[]> => readList(storage, MANIFEST_IGNORED_KEY, origin);
+): Promise<string[]> =>
+  asList(await readStored(storage, MANIFEST_IGNORED_KEY, origin));
 
 /** Ignore the found `url` on `origin`, or stop ignoring it with `false`. */
-export const setManifestIgnored = (
+export const setManifestIgnored = async (
   storage: StorageAreaLike,
   origin: string,
   url: string,
   ignore: boolean
-): Promise<void> =>
-  updateList(
+): Promise<void> => {
+  const list = (await readIgnoredManifests(storage, origin)).filter(
+    (u) => u !== url
+  );
+  await writeStored(
     storage,
     MANIFEST_IGNORED_KEY,
     origin,
-    ignore ? adding(url) : removing(url)
+    ignore ? [...list, url] : list
   );
+};
 
 /**
  * What the user typed, as an absolute URL on the inspected site: a path such

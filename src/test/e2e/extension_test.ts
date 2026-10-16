@@ -248,6 +248,14 @@ beforeAll(async () => {
       return;
     }
     res.setHeader('content-type', 'text/html');
+    if (req.url === '/linked') {
+      res.end(`<!doctype html><html><head>
+<link rel="custom-elements-manifest" href="/custom-elements.json">
+<script src="/probe.js"></script>
+<script src="/app.js"></script>
+</head><body><probe-hello></probe-hello></body></html>`);
+      return;
+    }
     if (req.url === '/mapped') {
       res.end(`<!doctype html><html><head>
 <script src="/assets/mapped.js"></script>
@@ -841,6 +849,77 @@ test('the Lit tab offers every manifest it finds: ignore, reset and use each', a
   await panel.close();
   await page.close();
 }, 120_000);
+
+test('the Lit tab lists a linked manifest with the added ones, in an order the user sets', async () => {
+  const page = await context.newPage();
+  await page.goto(`${appOrigin}/linked`);
+  const tabId = await extensionPage.evaluate(
+    async (origin) =>
+      (await chrome.tabs.query({url: `${origin}/linked`}))[0]?.id,
+    appOrigin
+  );
+  const panel = await context.newPage();
+  await panel.goto(
+    `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+  );
+  await panel
+    .locator('components-view .row')
+    .filter({hasText: 'probe-hello'})
+    .first()
+    .click({timeout: 15_000});
+  const ROOT = 'Found at the site root.';
+  const ADDED = 'Says hello from an unlinked manifest.';
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
+    .toContain(ROOT);
+
+  // The link is listed and marked; it has no Remove.
+  const section = await docsSettings(panel);
+  const entry = (path: string) =>
+    section.locator('.manifest-row').filter({hasText: path});
+  await expect
+    .poll(() => entry('/custom-elements.json').textContent(), {
+      timeout: 15_000,
+    })
+    .toContain('linked by page');
+  expect(
+    await entry('/custom-elements.json')
+      .getByRole('button', {name: 'Remove'})
+      .count()
+  ).toBe(0);
+
+  // Added after the link, it loses to it for the same tag...
+  await addManifest(panel, '/assets/cem.json');
+  await expect.poll(() => entry('/assets/cem.json').count()).toBe(1);
+  await expect.poll(() => detailsText(panel)).toContain(ROOT);
+  // ...until it moves up.
+  await docsSettings(panel);
+  await entry('/assets/cem.json')
+    .getByRole('button', {name: 'Move /assets/cem.json up'})
+    .click();
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
+    .toContain(ADDED);
+
+  // Switched off, it is skipped; with both off, there are no docs.
+  await docsSettings(panel);
+  await entry('/assets/cem.json').locator('wa-switch').click();
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
+    .toContain(ROOT);
+  await docsSettings(panel);
+  await entry('/custom-elements.json').locator('wa-switch').click();
+  await expect
+    .poll(() => detailsText(panel), {timeout: 15_000})
+    .not.toContain(ROOT);
+  expect(await detailsText(panel)).not.toContain(ADDED);
+
+  await extensionPage.evaluate(() =>
+    chrome.storage.local.remove('lit:manifest-urls')
+  );
+  await panel.close();
+  await page.close();
+}, 90_000);
 
 test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async () => {
   const page = await context.newPage();

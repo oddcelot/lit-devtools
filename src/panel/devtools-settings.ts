@@ -254,10 +254,17 @@ export class DevtoolsSettings extends LitElement {
         padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
         border-top: 1px solid var(--lit-devtools-border);
       }
-      .manifest-row code {
+      .manifest-entry {
+        display: flex;
+        align-items: center;
+        gap: var(--lit-devtools-space-2);
+      }
+      .manifest-entry code {
         color: var(--lit-devtools-accent);
         font-family: var(--lit-devtools-font-mono);
-        margin-right: var(--lit-devtools-space-2);
+      }
+      .manifest-entry .spacer {
+        flex: 1;
       }
       .manifest-found code {
         color: var(--lit-devtools-accent);
@@ -706,9 +713,9 @@ export class DevtoolsSettings extends LitElement {
 
   /**
    * Which Custom Elements Manifests the panel reads docs from, where the
-   * host lets the user choose (`manifest-setting.ts`): the ones they added,
-   * the page's own links that take precedence, and found ones on offer or
-   * ignored.
+   * host lets the user choose (`manifest-setting.ts`): one ordered list of
+   * the page's own links and the ones the user added, each switchable, then
+   * found ones on offer or ignored.
    */
   private _renderManifest() {
     const setting = manifestSetting();
@@ -716,30 +723,84 @@ export class DevtoolsSettings extends LitElement {
     if (setting === undefined || m === undefined) return nothing;
     const path = (url: string) =>
       url.startsWith(`${m.site}/`) ? url.slice(m.site.length) : url;
+    const last = m.entries.length - 1;
     return html`<section>
       <wa-card>
         <h3 slot="header">Component docs</h3>
+        ${
+          m.entries.length > 1
+            ? html`<p class="manifest-note">
+                Read in this order: a component's docs come from the first
+                switched-on manifest that describes it.
+              </p>`
+            : nothing
+        }
         <table>
-          ${m.urls.map(
-            (url) => html`<tr class="manifest-row">
-              <td class="key">manifest</td>
-              <td class="val">
-                <code>${path(url)}</code>
+          ${m.entries.map(
+            (entry, i) => html`<tr class="manifest-row">
+              <td class="val manifest-entry">
+                <wa-switch
+                  size="small"
+                  .checked=${entry.enabled}
+                  @change=${(e: Event) =>
+                    void setting.toggle(
+                      entry.url,
+                      (e.target as WaSwitch).checked
+                    )}
+                  ><code>${path(entry.url)}</code></wa-switch
+                >
+                ${
+                  entry.linked
+                    ? html`<wa-badge
+                        variant="neutral"
+                        appearance="outlined"
+                        title="The page links it with rel=custom-elements-manifest"
+                        >linked by page</wa-badge
+                      >`
+                    : nothing
+                }
+                <span class="spacer"></span>
                 <wa-button
                   size="small"
                   appearance="plain"
-                  @click=${() => void setting.remove(url)}
-                  >Remove</wa-button
-                >
+                  ?disabled=${i === 0}
+                  @click=${() => void setting.move(entry.url, -1)}
+                  ><wa-icon
+                    name="chevron-up"
+                    label="Move ${path(entry.url)} up"
+                  ></wa-icon
+                ></wa-button>
+                <wa-button
+                  size="small"
+                  appearance="plain"
+                  ?disabled=${i === last}
+                  @click=${() => void setting.move(entry.url, 1)}
+                  ><wa-icon
+                    name="chevron-down"
+                    label="Move ${path(entry.url)} down"
+                  ></wa-icon
+                ></wa-button>
+                ${
+                  entry.linked
+                    ? nothing
+                    : html`<wa-button
+                        size="small"
+                        appearance="plain"
+                        @click=${() => void setting.remove(entry.url)}
+                        >Remove</wa-button
+                      >`
+                }
               </td>
             </tr>`
           )}
+        </table>
+        <table>
           <tr>
             <td
               class="key"
-              data-tip="A Custom Elements Manifest on ${m.site} to read component docs from, for pages that link none. A path or a URL on the site."
+              data-tip="A Custom Elements Manifest on ${m.site} to read component docs from. A path or a URL on the site."
             >
-              ${m.urls.length === 0 ? 'manifest' : 'add another'}
+              add manifest
             </td>
             <td class="val">
               <form class="manifest" @submit=${this._addManifest}>
@@ -761,15 +822,6 @@ export class DevtoolsSettings extends LitElement {
             </td>
           </tr>
         </table>
-        ${
-          m.linked.length > 0
-            ? html`<p class="manifest-note">
-                This page links its own:
-                ${m.linked.map((url) => html`<code>${path(url)}</code> `)}. They
-                are read instead.
-              </p>`
-            : nothing
-        }
         ${m.found.map((url) =>
           this._renderFoundManifest(setting, path(url), url, false)
         )}
