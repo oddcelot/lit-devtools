@@ -152,3 +152,12 @@ test('a shared sheet renders on the server and applies after hydration', async (
   await fixture.page.goto(`${fixture.origin}/`);
   await expect.poll(noteColor).toBe('rgb(0, 128, 0)');
 });
+
+test('an edit to the shared sheet restyles a hydrated component', async () => {
+  await fixture.page.goto(`${fixture.origin}/`);
+  await expect.poll(noteColor).toBe('rgb(0, 128, 0)');
+  await fixture.edit('src/theme.css', (css) =>
+    css.replace('rgb(0, 128, 0)', 'rgb(0, 0, 255)')
+  );
+  await expect.poll(noteColor, {timeout: 10_000}).toBe('rgb(0, 0, 255)');
+});
