@@ -31,7 +31,11 @@ import {getMeta, litSettingsRpc, type LitClient} from './client.js';
 import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
 import type {OverridableKey} from '../lib/settings-override.js';
 import {overrides} from './settings-override.js';
-import {manifestSetting, type ManifestSetting} from './manifest-setting.js';
+import {
+  manifestSetting,
+  type ManifestEntryState,
+  type ManifestSetting,
+} from './manifest-setting.js';
 
 /** The guide sections on where the Lit tracks appear: Chrome's, then the rest. */
 const CHROME_TRACKS_DOCS =
@@ -265,6 +269,9 @@ export class DevtoolsSettings extends LitElement {
       }
       .manifest-entry .spacer {
         flex: 1;
+      }
+      .manifest-access {
+        color: var(--lit-devtools-text-muted);
       }
       .manifest-found code {
         color: var(--lit-devtools-accent);
@@ -759,6 +766,7 @@ export class DevtoolsSettings extends LitElement {
                       >`
                     : nothing
                 }
+                ${this._renderAccess(setting, entry)}
                 <span class="spacer"></span>
                 <wa-button
                   size="small"
@@ -830,6 +838,29 @@ export class DevtoolsSettings extends LitElement {
         )}
       </wa-card>
     </section>`;
+  }
+
+  /**
+   * For a manifest on another site the extension may not read yet: a button
+   * that asks the browser for access, or why it can't. The click handler
+   * calls `allow` synchronously, as the browser asks only during a gesture.
+   */
+  private _renderAccess(setting: ManifestSetting, entry: ManifestEntryState) {
+    if (entry.access === undefined) return nothing;
+    const host = new URL(entry.url).host;
+    if (entry.access === 'unavailable') {
+      return html`<span class="manifest-access"
+        >Not read: this browser can't grant access to ${host} from
+        DevTools</span
+      >`;
+    }
+    return html`<wa-button
+      size="small"
+      @click=${async () => {
+        this._manifestError = (await setting.allow(entry.url)) ?? '';
+      }}
+      >Allow access to ${host}</wa-button
+    >`;
   }
 
   /**

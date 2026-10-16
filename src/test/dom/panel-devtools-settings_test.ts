@@ -253,6 +253,10 @@ describe('Component docs', () => {
           : undefined;
       },
       remove: async (url) => void asked.push(`remove:${url}`),
+      allow: async (url) => {
+        asked.push(`allow:${url}`);
+        return 'Access to cdn.example was not granted';
+      },
       toggle: async (url, on) => void asked.push(`toggle:${url}:${on}`),
       move: async (url, by) => void asked.push(`move:${url}:${by}`),
       use: async (url) => void asked.push(`use:${url}`),
@@ -336,6 +340,47 @@ describe('Component docs', () => {
       `move:${site}/a.json:-1`,
       `remove:${site}/a.json`,
     ]);
+  });
+
+  test('a manifest on another site asks for access, or says it cannot', async () => {
+    const {setting, asked} = fakeSetting({
+      ...empty,
+      entries: [
+        {
+          url: 'https://cdn.example/a.json',
+          enabled: true,
+          linked: true,
+          access: 'grant',
+        },
+        {
+          url: 'https://other.example/b.json',
+          enabled: true,
+          linked: false,
+          access: 'unavailable',
+        },
+      ],
+    });
+    useManifestSetting(setting);
+    const section = docsSection(await mount())!;
+    const [grant, unavailable] = section.querySelectorAll('.manifest-row');
+    // Another site's URL is shown whole.
+    expect(grant!.querySelector('code')!.textContent).toBe(
+      'https://cdn.example/a.json'
+    );
+    const allow = buttons(grant!).find(([text]) =>
+      text.startsWith('Allow access')
+    )!;
+    expect(allow[0]).toBe('Allow access to cdn.example');
+    allow[1].click();
+    await vi.waitFor(() =>
+      expect(section.querySelector('[role=alert]')?.textContent).toContain(
+        'was not granted'
+      )
+    );
+    expect(asked).toEqual(['allow:https://cdn.example/a.json']);
+    expect(unavailable!.textContent).toContain(
+      "can't grant access to other.example"
+    );
   });
 
   test('adds what the user typed and shows a refusal', async () => {

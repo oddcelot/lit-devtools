@@ -296,7 +296,7 @@ const manifestDocs = createLinkedDocsSource({
     const response = await fetch(url);
     return response.ok ? response.text() : undefined;
   },
-  allows: (url) => origin !== undefined && site(url) === origin,
+  allows: (url) => readable(url),
 });
 
 /**
@@ -529,6 +529,86 @@ const manifestListeners = new Set<() => void>();
 /** The site's list as it stands for the page. */
 const entries = (): ManifestEntry[] => entriesFor(stored, linked);
 
+/** Other sites' origins the browser lets the panel fetch manifests from. */
+let granted = new Set<string>();
+
+/** The origin of `url` when it is on another site than the inspected one. */
+const otherSiteOf = (url: string): string | undefined => {
+  try {
+    const at = new URL(url);
+    return site(at.href) === origin ? undefined : at.origin;
+  } catch {
+    return undefined;
+  }
+};
+
+const accessPattern = (other: string) => `${other}/*`;
+
+/** Whether the panel may fetch `url`: on the site, or on a granted one. */
+function readable(url: string): boolean {
+  if (origin === undefined) return false;
+  const other = otherSiteOf(url);
+  return other === undefined || granted.has(other);
+}
+
+/** Check which other sites in the list the browser grants access to. */
+const refreshAccess = async (): Promise<void> => {
+  const others = new Set(
+    entries()
+      .map((e) => otherSiteOf(e.url))
+      .filter((o): o is string => o !== undefined)
+  );
+  const next = new Set<string>();
+  for (const other of others) {
+    if (await chrome.permissions.contains({origins: [accessPattern(other)]})) {
+      next.add(other);
+    }
+  }
+  const changed = [...next].join(' ') !== [...granted].join(' ');
+  granted = next;
+  if (changed) docsMayDiffer();
+  manifestChanged();
+};
+
+/**
+ * Ask for access to the other site `input` names, when it is an absolute
+ * URL there. Must run before anything awaits: the browser asks only during
+ * the user's click. `undefined` when there is nothing to ask.
+ */
+const askAccessFor = (input: string): Promise<boolean> | undefined => {
+  if (!canRequest) return undefined;
+  let at: URL;
+  try {
+    at = new URL(input.trim());
+  } catch {
+    return undefined;
+  }
+  const other = otherSiteOf(at.href);
+  if (other === undefined || granted.has(other)) return undefined;
+  return chrome.permissions.request({origins: [accessPattern(other)]});
+};
+
+/**
+ * Give back access to the other site `url` was on, once no entry of the
+ * list needs it and the user has not enabled that site itself.
+ */
+const releaseAccess = async (
+  url: string,
+  rest: ManifestEntry[]
+): Promise<void> => {
+  const other = otherSiteOf(url);
+  if (other === undefined) return;
+  if (rest.some((e) => otherSiteOf(e.url) === other)) return;
+  const enabled = (await chrome.storage.local.get(ENABLED_ORIGINS_KEY))[
+    ENABLED_ORIGINS_KEY
+  ];
+  if (Array.isArray(enabled) && enabled.includes(site(`${other}/`))) return;
+  // A host granted at install rather than on request can't be given back.
+  await chrome.permissions
+    .remove({origins: [accessPattern(other)]})
+    .catch(() => false);
+};
+
 /** Found manifests neither listed nor ignored: on offer. */
 const offered = (): string[] => {
   const listed = new Set(entries().map((e) => e.url));
@@ -569,6 +649,7 @@ const loadManifestUrl = async (): Promise<void> => {
   stored = nextStored;
   manifestChanged();
   if (changed) docsMayDiffer();
+  await refreshAccess();
 };
 
 /** Read the page's manifest links again, for the list Settings shows. */
@@ -578,7 +659,7 @@ const readLinks = async (): Promise<void> => {
     linked = links;
     docsMayDiffer();
   }
-  manifestChanged();
+  await refreshAccess();
 };
 
 /**
@@ -630,17 +711,44 @@ useManifestSetting({
   state: () =>
     origin === undefined
       ? undefined
-      : {site: origin, entries: entries(), found: offered(), ignored},
+      : {
+          site: origin,
+          entries: entries().map((e) =>
+            readable(e.url)
+              ? e
+              : {...e, access: canRequest ? 'grant' : 'unavailable'}
+          ),
+          found: offered(),
+          ignored,
+        },
   async add(input) {
+    // First, while the click still counts as one.
+    const asking = askAccessFor(input);
     const base = await inspectedUrl();
     if (origin === undefined || base === undefined) return 'No page to read';
-    const parsed = parseManifestUrl(input, base, origin, site);
+    const parsed = parseManifestUrl(input, base, origin, site, canRequest);
     if ('error' in parsed) return parsed.error;
     if (entries().some((e) => e.url === parsed.url)) return 'Already listed';
+    if (parsed.otherSite && !readable(parsed.url) && !(await asking)) {
+      return `Access to ${new URL(parsed.url).host} was not granted`;
+    }
     await saveEntries((list) => added(list, parsed.url));
     return undefined;
   },
-  remove: (url) => saveEntries((list) => removed(list, url)),
+  async allow(url) {
+    const other = otherSiteOf(url);
+    if (other === undefined) return undefined;
+    if (!canRequest) return "This browser can't grant access from DevTools";
+    const ok = await chrome.permissions.request({
+      origins: [accessPattern(other)],
+    });
+    return ok ? undefined : `Access to ${new URL(other).host} was not granted`;
+  },
+  async remove(url) {
+    const rest = removed(entries(), url);
+    await saveEntries(() => rest);
+    await releaseAccess(url, rest);
+  },
   toggle: (url, enabled) => saveEntries((list) => toggled(list, url, enabled)),
   move: (url, by) => saveEntries((list) => moved(list, url, by)),
   async use(url) {
@@ -696,6 +804,11 @@ disableButton.addEventListener('click', async () => {
 });
 
 reloadButton.addEventListener('click', reloadPage);
+
+// Access to another site's manifest, granted or taken back here or in the
+// browser's extension settings.
+chrome.permissions.onAdded.addListener(() => void refreshAccess());
+chrome.permissions.onRemoved.addListener(() => void refreshAccess());
 
 // The site may be enabled or disabled from somewhere else: the Firefox
 // popup, or another DevTools window on the same site.

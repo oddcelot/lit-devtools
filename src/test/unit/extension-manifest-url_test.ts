@@ -36,12 +36,13 @@ describe('parseManifestUrl', () => {
   test('resolves a path against the page, and keeps an absolute URL', () => {
     expect(
       parseManifestUrl('/dist/custom-elements.json', PAGE, ORIGIN, site)
-    ).toEqual({url: `${ORIGIN}/dist/custom-elements.json`});
+    ).toEqual({url: `${ORIGIN}/dist/custom-elements.json`, otherSite: false});
     expect(
       parseManifestUrl(' custom-elements.json ', PAGE, ORIGIN, site)
-    ).toEqual({url: `${PAGE}custom-elements.json`});
+    ).toEqual({url: `${PAGE}custom-elements.json`, otherSite: false});
     expect(parseManifestUrl(`${ORIGIN}/cem.json`, PAGE, ORIGIN, site)).toEqual({
       url: `${ORIGIN}/cem.json`,
+      otherSite: false,
     });
   });
 
@@ -53,7 +54,7 @@ describe('parseManifestUrl', () => {
         'http://localhost',
         hostOnly
       )
-    ).toEqual({url: 'http://localhost:5173/cem.json'});
+    ).toEqual({url: 'http://localhost:5173/cem.json', otherSite: false});
   });
 
   test('refuses empty input', () => {
@@ -62,10 +63,16 @@ describe('parseManifestUrl', () => {
     });
   });
 
-  test('refuses another site and other schemes', () => {
+  test('takes another site only when the browser can ask for it', () => {
     expect(
       parseManifestUrl('https://cdn.example/cem.json', PAGE, ORIGIN, site)
-    ).toEqual({error: `Must be on ${ORIGIN}`});
+    ).toMatchObject({error: expect.stringContaining(`Must be on ${ORIGIN}`)});
+    expect(
+      parseManifestUrl('https://cdn.example/cem.json', PAGE, ORIGIN, site, true)
+    ).toEqual({url: 'https://cdn.example/cem.json', otherSite: true});
+  });
+
+  test('refuses other schemes', () => {
     expect(parseManifestUrl('data:,{}', PAGE, ORIGIN, site)).toEqual({
       error: 'Not an http(s) URL',
     });

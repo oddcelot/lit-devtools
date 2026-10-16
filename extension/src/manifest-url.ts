@@ -101,18 +101,20 @@ export const setManifestIgnored = async (
 };
 
 /**
- * What the user typed, as an absolute URL on the inspected site: a path such
- * as `/dist/custom-elements.json` resolves against `base`, the page's own
- * URL; empty input is refused. `site` reduces a URL to the origin
- * the extension compares (a host without its port, in Firefox), which must
- * be `origin`.
+ * What the user typed, as an absolute URL: a path such as
+ * `/dist/custom-elements.json` resolves against `base`, the page's own URL;
+ * empty input is refused. `site` reduces a URL to the origin the extension
+ * compares (a host without its port, in Firefox). A URL on another site than
+ * `origin` is taken only with `otherSites`, and marked so the caller asks
+ * for access to it first.
  */
 export const parseManifestUrl = (
   input: string,
   base: string,
   origin: string,
-  site: (url: string) => string | undefined
-): {url: string} | {error: string} => {
+  site: (url: string) => string | undefined,
+  otherSites = false
+): {url: string; otherSite: boolean} | {error: string} => {
   const text = input.trim();
   if (text === '') return {error: 'Enter a path or a URL'};
   let url: URL;
@@ -124,8 +126,11 @@ export const parseManifestUrl = (
   if (url.protocol !== 'http:' && url.protocol !== 'https:') {
     return {error: 'Not an http(s) URL'};
   }
-  if (site(url.href) !== origin) {
-    return {error: `Must be on ${origin}`};
+  const otherSite = site(url.href) !== origin;
+  if (otherSite && !otherSites) {
+    return {
+      error: `Must be on ${origin}: this browser can't grant access to another site from DevTools`,
+    };
   }
-  return {url: url.href};
+  return {url: url.href, otherSite};
 };
