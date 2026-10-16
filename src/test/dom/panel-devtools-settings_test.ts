@@ -1,8 +1,13 @@
-import {afterEach, beforeAll, expect, test, vi} from 'vite-plus/test';
+import {afterEach, beforeAll, describe, expect, test, vi} from 'vite-plus/test';
 import type {DevtoolsSettings} from '../../panel/devtools-settings.js';
 import {calls, meta, resetClient} from './fakes/client.js';
 import {overrides} from '../../panel/settings-override.js';
 import {resolveOptions, toFeatureSettings} from '../../lib/options.js';
+import {
+  useManifestSetting,
+  type ManifestSetting,
+  type ManifestState,
+} from '../../panel/manifest-setting.js';
 
 vi.mock('../../panel/client.js', () => import('./fakes/client.js'));
 
@@ -224,4 +229,92 @@ test('without custom tracks, the row says the entries go to User Timing', async 
   document.body.replaceChildren();
   meta.runtime = {...meta.runtime, ready: true, chromeTracks: false};
   expect(await note()).toContain('lit: marks and measures');
+});
+
+describe('Component docs', () => {
+  const docsSection = (root: ShadowRoot) =>
+    [...root.querySelectorAll('section')].find(
+      (s) => s.querySelector('h3')?.textContent?.trim() === 'Component docs'
+    );
+
+  /** A host setting whose state the test drives, and what it was asked. */
+  const fakeSetting = (state: ManifestState) => {
+    const listeners = new Set<() => void>();
+    const asked: string[] = [];
+    let current = state;
+    const setting: ManifestSetting = {
+      state: () => current,
+      set: async (input) => {
+        asked.push(`set:${input}`);
+        return input.startsWith('https://elsewhere')
+          ? `Must be on ${current.site}`
+          : undefined;
+      },
+      use: async () => void asked.push('use'),
+      dismiss: async () => void asked.push('dismiss'),
+      subscribe: (l) => {
+        listeners.add(l);
+        return () => listeners.delete(l);
+      },
+    };
+    const update = (next: ManifestState) => {
+      current = next;
+      for (const l of listeners) l();
+    };
+    return {setting, asked, update};
+  };
+
+  afterEach(() => useManifestSetting(undefined));
+
+  test('is absent when the host has no manifest setting', async () => {
+    expect(docsSection(await mount())).toBeUndefined();
+  });
+
+  test('saves what the user typed and shows a refusal', async () => {
+    const site = 'https://webawesome.com';
+    const {setting, asked} = fakeSetting({
+      site,
+      linked: [],
+      url: `${site}/dist/custom-elements.json`,
+    });
+    useManifestSetting(setting);
+    const root = await mount();
+    const section = docsSection(root)!;
+    const input = section.querySelector('wa-input') as HTMLElement & {
+      value: string;
+    };
+    // The site's own URL reads back as its path.
+    expect(input.value).toBe('/dist/custom-elements.json');
+    input.value = 'https://elsewhere.test/cem.json';
+    section
+      .querySelector('form')!
+      .dispatchEvent(new Event('submit', {cancelable: true}));
+    await vi.waitFor(() =>
+      expect(section.querySelector('[role=alert]')?.textContent).toContain(
+        `Must be on ${site}`
+      )
+    );
+    expect(asked).toEqual(['set:https://elsewhere.test/cem.json']);
+  });
+
+  test('offers a found manifest, and says when the page links its own', async () => {
+    const site = 'https://webawesome.com';
+    const {setting, asked, update} = fakeSetting({site, linked: []});
+    useManifestSetting(setting);
+    const root = await mount();
+    expect(docsSection(root)!.querySelector('.manifest-found')).toBeNull();
+
+    update({site, linked: [], found: `${site}/dist/custom-elements.json`});
+    await (root.host as DevtoolsSettings).updateComplete;
+    const found = docsSection(root)!.querySelector('.manifest-found')!;
+    expect(found.textContent).toContain('/dist/custom-elements.json');
+    const [use, notNow] = found.querySelectorAll('wa-button');
+    (use as HTMLElement).click();
+    (notNow as HTMLElement).click();
+    expect(asked).toEqual(['use', 'dismiss']);
+
+    update({site, linked: [`${site}/own.json`]});
+    await (root.host as DevtoolsSettings).updateComplete;
+    expect(docsSection(root)!.textContent).toContain('This page links its own');
+  });
 });
