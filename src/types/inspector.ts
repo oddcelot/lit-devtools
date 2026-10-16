@@ -443,6 +443,12 @@ export interface InspectorDetails {
    * into `source`.
    */
   defineFrames?: GeneratedFrame[];
+  /**
+   * The template that rendered this element, when the plugin stamped no
+   * `callSite` and the runtime recorded the template (the extension's). A
+   * host with the page's sources finds it there and sets `callSite`.
+   */
+  templateSite?: TemplateSite;
   /** As {@link InspectorTreeNode.notDefined}. */
   notDefined?: true;
   /** As {@link InspectorTreeNode.notLit}. */

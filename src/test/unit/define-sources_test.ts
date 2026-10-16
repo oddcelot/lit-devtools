@@ -34,7 +34,8 @@ const details = (id: number, extra: Partial<InspectorDetails> = {}) =>
 /** A source whose page messages the test pushes; and what reached the sink. */
 const harness = (
   resolve: (f: unknown) => Promise<ElementSource | undefined>,
-  timeoutMs = 50
+  timeoutMs = 50,
+  locate?: (site: unknown) => Promise<ElementSource | undefined>
 ) => {
   let sink: TimelineSink | undefined;
   const sent: InspectorCommand[] = [];
@@ -48,7 +49,7 @@ const harness = (
   };
   const got: InspectorMessage[] = [];
   const events: TimelineEvent[][] = [];
-  const wrapped = withDefineSources(inner, resolve, timeoutMs);
+  const wrapped = withDefineSources(inner, resolve, timeoutMs, locate);
   wrapped.attach({
     pushEvents: (batch) => void events.push(batch),
     addLayer() {},
@@ -80,6 +81,33 @@ describe('withDefineSources', () => {
     expect(resolve).toHaveBeenCalledWith(frames);
     expect(got).toHaveLength(1);
     expect(got[0]).toMatchObject({details: {id: 1, source: resolved}});
+  });
+
+  test('fills callSite from the template site and drops the site', async () => {
+    const site = {strings: ['<x-a>'], tag: 'x-a', index: 0, scripts: []};
+    const callSite: ElementSource = {file: 'src/view.ts', line: 4, column: 5};
+    const locate = vi.fn(async () => callSite);
+    const {push, got} = harness(async () => resolved, 50, locate);
+    push(details(1, {defineFrames: frames, templateSite: site}));
+    await settle();
+    expect(locate).toHaveBeenCalledWith(site);
+    expect(got[0]).toMatchObject({
+      details: {source: resolved, callSite},
+    });
+    expect(
+      (got[0] as Extract<InspectorMessage, {type: 'details'}>).details
+    ).not.toHaveProperty('templateSite');
+  });
+
+  test('drops a template site it has no locator for', async () => {
+    const site = {strings: ['<x-a>'], tag: 'x-a', index: 0, scripts: []};
+    const {push, got} = harness(async () => undefined);
+    push(details(1, {templateSite: site}));
+    await settle();
+    expect(got).toHaveLength(1);
+    expect(
+      (got[0] as Extract<InspectorMessage, {type: 'details'}>).details
+    ).not.toHaveProperty('templateSite');
   });
 
   test('passes stamped details and other messages straight through', () => {

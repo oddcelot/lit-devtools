@@ -23,6 +23,7 @@ import type {
   GeneratedFrame,
   InspectorMessage,
   InspectorTreeNode,
+  TemplateSite,
 } from '../../types/inspector.js';
 import type {TimelineEvent} from '../../types/timeline.js';
 import type {TimelineSink, TimelineSource} from './source.js';
@@ -30,6 +31,11 @@ import type {TimelineSink, TimelineSource} from './source.js';
 /** Maps a define call's stack to where the class is written. */
 export type DefineSourceResolver = (
   frames: GeneratedFrame[]
+) => Promise<ElementSource | undefined>;
+
+/** Finds where the template a details message names renders the element. */
+export type TemplateLocator = (
+  site: TemplateSite
 ) => Promise<ElementSource | undefined>;
 
 const RESOLVE_TIMEOUT_MS = 5000;
@@ -49,8 +55,23 @@ const withTimeout = <T>(
 
 const needsResolving = (message: InspectorMessage): boolean =>
   message.type === 'details' &&
-  message.details.source === undefined &&
-  message.details.defineFrames !== undefined;
+  ((message.details.source === undefined &&
+    message.details.defineFrames !== undefined) ||
+    message.details.templateSite !== undefined);
+
+/** `resolve(arg)`, bounded by the timeout; a throw or timeout is no answer. */
+const settle = async <T>(
+  resolve: ((arg: T) => Promise<ElementSource | undefined>) | undefined,
+  arg: T | undefined,
+  timeoutMs: number
+): Promise<ElementSource | undefined> => {
+  if (resolve === undefined || arg === undefined) return undefined;
+  try {
+    return await withTimeout(resolve(arg), timeoutMs);
+  } catch {
+    return undefined;
+  }
+};
 
 /** Every `defineId` a node or its descendants carry without a `source`. */
 const treeIds = (nodes: InspectorTreeNode[], into = new Set<number>()) => {
@@ -96,11 +117,16 @@ interface Batch {
   answer(frames: Record<number, GeneratedFrame[]>): void;
 }
 
-/** `source`, with its events and inspector messages passed through `resolve`. */
+/**
+ * `source`, with its events and inspector messages passed through `resolve`,
+ * and the template a details message names through `locate` into its
+ * `callSite`. The template site itself never goes further.
+ */
 export const withDefineSources = (
   source: TimelineSource,
   resolve: DefineSourceResolver,
-  timeoutMs = RESOLVE_TIMEOUT_MS
+  timeoutMs = RESOLVE_TIMEOUT_MS,
+  locate?: TemplateLocator
 ): TimelineSource => ({
   attach(sink: TimelineSink) {
     let inspectorQueue: Promise<void> = Promise.resolve();
@@ -196,18 +222,23 @@ export const withDefineSources = (
         };
       }
       if (message.type !== 'details') return message;
-      const {details} = message;
-      const frames = details.defineFrames;
-      if (details.source !== undefined || frames === undefined) return message;
-      let found: ElementSource | undefined;
-      try {
-        found = await withTimeout(resolve(frames), timeoutMs);
-      } catch {
-        found = undefined;
-      }
-      return found === undefined
-        ? message
-        : {...message, details: {...details, source: found}};
+      const {templateSite, ...details} = message.details;
+      const [found, callSite] = await Promise.all([
+        details.source === undefined
+          ? settle(resolve, details.defineFrames, timeoutMs)
+          : undefined,
+        details.callSite === undefined
+          ? settle(locate, templateSite, timeoutMs)
+          : undefined,
+      ]);
+      return {
+        ...message,
+        details: {
+          ...details,
+          ...(found === undefined ? {} : {source: found}),
+          ...(callSite === undefined ? {} : {callSite}),
+        },
+      };
     };
 
     /** Whether `message` is not ready as it is: it names something to look up. */

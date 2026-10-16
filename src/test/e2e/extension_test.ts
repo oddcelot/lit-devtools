@@ -86,12 +86,14 @@ customElements.define('probe-hello', ProbeHello);
 `;
 
 // The same kind of page with an external sourcemap: the extension maps the
-// define call back to this file, line 5.
+// define call back to this file, line 5, and finds where mapped-hello
+// renders its mapped-item by the template's text, on line 3.
 const MAPPED_SOURCE = `import {LitElement, html} from 'lit';
 class MappedHello extends LitElement {
-  render() { return html\`mapped\`; }
+  render() { return html\`mapped <mapped-item></mapped-item>\`; }
 }
 customElements.define('mapped-hello', MappedHello);
+customElements.define('mapped-item', class extends LitElement {});
 `;
 
 beforeAll(async () => {
@@ -327,10 +329,13 @@ test('the runtime adds only $lit to the globals of a page without Lit', async ()
   const enabled = await globalsAt(`${appOrigin}/plain`);
   const plain = await globalsAt(`${plainOrigin}/plain`);
   // `$lit` is the console's selection; `litIssuedWarnings` is Lit's own
-  // name, created early so its dev warnings reach the panel. Neither takes
-  // the place of anything the page had.
+  // name, created early so its dev warnings reach the panel; the two
+  // polyfill hooks are lit-html's, set so it reports its templates. None
+  // takes the place of anything the page had.
   expect(enabled.names.filter((n) => !plain.names.includes(n)).sort()).toEqual([
     '$lit',
+    'litHtmlPolyfillSupport',
+    'litHtmlPolyfillSupportDevMode',
     'litIssuedWarnings',
   ]);
   expect(plain.names.filter((n) => !enabled.names.includes(n))).toEqual([]);
@@ -574,6 +579,42 @@ test("the Lit tab finds where a component is defined through the page's sourcema
       timeout: 15_000,
     })
     .toBe('src/mapped.js:5');
+
+  await panel.close();
+  await page.close();
+}, 60_000);
+
+test("the Lit tab finds where an element is rendered by its template's text", async () => {
+  const page = await context.newPage();
+  await page.goto(`${appOrigin}/mapped`);
+  const tabId = await extensionPage.evaluate(
+    async (origin) =>
+      (await chrome.tabs.query({url: `${origin}/mapped`}))[0]?.id,
+    appOrigin
+  );
+  const panel = await context.newPage();
+  await panel.goto(
+    `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+  );
+  const rows = panel.locator('components-view .row');
+  const item = rows.filter({hasText: /^\s*<mapped-item>\s*$/});
+  await rows
+    .filter({hasText: 'mapped-hello'})
+    .first()
+    .waitFor({timeout: 15_000});
+  if (!(await item.first().isVisible())) {
+    await rows
+      .filter({hasText: 'mapped-hello'})
+      .first()
+      .locator('.twisty')
+      .click();
+  }
+  await item.first().click();
+  await expect
+    .poll(() => panel.locator('components-view .call-site').textContent(), {
+      timeout: 15_000,
+    })
+    .toBe('src/mapped.js:3');
 
   await panel.close();
   await page.close();

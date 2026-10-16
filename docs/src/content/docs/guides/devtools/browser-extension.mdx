@@ -122,6 +122,15 @@ do this, so the maps must be reachable from the page. It only sees components
 defined after it injects, which on an enabled site is before the page's first
 script runs.
 
+The details pane's **rendered** row, which names the template tag that
+created an element, comes from the template's own text: the extension records
+each Lit template as it is made, then looks for that template literal in the
+sources the sourcemaps carry, or in the script itself when there are none.
+It finds templates whose text the build left as written, so a build that
+minifies template HTML, or two templates with the same text, can leave the
+row out or name the first of them. Elements created any other way, such as
+with `document.createElement`, have no **rendered** row.
+
 ## Read component documentation
 
 When a page links its
@@ -176,8 +185,9 @@ they are all removed when you select another element or the page reloads.
 
 ## What the extension can't do
 
-The extension has no dev server behind it. Open in editor, **Rendered at** links
-on a page without the plugin, hot patching, snapshot export and the MCP tools need the Vite plugin.
+The extension has no dev server behind it. Open in editor, hot patching,
+snapshot export and the MCP tools need the Vite plugin, and so do **Rendered
+at** links in the Updates view and the Timeline.
 Render events on the timeline need Lit's development build. It sees the top
 frame of `http:` and `https:` pages only.
 
