@@ -63,16 +63,23 @@ the components.
   styled, and once the component hydrates it adopts the real sheet, so css
   edits hot-swap it. See
   [Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/#choose-the-build-output).
+- **A page older than your edit.** If the HTML predates an edit, the
+  component renders in the browser once instead of failing to hydrate and
+  later showing twice.
 - **Hydration state in the DevTools.** The Components tab marks a
   server-rendered component _deferred_, _not hydrated_ or _SSR_ (hydrated).
 
 ## Limits
 
 The plugin leaves the server's own modules untransformed: no HMR wrappers, no
-source stamps and no timeline events on the server. Lit's hydration expects the
-client's template to match the server's HTML. A page loaded in the instant
-between an edit reaching the server and reaching the browser can fail to
-hydrate and render twice; reload it.
+source stamps and no timeline events on the server.
+
+Lit's hydration expects the client's template to match the server's HTML. A
+page loaded in the instant between an edit reaching the server and reaching
+the browser carries HTML from the old template. The plugin catches the
+mismatch and renders that component in the browser instead, with a console
+warning that names it. Nothing is lost, since a component has no state before
+it hydrates, but it is a client render, not a hydration.
 
 ## Related
 

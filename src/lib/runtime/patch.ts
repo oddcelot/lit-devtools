@@ -349,6 +349,49 @@ const readoptStyles = (
   root.adoptedStyleSheets = [...sheets, ...preserved];
 };
 
+/** What `@lit-labs/ssr-client` throws when the template and the HTML differ. */
+const isHydrationMismatch = (error: unknown): boolean =>
+  error instanceof Error &&
+  error.message.startsWith('Hydration value mismatch');
+
+/**
+ * A page loaded between an edit reaching the server and reaching the
+ * browser carries HTML from the old template, which the new one cannot
+ * hydrate. Lit throws and leaves the server's DOM behind, and the next
+ * render appends a second copy beside it. A one-shot own `update` catches
+ * that first mismatch, clears the stale DOM and runs the update again,
+ * which now renders the template from scratch, as a browser-only page
+ * would. There is no client state to lose before the first update.
+ */
+const recoverFromMismatch = (el: ReactiveElementLike): void => {
+  if (Object.hasOwn(el, 'update')) return;
+  Object.defineProperty(el, 'update', {
+    configurable: true,
+    writable: true,
+    value(this: ReactiveElementLike, changed: unknown) {
+      delete (this as {update?: unknown}).update;
+      const update = (
+        Object.getPrototypeOf(this) as {update?: (c: unknown) => unknown}
+      ).update;
+      try {
+        return update?.call(this, changed);
+      } catch (error) {
+        const root = this.shadowRoot;
+        if (!isHydrationMismatch(error) || root == null) throw error;
+        console.warn(
+          `[lit-plugin] <${this.localName}>: the page's server-rendered HTML ` +
+            `is older than the component's code (an edit landed while it ` +
+            `loaded), so it renders in the browser instead of hydrating.`
+        );
+        root.replaceChildren();
+        // Hydration may have bound its root part before it threw.
+        delete (root as {_$litPart$?: unknown})._$litPart$;
+        return update?.call(this, changed);
+      }
+    },
+  });
+};
+
 /** Server-rendered elements already waiting for {@link adoptAfterHydration}. */
 const hydrating = new WeakSet<ReactiveElementLike>();
 
@@ -369,6 +412,7 @@ const adoptAfterHydration = (el: ReactiveElementLike): void => {
   const done = (el as {updateComplete?: Promise<unknown>}).updateComplete;
   if (done === undefined) return;
   hydrating.add(el);
+  recoverFromMismatch(el);
   void Promise.resolve(done).then(() => {
     hydrating.delete(el);
     const sheets = stylesToSheets(
