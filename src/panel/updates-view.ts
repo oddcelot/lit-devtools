@@ -433,7 +433,7 @@ export class UpdatesView extends LitElement {
                 data-tip=${`Changed to a new reference with equal content in these updates: ${entry.redundantChanges
                   .map((c) => `${c.key} ×${c.count}`)
                   .join(', ')}`}
-                
+              >
                 <wa-icon name="equals"></wa-icon>
                 ${entry.redundantChanges.length}
               </wa-badge>`
