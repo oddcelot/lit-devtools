@@ -218,9 +218,12 @@ The provider is found by walking up from the consumer the way its request
 travels, into the slot it is assigned to before its parent, and, for a
 subscribing consumer, confirmed against the provider's subscriptions. A consumer that
 did not set `subscribe` leaves no trace, so a provider cannot list it. A
-subscribed consumer's row follows the provider's value live. A provider whose
-value is set directly, without the host updating, refreshes on its next
-update.
+subscribing consumer that no provider has answered yet reads "waiting for a
+provider": a provider that connected after the request doesn't answer it
+unless a `ContextRoot` keeps the request and replays it, and once one does the
+row links to it. A subscribed consumer's row follows the provider's value
+live. A provider whose value is set directly, without the host updating,
+refreshes on its next update.
 
 **Warnings** appears above the tables when Lit's development build has warned
 about the component, for example `change-in-update` for an update scheduled

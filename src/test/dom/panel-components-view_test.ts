@@ -1133,12 +1133,20 @@ test('a context row shows its key and links to the provider element', async () =
         type: 'ContextConsumer',
         context: {role: 'consumer', key: 'lost'},
       },
+      {
+        kind: 'context',
+        name: 'pending',
+        value: 'undefined',
+        type: 'ContextConsumer',
+        context: {role: 'consumer', key: 'late', waiting: true},
+      },
     ]),
   });
   await flush(el);
   const rows = [...root.querySelectorAll('.details .entry')];
   expect(rows[0]!.textContent).toContain('Symbol(theme)');
   expect(rows[1]!.textContent).toContain('no provider found');
+  expect(rows[2]!.textContent).toContain('waiting for a provider');
   rows[0]!.querySelector<HTMLButtonElement>('.el-ref')!.click();
   await flush(el);
   expect(el.location.selected('components')).toBe(1);

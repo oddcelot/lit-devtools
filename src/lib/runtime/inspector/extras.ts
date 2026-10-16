@@ -185,6 +185,11 @@ const classifyContext = (
   };
   if (provider) {
     describeConsumers(info, v);
+  } else if (dataProp(v, 'provided')?.value === false) {
+    // Nothing answered the request, so a provider nearby is not its source:
+    // it connected later, or does not match. A subscribing request can still
+    // be answered when a `ContextRoot` replays it.
+    if (dataProp(v, 'subscribe')?.value === true) info.waiting = true;
   } else {
     const found = providerOf(v);
     if (found !== undefined) info.provider = refOf(found);
