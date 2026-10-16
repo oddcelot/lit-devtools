@@ -104,14 +104,13 @@ now also shown in the panel and to agents.
   editor opens and snapshot export stay panel-only, because an agent that
   silently changes the developer's tool state, spawns a GUI process or writes to
   disk is a different trust level.
-- **`set-prop` stays panel-only** (decided 2026-10-16, vpl-dquo). Letting an
-  agent try values and read back `component-details` would make for fine
-  probes. But the write lands in the live page the developer is looking at,
-  can mutate a shared object in place, has no undo, and comes from a caller
-  the developer doesn't see. The MCP endpoint also answers any local client
-  that sends the right Origin. If users ask for it, it comes back as an
-  opt-in plugin option that also flashes each agent edit on the page and logs
-  it as a timeline entry, never as a default.
+- **`set-prop` is agent-callable too** (decided 2026-10-16, vpl-dquo). An
+  agent debugging a component can try values and read the details back
+  without asking the developer to click. The write goes through the panel's
+  own path: declared, editable primitives only, kept as an override that the
+  panel lists and the developer can switch off or clear, and dropped on
+  reload. The tool description tells the agent to say what it set. It throws
+  with no live page or no answer instead of reading the cache.
 - **`list-components` and `component-details` ask the page on each call.** The
   session caches only what the panel last requested, so an agent with no panel
   open read an empty tree from a live page. The two queries now send the

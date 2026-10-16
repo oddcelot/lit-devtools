@@ -111,6 +111,45 @@ test('without a live page, the cache is the answer and nothing is asked', async 
   expect(sent).toEqual([]);
 });
 
+describe('setProp', () => {
+  test('sends set-prop and answers with the details the page sends back', async () => {
+    const {queries, sent} = setup();
+    const pending = queries.setProp({id: 2, name: 'count', value: 3});
+    expect(sent).toEqual([{type: 'set-prop', id: 2, name: 'count', value: 3}]);
+    queries.resolve({type: 'details', details: detailsFor(2)});
+    expect(await pending).toEqual(detailsFor(2));
+  });
+
+  test('answers null for an element that is gone', async () => {
+    const {queries} = setup();
+    const pending = queries.setProp({id: 2, name: 'count', value: 3});
+    queries.resolve({type: 'gone', id: 2});
+    expect(await pending).toBeNull();
+  });
+
+  test('throws when the page stays silent, never answering from the cache', async () => {
+    vi.useFakeTimers();
+    try {
+      const {queries, cached} = setup();
+      cached.set(2, detailsFor(2));
+      const pending = queries.setProp({id: 2, name: 'count', value: 3});
+      const settled = expect(pending).rejects.toThrow(/did not answer/);
+      await vi.advanceTimersByTimeAsync(1000);
+      await settled;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  test('throws without a live page, asking nothing', async () => {
+    const {queries, sent} = setup({live: false});
+    await expect(
+      queries.setProp({id: 2, name: 'count', value: 3})
+    ).rejects.toThrow(/No live page/);
+    expect(sent).toEqual([]);
+  });
+});
+
 test('maxDepth bounds the tree; an unusable one returns it whole', async () => {
   const {queries} = setup({live: false, roots: tree});
   expect(await queries.tree({maxDepth: 1})).toEqual([

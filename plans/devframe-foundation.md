@@ -67,12 +67,14 @@ Devframe replaced all of it.
 - **`jsonSerializable: true` on every function.** Payloads are already JSON.
   Strict encoding turns an accidental `Map` or `Element` leak into a coded
   error.
-- **Agents get read-only queries, plus recording.** Only `type: 'query'`
-  functions carry `agent`. Mutating actions (`inspect`, `toggle-layer`,
-  `set-settings-override`, `open-source`, `export-snapshot`) stay panel-only, so
-  an agent cannot retarget the picker, change settings, spawn an editor or write
-  to disk behind the developer's back. `set-recording` is the one exception,
-  because reading the timeline is useless while recording is off.
+- **Agents get read-only queries, plus recording and prop edits.** Only
+  `type: 'query'` functions carry `agent`, with two exceptions. Mutating actions
+  (`inspect`, `toggle-layer`, `set-settings-override`, `open-source`,
+  `export-snapshot`) stay panel-only, so an agent cannot retarget the picker,
+  change settings, spawn an editor or write to disk behind the developer's
+  back. `set-recording` is agent-callable because reading the timeline is
+  useless while recording is off. `set-prop` was added on 2026-10-16 as an
+  override the panel lists (see devtools-features.md).
 - **The dock is activated from node.** `ctx.docks.activate('lit', params)`
   replaces the panel reaching into the parent frame's
   `__VITE_DEVTOOLS_CLIENT_CONTEXT__`.

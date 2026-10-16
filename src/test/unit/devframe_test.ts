@@ -269,6 +269,26 @@ describe('lit devframe definition', () => {
     }
   });
 
+  test('set-prop sends the command to the page and answers with its details', async () => {
+    const {source, ctx} = await boot({inspectorTimeoutMs: 1000});
+    source.sink!.runtimeReady('a');
+    const pending = ctx.rpc.invokeLocal('lit:set-prop', {
+      id: 1,
+      name: 'count',
+      value: 2,
+    });
+    await vi.waitFor(() =>
+      expect(source.inspector.at(-1)).toEqual({
+        type: 'set-prop',
+        id: 1,
+        name: 'count',
+        value: 2,
+      })
+    );
+    source.sink!.inspectorMessage({type: 'gone', id: 1}, 'a');
+    expect(await pending).toBeNull();
+  });
+
   test('a stale page cannot answer an agent query', async () => {
     const {source, ctx} = await boot({inspectorTimeoutMs: 1000});
     source.sink!.runtimeReady('a');
@@ -329,6 +349,7 @@ describe('lit devframe definition', () => {
       'lit:range-summary',
       'lit:inspect',
       'lit:set-recording',
+      'lit:set-prop',
       'lit:toggle-layer',
       'lit:hmr-history',
       'lit:hmr-incompatibilities',
@@ -337,17 +358,18 @@ describe('lit devframe definition', () => {
     }
   });
 
-  test('exposes exactly one mutating tool to agents', async () => {
-    // `set-recording` is the deliberate exception to the read-only agent
-    // surface (see plans/devframe-foundation.md). Asserting the whole set,
-    // not just its presence, so quietly agent-exposing the picker or a layer
-    // toggle fails here instead of shipping.
+  test('exposes only recording and set-prop as mutating tools to agents', async () => {
+    // `set-recording` and `set-prop` are the deliberate exceptions to the
+    // read-only agent surface (see plans/devtools-features.md). Asserting the
+    // picker and layer toggles stay out, so quietly agent-exposing one fails
+    // here instead of shipping.
     const {ctx} = await boot();
     const tools = ctx.agent.list().tools;
     const exposed = tools
       .filter((t) => t.rpcName?.startsWith('lit:'))
       .map((t) => t.rpcName);
     expect(exposed).toContain('lit:set-recording');
+    expect(exposed).toContain('lit:set-prop');
     // A query, so read-safe by inference — it must not join the mutating set.
     expect(exposed).toContain('lit:update-summary');
     expect(exposed).toContain('lit:range-summary');

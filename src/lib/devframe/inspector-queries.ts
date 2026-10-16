@@ -25,6 +25,7 @@ import type {
   ComponentDetailsArgs,
   ComponentDetailsByTagResult,
   ListComponentsArgs,
+  SetPropArgs,
 } from './protocol.js';
 import type {TimelineSource} from './source.js';
 
@@ -49,6 +50,12 @@ export interface InspectorQueries {
   details(
     args: ComponentDetailsArgs
   ): Promise<InspectorDetails | null | ComponentDetailsByTagResult>;
+  /**
+   * The `set-prop` action: write a value on the live page and answer with
+   * the element's details after it, `null` when it is gone. Throws with no
+   * live page or no answer, since there is nothing to fall back to.
+   */
+  setProp(args: SetPropArgs): Promise<InspectorDetails | null>;
   /** Feed every inbound inspector message through here first. */
   resolve(message: InspectorMessage): void;
 }
@@ -135,6 +142,17 @@ export const createInspectorQueries = (
       const missing: number[] = [];
       all.forEach((d, i) => (d ? found.push(d) : missing.push(ids[i]!)));
       return {details: found, missing, truncated};
+    },
+    async setProp(args) {
+      if (!live) throw new Error('No live page to set a property on.');
+      const answer = await requester.details(args.id, timeoutMs, {
+        type: 'set-prop',
+        ...args,
+      });
+      if (answer === undefined) {
+        throw new Error('The page did not answer; is it still open?');
+      }
+      return answer;
     },
     resolve: (message) => requester.resolve(message),
   };
