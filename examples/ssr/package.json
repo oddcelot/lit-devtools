@@ -1,0 +1,20 @@
+{
+  "name": "vite-plugin-lit-ssr-example",
+  "description": "Lit components server-rendered with @lit-labs/ssr by a Vite dev server and hydrated in the page, with @oddsquad/vite-plugin-lit hot-patching them.",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs"
+  },
+  "dependencies": {
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "*",
+    "@vitejs/devtools": "^0.7.6",
+    "vite": "^8.3.2"
+  }
+}
