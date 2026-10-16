@@ -51,6 +51,7 @@ import {
   RPC_LIST_COMPONENTS,
   RPC_RECENT_EVENTS,
   RPC_TIMELINE_HISTORY,
+  RPC_SET_PROP,
   RPC_SET_RECORDING,
   RPC_EXPORT_SNAPSHOT,
   RPC_OPEN_SOURCE,
@@ -75,6 +76,7 @@ import {
   type ComponentDocsResult,
   type OpenSourceArgs,
   type OpenSourceResult,
+  type SetPropArgs,
   type SetRecordingArgs,
   type ToggleLayerArgs,
   type RangeSummaryArgs,
@@ -579,11 +581,10 @@ export function createLitDevframe(
           name: RPC_SET_RECORDING,
           type: 'action',
           jsonSerializable: true,
-          // The one agent-exposed mutation. `recent-events` is a dead end
+          // Agent-exposed, with `set-prop`. `recent-events` is a dead end
           // when recording is off, so an agent that can read the timeline
           // but never start it just hands the question back to the human.
-          // Deliberately still the *only* one: the picker and layer toggles
-          // stay panel-only.
+          // The picker and layer toggles stay panel-only.
           agent: {
             description:
               'Start or stop timeline recording. This is a shared toggle: turning it on also affects the DevTools panel if a developer has it open. Call this if lit:recent-events reports `recording: false`.',
@@ -593,6 +594,24 @@ export function createLitDevframe(
               state.layers.recordingState = args.recording;
             });
           },
+        })
+      );
+
+      my.rpc.register(
+        defineRpcFunction({
+          name: RPC_SET_PROP,
+          type: 'action',
+          jsonSerializable: true,
+          // An agent's write lands as an override, the same as the panel's,
+          // so the panel lists it and the developer can switch it off or
+          // clear it.
+          agent: {
+            description:
+              'Set a reactive property on a live element, to try a value and see how the component reacts. Pass id (from lit:list-components), name (a declared reactive property) and value (a string, number or boolean); to change one field inside an object, array or Map the property holds, also pass keys, the path from the property\'s value down to that field. Only a property or field that lit:component-details marks editable ("string", "number" or "boolean") is written, and only with a value of that type; anything else is left as it was. The answer is the element\'s details right after the write (null if it has left the page), and the element re-renders as usual: check the property\'s value and override to see whether the write took. The value is kept as an override on top of what the app sets, listed in the DevTools panel where the developer can switch it off or clear it, until the page reloads. This changes the page the developer is looking at: say what you set.',
+          },
+          handler: async (
+            args: SetPropArgs
+          ): Promise<InspectorDetails | null> => queries.setProp(args),
         })
       );
 

@@ -84,6 +84,9 @@ export const RPC_INSPECT = 'inspect';
 /** Bare name of the `set-recording` action. */
 export const RPC_SET_RECORDING = 'set-recording';
 
+/** Bare name of the `set-prop` action. */
+export const RPC_SET_PROP = 'set-prop';
+
 /** Bare name of the `toggle-layer` action. */
 export const RPC_TOGGLE_LAYER = 'toggle-layer';
 
@@ -448,6 +451,15 @@ export interface SetRecordingArgs {
   recording: boolean;
 }
 
+/**
+ * Argument of the `set-prop` action: the page's `set-prop` inspector command
+ * without its `type`. Kept as an override, as the panel's edits are.
+ */
+export type SetPropArgs = Omit<
+  Extract<InspectorCommand, {type: 'set-prop'}>,
+  'type'
+>;
+
 /** Argument of the `toggle-layer` action. */
 export interface ToggleLayerArgs {
   layerId: string;
@@ -495,6 +507,7 @@ declare module 'devframe' {
     ) => Promise<RangeSummaryResult>;
     'lit:inspect': (command: InspectorCommand) => Promise<void>;
     'lit:set-recording': (args: SetRecordingArgs) => Promise<void>;
+    'lit:set-prop': (args: SetPropArgs) => Promise<InspectorDetails | null>;
     'lit:toggle-layer': (args: ToggleLayerArgs) => Promise<void>;
     'lit:set-settings-override': (override: SettingsOverride) => Promise<void>;
     'lit:open-source': (args: OpenSourceArgs) => Promise<OpenSourceResult>;

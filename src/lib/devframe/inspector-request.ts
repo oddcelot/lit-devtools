@@ -7,6 +7,7 @@
  */
 
 import type {
+  InspectorCommand,
   InspectorDetails,
   InspectorMessage,
   InspectorTreeNode,
@@ -18,11 +19,14 @@ export interface InspectorRequester {
   tree(timeoutMs: number): Promise<InspectorTreeNode[] | undefined>;
   /**
    * Ask the page for one element's details. `null` when the page reports it
-   * gone; `undefined` when nothing answered in time.
+   * gone; `undefined` when nothing answered in time. `command` replaces the
+   * plain `details` ask with another one the page answers the same way,
+   * such as `set-prop`.
    */
   details(
     id: number,
-    timeoutMs: number
+    timeoutMs: number,
+    command?: InspectorCommand
   ): Promise<InspectorDetails | null | undefined>;
   /** Feed every inbound page message through here before the cache sees it. */
   resolve(message: InspectorMessage): void;
@@ -73,7 +77,7 @@ export const createInspectorRequester = (
         () => source.sendInspector({type: 'tree'}),
         timeoutMs
       ),
-    details: (id, timeoutMs) =>
+    details: (id, timeoutMs, command = {type: 'details', id}) =>
       request<InspectorDetails | null>(
         (waiter) => {
           const list = detailWaiters.get(id) ?? [];
@@ -87,7 +91,7 @@ export const createInspectorRequester = (
             else detailWaiters.set(id, rest);
           };
         },
-        () => source.sendInspector({type: 'details', id}),
+        () => source.sendInspector(command),
         timeoutMs
       ),
     resolve(message) {

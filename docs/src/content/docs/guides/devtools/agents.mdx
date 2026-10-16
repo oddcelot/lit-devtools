@@ -34,7 +34,7 @@ The command needs two optional peers, `cac` and `@devframes/agentic`. See the
 [CLI reference](/vite-plugin-lit/reference/cli/) for the message it prints when
 one is missing.
 
-## The ten tools
+## The eleven tools
 
 | Tool                        | Answers                                                                                                                                                                                                                                                          |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -47,15 +47,26 @@ one is missing.
 | `lit_range-summary`         | What happened between two instants: spans per layer and which components updated, for a `start` and `end` taken from `lit_recent-events` times.                                                                                                                  |
 | `lit_hmr-history`           | Recent hot patches that landed (instances, duration, child-state mode) and ones that could not, oldest first, up to 50 of each.                                                                                                                                  |
 | `lit_hmr-incompatibilities` | Components the plugin could not hot-patch in place, and why.                                                                                                                                                                                                     |
-| `lit_set-recording`         | Starts or stops timeline recording. The only tool that changes state.                                                                                                                                                                                            |
+| `lit_set-recording`         | Starts or stops timeline recording.                                                                                                                                                                                                                              |
+| `lit_set-prop`              | Sets a reactive property, or one field inside the object it holds, on a live element, and answers with its details after the write.                                                                                                                              |
 
-Nine of the ten only read. `lit_set-recording` exists because
+Nine of the eleven only read. `lit_set-recording` exists because
 `lit_recent-events` is a dead end while recording is off, and an agent that can
 read the timeline but not start it just hands the question back to you.
 Recording is a shared toggle, so an agent turning it on also changes what you
-see in an open panel. The layer toggles and the element picker stay panel-only.
+see in an open panel.
 
-All ten answer only while a dev server with DevTools is running. Nothing is
+`lit_set-prop` lets an agent try a value and watch how a component reacts,
+without asking you to type it into the panel. It writes the same way the
+panel's property editor does: only a property or field the details mark
+editable, only with a string, number or boolean of that type, and kept as an
+override on top of what your app sets. So an agent's edit shows up in the
+panel's overrides bar, where you can switch it off or clear it, and a reload
+drops it. It does change the page you are looking at, so the tool tells the
+agent to say what it set. The layer toggles and the element picker stay
+panel-only.
+
+All eleven answer only while a dev server with DevTools is running. Nothing is
 stored, so with the server down an agent gets a connection error rather than an
 empty answer.
 
@@ -72,7 +83,7 @@ bracket a click and the update it caused with times it already saw. It does not
 read the range you selected in the panel, because that selection lives in the
 browser; a link or a pasted range has to carry the numbers.
 
-Two prompts that work:
+Prompts that work:
 
 - "Record ten seconds of the running app while I click the filter bar, then
   tell me which component updated most and which properties caused it."
@@ -80,6 +91,8 @@ Two prompts that work:
   without a reload? Check `lit_hmr-history`."
 - "The page reloads whenever I edit `src/app-shell.ts`. Check
   `lit_hmr-incompatibilities` and tell me which shape is to blame."
+- "Set `filter` on the `todo-list` to `done` and tell me whether the empty
+  state shows when nothing is done."
 
 ## Discovery or a fixed URL
 
