@@ -15,6 +15,7 @@ import {
   ANATOMY_COLORS,
   type AnatomyElementRef,
   type AnatomyFocus,
+  type BreakTarget,
   type ElementSource,
   type InspectorAnatomy,
   type InspectorDetails,
@@ -48,6 +49,7 @@ import {LocationController} from './location-controller.js';
 import {PanelLocation} from './panel-location.js';
 import {openInEditor} from './open-in-editor.js';
 import {elementRevealer} from './element-revealer.js';
+import {breakKey, breakpoints} from './breakpoints.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {overrides} from './settings-override.js';
@@ -949,6 +951,38 @@ export class ComponentsView extends LitElement {
       .warning .text {
         overflow-wrap: anywhere;
       }
+      .break {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--lit-devtools-space-1);
+        padding: 0 var(--lit-devtools-space-1);
+        font: inherit;
+        color: var(--lit-devtools-text-muted);
+        background: none;
+        border: 1px solid transparent;
+        border-radius: var(--lit-devtools-radius-sm);
+        cursor: pointer;
+      }
+      .break:hover {
+        color: var(--lit-devtools-text);
+      }
+      .break[aria-pressed='true'] {
+        color: var(--lit-devtools-error);
+        border-color: currentColor;
+      }
+      /* A row's toggle shows on hover, and stays while armed. */
+      .entry .break.icon {
+        visibility: hidden;
+      }
+      .entry:hover .break.icon,
+      .entry .break.icon:focus-visible,
+      .entry .break.icon[aria-pressed='true'] {
+        visibility: visible;
+      }
+      .break-on {
+        display: flex;
+        gap: var(--lit-devtools-space-2);
+      }
       .meta {
         display: grid;
         grid-template-columns: subgrid;
@@ -1554,6 +1588,12 @@ export class ComponentsView extends LitElement {
   private _unsubscribeSession: (() => void) | null = null;
   private _unsubscribeTimeline: (() => void) | null = null;
   /**
+   * Breakpoints armed on the selected element, by {@link breakKey}. Cleared,
+   * in the page too, when the selection moves: a breakpoint left on an
+   * element the panel no longer shows would pause with nothing to say why.
+   */
+  @state() private _breaks: ReadonlySet<string> = new Set();
+  /**
    * Per element id, what the recording shows it doing (double renders,
    * dispatched events), for the Warnings and Dispatched sections. Derived on
    * demand and kept for the buffer it came from: the view stays mounted
@@ -1625,6 +1665,78 @@ export class ComponentsView extends LitElement {
     this._unsubscribeTimeline = null;
     this._session.dispose();
     this._syncAnatomy(null, null);
+    this._clearBreaks();
+  }
+
+  private _clearBreaks(): void {
+    if (this._breaks.size === 0) return;
+    this._breaks = new Set();
+    void breakpoints()?.clear();
+  }
+
+  /** Arm or disarm `target` on the shown element; kept off if the page refused. */
+  private async _toggleBreak(target: BreakTarget): Promise<void> {
+    const bp = breakpoints();
+    const id = this._shownDetails?.id;
+    if (bp === undefined || id === undefined) return;
+    const key = breakKey(target);
+    const on = !this._breaks.has(key);
+    const armed = await bp.set(id, target, on);
+    // The selection may have moved while the page answered.
+    if (this._shownDetails?.id !== id) return;
+    const next = new Set(this._breaks);
+    if (on && armed) next.add(key);
+    else next.delete(key);
+    this._breaks = next;
+  }
+
+  /** A toggle that pauses on `target`, with `label` as its text or tip. */
+  private _renderBreak(
+    target: BreakTarget,
+    tip: string,
+    label?: string
+  ): TemplateResult {
+    const on = this._breaks.has(breakKey(target));
+    return html`<button
+      class="break ${label === undefined ? 'icon' : ''}"
+      aria-pressed=${on ? 'true' : 'false'}
+      aria-label=${label === undefined ? tip : nothing}
+      data-tip=${tip}
+      @click=${(e: Event) => {
+        e.stopPropagation();
+        void this._toggleBreak(target);
+      }}
+    >
+      <wa-icon name="pause-circle"></wa-icon>${label ?? nothing}
+    </button>`;
+  }
+
+  /** The "break on" line: pause in `update()` or `render()`, where the host can. */
+  private _renderBreakOn(d: InspectorDetails): TemplateResult | typeof nothing {
+    if (breakpoints() === undefined || this._snapshot || hasNoLitState(d))
+      return nothing;
+    return html`<dt>break on</dt>
+      <dd class="break-on">
+        ${this._renderBreak(
+          {kind: 'method', name: 'update'},
+          'Pause in the debugger when this element enters update()',
+          'update'
+        )}
+        ${this._renderBreak(
+          {kind: 'method', name: 'render'},
+          'Pause in the debugger when this element enters render()',
+          'render'
+        )}
+      </dd>`;
+  }
+
+  /** A property row's breakpoint, where the host can set one. */
+  private _renderPropBreak(p: InspectorProp): TemplateResult | typeof nothing {
+    if (breakpoints() === undefined || this._snapshot) return nothing;
+    return this._renderBreak(
+      {kind: 'prop', name: p.name},
+      `Pause in the debugger when ${p.name} changes`
+    );
   }
 
   protected override willUpdate(): void {
@@ -1634,6 +1746,7 @@ export class ComponentsView extends LitElement {
     if (d?.id !== this._shownDetails?.id) {
       this._editing = null;
       this._hoveredRegion = null;
+      this._clearBreaks();
     }
     // Only a refresh of the same element can change a row; a new selection
     // or the first snapshot flashes nothing. A changed row also re-asks for
@@ -2581,7 +2694,7 @@ export class ComponentsView extends LitElement {
       p.value,
       {
         rowClass: p.override === undefined ? '' : 'overridden',
-        trailing: html`${this._renderShadowed({...p, keys: []})}${
+        trailing: html`${this._renderPropBreak(p)}${this._renderShadowed({...p, keys: []})}${
           p.reflects
             ? html`<wa-badge
                 class="badge"
@@ -3524,6 +3637,7 @@ export class ComponentsView extends LitElement {
             : html`<dt>root</dt>
                 <dd class="root">${rootLabel}</dd>`
         }
+        ${this._renderBreakOn(d)}
       </dl>
       ${noStateNote(d)}
       <wa-input

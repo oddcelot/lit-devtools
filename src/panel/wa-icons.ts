@@ -43,6 +43,7 @@ import gear from '@phosphor-icons/core/assets/regular/gear.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
 import magnifyingGlass from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw';
 import pencilSimple from '@phosphor-icons/core/assets/regular/pencil-simple.svg?raw';
+import pauseCircle from '@phosphor-icons/core/assets/regular/pause-circle.svg?raw';
 import packageIcon from '@phosphor-icons/core/assets/regular/package.svg?raw';
 import notification from '@phosphor-icons/core/assets/regular/notification.svg?raw';
 import pushPin from '@phosphor-icons/core/assets/regular/push-pin.svg?raw';
@@ -80,6 +81,7 @@ const ICONS = {
   'magnifying-glass': magnifyingGlass,
   notification,
   package: packageIcon,
+  'pause-circle': pauseCircle,
   'pencil-simple': pencilSimple,
   'push-pin': pushPin,
   record,
