@@ -1858,6 +1858,30 @@ test('marks an element that was never upgraded, in its row and details', async (
   );
 });
 
+test('marks server-rendered elements by where hydration stands', async () => {
+  const {el, root, rows} = await mount(true, [
+    {id: 1, tagName: 'x-app', ssr: 'deferred', children: []},
+    {id: 2, tagName: 'x-button', ssr: 'hydrated', children: []},
+  ]);
+  expect(
+    rows().map((r) => r.querySelector('.status.ssr')?.textContent)
+  ).toEqual(['deferred', 'SSR']);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      ssr: 'pending',
+      flags: {hasUpdated: false, isUpdatePending: false, hasShadowRoot: true},
+    },
+  });
+  await flush(el);
+  const head = root.querySelector('.details .head')!;
+  expect(head.querySelector('.status.ssr')?.textContent).toBe('not hydrated');
+  // The server rendered it; "not rendered" would be wrong.
+  expect(head.textContent).not.toContain('not rendered');
+});
+
 test('marks a tag nothing defines in its row', async () => {
   const {rows} = await mount(false, [
     {id: 1, tagName: 'x-app', children: []},

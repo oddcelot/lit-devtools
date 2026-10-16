@@ -56,6 +56,13 @@ tree shows what really wraps your components. Selecting it shows its
 attributes and slots and a short note; it has no properties or updates because
 Lit doesn't render it. Plain HTML elements are still left out.
 
+A component Lit rendered on the server carries a chip that says where its
+hydration stands: an amber `deferred` while `defer-hydration` holds it back,
+`not hydrated` until its first update hydrates it, and a muted `SSR` once it
+has. The tree reads the state when it refreshes, so a row can lag behind the
+details pane, which follows the element. The same state is the `ssr` field
+that `lit_list-components` and `lit_component-details` return to agents.
+
 An element whose tag is defined but that never became an instance of its class
 gets an amber `not upgraded` chip instead. That happens when the class's
 constructor threw while the browser upgraded the element, so check the console

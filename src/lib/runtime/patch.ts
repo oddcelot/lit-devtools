@@ -20,6 +20,7 @@ import {
   type ChildStateMode,
 } from './child-state.js';
 import {subscribeOverrideKeys} from './overrides.js';
+import {hasServerRender} from './server-render.js';
 import {pageChannel} from './page-channel.js';
 import {PAGE_ID} from './page-id.js';
 import type {PageTransport, ViteHotLike} from './page-channel.js';
@@ -530,16 +531,6 @@ const restoreValues = (
       (el as unknown as Record<PropertyKey, unknown>)[key] = values.get(key);
     }
   }
-};
-
-/** Whether `root` holds HTML Lit rendered on the server (its part markers). */
-const hasServerRender = (root: ShadowRoot): boolean => {
-  // 8 is Node.COMMENT_NODE; `Node` itself is not there in every runtime.
-  for (const node of root.childNodes) {
-    if (node.nodeType === 8 && (node as Comment).data.startsWith('lit-part'))
-      return true;
-  }
-  return false;
 };
 
 /**

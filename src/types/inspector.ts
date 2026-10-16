@@ -76,6 +76,12 @@ export interface InspectorTreeNode {
    */
   notUpgraded?: true;
   /**
+   * Set for an element Lit rendered on the server: `deferred` while
+   * `defer-hydration` holds it back, `pending` until its first update
+   * hydrates it, `hydrated` after. Absent for one the browser rendered.
+   */
+  ssr?: 'deferred' | 'pending' | 'hydrated';
+  /**
    * How many distinct Lit dev-mode warnings name this component. Lit issues
    * each once per page, so this is per tag/class, not per instance. Absent
    * when there are none.
@@ -422,6 +428,8 @@ export interface InspectorDetails {
   notLit?: true;
   /** As {@link InspectorTreeNode.notUpgraded}. */
   notUpgraded?: true;
+  /** As {@link InspectorTreeNode.ssr}. */
+  ssr?: 'deferred' | 'pending' | 'hydrated';
   attributes: Array<{name: string; value: string}>;
   properties: InspectorProp[];
   flags: {
