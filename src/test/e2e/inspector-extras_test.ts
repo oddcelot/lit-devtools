@@ -9,6 +9,7 @@ import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {
   INSPECT_CMD_CHANNEL,
   INSPECT_DATA_CHANNEL,
+  LIT_ID_OF_KEY,
   type InspectorDetails,
   type InspectorMessage,
   type InspectorTreeNode,
@@ -112,6 +113,53 @@ test('links a real @consume to its @provide and follows the value live', async (
   await expect
     .poll(() => contextOf('hmr-ctx-consumer')?.value, {timeout: 10_000})
     .not.toBe(before);
+});
+
+test('links a slotted consumer to the provider around its slot', async () => {
+  // The consumer's request travels the composed path: into the slot it is
+  // assigned to, so the provider wrapping that slot in the shadow tree
+  // answers it, not the one around the host.
+  await fixture.page.evaluate(`(() => {
+    customElements.define('x-slot-wrap', class extends HTMLElement {
+      constructor() {
+        super();
+        this.attachShadow({mode: 'open'}).innerHTML =
+          '<hmr-ctx-provider id="inner"><slot></slot></hmr-ctx-provider>';
+      }
+    });
+    const outer = document.createElement('hmr-ctx-provider');
+    outer.id = 'outer';
+    const wrap = document.createElement('x-slot-wrap');
+    outer.append(wrap);
+    document.body.append(outer);
+    const consumer = document.createElement('hmr-ctx-consumer');
+    consumer.id = 'slotted';
+    wrap.append(consumer);
+  })()`);
+  const idOf = (selector: string) =>
+    fixture.page.evaluate(
+      `globalThis[Symbol.for(${JSON.stringify(LIT_ID_OF_KEY.description)})](${selector})`
+    ) as Promise<number>;
+  const consumer = await idOf(`document.getElementById('slotted')`);
+  const inner = await idOf(
+    `document.querySelector('x-slot-wrap').shadowRoot.getElementById('inner')`
+  );
+  await expect
+    .poll(
+      () => {
+        fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
+          type: 'details',
+          id: consumer,
+        });
+        return details
+          .filter((d) => d.id === consumer)
+          .at(-1)
+          ?.extras?.find((e) => e.kind === 'context')?.context?.provider;
+      },
+      {timeout: 10_000}
+    )
+    .toEqual({tagName: 'hmr-ctx-provider', id: inner});
+  await fixture.page.evaluate(`document.getElementById('outer').remove()`);
 });
 
 test('set-prop writes a primitive to the live element and answers with it', async () => {
