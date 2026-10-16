@@ -8,6 +8,7 @@ import {
 } from '../../lib/runtime/inspector/collect.js';
 import {
   isForeignElement,
+  isUnupgradedElement,
   isInspectable,
   isUndefinedElement,
 } from '../../lib/runtime/inspector/listed.js';
@@ -286,6 +287,76 @@ describe('custom elements other libraries define', () => {
       properties: [],
     });
     expect(d.notDefined).toBeUndefined();
+  });
+});
+
+describe('declaring classes', () => {
+  const declared = (el: Element) =>
+    Object.fromEntries(
+      collectDetails(el).properties.map((p) => [p.name, p.declaredBy])
+    );
+
+  test('names the class that declared each property, own class first', () => {
+    class Base extends LitElement {
+      static override properties: PropertyDeclarations = {base: {}, shared: {}};
+    }
+    // What a mixin returns: an anonymous class over its argument.
+    const Mixin = (superClass: typeof Base): typeof Base =>
+      class extends superClass {
+        static override properties: PropertyDeclarations = {mixed: {}};
+      };
+    class Own extends Mixin(Base) {
+      static override properties: PropertyDeclarations = {
+        own: {},
+        shared: {type: Number},
+      };
+    }
+    const tag = uniqueTag('own-el');
+    customElements.define(tag, Own);
+    expect(declared(document.createElement(tag))).toEqual({
+      base: {name: 'Base', depth: 2},
+      shared: {name: 'Own', depth: 0},
+      mixed: {name: '(anonymous class)', depth: 1},
+      own: {name: 'Own', depth: 0},
+    });
+  });
+
+  test('says nothing when one class declared everything', () => {
+    class Flat extends LitElement {
+      static override properties = {a: {}, b: {}};
+    }
+    const tag = uniqueTag('flat-el');
+    customElements.define(tag, Flat);
+    expect(declared(document.createElement(tag))).toEqual({
+      a: undefined,
+      b: undefined,
+    });
+  });
+});
+
+describe('elements that were never upgraded', () => {
+  test('one created before its tag was defined is flagged, not called foreign', () => {
+    // Not connected since, so nothing upgraded it.
+    const tag = uniqueTag('late-el');
+    const el = document.createElement(tag);
+    customElements.define(tag, class extends LitElement {});
+    expect(isUnupgradedElement(el)).toBe(true);
+    expect(isForeignElement(el)).toBe(false);
+    expect(collectDetails(el)).toMatchObject({
+      notUpgraded: true,
+      properties: [],
+    });
+    expect(collectDetails(el).notLit).toBeUndefined();
+  });
+
+  test('defined and upgraded elements are not flagged', () => {
+    expect(isUnupgradedElement(document.createElement(define()))).toBe(false);
+    expect(isUnupgradedElement(document.createElement(defineForeign()))).toBe(
+      false
+    );
+    expect(isUnupgradedElement(document.createElement('never-defined'))).toBe(
+      false
+    );
   });
 });
 

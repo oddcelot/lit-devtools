@@ -190,6 +190,80 @@ const notLitChip = html`<span
   >not Lit</span
 >`;
 
+const notUpgradedChip = html`<span
+  class="status not-upgraded"
+  data-tip="The tag is defined, but this element never became an instance of its class"
+  >not upgraded</span
+>`;
+
+/** The chip saying a defined tag gave this element no Lit state, if one does. */
+const definedAsChip = (n: {
+  notLit?: true;
+  notUpgraded?: true;
+}): TemplateResult | typeof nothing => {
+  if (n.notLit === true) return notLitChip;
+  if (n.notUpgraded === true) return notUpgradedChip;
+  return nothing;
+};
+
+/** An element the page gave no Lit state: nothing to update or render. */
+const hasNoLitState = (d: InspectorDetails): boolean =>
+  d.notDefined === true || d.notLit === true || d.notUpgraded === true;
+
+/** Why the details pane has no reactive state to show, when it has none. */
+const noStateNote = (d: InspectorDetails): TemplateResult | typeof nothing => {
+  if (d.notDefined === true) {
+    return html`<p class="not-defined-note">
+      Nothing has called
+      <code>customElements.define('${d.tagName}')</code>, so the browser treats
+      this as an unknown element. Check that the component's module is imported
+      and the tag is spelled the same in both places.
+    </p>`;
+  }
+  if (d.notLit === true) {
+    return html`<p class="not-defined-note">
+      Defined, but not as a Lit component, so there are no reactive properties
+      or updates to show. Attributes and slots are read from the page.
+    </p>`;
+  }
+  if (d.notUpgraded === true) {
+    return html`<p class="not-defined-note">
+      <code>${d.tagName}</code> is defined, but this element was never upgraded
+      to its class, so it has no state yet. Its constructor may have thrown
+      (check the console), or it was created before the tag was defined and not
+      connected since.
+    </p>`;
+  }
+  return nothing;
+};
+
+/**
+ * `props` split by the class that declared them, the element's own class
+ * first, in table order within each. One group with no class named when the
+ * runtime named none (one class declared everything, or an older runtime).
+ */
+const byDeclaringClass = (
+  props: readonly InspectorProp[]
+): Array<{
+  declaredBy?: InspectorProp['declaredBy'];
+  props: InspectorProp[];
+}> => {
+  const groups = new Map<
+    number,
+    {declaredBy?: InspectorProp['declaredBy']; props: InspectorProp[]}
+  >();
+  for (const p of props) {
+    const depth = p.declaredBy?.depth ?? 0;
+    let group = groups.get(depth);
+    if (group === undefined) {
+      group = {...(p.declaredBy ? {declaredBy: p.declaredBy} : {}), props: []};
+      groups.set(depth, group);
+    }
+    group.props.push(p);
+  }
+  return [...groups].sort(([a], [b]) => a - b).map(([, group]) => group);
+};
+
 /** Ids of every node in the tree with this tag, in tree order. */
 const idsWithTag = (
   roots: readonly InspectorTreeNode[],
@@ -736,7 +810,8 @@ export class ComponentsView extends LitElement {
       }
       .status.pending,
       .status.warned,
-      .status.undefined {
+      .status.undefined,
+      .status.not-upgraded {
         color: var(--lit-devtools-warning);
       }
       .status.not-lit {
@@ -744,6 +819,7 @@ export class ComponentsView extends LitElement {
       }
       .row .status.undefined,
       .row .status.not-lit,
+      .row .status.not-upgraded,
       .row .status.warned {
         margin-left: var(--lit-devtools-space-3);
       }
@@ -979,6 +1055,16 @@ export class ComponentsView extends LitElement {
       .no-match {
         margin-top: var(--lit-devtools-space-5);
         color: var(--lit-devtools-text-muted);
+      }
+      .class-group {
+        grid-column: 1 / -1;
+        padding: var(--lit-devtools-space-2) 0 2px;
+        color: var(--lit-devtools-text-muted);
+        font-family: var(--lit-devtools-font-sans);
+        font-size: var(--lit-devtools-text-2xs);
+      }
+      .class-group:first-child {
+        padding-top: 0;
       }
       .kv {
         display: grid;
@@ -1963,8 +2049,7 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${node.notLit === true ? notLitChip : nothing}
-        ${warnedChip(node.warnings)}
+        ${definedAsChip(node)} ${warnedChip(node.warnings)}
       </div>
       ${
         hasChildren && expanded
@@ -2463,46 +2548,65 @@ export class ComponentsView extends LitElement {
   ): TemplateResult {
     return html`
       <div class="kv">
-        ${props.map((p) =>
-          this._renderEntry(
-            html`${this._renderOverrideToggle({...p, keys: []})}${this._describedName(
-              p.name,
-              documented
-            )}${typeLabel(p.type, p.value)}`,
-            p.value,
-            {
-              rowClass: p.override === undefined ? '' : 'overridden',
-              trailing: html`${this._renderShadowed({...p, keys: []})}${
-                p.reflects
-                  ? html`<wa-badge
-                      class="badge"
-                      variant="neutral"
-                      appearance="outlined"
-                      data-tip="Reflects to an attribute"
-                      >${
-                        typeof p.attribute === 'string' ? p.attribute : 'attr'
-                      }</wa-badge
-                    >`
-                  : nothing
-              }${propOptionBadges(p)}`,
-              code: true,
-              key: propKey(p.name),
-              copy: p.value,
-              store: {section: 'prop', name: p.name, keys: []},
-              edit: editOf(p, this._snapshot),
-              ...(p.expandable === true
-                ? {
-                    expand: {
-                      path: {section: 'prop', name: p.name, keys: []},
-                      type: p.type,
-                    },
-                  }
-                : {}),
-            }
-          )
+        ${byDeclaringClass(props).map(
+          (group) =>
+            html`${
+              group.declaredBy === undefined
+                ? nothing
+                : html`<div
+                    class="class-group"
+                    data-tip=${
+                      group.declaredBy.depth === 0
+                        ? "Declared by the element's own class"
+                        : `Inherited: declared ${group.declaredBy.depth === 1 ? 'one class' : `${group.declaredBy.depth} classes`} up`
+                    }
+                  >
+                    ${group.declaredBy.name}
+                  </div>`
+            }${group.props.map((p) => this._renderPropEntry(p, documented))}`
         )}
       </div>
     `;
+  }
+
+  private _renderPropEntry(
+    p: InspectorDetails['properties'][number],
+    documented: readonly DocEntry[]
+  ): TemplateResult {
+    return this._renderEntry(
+      html`${this._renderOverrideToggle({...p, keys: []})}${this._describedName(
+        p.name,
+        documented
+      )}${typeLabel(p.type, p.value)}`,
+      p.value,
+      {
+        rowClass: p.override === undefined ? '' : 'overridden',
+        trailing: html`${this._renderShadowed({...p, keys: []})}${
+          p.reflects
+            ? html`<wa-badge
+                class="badge"
+                variant="neutral"
+                appearance="outlined"
+                data-tip="Reflects to an attribute"
+                >${typeof p.attribute === 'string' ? p.attribute : 'attr'}</wa-badge
+              >`
+            : nothing
+        }${propOptionBadges(p)}`,
+        code: true,
+        key: propKey(p.name),
+        copy: p.value,
+        store: {section: 'prop', name: p.name, keys: []},
+        edit: editOf(p, this._snapshot),
+        ...(p.expandable === true
+          ? {
+              expand: {
+                path: {section: 'prop', name: p.name, keys: []},
+                type: p.type,
+              },
+            }
+          : {}),
+      }
+    );
   }
 
   /**
@@ -3257,7 +3361,7 @@ export class ComponentsView extends LitElement {
     const revealer = elementRevealer();
     return html`
       ${
-        d.notLit === true || d.notDefined === true
+        hasNoLitState(d)
           ? nothing
           : html`<wa-button
               class="reveal"
@@ -3375,9 +3479,9 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${d.notLit === true ? notLitChip : nothing} ${deprecatedChip(docs.docs)}
+        ${definedAsChip(d)} ${deprecatedChip(docs.docs)}
         ${
-          d.flags.hasUpdated || d.notDefined === true || d.notLit === true
+          d.flags.hasUpdated || hasNoLitState(d)
             ? nothing
             : html`<span
                 class="status"
@@ -3421,25 +3525,7 @@ export class ComponentsView extends LitElement {
                 <dd class="root">${rootLabel}</dd>`
         }
       </dl>
-      ${
-        d.notDefined === true
-          ? html`<p class="not-defined-note">
-              Nothing has called
-              <code>customElements.define('${d.tagName}')</code>, so the browser
-              treats this as an unknown element. Check that the component's
-              module is imported and the tag is spelled the same in both places.
-            </p>`
-          : nothing
-      }
-      ${
-        d.notLit === true
-          ? html`<p class="not-defined-note">
-              Defined, but not as a Lit component, so there are no reactive
-              properties or updates to show. Attributes and slots are read from
-              the page.
-            </p>`
-          : nothing
-      }
+      ${noStateNote(d)}
       <wa-input
         class="filter"
         size="small"

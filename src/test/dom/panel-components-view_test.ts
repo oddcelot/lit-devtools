@@ -446,6 +446,68 @@ test('badges the options a property sets beyond the defaults', async () => {
   ]);
 });
 
+test('groups properties by the class that declared them, own first', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  const prop = (name: string, by?: string, depth = 0) => ({
+    name,
+    value: '1',
+    type: 'number',
+    attribute: name,
+    reflects: false,
+    state: false,
+    ...(by === undefined ? {} : {declaredBy: {name: by, depth}}),
+  });
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      properties: [
+        prop('size', 'BaseButton', 1),
+        prop('label', 'XButton'),
+        prop('variant', 'BaseButton', 1),
+      ],
+    },
+  });
+  await flush(el);
+  const kv = root.querySelector('[data-section="Properties"] .kv')!;
+  const lines = [...kv.children].map((c) =>
+    c.classList.contains('class-group')
+      ? `# ${c.textContent!.trim()}`
+      : c.querySelector('.name')!.textContent!.trim()
+  );
+  expect(lines).toEqual([
+    '# XButton',
+    'label',
+    '# BaseButton',
+    'size',
+    'variant',
+  ]);
+});
+
+test('shows no class headings when the runtime named no classes', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      properties: [
+        {
+          name: 'label',
+          value: '""',
+          type: 'string',
+          attribute: 'label',
+          reflects: false,
+          state: false,
+        },
+      ],
+    },
+  });
+  await flush(el);
+  expect(root.querySelector('.class-group')).toBeNull();
+});
+
 const withAttributes = () => ({
   ...detailsFor([{kind: 'signal', name: 'count', value: '7', type: 'Signal'}]),
   attributes: [
@@ -1673,6 +1735,27 @@ test('shows no warning badge or section without warnings', async () => {
   await flush(el);
   expect(root.querySelector('.details .status.warned')).toBeNull();
   expect(sections(root)).toEqual([]);
+});
+
+test('marks an element that was never upgraded, in its row and details', async () => {
+  const {el, root, rows} = await mount(true, [
+    {id: 2, tagName: 'x-button', notUpgraded: true, children: []},
+  ]);
+  expect(rows()[0]!.querySelector('.status.not-upgraded')?.textContent).toBe(
+    'not upgraded'
+  );
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), notUpgraded: true},
+  });
+  await flush(el);
+  const head = root.querySelector('.details .head')!;
+  expect(head.querySelector('.status.not-upgraded')).not.toBeNull();
+  expect(head.querySelector('[data-action="request-update"]')).toBeNull();
+  expect(root.querySelector('.not-defined-note')?.textContent).toContain(
+    'never upgraded'
+  );
 });
 
 test('marks a tag nothing defines in its row', async () => {

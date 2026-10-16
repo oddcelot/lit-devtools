@@ -42,12 +42,29 @@ export const isUndefinedElement = (el: Element): boolean => {
  * component, so it has no reactive state to read. Listed so the tree shows
  * the whole component structure, not only Lit's part of it.
  */
-export const isForeignElement = (el: Element): boolean =>
-  isCustomTag(el.localName) &&
-  !isInspectable(el) &&
+export const isForeignElement = (el: Element): boolean => {
+  if (!isCustomTag(el.localName) || isInspectable(el)) return false;
   // As in isUndefinedElement: the global registry first, the selector for
-  // elements defined in another registry.
-  (customElements.get(el.localName) !== undefined || el.matches(':defined'));
+  // elements defined in another registry. A registered tag counts only once
+  // the element is an instance of its class; see isUnupgradedElement.
+  const registered = customElements.get(el.localName);
+  return registered !== undefined
+    ? el instanceof registered
+    : el.matches(':defined');
+};
+
+/**
+ * A custom element whose tag is defined but which never became an instance
+ * of its class: its constructor threw during the upgrade, or it was created
+ * before the define and not connected since (or in a `<template>`, which
+ * never upgrades). It is no Lit component yet, whatever its class is, so it
+ * has no state to read.
+ */
+export const isUnupgradedElement = (el: Element): boolean => {
+  if (!isCustomTag(el.localName) || isInspectable(el)) return false;
+  const registered = customElements.get(el.localName);
+  return registered !== undefined && !(el instanceof registered);
+};
 
 /**
  * An element the component tree has a row for: a Lit component, a tag nothing
@@ -56,4 +73,7 @@ export const isForeignElement = (el: Element): boolean =>
  * it never names an element the tree has flattened away.
  */
 export const isListed = (el: Element): boolean =>
-  isInspectable(el) || isUndefinedElement(el) || isForeignElement(el);
+  isInspectable(el) ||
+  isUndefinedElement(el) ||
+  isForeignElement(el) ||
+  isUnupgradedElement(el);

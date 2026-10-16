@@ -56,6 +56,11 @@ tree shows what really wraps your components. Selecting it shows its
 attributes and slots and a short note; it has no properties or updates because
 Lit doesn't render it. Plain HTML elements are still left out.
 
+An element whose tag is defined but that never became an instance of its class
+gets an amber `not upgraded` chip instead. That happens when the class's
+constructor threw while the browser upgraded the element, so check the console
+for the error. Like a tag nothing defined, it has no properties to show.
+
 A component Lit's development build has warned about carries an amber
 `n warnings` chip on its row, and the **Components** tab shows an amber count
 of the components Lit warned about, next to the red HMR issues count. Every
@@ -85,6 +90,12 @@ option: `hasChanged` and `converter` for a custom function, `noAccessor`,
 none. The badges only say an option is set; no custom function is called.
 **State** lists internal `@state`. **Attributes** lists the attributes the
 element currently carries, as quoted strings.
+
+When the properties come from more than one class, Properties and State group
+them under the name of the class that declared each one: the element's own
+class first, then each base class and mixin up the chain. A property a subclass
+redeclares sits with the subclass. A mixin's class is often anonymous and reads
+`(anonymous class)`.
 
 Values are coloured like code: keys, strings, numbers, keywords and class
 names each take their own colour. A value too long for its row moves to its

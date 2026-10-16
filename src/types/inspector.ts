@@ -70,6 +70,12 @@ export interface InspectorTreeNode {
    */
   notLit?: true;
   /**
+   * Set when the tag is defined but this element was never upgraded to its
+   * class: the constructor threw, or it was created before the define and
+   * not connected since. It has no Lit state.
+   */
+  notUpgraded?: true;
+  /**
    * How many distinct Lit dev-mode warnings name this component. Lit issues
    * each once per page, so this is per tag/class, not per instance. Absent
    * when there are none.
@@ -125,6 +131,13 @@ export interface InspectorProp {
    * overrides apply, else the element's intrinsic value.
    */
   override?: InspectorPropOverride;
+  /**
+   * The class that declared the property: its `name` and how many classes
+   * up from the element's own it sits (0 for the element's own class).
+   * Present on every property, or on none when one class declared them all,
+   * and absent from an older runtime.
+   */
+  declaredBy?: {name: string; depth: number};
 }
 
 /**
@@ -407,6 +420,8 @@ export interface InspectorDetails {
   notDefined?: true;
   /** As {@link InspectorTreeNode.notLit}. */
   notLit?: true;
+  /** As {@link InspectorTreeNode.notUpgraded}. */
+  notUpgraded?: true;
   attributes: Array<{name: string; value: string}>;
   properties: InspectorProp[];
   flags: {
