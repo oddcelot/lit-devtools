@@ -128,6 +128,21 @@
       "optional": true
     }
   },
+  "compatiblePackages": {
+    "schemaVersion": 1,
+    "vite": {
+      "type": "compatible",
+      "versions": "^7.0.0 || ^8.0.0"
+    },
+    "rollup": {
+      "type": "incompatible",
+      "reason": "Needs the Vite dev server and its HMR API."
+    },
+    "rolldown": {
+      "type": "incompatible",
+      "reason": "Needs the Vite dev server and its HMR API."
+    }
+  },
   "devDependencies": {
     "@awesome.me/webawesome": "^3.14.0",
     "@devframes/agentic": "1.1.0",
