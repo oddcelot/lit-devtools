@@ -1,0 +1,90 @@
+---
+title: Render Lit on the server
+description: 'Use the plugin with @lit-labs/ssr in a Vite dev server: hot patches on hydrated components, sheet modules on the server, and hydration state in the DevTools.'
+sidebar:
+  order: 10
+  label: Server-side rendering
+---
+
+import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
+import server from '../../../../../examples/ssr/server.mjs?raw';
+import entryServer from '../../../../../examples/ssr/src/entry-server.ts?raw';
+import entryClient from '../../../../../examples/ssr/src/entry-client.ts?raw';
+import {stripHeader} from '../../../lib/fixture';
+
+With [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), a Vite dev server
+can render Lit components to HTML with declarative shadow roots, and the
+browser hydrates them in place. The plugin runs on both halves: it hot-patches
+the hydrated components, keeps the server's next render in step with your
+edits, and lets sheet modules render on the server. The
+[SSR example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/ssr)
+is a complete setup.
+
+## Set it up
+
+Run Vite in middleware mode behind your own HTTP server, and render each page
+through Vite's SSR module graph, so an edit reaches the next render without a
+restart.
+
+<Code code={stripHeader(server)} lang="js" title="server.mjs" />
+
+The server entry renders the page. Import the components there too, so the
+server knows them.
+
+<Code code={stripHeader(entryServer)} lang="ts" title="src/entry-server.ts" />
+
+The client entry loads Lit's hydrate support before anything imports Lit, then
+the components.
+
+<Code code={stripHeader(entryClient)} lang="ts" title="src/entry-client.ts" />
+
+<Aside type="caution" title="Pass your host to Vite">
+  In middleware mode the DevTools dock opens a socket of its own on
+  `server.host`. Give Vite the host your server listens on, as `server.mjs`
+  does, or the dock may not connect. See [the dock does not connect when Vite
+  runs in middleware
+  mode](/vite-plugin-lit/guides/troubleshooting/#the-dock-does-not-connect-when-vite-runs-in-middleware-mode).
+</Aside>
+
+## What works
+
+- **Hot patches on hydrated components.** An edit patches a hydrated component
+  in place, keeping its state and its element, as on a page the browser
+  rendered.
+- **The next server render.** Vite re-runs the edited module for the next
+  render, which defines the element again. The plugin lets the server's
+  registry take the new class, so a reload shows the edit instead of failing
+  because the tag is already defined.
+- **`defer-hydration`.** An element held back by `defer-hydration` that you
+  edit before it wakes keeps the server's HTML on screen, then renders the
+  edited template when the attribute goes.
+- **Sheet modules.** A `?css-sheet` import no longer throws in Node. Its css is
+  written into the component's declarative shadow root, so the page arrives
+  styled, and once the component hydrates it adopts the real sheet, so css
+  edits hot-swap it. See
+  [Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/#choose-the-build-output).
+- **Hydration state in the DevTools.** The Components tab marks a
+  server-rendered component _deferred_, _not hydrated_ or _SSR_ (hydrated).
+
+## Limits
+
+The plugin leaves the server's own modules untransformed: no HMR wrappers, no
+source stamps and no timeline events on the server. Lit's hydration expects the
+client's template to match the server's HTML. A page loaded in the instant
+between an edit reaching the server and reaching the browser can fail to
+hydrate and render twice; reload it.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="How HMR works"
+    description="What a hot patch replaces, and what it keeps."
+    href="/vite-plugin-lit/concepts/how-hmr-works/"
+  />
+  <LinkCard
+    title="Inspect live components"
+    description="The Components tab, where hydration state shows."
+    href="/vite-plugin-lit/guides/devtools/components/"
+  />
+</CardGrid>
