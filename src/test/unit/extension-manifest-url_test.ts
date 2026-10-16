@@ -1,9 +1,13 @@
 import {describe, expect, test} from 'vite-plus/test';
 import {
+  MANIFEST_IGNORED_KEY,
   MANIFEST_URLS_KEY,
+  addManifestUrl,
   parseManifestUrl,
-  readManifestUrl,
-  writeManifestUrl,
+  readIgnoredManifests,
+  readManifestUrls,
+  removeManifestUrl,
+  setManifestIgnored,
 } from '../../../extension/src/manifest-url.js';
 
 // `chrome.storage.local` as far as the setting uses it.
@@ -53,9 +57,9 @@ describe('parseManifestUrl', () => {
     ).toEqual({url: 'http://localhost:5173/cem.json'});
   });
 
-  test('empty input clears it', () => {
+  test('refuses empty input', () => {
     expect(parseManifestUrl('  ', PAGE, ORIGIN, site)).toEqual({
-      url: undefined,
+      error: 'Enter a path or a URL',
     });
   });
 
@@ -69,18 +73,37 @@ describe('parseManifestUrl', () => {
   });
 });
 
-test('keeps one URL per origin, and forgets one on clear', async () => {
+test('keeps a list per origin: added once each, in order, dropped when empty', async () => {
   const area = fakeArea();
-  await writeManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
-  await writeManifestUrl(
-    area,
-    'https://other.test',
-    'https://other.test/b.json'
-  );
-  expect(await readManifestUrl(area, ORIGIN)).toBe(`${ORIGIN}/a.json`);
-  await writeManifestUrl(area, ORIGIN, undefined);
-  expect(await readManifestUrl(area, ORIGIN)).toBeUndefined();
+  await addManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
+  await addManifestUrl(area, ORIGIN, `${ORIGIN}/b.json`);
+  await addManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
+  await addManifestUrl(area, 'https://other.test', 'https://other.test/c.json');
+  expect(await readManifestUrls(area, ORIGIN)).toEqual([
+    `${ORIGIN}/a.json`,
+    `${ORIGIN}/b.json`,
+  ]);
+  await removeManifestUrl(area, ORIGIN, `${ORIGIN}/a.json`);
+  await removeManifestUrl(area, ORIGIN, `${ORIGIN}/b.json`);
+  expect(await readManifestUrls(area, ORIGIN)).toEqual([]);
   expect(area.store[MANIFEST_URLS_KEY]).toEqual({
-    'https://other.test': 'https://other.test/b.json',
+    'https://other.test': ['https://other.test/c.json'],
   });
+});
+
+test('reads a single URL an earlier build stored as a list of it', async () => {
+  const area = fakeArea();
+  area.store[MANIFEST_URLS_KEY] = {[ORIGIN]: `${ORIGIN}/old.json`};
+  expect(await readManifestUrls(area, ORIGIN)).toEqual([`${ORIGIN}/old.json`]);
+});
+
+test('ignores and resets found manifests one by one', async () => {
+  const area = fakeArea();
+  await setManifestIgnored(area, ORIGIN, `${ORIGIN}/a.json`, true);
+  await setManifestIgnored(area, ORIGIN, `${ORIGIN}/b.json`, true);
+  await setManifestIgnored(area, ORIGIN, `${ORIGIN}/a.json`, false);
+  expect(await readIgnoredManifests(area, ORIGIN)).toEqual([
+    `${ORIGIN}/b.json`,
+  ]);
+  expect(Object.keys(area.store)).toContain(MANIFEST_IGNORED_KEY);
 });

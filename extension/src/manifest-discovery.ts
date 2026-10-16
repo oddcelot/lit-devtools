@@ -6,8 +6,8 @@
  * So the candidates are that name in the folder of each of the page's
  * scripts and the folders above it, up to the site's root.
  *
- * Polite by design: the panel asks only when the page links no manifest and
- * the user set none, probes a handful of URLs one at a time on the site
+ * Polite by design: the panel asks only when the page links no manifest,
+ * probes a handful of URLs one at a time on the site
  * itself, and reads only the start of each response to tell a manifest from
  * an HTML 404 page, so a large manifest is not downloaded just to be found.
  * The probes run from the panel, not the page, so a miss never shows in the
@@ -77,13 +77,14 @@ const sniff = async (response: Response): Promise<string> => {
 };
 
 /**
- * The first of `candidates` that answers with a manifest, probing one at a
- * time; `undefined` when none does.
+ * Every one of `candidates` that answers with a manifest, in their order,
+ * probing one at a time.
  */
-export const findManifest = async (
+export const findManifests = async (
   candidates: readonly string[],
   fetchUrl: (url: string) => Promise<Response>
-): Promise<string | undefined> => {
+): Promise<string[]> => {
+  const found: string[] = [];
   for (const url of candidates) {
     try {
       const response = await fetchUrl(url);
@@ -91,10 +92,10 @@ export const findManifest = async (
         void response.body?.cancel().catch(() => {});
         continue;
       }
-      if (looksLikeManifest(await sniff(response))) return url;
+      if (looksLikeManifest(await sniff(response))) found.push(url);
     } catch {
       // Unreachable: try the next one.
     }
   }
-  return undefined;
+  return found;
 };

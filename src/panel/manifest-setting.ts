@@ -14,30 +14,32 @@ export interface ManifestState {
   site: string;
   /** The manifests the page links itself; the user's choice yields to them. */
   linked: string[];
-  /** The manifest the user set for the site. */
-  url?: string;
-  /** A manifest found beside the page's scripts, on offer. */
-  found?: string;
+  /** The manifests the user set for the site, in the order they were added. */
+  urls: string[];
+  /** Manifests found beside the page's scripts, on offer. */
+  found: string[];
   /**
-   * A found manifest the user chose to ignore on this site: not offered or
-   * searched for again, but still theirs to use or reset.
+   * Found manifests the user chose to ignore on this site: not offered
+   * again, but still theirs to use or reset.
    */
-  ignored?: string;
+  ignored: string[];
 }
 
 export interface ManifestSetting {
   state(): ManifestState | undefined;
   /**
-   * Set the site's manifest from what the user typed, a path or a URL on the
-   * site; empty clears it. Resolves an error message when it was refused.
+   * Add a manifest from what the user typed, a path or a URL on the site.
+   * Resolves an error message when it was refused.
    */
-  set(input: string): Promise<string | undefined>;
-  /** Take the manifest on offer, or the ignored one. */
-  use(): Promise<void>;
-  /** Ignore the manifest on offer on this site, until {@link reset}. */
-  ignore(): Promise<void>;
-  /** Forget the ignored manifest and look for one again. */
-  reset(): Promise<void>;
+  add(input: string): Promise<string | undefined>;
+  /** Stop reading the user's manifest `url`. */
+  remove(url: string): Promise<void>;
+  /** Read the found or ignored manifest `url`. */
+  use(url: string): Promise<void>;
+  /** Ignore the found manifest `url` on this site, until {@link reset}. */
+  ignore(url: string): Promise<void>;
+  /** Stop ignoring `url`, so it is on offer again. */
+  reset(url: string): Promise<void>;
   /** Called whenever {@link state} changes; returns an unsubscribe. */
   subscribe(listener: () => void): () => void;
 }
