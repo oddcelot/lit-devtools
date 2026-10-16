@@ -19,9 +19,10 @@ export const MANIFEST_URLS_KEY = 'lit:manifest-urls';
 
 /**
  * The `storage.local` key holding, per origin, the found manifest the user
- * turned down, so the panel neither offers nor looks for it again.
+ * chose to ignore, so the panel neither offers nor looks for one again until
+ * they reset it.
  */
-const MANIFEST_DISMISSED_KEY = 'lit:manifest-dismissed';
+export const MANIFEST_IGNORED_KEY = 'lit:manifest-ignored';
 
 type ByOrigin = Record<string, string>;
 
@@ -59,19 +60,19 @@ export const writeManifestUrl = (
   url: string | undefined
 ): Promise<void> => writeOne(storage, MANIFEST_URLS_KEY, origin, url);
 
-/** The found manifest the user turned down on `origin`, if any. */
-export const readDismissedManifest = async (
+/** The found manifest the user ignores on `origin`, if any. */
+export const readIgnoredManifest = async (
   storage: StorageAreaLike,
   origin: string
 ): Promise<string | undefined> =>
-  (await readAll(storage, MANIFEST_DISMISSED_KEY))[origin];
+  (await readAll(storage, MANIFEST_IGNORED_KEY))[origin];
 
-/** Remember that the user turned down `url` on `origin`. */
-export const dismissManifest = (
+/** Ignore `url` on `origin`, or stop ignoring with `undefined`. */
+export const writeIgnoredManifest = (
   storage: StorageAreaLike,
   origin: string,
-  url: string
-): Promise<void> => writeOne(storage, MANIFEST_DISMISSED_KEY, origin, url);
+  url: string | undefined
+): Promise<void> => writeOne(storage, MANIFEST_IGNORED_KEY, origin, url);
 
 /**
  * What the user typed, as an absolute URL on the inspected site: a path such

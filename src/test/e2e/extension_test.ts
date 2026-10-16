@@ -725,7 +725,7 @@ test('the Lit tab reads docs from a manifest the user points it at', async () =>
   await page.close();
 }, 60_000);
 
-test('the Lit tab offers a manifest it finds beside the scripts, and remembers a no', async () => {
+test('the Lit tab offers a manifest it finds beside the scripts: ignore, reset, use', async () => {
   const page = await context.newPage();
   await page.goto(`${appOrigin}/mapped`);
   const tabId = await extensionPage.evaluate(
@@ -740,40 +740,56 @@ test('the Lit tab offers a manifest it finds beside the scripts, and remembers a
     );
     await panel.reload();
   };
-  await openPanel();
-  // The footer nudges; the choice is in Settings.
   const nudge = panel.locator('#manifest-nudge');
+  const found = panel.locator('devtools-settings .manifest-found');
+  const settings = () =>
+    panel.evaluate(() => location.replace('#tab=settings'));
+
+  // The footer nudges; Not now puts off only the nudge.
+  await openPanel();
   await expect.poll(() => nudge.isVisible(), {timeout: 15_000}).toBe(true);
+  await nudge.getByRole('button', {name: 'Not now'}).click();
+  expect(await nudge.isVisible()).toBe(false);
+  await settings();
+  await expect
+    .poll(() => found.textContent())
+    .toContain('Found /assets/custom-elements.json');
+
+  // Always ignore: no nudge after a reload, but Settings still lists it.
+  await found.getByRole('button', {name: 'Always ignore'}).click();
+  await expect.poll(() => found.textContent()).toContain('Ignored');
+  await openPanel();
+  await panel.locator('components-view .row').first().waitFor();
+  await panel.waitForTimeout(3000);
+  expect(await nudge.isVisible()).toBe(false);
+  await settings();
+  await expect
+    .poll(() => found.textContent())
+    .toContain('Ignored /assets/custom-elements.json');
+
+  // Reset looks again and offers it anew.
+  await found.getByRole('button', {name: 'Reset'}).click();
+  await expect
+    .poll(() => found.textContent(), {timeout: 15_000})
+    .toContain('Found /assets/custom-elements.json');
+  expect(await nudge.isVisible()).toBe(true);
+
+  // Use it: the docs come through.
+  await found.getByRole('button', {name: 'Use it'}).click();
+  await panel.evaluate(() => location.replace('#tab=components'));
   await panel
     .locator('components-view .row')
     .filter({hasText: 'mapped-hello'})
     .first()
     .click({timeout: 15_000});
-  await panel.getByRole('button', {name: 'Review in Settings'}).click();
-  const found = panel.locator('devtools-settings .manifest-found');
-  await expect
-    .poll(() => found.textContent())
-    .toContain('/assets/custom-elements.json');
-  await found.getByRole('button', {name: 'Use it'}).click();
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain('Found next to the bundle.');
   expect(await nudge.isVisible()).toBe(false);
 
-  // Forget it again: the next panel offers it anew, and a no sticks.
   await saveManifest(panel, '');
-  await openPanel();
-  await expect.poll(() => nudge.isVisible(), {timeout: 15_000}).toBe(true);
-  await panel.getByRole('button', {name: 'Review in Settings'}).click();
-  await found.getByRole('button', {name: 'Not now'}).click();
-  expect(await nudge.isVisible()).toBe(false);
-  await openPanel();
-  await panel.locator('components-view .row').first().waitFor();
-  await panel.waitForTimeout(3000);
-  expect(await nudge.isVisible()).toBe(false);
-
   await extensionPage.evaluate(() =>
-    chrome.storage.local.remove('lit:manifest-dismissed')
+    chrome.storage.local.remove('lit:manifest-ignored')
   );
   await panel.close();
   await page.close();

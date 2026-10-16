@@ -77,9 +77,10 @@ import {createLinkedDocsSource} from '../../src/lib/component-docs/linked.js';
 import {createChromeStorage} from './storage.js';
 import {
   MANIFEST_URLS_KEY,
-  dismissManifest,
   parseManifestUrl,
-  readDismissedManifest,
+  MANIFEST_IGNORED_KEY,
+  readIgnoredManifest,
+  writeIgnoredManifest,
   readManifestUrl,
   writeManifestUrl,
 } from './manifest-url.js';
@@ -100,6 +101,7 @@ const reloadButton = $<HTMLButtonElement>('reload');
 const disableButton = $<HTMLButtonElement>('disable');
 const manifestNudge = $('manifest-nudge');
 const manifestNudgeOpen = $<HTMLButtonElement>('manifest-nudge-open');
+const manifestNudgeLater = $<HTMLButtonElement>('manifest-nudge-later');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -505,42 +507,54 @@ const render = (status: OriginStatus | undefined): void => {
 
 /** A manifest found on the site and offered to the user; see `manifest-discovery.ts`. */
 let offered: string | undefined;
+/** A found manifest the user ignores on this site; see `manifest-url.ts`. */
+let ignored: string | undefined;
+/** The footer's nudge was put off for this panel; Settings still offers. */
+let snoozed = false;
 /** The manifests the page links, as last read. */
 let linked: string[] = [];
 const manifestListeners = new Set<() => void>();
+
+/** Tell Settings, and show the footer's nudge while one is on offer. */
 const manifestChanged = (): void => {
+  const nudge = offered !== undefined && !snoozed;
+  manifestNudge.hidden = !nudge;
+  pageEl.hidden = nudge;
   for (const listener of manifestListeners) listener();
 };
 
-/** The footer nudges toward Settings while a found manifest is on offer. */
 const offer = (url: string | undefined): void => {
   offered = url;
-  manifestNudge.hidden = url === undefined;
-  pageEl.hidden = url !== undefined;
   manifestChanged();
 };
 
+/** What storage holds for the site: the user's manifest and an ignored one. */
 const loadManifestUrl = async (): Promise<void> => {
-  const next =
+  const storage = chrome.storage.local;
+  const [next, nextIgnored] =
     origin === undefined
-      ? undefined
-      : await readManifestUrl(chrome.storage.local, origin);
+      ? [undefined, undefined]
+      : await Promise.all([
+          readManifestUrl(storage, origin),
+          readIgnoredManifest(storage, origin),
+        ]);
+  ignored = nextIgnored;
+  if (next !== undefined || ignored !== undefined) offered = undefined;
+  manifestChanged();
   if (next === manifestUrl) return;
   manifestUrl = next;
-  if (next !== undefined) offer(undefined);
-  manifestChanged();
   manifestDocs.reset();
   docsChanged?.();
 };
 
 /**
- * Whether to look for a manifest on `at`: the user set none, nothing is on
- * offer, they did not turn one down there before, and the page links none.
+ * Whether to look for a manifest: the user set none and ignores none here,
+ * nothing is on offer yet, and the page links none.
  */
-const worthLooking = async (at: string): Promise<boolean> =>
+const worthLooking = (): boolean =>
   manifestUrl === undefined &&
+  ignored === undefined &&
   offered === undefined &&
-  (await readDismissedManifest(chrome.storage.local, at)) === undefined &&
   linked.length === 0;
 
 /**
@@ -551,16 +565,14 @@ const suggestManifest = async (): Promise<void> => {
   linked = await manifestLinks();
   manifestChanged();
   const at = origin;
-  if (at === undefined || !(await worthLooking(at))) return;
+  if (at === undefined || !worthLooking()) return;
   const candidates = manifestCandidates(
     await pageScripts(),
     (url) => site(url) === at
   );
   const found = await findManifest(candidates, (url) => fetch(url));
   // The site, or the user's own choice, may have changed meanwhile.
-  if (found !== undefined && origin === at && manifestUrl === undefined) {
-    offer(found);
-  }
+  if (found !== undefined && origin === at && worthLooking()) offer(found);
 };
 
 /** After the page has had time to load its scripts. */
@@ -568,7 +580,8 @@ const suggestSoon = (): void => {
   setTimeout(() => void suggestManifest(), 1500);
 };
 
-// The Settings tab's Component docs section; the panel renders it.
+// The Settings tab's Component docs section; the panel renders it. Writes
+// go to storage, whose listener below loads them, here and in other windows.
 useManifestSetting({
   state: () =>
     origin === undefined
@@ -578,25 +591,32 @@ useManifestSetting({
           linked,
           ...(manifestUrl === undefined ? {} : {url: manifestUrl}),
           ...(offered === undefined ? {} : {found: offered}),
+          ...(ignored === undefined ? {} : {ignored}),
         },
   async set(input) {
     const base = await inspectedUrl();
     if (origin === undefined || base === undefined) return 'No page to read';
     const parsed = parseManifestUrl(input, base, origin, site);
     if ('error' in parsed) return parsed.error;
-    // The storage listener below picks it up, here and in other windows.
     await writeManifestUrl(chrome.storage.local, origin, parsed.url);
     return undefined;
   },
   async use() {
-    if (origin === undefined || offered === undefined) return;
-    await writeManifestUrl(chrome.storage.local, origin, offered);
-    offer(undefined);
+    const url = offered ?? ignored;
+    if (origin === undefined || url === undefined) return;
+    await writeManifestUrl(chrome.storage.local, origin, url);
+    await writeIgnoredManifest(chrome.storage.local, origin, undefined);
   },
-  async dismiss() {
+  async ignore() {
     if (origin === undefined || offered === undefined) return;
-    await dismissManifest(chrome.storage.local, origin, offered);
-    offer(undefined);
+    await writeIgnoredManifest(chrome.storage.local, origin, offered);
+  },
+  async reset() {
+    if (origin === undefined) return;
+    await writeIgnoredManifest(chrome.storage.local, origin, undefined);
+    ignored = undefined;
+    snoozed = false;
+    await suggestManifest();
   },
   subscribe(listener) {
     manifestListeners.add(listener);
@@ -606,6 +626,11 @@ useManifestSetting({
 
 manifestNudgeOpen.addEventListener('click', () => {
   location.replace(`#${new URLSearchParams({tab: 'settings'})}`);
+});
+
+manifestNudgeLater.addEventListener('click', () => {
+  snoozed = true;
+  manifestChanged();
 });
 
 const refresh = async (): Promise<void> => {
@@ -646,7 +671,9 @@ reloadButton.addEventListener('click', reloadPage);
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local') return;
   if (ENABLED_ORIGINS_KEY in changes) void refresh();
-  else if (MANIFEST_URLS_KEY in changes) void loadManifestUrl();
+  else if (MANIFEST_URLS_KEY in changes || MANIFEST_IGNORED_KEY in changes) {
+    void loadManifestUrl();
+  }
 });
 
 // A navigation to another site may land somewhere not enabled, or enabled

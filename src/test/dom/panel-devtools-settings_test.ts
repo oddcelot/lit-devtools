@@ -251,7 +251,8 @@ describe('Component docs', () => {
           : undefined;
       },
       use: async () => void asked.push('use'),
-      dismiss: async () => void asked.push('dismiss'),
+      ignore: async () => void asked.push('ignore'),
+      reset: async () => void asked.push('reset'),
       subscribe: (l) => {
         listeners.add(l);
         return () => listeners.delete(l);
@@ -299,22 +300,58 @@ describe('Component docs', () => {
 
   test('offers a found manifest, and says when the page links its own', async () => {
     const site = 'https://webawesome.com';
+    const cem = `${site}/dist/custom-elements.json`;
     const {setting, asked, update} = fakeSetting({site, linked: []});
     useManifestSetting(setting);
     const root = await mount();
-    expect(docsSection(root)!.querySelector('.manifest-found')).toBeNull();
+    const host = root.host as DevtoolsSettings;
+    const found = () => docsSection(root)!.querySelector('.manifest-found');
+    const buttons = () =>
+      [...found()!.querySelectorAll('wa-button')].map((b) => [
+        b.textContent!.trim(),
+        b as HTMLElement,
+      ]) as Array<[string, HTMLElement]>;
+    expect(found()).toBeNull();
 
-    update({site, linked: [], found: `${site}/dist/custom-elements.json`});
-    await (root.host as DevtoolsSettings).updateComplete;
-    const found = docsSection(root)!.querySelector('.manifest-found')!;
-    expect(found.textContent).toContain('/dist/custom-elements.json');
-    const [use, notNow] = found.querySelectorAll('wa-button');
-    (use as HTMLElement).click();
-    (notNow as HTMLElement).click();
-    expect(asked).toEqual(['use', 'dismiss']);
+    update({site, linked: [], found: cem});
+    await host.updateComplete;
+    expect(found()!.textContent).toContain('Found /dist/custom-elements.json');
+    expect(buttons().map(([label]) => label)).toEqual([
+      'Use it',
+      'Always ignore',
+    ]);
+    for (const [, button] of buttons()) button.click();
+    expect(asked).toEqual(['use', 'ignore']);
 
     update({site, linked: [`${site}/own.json`]});
-    await (root.host as DevtoolsSettings).updateComplete;
+    await host.updateComplete;
     expect(docsSection(root)!.textContent).toContain('This page links its own');
+  });
+
+  test('keeps an ignored manifest in view, to use or reset', async () => {
+    const site = 'https://webawesome.com';
+    const cem = `${site}/dist/custom-elements.json`;
+    const {setting, asked, update} = fakeSetting({
+      site,
+      linked: [],
+      ignored: cem,
+    });
+    useManifestSetting(setting);
+    const root = await mount();
+    const host = root.host as DevtoolsSettings;
+    const found = docsSection(root)!.querySelector('.manifest-found')!;
+    expect(found.textContent?.replace(/\s+/g, ' ')).toContain(
+      "Ignored /dist/custom-elements.json, found beside the page's scripts."
+    );
+    const [use, reset] = found.querySelectorAll('wa-button');
+    expect(reset!.textContent!.trim()).toBe('Reset');
+    (use as HTMLElement).click();
+    (reset as HTMLElement).click();
+    expect(asked).toEqual(['use', 'reset']);
+
+    // Once the user set their own, neither shows.
+    update({site, linked: [], url: `${site}/mine.json`, ignored: cem});
+    await host.updateComplete;
+    expect(docsSection(root)!.querySelector('.manifest-found')).toBeNull();
   });
 });

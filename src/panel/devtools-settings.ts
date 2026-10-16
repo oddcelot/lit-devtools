@@ -31,7 +31,11 @@ import {getMeta, litSettingsRpc, type LitClient} from './client.js';
 import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
 import type {OverridableKey} from '../lib/settings-override.js';
 import {overrides} from './settings-override.js';
-import {manifestSetting} from './manifest-setting.js';
+import {
+  manifestSetting,
+  type ManifestSetting,
+  type ManifestState,
+} from './manifest-setting.js';
 
 /** The guide sections on where the Lit tracks appear: Chrome's, then the rest. */
 const CHROME_TRACKS_DOCS =
@@ -750,27 +754,51 @@ export class DevtoolsSettings extends LitElement {
               </p>`
             : nothing
         }
-        ${
-          m.found === undefined
-            ? nothing
-            : html`<div class="manifest-found">
-                <span
-                  >Found <code>${path(m.found)}</code> beside the page's
-                  scripts.</span
-                >
-                <wa-button size="small" @click=${() => void setting.use()}
-                  >Use it</wa-button
-                >
-                <wa-button
-                  size="small"
-                  appearance="plain"
-                  @click=${() => void setting.dismiss()}
-                  >Not now</wa-button
-                >
-              </div>`
-        }
+        ${this._renderFoundManifest(setting, m, path)}
       </wa-card>
     </section>`;
+  }
+
+  /**
+   * A manifest found beside the page's scripts: on offer, with Use it and
+   * Always ignore, or ignored, with Use it and Reset. Nothing once the user
+   * set one of their own.
+   */
+  private _renderFoundManifest(
+    setting: ManifestSetting,
+    m: ManifestState,
+    path: (url: string) => string
+  ) {
+    if (m.url !== undefined) return nothing;
+    const url = m.found ?? m.ignored;
+    if (url === undefined) return nothing;
+    const ignored = m.found === undefined;
+    return html`<div class="manifest-found">
+      <span
+        >${ignored ? 'Ignored' : 'Found'} <code>${path(url)}</code>${
+          ignored ? ', found' : ''
+        }
+        beside the page's scripts.</span
+      >
+      <wa-button size="small" @click=${() => void setting.use()}
+        >Use it</wa-button
+      >
+      ${
+        ignored
+          ? html`<wa-button
+              size="small"
+              appearance="plain"
+              @click=${() => void setting.reset()}
+              >Reset</wa-button
+            >`
+          : html`<wa-button
+              size="small"
+              appearance="plain"
+              @click=${() => void setting.ignore()}
+              >Always ignore</wa-button
+            >`
+      }
+    </div>`;
   }
 
   private _renderAbout() {
