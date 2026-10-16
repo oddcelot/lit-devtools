@@ -48,7 +48,7 @@ Limits
 Top-level frames only (components inside iframes are not shown), http and https pages only, Chrome 114 or later.
 
 Privacy
-Lit Inspector collects no data. Its only network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://oddcelot.github.io/vite-plugin-lit/reference/extension-privacy/
+Lit Inspector collects no data. Its only network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://oddcelot.github.io/vite-plugin-lit/reference/extension-privacy/
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with, endorsed by, or produced by Google or the Lit project.
 
@@ -107,9 +107,14 @@ page the user has enabled: their tree, properties, state and update timings.
   `chrome.storage.local`, on the user's machine.
 - Host permission (`<all_urls>`, in `optional_host_permissions`): Not granted
   at install. Requested for one origin at a time, when the user clicks "Enable
-  on this site" in the Lit tab, and used only to register the content scripts
-  on the origins the user enabled. The user can revoke it with "Disable on
-  this site" or in the extension's details.
+  on this site" in the Lit tab, and used to register the content scripts on
+  the origins the user enabled and to fetch those sites' own scripts,
+  sourcemaps and Custom Elements Manifests. It is also requested for one other
+  origin when the user adds a Custom Elements Manifest hosted there (a CDN,
+  for example) or allows one a page links there; that grant is used only to
+  fetch the manifest, registers no scripts, and is given back when the user
+  removes the entry. The user can revoke any of it with "Disable on this site"
+  or in the extension's details.
 
 **Remote code**
 

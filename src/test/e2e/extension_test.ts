@@ -62,6 +62,10 @@ const TRUSTED_TYPES_CSP = `${CSP}; require-trusted-types-for 'script'; trusted-t
 let workDir: string;
 let server: Server;
 let appOrigin: string;
+/** Two other sites serving a manifest: the extension may read A, not B. */
+const cdns: Server[] = [];
+let cdnA: string;
+let cdnB: string;
 let context: BrowserContext;
 let worker: Worker;
 let extensionId: string;
@@ -248,6 +252,14 @@ beforeAll(async () => {
       return;
     }
     res.setHeader('content-type', 'text/html');
+    if (req.url === '/linked-elsewhere') {
+      res.end(`<!doctype html><html><head>
+<link rel="custom-elements-manifest" href="${cdnB}/cem.json">
+<script src="/probe.js"></script>
+<script src="/app.js"></script>
+</head><body><probe-hello></probe-hello></body></html>`);
+      return;
+    }
     if (req.url === '/linked') {
       res.end(`<!doctype html><html><head>
 <link rel="custom-elements-manifest" href="/custom-elements.json">
@@ -276,7 +288,44 @@ beforeAll(async () => {
   await fsp.cp(DIST, extensionDir, {recursive: true});
   const manifestPath = joinPath(extensionDir, 'manifest.json');
   const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8'));
-  manifest.host_permissions = [`${appOrigin}/*`];
+  // Another site with a manifest, granted up front: Chrome's prompt for a
+  // host can't be clicked in a test, and a granted host isn't asked about.
+  const otherSite = async (summary: string): Promise<string> => {
+    const cdn = createServer((req, res) => {
+      if (req.url !== '/cem.json') {
+        res.statusCode = 404;
+        res.end();
+        return;
+      }
+      res.setHeader('content-type', 'application/json');
+      res.end(
+        JSON.stringify({
+          schemaVersion: '1.0.0',
+          modules: [
+            {
+              kind: 'javascript-module',
+              path: 'probe-hello.js',
+              declarations: [
+                {
+                  kind: 'class',
+                  name: 'ProbeHello',
+                  tagName: 'probe-hello',
+                  customElement: true,
+                  summary,
+                },
+              ],
+            },
+          ],
+        })
+      );
+    });
+    await new Promise<void>((resolve) => cdn.listen(0, '127.0.0.1', resolve));
+    cdns.push(cdn);
+    return `http://127.0.0.1:${(cdn.address() as AddressInfo).port}`;
+  };
+  cdnA = await otherSite('Read from another site.');
+  cdnB = await otherSite('Never read without access.');
+  manifest.host_permissions = [`${appOrigin}/*`, `${cdnA}/*`];
   await fsp.writeFile(manifestPath, JSON.stringify(manifest));
 
   const executablePath = process.env['HMR_E2E_EXECUTABLE'];
@@ -302,6 +351,11 @@ beforeAll(async () => {
 }, 60_000);
 
 afterAll(async () => {
+  await Promise.all(
+    cdns.map(
+      (cdn) => new Promise<void>((resolve) => cdn.close(() => resolve()))
+    )
+  );
   await context?.close();
   await new Promise<void>((resolve) =>
     server ? server.close(() => resolve()) : resolve()
@@ -753,10 +807,10 @@ test('the Lit tab reads docs from the manifests the user points it at', async ()
   await expect.poll(() => detailsText(panel)).toContain('greeting');
   expect(await detailsText(panel)).not.toContain('unlinked manifest');
 
-  await addManifest(panel, 'https://elsewhere.test/cem.json');
+  await addManifest(panel, 'data:,{}');
   await expect
     .poll(() => panel.locator('devtools-settings [role=alert]').textContent())
-    .toContain(`Must be on ${appOrigin}`);
+    .toContain('Not an http(s) URL');
 
   await addManifest(panel, '/assets/cem.json');
   await expect
@@ -919,6 +973,67 @@ test('the Lit tab lists a linked manifest with the added ones, in an order the u
   );
   await panel.close();
   await page.close();
+}, 90_000);
+
+test('the Lit tab reads a manifest on another site it has access to, and asks for one it lacks', async () => {
+  const open = async (path: string) => {
+    const page = await context.newPage();
+    await page.goto(`${appOrigin}${path}`);
+    const tabId = await extensionPage.evaluate(
+      async (url) => (await chrome.tabs.query({url}))[0]?.id,
+      `${appOrigin}${path}`
+    );
+    const panel = await context.newPage();
+    await panel.goto(
+      `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+    );
+    await panel
+      .locator('components-view .row')
+      .filter({hasText: 'probe-hello'})
+      .first()
+      .click({timeout: 15_000});
+    return {page, panel};
+  };
+
+  // Added by URL on a site the extension may read: its docs come through.
+  const first = await open('/');
+  await addManifest(first.panel, `${cdnA}/cem.json`);
+  const section = await docsSettings(first.panel);
+  const entry = (path: string) =>
+    section.locator('.manifest-row').filter({hasText: path});
+  await expect.poll(() => entry(cdnA).count(), {timeout: 15_000}).toBe(1);
+  expect(
+    await entry(cdnA)
+      .getByRole('button', {name: /Allow access/})
+      .count()
+  ).toBe(0);
+  await expect
+    .poll(() => detailsText(first.panel), {timeout: 15_000})
+    .toContain('Read from another site.');
+  await removeManifests(first.panel);
+  await first.panel.close();
+  await first.page.close();
+
+  // Linked on a site it may not read: listed with a way to ask, not read.
+  const second = await open('/linked-elsewhere');
+  const linked = (await docsSettings(second.panel))
+    .locator('.manifest-row')
+    .filter({hasText: cdnB});
+  await expect
+    .poll(() => linked.textContent(), {timeout: 15_000})
+    .toContain('linked by page');
+  expect(
+    await linked
+      .getByRole('button', {
+        name: `Allow access to ${new URL(cdnB).host}`,
+      })
+      .count()
+  ).toBe(1);
+  expect(await detailsText(second.panel)).not.toContain(
+    'Never read without access.'
+  );
+  await second.panel.close();
+  await second.page.close();
 }, 90_000);
 
 test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async () => {

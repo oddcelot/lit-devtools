@@ -163,9 +163,18 @@ it, and arrows to move it.
   Settings** opens the section, **Not now** hides the note until the panel
   opens again.
 
-The list, its order and its switches are remembered per site. The extension
-fetches manifests only from the enabled site itself, so one on a CDN or
-another origin can't be read.
+The list, its order and its switches are remembered per site.
+
+- **On another site.** A manifest on a CDN or any other site, such as
+  Web Awesome's at
+  `https://cdn.jsdelivr.net/npm/@awesome.me/webawesome@3/dist/custom-elements.json`,
+  can be added by its full URL. In Chrome, **Add** asks for access to that
+  site first; if you decline, it isn't added. A page that links a manifest on
+  another site gets an entry with **Allow access to …**, and it isn't read
+  until you do. Only the manifest is fetched there; the extension registers
+  no scripts on that site, and removing the last entry for it gives the
+  access back. Firefox can't ask for access from DevTools, so there such an
+  entry says it isn't read.
 
 ## Open in the browser's own panels
 

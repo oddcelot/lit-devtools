@@ -18,6 +18,13 @@ export interface ManifestEntryState {
    * be switched off and moved, but not removed: the page would bring it back.
    */
   linked: boolean;
+  /**
+   * Set for a manifest on another site the extension may not read yet:
+   * `grant` when a click can ask the browser for access (see
+   * {@link ManifestSetting.allow}), `unavailable` when this browser can't
+   * ask from DevTools. Such an entry is skipped until it can be read.
+   */
+  access?: 'grant' | 'unavailable';
 }
 
 /** What the panel shows for the inspected site. */
@@ -45,6 +52,12 @@ export interface ManifestSetting {
    * Resolves an error message when it was refused.
    */
   add(input: string): Promise<string | undefined>;
+  /**
+   * Ask the browser for access to the other site `url` is on. Call it from
+   * the click itself: the browser only asks during a user gesture. Resolves
+   * an error message when access was not granted.
+   */
+  allow(url: string): Promise<string | undefined>;
   /** Take an entry the user added off the list. */
   remove(url: string): Promise<void>;
   /** Switch an entry on or off. */
