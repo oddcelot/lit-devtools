@@ -58,3 +58,46 @@ test('defer-hydration holds an element back until it is removed', async () => {
     .poll(() => shadow('ssr-deferred', 'button'))
     .toEqual(['Clicks: 1']);
 });
+
+test('an edit patches a hydrated component in place, keeping its state', async () => {
+  const {page} = fixture;
+  await page.goto(`${fixture.origin}/`);
+  await expect.poll(() => shadow('ssr-counter', '#side')).toEqual(['Hydrated']);
+  await page.locator('ssr-counter #increment').click();
+  await expect
+    .poll(() => shadow('ssr-counter', 'button'))
+    .toEqual(['Count: 4']);
+  await page.evaluate(`window.__kept = document.querySelector('ssr-counter')`);
+
+  await fixture.edit('src/ssr-counter.ts', (code) =>
+    code.replace('<h2>Counter</h2>', '<h2>Tally</h2>')
+  );
+  await expect
+    .poll(() => shadow('ssr-counter', 'h2'), {timeout: 10_000})
+    .toEqual(['Tally']);
+  expect(await shadow('ssr-counter', 'button')).toEqual(['Count: 4']);
+  expect(
+    await page.evaluate(
+      `window.__kept === document.querySelector('ssr-counter')`
+    )
+  ).toBe(true);
+});
+
+test('after an edit, the next server render uses the new code', async () => {
+  await fixture.edit('src/ssr-counter.ts', (code) =>
+    code.replace(/<h2>\w+<\/h2>/, '<h2>Edited on the server</h2>')
+  );
+  await expect
+    .poll(
+      async () => {
+        const res = await fetch(`${fixture.origin}/`);
+        return (await res.text()).includes('<h2>Edited on the server</h2>');
+      },
+      {timeout: 10_000}
+    )
+    .toBe(true);
+  // And the open page has it too, so the next load gets the new client code.
+  await expect
+    .poll(() => shadow('ssr-counter', 'h2'), {timeout: 10_000})
+    .toEqual(['Edited on the server']);
+});

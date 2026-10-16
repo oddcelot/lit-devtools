@@ -62,7 +62,15 @@ export const startSsrFixture = async (
     root,
     port: 0,
     host: '127.0.0.1',
-    vite: {configFile: false, logLevel: 'silent', plugins: [litPlugin(plugin)]},
+    vite: {
+      configFile: false,
+      logLevel: 'silent',
+      // Its own optimizer cache: the example's is shared by every run and by
+      // `pnpm dev`, under other configs, and a stale one re-optimizes in the
+      // middle of a test, mixing two generations of Lit in one page.
+      cacheDir: path.join(root, '.vite'),
+      plugins: [litPlugin(plugin)],
+    },
   });
 
   const executablePath = process.env['HMR_E2E_EXECUTABLE'];
@@ -74,6 +82,12 @@ export const startSsrFixture = async (
   });
   const page = await browser.newPage();
   page.setDefaultTimeout(15_000);
+  // As `startFixture` does: the plugin's runtime imports are invisible to the
+  // dep scanner, so the first load can still be optimizing. Let it finish,
+  // then start from a clean load.
+  await page.goto(`${server.origin}/`);
+  await server.vite.waitForRequestsIdle();
+  await page.reload();
 
   return {
     vite: server.vite,

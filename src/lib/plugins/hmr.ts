@@ -3,6 +3,7 @@ import {INSTALL_ID, VIRTUAL_PREFIX, transformLitModule} from '../transform.js';
 import {WRAP_TABLE} from '../wrap-table.js';
 import type {OptionsContext} from './context.js';
 import {resolveRuntimeModule} from './shared.js';
+import {allowServerRedefinition} from '../ssr-registry.js';
 
 /**
  * HMR plugin: wrapper/install virtual modules, the Lit import rewrite and the
@@ -13,6 +14,10 @@ import {resolveRuntimeModule} from './shared.js';
 export const litHmr = (ctx: OptionsContext): Plugin => ({
   name: 'lit-plugin',
   apply: 'serve',
+  configureServer() {
+    // A server render after an edit defines the edited element again.
+    if (ctx.get().hmrEnabled) allowServerRedefinition();
+  },
   config: () => {
     // Options are already resolved against the loaded env by
     // `lit-plugin-options`, which runs first.

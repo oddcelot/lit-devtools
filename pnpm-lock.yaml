@@ -164,6 +164,9 @@ importers:
       '@lit-labs/signals':
         specifier: ^0.3.0
         version: 0.3.0
+      '@lit-labs/ssr-dom-shim':
+        specifier: ^1.6.0
+        version: 1.6.0
       '@lit-labs/virtualizer':
         specifier: ^2.1.1
         version: 2.1.1

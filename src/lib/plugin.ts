@@ -89,6 +89,7 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
         name: 'lit-plugin',
         hooks: {
           config: {},
+          configureServer: {},
           resolveId: {},
           load: {},
           transform: {},
