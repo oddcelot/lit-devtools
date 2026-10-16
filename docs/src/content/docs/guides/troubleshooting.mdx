@@ -368,6 +368,22 @@ config does the same; use one, not both), or work through
 **Fix.** Keep one of the two. See
 [Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
 
+### The dock does not connect when Vite runs in middleware mode
+
+**Symptom.** Behind your own server (`server: {middlewareMode: true}`, as in an
+SSR setup), the page logs `WebSocket connection to 'ws://127.0.0.1:9777/__ws'
+failed` and the dock never connects.
+
+**Cause.** With no HTTP server of Vite's own, Vite DevTools opens a socket of
+its own on a port from 9777 up, bound to `server.host` (`localhost` when unset).
+The page dials it at the host it was loaded from. `localhost` can resolve to
+`::1` while the page is on `127.0.0.1`, so nothing answers.
+
+**Fix.** Pass the host your server listens on as `server.host` too, for example
+`server: {middlewareMode: true, host: '127.0.0.1'}`. The
+[SSR example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/ssr)
+does this in `server.mjs`.
+
 ### The Components tab says the page runtime has not connected
 
 **Symptom.** The tab shows "The page runtime has not connected to this dev

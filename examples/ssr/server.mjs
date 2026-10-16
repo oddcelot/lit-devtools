@@ -39,7 +39,11 @@ export const startSsrServer = async ({
     root,
     appType: 'custom',
     ...extra,
-    server: {...extra.server, middlewareMode: true},
+    // `host` too: with no HTTP server of Vite's own, the DevTools dock opens
+    // a side socket on `server.host`, and the page dials it at the host the
+    // page came from. Left to its `localhost` default it can bind `::1`
+    // while the page is on 127.0.0.1, and the dock never connects.
+    server: {...extra.server, middlewareMode: true, host},
   });
 
   const renderHtml = async (url) => {
