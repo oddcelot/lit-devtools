@@ -78,6 +78,12 @@ import {
   MANIFEST_LINK_REL,
 } from '../../src/lib/component-docs/linked.js';
 import {createChromeStorage} from './storage.js';
+import {
+  MANIFEST_URLS_KEY,
+  parseManifestUrl,
+  readManifestUrl,
+  writeManifestUrl,
+} from './manifest-url.js';
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -91,6 +97,11 @@ const barEl = $('bar');
 const pageEl = $('page');
 const reloadButton = $<HTMLButtonElement>('reload');
 const disableButton = $<HTMLButtonElement>('disable');
+const manifestButton = $<HTMLButtonElement>('manifest');
+const manifestForm = $<HTMLFormElement>('manifest-form');
+const manifestInput = $<HTMLInputElement>('manifest-url');
+const manifestError = $('manifest-error');
+const manifestCancel = $<HTMLButtonElement>('manifest-cancel');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -100,6 +111,10 @@ const tabId =
 
 let origin: string | undefined;
 let current: OriginStatus | undefined;
+/** The manifest the user set for this site; see `manifest-url.ts`. */
+let manifestUrl: string | undefined;
+/** Tells the panel to ask for its docs again; set once the host is up. */
+let docsChanged: (() => void) | undefined;
 let booted: Promise<void> | undefined;
 
 // Firefox can't ask for a permission from DevTools (see the header), and
@@ -221,10 +236,27 @@ const manifestLinks = async (): Promise<string[]> => {
   );
 };
 
+/** The page's own manifests, else the one the user set for the site. */
+const manifestUrls = async (): Promise<string[]> => {
+  const linked = await manifestLinks();
+  if (linked.length > 0 || manifestUrl === undefined) return linked;
+  return [manifestUrl];
+};
+
+/** The inspected page's URL, to resolve a path the user typed against. */
+const inspectedUrl = async (): Promise<string | undefined> => {
+  if (devtools === undefined) return (await chrome.tabs.get(tabId)).url;
+  return new Promise((resolve) =>
+    devtools.inspectedWindow.eval<string>('location.href', (url, exception) =>
+      resolve(exception ? undefined : String(url))
+    )
+  );
+};
+
 // Component docs from the manifests the page links to, under the same rule
 // as sourcemaps: fetched from here, and only from the enabled site.
 const manifestDocs = createLinkedDocsSource({
-  links: manifestLinks,
+  links: manifestUrls,
   fetchText: async (url) => {
     const response = await fetch(url);
     return response.ok ? response.text() : undefined;
@@ -393,6 +425,9 @@ const boot = async (): Promise<void> => {
     resolveDefineSource: (frames) => sourceMaps.resolve(frames),
     locateTemplate: (site) => sourceMaps.locate(site),
     docsSource: (args) => manifestDocs.componentDocs(args),
+    onDocsSourceChanged: (notify) => {
+      docsChanged = notify;
+    },
   });
   useLocalClient(client);
   // Outside DevTools (the e2e's plain tab) there is no Sources panel, and a
@@ -443,8 +478,62 @@ const render = (status: OriginStatus | undefined): void => {
   hintEl.hidden = !needsPopup || status === undefined;
 };
 
+/** Show what is set: the button names it, the form starts from it. */
+const showManifest = (): void => {
+  manifestButton.textContent =
+    manifestUrl === undefined ? 'Manifest…' : 'Manifest ✓';
+  manifestButton.title =
+    manifestUrl === undefined
+      ? 'Custom Elements Manifest to read component docs from, when the page links none'
+      : `Component docs from ${manifestUrl}, when the page links no manifest`;
+};
+
+const loadManifestUrl = async (): Promise<void> => {
+  const next =
+    origin === undefined
+      ? undefined
+      : await readManifestUrl(chrome.storage.local, origin);
+  if (next === manifestUrl) return;
+  manifestUrl = next;
+  showManifest();
+  manifestDocs.reset();
+  docsChanged?.();
+};
+
+const closeManifestForm = (): void => {
+  manifestForm.hidden = true;
+  manifestButton.hidden = false;
+  pageEl.hidden = false;
+};
+
+manifestButton.addEventListener('click', () => {
+  manifestInput.value = manifestUrl ?? '';
+  manifestError.textContent = '';
+  manifestForm.hidden = false;
+  manifestButton.hidden = true;
+  pageEl.hidden = true;
+  manifestInput.focus();
+});
+
+manifestCancel.addEventListener('click', closeManifestForm);
+
+manifestForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const base = await inspectedUrl();
+  if (origin === undefined || base === undefined) return;
+  const parsed = parseManifestUrl(manifestInput.value, base, origin, site);
+  if ('error' in parsed) {
+    manifestError.textContent = parsed.error;
+    return;
+  }
+  await writeManifestUrl(chrome.storage.local, origin, parsed.url);
+  // The storage listener below picks it up, here and in other windows.
+  closeManifestForm();
+});
+
 const refresh = async (): Promise<void> => {
   origin = await inspectedOrigin();
+  await loadManifestUrl();
   current =
     origin === undefined
       ? undefined
@@ -478,7 +567,9 @@ reloadButton.addEventListener('click', reloadPage);
 // The site may be enabled or disabled from somewhere else: the Firefox
 // popup, or another DevTools window on the same site.
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && ENABLED_ORIGINS_KEY in changes) void refresh();
+  if (area !== 'local') return;
+  if (ENABLED_ORIGINS_KEY in changes) void refresh();
+  else if (MANIFEST_URLS_KEY in changes) void loadManifestUrl();
 });
 
 // A navigation to another site may land somewhere not enabled, or enabled
