@@ -39,6 +39,21 @@ export interface GeneratedFrame {
   column: number;
 }
 
+/**
+ * An element's place in the `html` template that rendered it, by the
+ * template's text: what a host searches the page's sources for.
+ */
+export interface TemplateSite {
+  /** The template literal's raw strings, as written in the source. */
+  strings: string[];
+  /** The element's tag name. */
+  tag: string;
+  /** Which `<tag>` of the template it is, 0 for the first. */
+  index: number;
+  /** Scripts the template is likely written in, most likely first. */
+  scripts: string[];
+}
+
 /** A node in the component render tree (one inspectable Lit element). */
 export interface InspectorTreeNode {
   id: number;
@@ -428,6 +443,12 @@ export interface InspectorDetails {
    * into `source`.
    */
   defineFrames?: GeneratedFrame[];
+  /**
+   * The template that rendered this element, when the plugin stamped no
+   * `callSite` and the runtime recorded the template (the extension's). A
+   * host with the page's sources finds it there and sets `callSite`.
+   */
+  templateSite?: TemplateSite;
   /** As {@link InspectorTreeNode.notDefined}. */
   notDefined?: true;
   /** As {@link InspectorTreeNode.notLit}. */

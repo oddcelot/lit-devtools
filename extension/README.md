@@ -153,8 +153,11 @@ Awesome.
 panel and the relay, it covers what other DevTools extensions have broken
 on real sites:
 
-- **The page's globals.** On a page without Lit, the runtime adds `$lit` and
-  Lit's own `litIssuedWarnings` to `window` and replaces nothing. It writes
+- **The page's globals.** On a page without Lit, the runtime adds `$lit`,
+  Lit's own `litIssuedWarnings`, and lit-html's `litHtmlPolyfillSupport` and
+  `litHtmlPolyfillSupportDevMode` hooks (to learn which template rendered an
+  element) to `window`, and replaces nothing; a hook a polyfill sets still
+  runs. It writes
   nothing to the site's `localStorage`, and two tab ids to `sessionStorage`.
   A new global fails the test until it is listed there.
 - **Trusted Types.** A site whose CSP allows only Lit's `lit-html` policy

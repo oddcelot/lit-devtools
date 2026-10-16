@@ -35,13 +35,24 @@ import {
   traceSegment,
   type TraceMap,
 } from '@jridgewell/trace-mapping';
-import type {ElementSource, GeneratedFrame} from '../../types/inspector.js';
+import type {
+  ElementSource,
+  GeneratedFrame,
+  TemplateSite,
+} from '../../types/inspector.js';
+import {findTemplate, lineColumnOf, tagOffset} from './template-text.js';
 
 export interface SourceMapResolver {
   /** The original location of the first fitting frame, if any maps. */
   resolve(
     frames: readonly GeneratedFrame[]
   ): Promise<ElementSource | undefined>;
+  /**
+   * Where the element a {@link TemplateSite} names is written: its `<tag`
+   * in the template literal, found by text in the sources the site's
+   * scripts map to (the project's own first), else in a script itself.
+   */
+  locate(site: TemplateSite): Promise<ElementSource | undefined>;
   /** Forget fetched scripts and maps (the page navigated). */
   reset(): void;
 }
@@ -112,6 +123,12 @@ const NODE_MODULES_RE = /(?:^|\/)node_modules\//;
 const LIT_PACKAGE_RE =
   /(?:^|\/)node_modules\/(?:lit|lit-element|lit-html|@lit|@lit-labs)\//;
 
+/** A fetched script: its text, and its parsed map when it has one. */
+interface LoadedScript {
+  code?: string;
+  map?: TraceMap;
+}
+
 interface Mapped {
   frame: GeneratedFrame;
   source: string;
@@ -126,39 +143,111 @@ interface Mapped {
 export const createSourceMapResolver = (
   options: SourceMapResolverOptions
 ): SourceMapResolver => {
-  let maps = new Map<string, Promise<TraceMap | undefined>>();
+  let scripts = new Map<string, Promise<LoadedScript>>();
 
   const allows = options.allows ?? (() => true);
 
-  const loadMap = async (scriptUrl: string): Promise<TraceMap | undefined> => {
-    try {
-      if (!allows(scriptUrl)) return undefined;
-      const res = await options.fetch(scriptUrl);
-      if (!res.ok) return undefined;
-      const header =
-        res.headers.get('SourceMap') ?? res.headers.get('X-SourceMap');
-      const ref = header ?? sourceMappingUrlOf(await res.text());
-      if (ref === undefined || ref === '') return undefined;
-      if (/^data:/i.test(ref)) {
-        return new FlattenMap(decodeDataUrl(ref), scriptUrl);
-      }
-      const mapUrl = new URL(ref, scriptUrl).href;
-      if (!allows(mapUrl)) return undefined;
-      const mapRes = await options.fetch(mapUrl);
-      if (!mapRes.ok) return undefined;
-      return new FlattenMap(await mapRes.text(), mapUrl);
-    } catch {
-      return undefined;
+  const loadMap = async (
+    scriptUrl: string,
+    ref: string | undefined
+  ): Promise<TraceMap | undefined> => {
+    if (ref === undefined || ref === '') return undefined;
+    if (/^data:/i.test(ref)) {
+      return new FlattenMap(decodeDataUrl(ref), scriptUrl);
     }
+    const mapUrl = new URL(ref, scriptUrl).href;
+    if (!allows(mapUrl)) return undefined;
+    const mapRes = await options.fetch(mapUrl);
+    if (!mapRes.ok) return undefined;
+    return new FlattenMap(await mapRes.text(), mapUrl);
   };
 
-  const mapOf = (scriptUrl: string): Promise<TraceMap | undefined> => {
-    let map = maps.get(scriptUrl);
-    if (map === undefined) {
-      map = loadMap(scriptUrl);
-      maps.set(scriptUrl, map);
+  const loadScript = async (scriptUrl: string): Promise<LoadedScript> => {
+    const loaded: LoadedScript = {};
+    try {
+      if (!allows(scriptUrl)) return loaded;
+      const res = await options.fetch(scriptUrl);
+      if (!res.ok) return loaded;
+      const header =
+        res.headers.get('SourceMap') ?? res.headers.get('X-SourceMap');
+      loaded.code = await res.text();
+      loaded.map = await loadMap(
+        scriptUrl,
+        header ?? sourceMappingUrlOf(loaded.code)
+      );
+    } catch {
+      // What loaded so far stands; a map that failed is just absent.
     }
-    return map;
+    return loaded;
+  };
+
+  const scriptOf = (scriptUrl: string): Promise<LoadedScript> => {
+    let script = scripts.get(scriptUrl);
+    if (script === undefined) {
+      script = loadScript(scriptUrl);
+      scripts.set(scriptUrl, script);
+    }
+    return script;
+  };
+
+  const mapOf = async (scriptUrl: string): Promise<TraceMap | undefined> =>
+    (await scriptOf(scriptUrl)).map;
+
+  /** The `<tag` a site names, searched for in `text`. */
+  const findIn = (text: string, site: TemplateSite) => {
+    const offsets = findTemplate(text, site.strings);
+    if (offsets === undefined) return undefined;
+    const at = tagOffset(offsets, site.strings, site.tag, site.index);
+    return at === undefined ? undefined : lineColumnOf(text, at);
+  };
+
+  /** A site found in a source a script maps to: the project's own first. */
+  const locateInSources = (
+    map: TraceMap,
+    site: TemplateSite
+  ): ElementSource | undefined => {
+    const order = map.resolvedSources
+      .map((source, i) => ({source, i}))
+      .sort(
+        (a, b) =>
+          Number(NODE_MODULES_RE.test(a.source)) -
+          Number(NODE_MODULES_RE.test(b.source))
+      );
+    for (const {source, i} of order) {
+      const text = map.sourcesContent?.[i];
+      if (typeof text !== 'string') continue;
+      const pos = findIn(text, site);
+      if (pos !== undefined) {
+        return {file: displayPath(source), ...pos, url: source};
+      }
+    }
+    return undefined;
+  };
+
+  /** A site found in a script's own text, mapped back when the map can. */
+  const locateInScript = (
+    url: string,
+    {code, map}: LoadedScript,
+    site: TemplateSite
+  ): ElementSource | undefined => {
+    if (code === undefined) return undefined;
+    const pos = findIn(code, site);
+    if (pos === undefined) return undefined;
+    const generated = {url, ...pos};
+    const original =
+      map === undefined
+        ? undefined
+        : originalPositionFor(map, {line: pos.line, column: pos.column - 1});
+    if (original?.source != null) {
+      return {
+        file: displayPath(original.source),
+        line: original.line,
+        column: original.column + 1,
+        url: original.source,
+        generated,
+      };
+    }
+    return {file: displayPath(url), ...pos, url, generated};
   };
 
   const mapFrame = async (
@@ -206,8 +295,29 @@ export const createSourceMapResolver = (
         generated: pick.frame,
       };
     },
+    async locate(site) {
+      const loaded = await Promise.all(
+        site.scripts.map(async (url) => ({url, script: await scriptOf(url)}))
+      );
+      try {
+        for (const {script} of loaded) {
+          const found =
+            script.map === undefined
+              ? undefined
+              : locateInSources(script.map, site);
+          if (found !== undefined) return found;
+        }
+        for (const {url, script} of loaded) {
+          const found = locateInScript(url, script, site);
+          if (found !== undefined) return found;
+        }
+      } catch {
+        // A map that does not read as expected.
+      }
+      return undefined;
+    },
     reset() {
-      maps = new Map();
+      scripts = new Map();
     },
   };
 };

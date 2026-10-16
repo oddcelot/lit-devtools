@@ -20,7 +20,7 @@ import type {PageTransport} from '../runtime/page-transport.js';
 import {createLitDevframe} from './definition.js';
 import type {CreateLitDevframeOptions} from './definition.js';
 import {withDefineSources} from './define-sources.js';
-import type {DefineSourceResolver} from './define-sources.js';
+import type {DefineSourceResolver, TemplateLocator} from './define-sources.js';
 import {TimelineChannelCodec} from './page-codec.js';
 import {withPageFetch} from './page-fetch.js';
 import {createSourceMapResolver} from './source-maps.js';
@@ -71,8 +71,11 @@ const rpcPageTransport = (ctx: DevframeNodeContext): PageTransport => {
 const withPageSourceMaps = (source: TimelineSource): TimelineSource => {
   const page = withPageFetch(source);
   const resolver = createSourceMapResolver({fetch: page.fetch});
-  const resolving = withDefineSources(page.source, (frames) =>
-    resolver.resolve(frames)
+  const resolving = withDefineSources(
+    page.source,
+    (frames) => resolver.resolve(frames),
+    undefined,
+    (site) => resolver.locate(site)
   );
   let lastPage: string | undefined;
   return {
@@ -117,6 +120,11 @@ export function createStandaloneLitDevframe(
      */
     resolveDefineSource?: DefineSourceResolver;
     /**
+     * Where an element the plugin never stamped is rendered, from the text
+     * of its template; passed with `resolveDefineSource`.
+     */
+    locateTemplate?: TemplateLocator;
+    /**
      * Resolve defines through the page's own sourcemaps, which the page
      * fetches for the host (see `page-fetch.ts`): `lit-devtools dev`, whose
      * pages the plugin never built. Ignored when `resolveDefineSource` is
@@ -126,7 +134,8 @@ export function createStandaloneLitDevframe(
   },
   transport: (ctx: DevframeNodeContext) => PageTransport = rpcPageTransport
 ): DevframeDefinition {
-  const {resolveDefineSource, pageSourceMaps, ...rest} = options;
+  const {resolveDefineSource, locateTemplate, pageSourceMaps, ...rest} =
+    options;
   const source = new TimelineChannelCodec();
   // What either host can do (its own picker, no HMR or source locations)
   // is `host-profile.ts`'s to say.
@@ -134,7 +143,12 @@ export function createStandaloneLitDevframe(
     ...rest,
     source:
       resolveDefineSource !== undefined
-        ? withDefineSources(source, resolveDefineSource)
+        ? withDefineSources(
+            source,
+            resolveDefineSource,
+            undefined,
+            locateTemplate
+          )
         : pageSourceMaps === true
           ? withPageSourceMaps(source)
           : source,

@@ -45,6 +45,7 @@ import type {
 } from '../../../types/inspector.js';
 import {CALL_SITE_ATTR, SOURCE_META_KEY, readCallSite} from '../source-meta.js';
 import {defineFramesOf, defineIdOf} from '../define-sites.js';
+import {templateSiteOf} from '../template-sites.js';
 
 interface LitSourceMeta {
   filePath: string;
@@ -91,6 +92,16 @@ const callSiteOf = (el: Element): ElementSource | undefined => {
   return site === undefined
     ? undefined
     : {file: site.filePath, line: site.lineNumber, column: site.columnNumber};
+};
+
+/** The stamped call site, else the template a host can look it up by. */
+const callSiteFields = (
+  el: Element
+): Pick<InspectorDetails, 'callSite' | 'templateSite'> => {
+  const callSite = callSiteOf(el);
+  if (callSite !== undefined) return {callSite};
+  const templateSite = templateSiteOf(el);
+  return templateSite === undefined ? {} : {templateSite};
 };
 
 /**
@@ -410,7 +421,7 @@ export const collectDetails = (el: Element): InspectorDetails => {
     tagName: el.tagName.toLowerCase(),
     componentName: meta?.componentName,
     source,
-    callSite: callSiteOf(el),
+    ...callSiteFields(el),
     ...statusOf(el, source),
     attributes: attributesOf(el),
     properties: propertiesOf(el),

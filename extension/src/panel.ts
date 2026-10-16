@@ -391,6 +391,7 @@ const boot = async (): Promise<void> => {
     version,
     storage: createChromeStorage(chrome.storage.local),
     resolveDefineSource: (frames) => sourceMaps.resolve(frames),
+    locateTemplate: (site) => sourceMaps.locate(site),
     docsSource: (args) => manifestDocs.componentDocs(args),
   });
   useLocalClient(client);

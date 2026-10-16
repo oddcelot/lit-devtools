@@ -16,6 +16,7 @@
  */
 
 import {installDefineSites} from '../../src/lib/runtime/define-sites.js';
+import {installTemplateSites} from '../../src/lib/runtime/template-sites.js';
 import {forgetOwnLit} from '../../src/lib/runtime/own-lit.js';
 import '../../src/lib/runtime/timeline/install.js';
 import '../../src/lib/runtime/inspector/install.js';
@@ -27,6 +28,9 @@ import {attachWindowTransport} from '../../src/lib/runtime/window-transport.js';
 // this has to run before the page's scripts do (our own imports' defines
 // are not the page's and need no record).
 installDefineSites();
+// Which template rendered an element, likewise: lit-html reports its
+// templates only to a hook that is set before it loads.
+installTemplateSites();
 // The picker's LitElement brought a Lit of our own: not the page's to count.
 forgetOwnLit();
 attachWindowTransport();

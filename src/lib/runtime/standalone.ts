@@ -24,6 +24,7 @@
  */
 
 import {installDefineSites} from './define-sites.js';
+import {installTemplateSites} from './template-sites.js';
 import {forgetOwnLit} from './own-lit.js';
 import './inspector/persist.js';
 import './timeline/install.js';
@@ -38,6 +39,9 @@ import type {ConnectOptions} from './rpc-transport.js';
 // seen, hence the script belongs in <head>, ahead of the app. (Our own
 // imports' defines are not the page's and need no record.)
 installDefineSites();
+// Which template rendered an element, likewise: lit-html reports its
+// templates only to a hook that is set before it loads.
+installTemplateSites();
 // The picker's LitElement brought a Lit of our own: not the page's to count.
 forgetOwnLit();
 
