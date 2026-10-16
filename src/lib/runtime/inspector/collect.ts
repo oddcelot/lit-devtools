@@ -297,13 +297,63 @@ const propOf = (
   };
 };
 
+type DeclaringClass = ReactiveElementLike['constructor'] & {name?: string};
+
+/**
+ * The classes from `ctor` up that hold a declaration map, most derived first.
+ * Lit gives each finalized class its own map, a copy of its superclass's
+ * before its own declarations are added.
+ */
+const declaringChain = (ctor: DeclaringClass): DeclaringClass[] => {
+  const chain: DeclaringClass[] = [];
+  for (
+    let c: DeclaringClass | null = ctor;
+    c?.elementProperties !== undefined;
+    c = Object.getPrototypeOf(c) as DeclaringClass | null
+  ) {
+    chain.push(c);
+  }
+  return chain;
+};
+
+/**
+ * Which class in `chain` declared `key`: the most derived one whose map holds
+ * a declaration its superclass's map does not. A subclass that redeclares a
+ * property holds a new options object; one that inherits it holds the same.
+ */
+const declaredAt = (
+  chain: readonly DeclaringClass[],
+  key: PropertyKey
+): number => {
+  for (let depth = 0; depth < chain.length - 1; depth++) {
+    const own = chain[depth]!.elementProperties!.get(key);
+    if (own !== chain[depth + 1]!.elementProperties!.get(key)) return depth;
+  }
+  return chain.length - 1;
+};
+
 const propertiesOf = (el: Element): InspectorProp[] => {
-  const declarations = (el as ReactiveElementLike).constructor
-    .elementProperties;
+  const ctor = (el as ReactiveElementLike).constructor as DeclaringClass;
+  const declarations = ctor.elementProperties;
   const properties: InspectorProp[] = [];
   if (declarations === undefined) return properties;
+  const chain = declaringChain(ctor);
+  const depths = new Map(
+    [...declarations.keys()].map((key) => [key, declaredAt(chain, key)])
+  );
+  // Name the classes only when more than one declared something; a flat
+  // component's table has nothing to group.
+  const grouped = new Set(depths.values()).size > 1;
   for (const [key, decl] of declarations) {
-    properties.push(propOf(el, key, decl));
+    const prop = propOf(el, key, decl);
+    if (grouped) {
+      const depth = depths.get(key)!;
+      prop.declaredBy = {
+        name: chain[depth]!.name || '(anonymous class)',
+        depth,
+      };
+    }
+    properties.push(prop);
   }
   return properties;
 };

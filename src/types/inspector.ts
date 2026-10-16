@@ -131,6 +131,13 @@ export interface InspectorProp {
    * overrides apply, else the element's intrinsic value.
    */
   override?: InspectorPropOverride;
+  /**
+   * The class that declared the property: its `name` and how many classes
+   * up from the element's own it sits (0 for the element's own class).
+   * Present on every property, or on none when one class declared them all,
+   * and absent from an older runtime.
+   */
+  declaredBy?: {name: string; depth: number};
 }
 
 /**

@@ -91,6 +91,12 @@ none. The badges only say an option is set; no custom function is called.
 **State** lists internal `@state`. **Attributes** lists the attributes the
 element currently carries, as quoted strings.
 
+When the properties come from more than one class, Properties and State group
+them under the name of the class that declared each one: the element's own
+class first, then each base class and mixin up the chain. A property a subclass
+redeclares sits with the subclass. A mixin's class is often anonymous and reads
+`(anonymous class)`.
+
 Values are coloured like code: keys, strings, numbers, keywords and class
 names each take their own colour. A value too long for its row moves to its
 own line under the name, and an object or array too wide for that line opens
