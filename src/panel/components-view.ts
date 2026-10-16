@@ -52,7 +52,7 @@ import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {overrides} from './settings-override.js';
 import {getTimelineEvents, subscribeTimeline} from './timeline-store.js';
-import {selfCausedCounts} from '../lib/timeline/model.js';
+import {elementActivity, type ElementActivity} from '../lib/timeline/model.js';
 import type {TimelineEvent} from '../types/timeline.js';
 import {
   docPlainText,
@@ -80,6 +80,17 @@ const ANATOMY_LS_KEY = 'lit-devtools-components-anatomy';
 
 /** Lit's dev-mode code for an update scheduled after an update completed. */
 const CHANGE_IN_UPDATE = 'change-in-update';
+
+const NO_ACTIVITY: ElementActivity = {selfCaused: 0, dispatched: []};
+
+/** Whether two activities would render the same sections. */
+const sameActivity = (a: ElementActivity, b: ElementActivity): boolean =>
+  a.selfCaused === b.selfCaused &&
+  a.dispatched.length === b.dispatched.length &&
+  a.dispatched.every(
+    (e, i) =>
+      e.type === b.dispatched[i]!.type && e.count === b.dispatched[i]!.count
+  );
 
 const readAnatomy = (): boolean => {
   try {
@@ -1457,17 +1468,18 @@ export class ComponentsView extends LitElement {
   private _unsubscribeSession: (() => void) | null = null;
   private _unsubscribeTimeline: (() => void) | null = null;
   /**
-   * Per element id, how many of its recorded updates its own previous update
-   * scheduled, for the Warnings section. Derived on demand and kept for the
-   * buffer it came from: the view stays mounted behind other tabs, so a busy
-   * recording must not re-derive (or re-render) it on every batch.
+   * Per element id, what the recording shows it doing (double renders,
+   * dispatched events), for the Warnings and Dispatched sections. Derived on
+   * demand and kept for the buffer it came from: the view stays mounted
+   * behind other tabs, so a busy recording must not re-derive (or re-render)
+   * it on every batch.
    */
-  private _selfCaused: {
+  private _activity: {
     events: readonly TimelineEvent[];
-    counts: ReadonlyMap<number, number>;
+    byId: ReadonlyMap<number, ElementActivity>;
   } | null = null;
-  /** The count the Warnings section last showed, keyed to its element. */
-  private _shownSelfCaused: {id: number; count: number} | null = null;
+  /** The activity the details last showed, keyed to its element. */
+  private _shownActivity: {id: number; activity: ElementActivity} | null = null;
   /** The tree row under the pointer, so Shift can act on it. */
   private _hovered: InspectorTreeNode | null = null;
   /** The tag whose rows are marked while Shift-hovering, or null. */
@@ -1504,8 +1516,11 @@ export class ComponentsView extends LitElement {
       this._flash = o.flashUpdates ?? false;
     });
     this._unsubscribeTimeline = subscribeTimeline(() => {
-      const shown = this._shownSelfCaused;
-      if (shown !== null && this._selfCausedCount(shown.id) !== shown.count) {
+      const shown = this._shownActivity;
+      if (
+        shown !== null &&
+        !sameActivity(this._activityOf(shown.id), shown.activity)
+      ) {
         this.requestUpdate();
       }
     });
@@ -2960,19 +2975,13 @@ export class ComponentsView extends LitElement {
     `;
   }
 
-  /**
-   * A details section that folds on its heading, with its row count beside
-   * the label. Which sections are folded is remembered across selections and
-   * reloads, keyed by label. While a filter is set, the count reads
-   * `shown/total`, a section with no match is left out, and the rest show
-   * open without touching the remembered folds.
-   */
-  private _selfCausedCount(id: number): number {
+  /** {@link ElementActivity} of element `id` in the current buffer. */
+  private _activityOf(id: number): ElementActivity {
     const events = getTimelineEvents();
-    if (this._selfCaused?.events !== events) {
-      this._selfCaused = {events, counts: selfCausedCounts(events)};
+    if (this._activity?.events !== events) {
+      this._activity = {events, byId: elementActivity(events)};
     }
-    return this._selfCaused.counts.get(id) ?? 0;
+    return this._activity.byId.get(id) ?? NO_ACTIVITY;
   }
 
   /**
@@ -2988,8 +2997,7 @@ export class ComponentsView extends LitElement {
   } {
     const all = d.warnings ?? [];
     const kept = all.filter((w) => this._matches(w.code, w.message));
-    const rerenders = this._selfCausedCount(d.id);
-    this._shownSelfCaused = {id: d.id, count: rerenders};
+    const rerenders = this._activityOf(d.id).selfCaused;
     const note =
       rerenders === 0
         ? ''
@@ -3040,6 +3048,39 @@ export class ComponentsView extends LitElement {
     return {shown, section};
   }
 
+  /**
+   * The Dispatched section: how many events of each type the element
+   * dispatched on itself in the recording. Counts only; which listeners ran
+   * is not recorded.
+   */
+  private _dispatchedView(d: InspectorDetails): {
+    shown: number;
+    section: TemplateResult | typeof nothing;
+  } {
+    const all = this._activityOf(d.id).dispatched;
+    const kept = all.filter((e) => this._matches(e.type, String(e.count)));
+    const section = this._renderSection(
+      'Dispatched',
+      kept.length,
+      all.length,
+      html`<div class="kv dispatched">
+        ${kept.map((e) =>
+          this._renderEntry(e.type, `×${e.count}`, {
+            key: `dispatched:${e.type}`,
+          })
+        )}
+      </div>`
+    );
+    return {shown: kept.length, section};
+  }
+
+  /**
+   * A details section that folds on its heading, with its row count beside
+   * the label. Which sections are folded is remembered across selections and
+   * reloads, keyed by label. While a filter is set, the count reads
+   * `shown/total`, a section with no match is left out, and the rest show
+   * open without touching the remembered folds.
+   */
   private _renderSection(
     label: string,
     shown: number,
@@ -3281,6 +3322,8 @@ export class ComponentsView extends LitElement {
     const extras = allExtras.filter((e) => byRow(e.name, e.value));
     const allWarnings = d.warnings ?? [];
     const warnings = this._warningsView(d);
+    const dispatched = this._dispatchedView(d);
+    this._shownActivity = {id: d.id, activity: this._activityOf(d.id)};
     const docs = this._docsView(d);
     const anatomyHit =
       d.anatomy !== undefined &&
@@ -3292,7 +3335,8 @@ export class ComponentsView extends LitElement {
         stateProps.length +
         attributes.length +
         extras.length +
-        warnings.shown >
+        warnings.shown +
+        dispatched.shown >
         0 ||
       anatomyHit ||
       docs.anyMatch;
@@ -3449,7 +3493,7 @@ export class ComponentsView extends LitElement {
           </div>
         `
       )}
-      ${this._renderDocSections(docs)}
+      ${this._renderDocSections(docs)} ${dispatched.section}
       ${this._renderSection(
         'Instance',
         extras.length,
