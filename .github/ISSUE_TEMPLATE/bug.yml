@@ -1,0 +1,40 @@
+name: Bug report
+description: Something in the plugin, the DevTools panel or the docs is broken.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. Console output from the browser or the terminal helps.
+    validations:
+      required: true
+  - type: input
+    id: repro
+    attributes:
+      label: Reproduction
+      description: A repository or StackBlitz link with the smallest setup that shows the problem.
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version
+      placeholder: '0.18.0'
+    validations:
+      required: true
+  - type: input
+    id: vite-version
+    attributes:
+      label: Vite version
+      placeholder: '8.0.0'
+    validations:
+      required: true
+  - type: input
+    id: lit-version
+    attributes:
+      label: Lit version
+      placeholder: '3.3.0'
+  - type: input
+    id: environment
+    attributes:
+      label: Browser and OS
+      placeholder: Chrome 150, macOS 26
