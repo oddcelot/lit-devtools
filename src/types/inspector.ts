@@ -659,6 +659,14 @@ export type InspectorCommand =
    */
   | {type: 'observe'; enabled: boolean}
   /**
+   * The last panel watching this page is gone: take down what panels left on
+   * it (outlines, anatomy, breakpoints, Live and the watch). Sent by a host
+   * that sees a panel close before the page can, such as the browser
+   * extension's background. Ignored while a panel on the in-page channel is
+   * still connected.
+   */
+  | {type: 'release'}
+  /**
    * Start the overlay's inspect-mode picker (the panel's "Pick" button). Handled
    * by the server (it broadcasts {@link INSPECT_OVERLAY_TOGGLE_CHANNEL}), not the
    * app runtime, so it never reaches the runtime's command handler.

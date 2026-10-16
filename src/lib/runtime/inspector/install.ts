@@ -98,6 +98,22 @@ let onPanelArrived: (() => void) | undefined;
 // one rather than react to the first disconnect.
 const panels = new Set<string>();
 
+/**
+ * Take down what the panels left on the page once none is left. Their own
+ * off-switches are RPCs a closing panel fires and a closing frame drops, so
+ * the page does it itself.
+ */
+const releasePage = (): void => {
+  clearHighlight();
+  clearAnatomy();
+  clearBreakpoints();
+  try {
+    onPanelsGone?.();
+  } catch {
+    // Never throw into the app.
+  }
+};
+
 /** The console name of the panel's selection, as `$0` is the Elements panel's. */
 const SELECTION_GLOBAL = '$lit';
 /** Set on the global once `$lit` is ours, so a re-run runtime may replace it. */
@@ -161,19 +177,11 @@ if (typeof window !== 'undefined') {
     }
   });
   // A panel that goes away mid-hover never gets to send its `highlight(null)`,
-  // and an outline left painted over the app is worse than a missing one. The
-  // same goes for Live mode and the watch hook: their off-switches are RPCs
-  // the closing panel fires and the closing iframe drops.
+  // and an outline left painted over the app is worse than a missing one.
   channel.events.on('panel:disconnected', (panel) => {
     clearHighlight();
     panels.delete(panel.id);
-    if (panels.size > 0) return;
-    clearAnatomy();
-    try {
-      onPanelsGone?.();
-    } catch {
-      // Never throw into the app.
-    }
+    if (panels.size === 0) releasePage();
   });
 }
 
@@ -838,6 +846,9 @@ if (typeof window !== 'undefined') {
     anatomy: (cmd) => anatomyById(cmd.id, cmd.only),
     'anatomy-focus': (cmd) => focusAnatomy(cmd.focus),
     observe: (cmd) => setObserving(cmd.enabled),
+    release: () => {
+      if (panels.size === 0) releasePage();
+    },
   };
 
   pageChannel.on(INSPECT_CMD_CHANNEL, (data) => {
