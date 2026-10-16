@@ -1,5 +1,8 @@
 blank_issues_enabled: true
 contact_links:
+  - name: Ask a question
+    url: https://github.com/oddcelot/vite-plugin-lit/discussions/categories/q-a
+    about: Setup help and how-do-I questions go to Discussions.
   - name: Troubleshooting
     url: https://oddcelot.github.io/vite-plugin-lit/guides/troubleshooting/
     about: Common causes for full reloads, lost state and patching failures.

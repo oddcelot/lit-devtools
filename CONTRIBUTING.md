@@ -4,6 +4,8 @@ Issues and pull requests are welcome. For a bug, open an
 [issue](https://github.com/oddcelot/vite-plugin-lit/issues) with the Vite and
 Lit versions and, if you can, a minimal reproduction. For a larger change,
 open an issue first so we can agree on the approach before you write it.
+Questions and open-ended ideas belong in
+[Discussions](https://github.com/oddcelot/vite-plugin-lit/discussions).
 
 ## Setup
 
