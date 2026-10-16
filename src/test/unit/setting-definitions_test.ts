@@ -36,6 +36,7 @@ test('the derived types keep each Setting value type', () => {
     sourceOverlayEditor?: string;
     flashUpdates?: boolean;
     flashUpdatesRamp?: boolean;
+    inlineDocs?: boolean;
     chromeTracks?: boolean;
   }>();
   expectTypeOf<keyof SettingSources>().toEqualTypeOf<
@@ -58,6 +59,7 @@ test('the key map and preference defaults are derived from the definitions', () 
   expect(PREFERENCE_DEFAULTS).toEqual({
     flashUpdates: false,
     flashUpdatesRamp: false,
+    inlineDocs: false,
     chromeTracks: false,
   });
 });

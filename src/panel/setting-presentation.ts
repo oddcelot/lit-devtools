@@ -125,6 +125,11 @@ const PRESENTATION = {
     format: (ramp) => (ramp ? 'calm → hot' : 'single colour'),
     disabled: ({override}) => !(override.flashUpdates ?? false),
   },
+  inlineDocs: {
+    label: 'inline descriptions',
+    tip: "Show the manifest's description of each property, attribute, slot and part under its row, instead of on hover. Default: off",
+    format: onOff,
+  },
   chromeTracks: {
     label: 'performance tracks',
     tip: "Mirror the timeline into the browser's performance profiler, next to its own work. Default: off",

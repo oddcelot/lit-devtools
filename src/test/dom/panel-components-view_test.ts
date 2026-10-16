@@ -21,6 +21,7 @@ import {useElementRevealer} from '../../panel/element-revealer.js';
 import {useBreakpoints} from '../../panel/breakpoints.js';
 import type {BreakTarget} from '../../types/inspector.js';
 import {useSourceOpener} from '../../panel/source-opener.js';
+import {overrides} from '../../panel/settings-override.js';
 vi.mock('../../panel/in-page.js', () => import('./fakes/in-page.js'));
 vi.mock(
   '../../panel/timeline-store.js',
@@ -2223,15 +2224,8 @@ test('About shows @examples as code blocks, under their captions', async () => {
   );
 });
 
-test('slots and parts take their manifest descriptions as tooltips', async () => {
-  answers.set('component-docs', () => ({
-    docs: {
-      ...buttonDocs,
-      slots: [{name: '', description: 'The label'}],
-      cssParts: [{name: 'base', description: 'The wrapper'}],
-    },
-  }));
-  const {el, root} = await mount(true);
+/** A button whose manifest documents its default slot and its `base` part. */
+const showDocumentedAnatomy = async (el: ComponentsView) => {
   push('inspector-message', {type: 'pick', id: 2});
   push('inspector-message', {
     type: 'details',
@@ -2258,6 +2252,21 @@ test('slots and parts take their manifest descriptions as tooltips', async () =>
     },
   });
   await flush(el);
+};
+
+const documentedAnatomy = () =>
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      slots: [{name: '', description: 'The label'}],
+      cssParts: [{name: 'base', description: 'The wrapper'}],
+    },
+  }));
+
+test('slots and parts take their manifest descriptions as tooltips', async () => {
+  documentedAnatomy();
+  const {el, root} = await mount(true);
+  await showDocumentedAnatomy(el);
   const tips = [...root.querySelectorAll('.details .described')].map((d) => [
     d.textContent!.trim(),
     d.getAttribute('data-tip'),
@@ -2266,6 +2275,23 @@ test('slots and parts take their manifest descriptions as tooltips', async () =>
     ['default', 'The label'],
     ['base control', 'The wrapper'],
   ]);
+  expect(root.querySelector('.details .doc-line')).toBeNull();
+});
+
+test('inline descriptions put each description under its row', async () => {
+  documentedAnatomy();
+  overrides.set('inlineDocs', true);
+  try {
+    const {el, root} = await mount(true);
+    await showDocumentedAnatomy(el);
+    const lines = [...root.querySelectorAll('.details .entry .doc-line')].map(
+      (d) => d.textContent!.trim()
+    );
+    expect(lines).toEqual(['The label', 'The wrapper']);
+    expect(root.querySelector('.details .described')).toBeNull();
+  } finally {
+    overrides.set('inlineDocs', false);
+  }
 });
 
 test('long About text starts clamped and opens with more', async () => {

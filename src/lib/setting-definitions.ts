@@ -164,6 +164,11 @@ export const SETTINGS = {
    */
   flashUpdatesRamp: bool({role: 'preference', kind: 'switch', default: false}),
   /**
+   * Show each documented member's manifest description in a line under its
+   * row in the Components details, instead of only on hover.
+   */
+  inlineDocs: bool({role: 'preference', kind: 'switch', default: false}),
+  /**
    * Mirror the timeline into Chrome DevTools' Performance panel as custom
    * tracks (via `console.timeStamp`), independent of panel recording.
    */
