@@ -1,9 +1,12 @@
+import {LitElement} from 'lit';
 import {afterEach, expect, test, vi} from 'vite-plus/test';
 import {
+  BREAKPOINTS_KEY,
   ELEMENT_BY_ID_KEY,
   LIT_ID_OF_KEY,
   INSPECT_CMD_CHANNEL,
   INSPECT_DATA_CHANNEL,
+  type PageBreakpoints,
 } from '../../types/inspector.js';
 
 // The real in-page channel never connects under happy-dom; this lets a test
@@ -176,6 +179,47 @@ test('waits for the last panel before releasing', async () => {
   document.body.append(make());
   await settle();
   expect(trees(carrier)).toBe(after);
+});
+
+// The browser extension's panel never joins the in-page channel; its
+// background sends `release` when the last one closes.
+test('a release command stops observing when no in-page panel is connected', async () => {
+  const {carrier} = await load();
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: true});
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'release'});
+  const before = trees(carrier);
+  document.body.append(make());
+  await settle();
+  expect(trees(carrier)).toBe(before);
+});
+
+test('a release command leaves a connected in-page panel alone', async () => {
+  const {carrier} = await load();
+  fire('panel:connected', 'p1');
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: true});
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'release'});
+  const before = trees(carrier);
+  document.body.append(make());
+  await settle();
+  expect(trees(carrier)).toBeGreaterThan(before);
+});
+
+test('releasing disarms the breakpoints the panel set', async () => {
+  const {carrier, idOf} = await load();
+  const tag = `x-release-lit-${n++}`;
+  customElements.define(tag, class extends LitElement {});
+  const el = document.createElement(tag) as LitElement;
+  document.body.append(el);
+  await el.updateComplete;
+  const breakpoints = (globalThis as unknown as Record<symbol, unknown>)[
+    BREAKPOINTS_KEY
+  ] as PageBreakpoints;
+  expect(
+    breakpoints.set(idOf(el), {kind: 'method', name: 'render'}, true)
+  ).toBe(true);
+  expect(Object.hasOwn(el, 'render')).toBe(true);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'release'});
+  expect(Object.hasOwn(el, 'render')).toBe(false);
 });
 
 test('tells a newly connected panel the runtime is up', async () => {

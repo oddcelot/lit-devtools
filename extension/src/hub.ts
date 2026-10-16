@@ -29,6 +29,10 @@ import {
 } from '../../src/lib/devframe/port-message.js';
 import {PEER_CONNECTED_CHANNEL} from '../../src/lib/devframe/protocol.js';
 import {
+  INSPECT_CMD_CHANNEL,
+  type InspectorCommand,
+} from '../../src/types/inspector.js';
+import {
   CHANNEL_PAGE_STATUS,
   PAGE_PORT,
   PANEL_PORT,
@@ -108,7 +112,15 @@ export const createHub = (): Hub => {
       if (tabId === undefined) return;
       const set = panels.get(tabId);
       set?.delete(port);
-      if (set?.size === 0) panels.delete(tabId);
+      if (set?.size !== 0) return;
+      panels.delete(tabId);
+      // Closing DevTools gives the panel no time to clear what it drew on
+      // the page; the port dropping is the first anyone hears of it.
+      const page = pages.get(tabId);
+      const release: InspectorCommand = {type: 'release'};
+      if (page !== undefined) {
+        post(page, {channel: INSPECT_CMD_CHANNEL, data: release});
+      }
     });
   };
 

@@ -55,6 +55,8 @@ const panel = (tabId: number) => {
 
 const peerConnected = {channel: 'lit:peer-connected'};
 
+const release = {channel: 'lit:inspect:cmd', data: {type: 'release'}};
+
 const status = (connected: boolean) => ({
   channel: 'lit-ext:page',
   data: {connected},
@@ -98,7 +100,34 @@ describe('extension hub', () => {
     const second = panel(1);
     hub.connect(second.port);
     second.hello();
+    expect(p.received).toEqual([peerConnected, release, peerConnected]);
+  });
+
+  test('tells the page to release once its last panel is gone', () => {
+    const hub = createHub();
+    const p = page(1);
+    const first = panel(1);
+    const second = panel(1);
+    hub.connect(p);
+    hub.connect(first.port);
+    first.hello();
+    hub.connect(second.port);
+    second.hello();
+
+    first.port.hangUp();
     expect(p.received).toEqual([peerConnected, peerConnected]);
+    second.port.hangUp();
+    expect(p.received).toEqual([peerConnected, peerConnected, release]);
+  });
+
+  test('a panel that never said hello releases nothing', () => {
+    const hub = createHub();
+    const p = page(1);
+    hub.connect(p);
+    const {port: q} = panel(1);
+    hub.connect(q);
+    q.hangUp();
+    expect(p.received).toEqual([]);
   });
 
   test('tells a panel that came first when the page connects', () => {
