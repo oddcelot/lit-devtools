@@ -124,6 +124,12 @@ export interface CreateLitDevframeOptions {
    */
   docsSource?: (args: ComponentDocsArgs) => Promise<ComponentDocsResult>;
   /**
+   * Hands {@link docsSource}'s host a function that tells the panel to ask
+   * for the docs it shows again, as when the extension's user points it at
+   * another manifest.
+   */
+  onDocsSourceChanged?: (notify: () => void) => void;
+  /**
    * Boot from a recorded session instead of a live one. Set only by the
    * static-snapshot build (see `lib/snapshot.ts`): the caches below start
    * populated, so the frozen panel has a timeline and a component tree to
@@ -148,8 +154,16 @@ const DEFAULT_INSPECTOR_TIMEOUT_MS = 500;
 export function createLitDevframe(
   options: CreateLitDevframeOptions
 ): DevframeDefinition {
-  const {source, version, features, replay, host, nodeActions, docsSource} =
-    options;
+  const {
+    source,
+    version,
+    features,
+    replay,
+    host,
+    nodeActions,
+    docsSource,
+    onDocsSourceChanged,
+  } = options;
 
   return defineDevframe({
     id: LIT_DEVFRAME_ID,
@@ -347,14 +361,17 @@ export function createLitDevframe(
 
         writeEvents = (stamped) => ensureStream().write(stamped);
 
-        // A regenerated manifest: the panel asks again for the docs it shows.
-        nodeActions?.onComponentDocsChanged(() => {
+        // A regenerated manifest, or another one picked: the panel asks
+        // again for the docs it shows.
+        const docsChanged = () => {
           void ctx.rpc.broadcast({
             method: `${LIT_DEVFRAME_ID}:${RPC_COMPONENT_DOCS_CHANGED}`,
             args: [],
             optional: true,
           });
-        });
+        };
+        nodeActions?.onComponentDocsChanged(docsChanged);
+        onDocsSourceChanged?.(docsChanged);
         source.attach(followed.sink);
 
         // Single push point for recording/layer changes: fires for the
