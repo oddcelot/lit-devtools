@@ -4,6 +4,7 @@
   "description": "Vite plugin providing true HMR for Lit components, plus CSS helpers and a DevTools panel",
   "license": "BSD-3-Clause",
   "author": "oddcelot",
+  "homepage": "https://oddcelot.github.io/vite-plugin-lit/",
   "keywords": [
     "vite-plugin",
     "vite",
