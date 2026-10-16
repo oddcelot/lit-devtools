@@ -138,6 +138,32 @@ test('refreshes a watched element when a light child changes slot', async () => 
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
 });
 
+test('refreshes the not-rendered list when a child no slot takes arrives', async () => {
+  const {id} = await nodeFor('hmr-slots');
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id});
+  const orphans = () =>
+    details
+      .filter((d) => d.id === id)
+      .at(-1)
+      ?.anatomy?.orphans.map((o) => o.slot);
+  await expect.poll(orphans, {timeout: 10_000}).toEqual(['aside']);
+
+  // No slot is named "nowhere", so nothing fires slotchange.
+  await fixture.page.evaluate(
+    `(() => { const b = document.createElement('b'); b.slot = 'nowhere'; b.id = 'stray'; document.querySelector('hmr-slots').append(b); })()`
+  );
+  await expect.poll(orphans, {timeout: 10_000}).toEqual(['aside', 'nowhere']);
+
+  await fixture.page.evaluate(
+    `document.getElementById('stray').slot = 'elsewhere'`
+  );
+  await expect.poll(orphans, {timeout: 10_000}).toEqual(['aside', 'elsewhere']);
+
+  await fixture.page.evaluate(`document.getElementById('stray').remove()`);
+  await expect.poll(orphans, {timeout: 10_000}).toEqual(['aside']);
+  fixture.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+});
+
 /**
  * What the overlay has drawn, read in the page: the labels, the boxes and the
  * leaders still shown, in drawing order (host first, then slots, then parts).
