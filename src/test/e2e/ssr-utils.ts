@@ -12,7 +12,7 @@ import {randomUUID} from 'node:crypto';
 import {cp, readFile, rm, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import type {ViteDevServer} from 'vite';
+import type {InlineConfig, ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {litPlugin, type LitPluginOptions} from '../../index.js';
 
@@ -38,7 +38,9 @@ interface SsrServer {
 }
 
 export const startSsrFixture = async (
-  plugin: LitPluginOptions = {timeline: true}
+  plugin: LitPluginOptions = {timeline: true},
+  /** Merged into the dev server's Vite config, as `devtools` for the hub. */
+  vite: InlineConfig = {}
 ): Promise<SsrFixture> => {
   const root = path.join(EXAMPLE_DIR, '.e2e-tmp', randomUUID().slice(0, 8));
   // Entry by entry: the copy lives inside the example, which `cp` won't
@@ -63,6 +65,7 @@ export const startSsrFixture = async (
     port: 0,
     host: '127.0.0.1',
     vite: {
+      ...vite,
       configFile: false,
       logLevel: 'silent',
       // Its own optimizer cache: the example's is shared by every run and by
