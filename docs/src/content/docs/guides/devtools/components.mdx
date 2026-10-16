@@ -313,9 +313,12 @@ call in the same module, and plain JavaScript with `static properties` and
 `@type` works too.
 
 A component inherits the members of the classes it extends when those live in
-your project, even in another module. A class built by a mixin call
-(`extends SignalWatcher(LitElement)`) isn't followed, so members it adds don't
-show. Docs read from source win over a manifest for the same tag, and an edit
+your project, even in another module. Mixins are followed too: in
+`extends Sized(Base)`, the members of your project's `Sized` mixin are listed
+as inherited from `Sized`, ahead of `Base`'s. A mixin counts when it is a
+top-level function that returns a class, either directly or as a class it
+declares and returns. A mixin from a package, such as `SignalWatcher`, is
+skipped and the walk carries on to the base class. Docs read from source win over a manifest for the same tag, and an edit
 shows as soon as its hot patch lands.
 
 ### Libraries and manifests

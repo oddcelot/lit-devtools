@@ -59,9 +59,73 @@ describe('tags', () => {
     });
   });
 
-  test('a mixin call is not followed', () => {
-    const cls = only(`class X extends Mixin(LitElement) {}`);
+  test('mixin calls name the mixins, outermost first, and the base', () => {
+    const cls = only(`
+      import {SignalWatcher} from '@lit-labs/signals';
+      import {Sized} from './sized.js';
+      class X extends SignalWatcher(Sized(LitElement)) {}
+    `);
+    expect(cls.superclass).toEqual({name: 'LitElement'});
+    expect(cls.mixins).toEqual([
+      {name: 'SignalWatcher', specifier: '@lit-labs/signals'},
+      {name: 'Sized', specifier: './sized.js'},
+    ]);
+  });
+
+  test('a mixin over something other than a name leaves no superclass', () => {
+    const cls = only(`class X extends Mixin(bases.Lit) {}`);
     expect(cls.superclass).toBeUndefined();
+    expect(cls.mixins).toEqual([{name: 'Mixin'}]);
+  });
+});
+
+describe('mixins', () => {
+  const mixins = (code: string) =>
+    extractModuleDocs(code, '/app/src/m.ts').mixins ?? [];
+
+  test('an arrow returning a class expression documents its members', () => {
+    const [sized] = mixins(`
+      /** Gives a component a size. */
+      export const Sized = (superClass) =>
+        class extends superClass {
+          /** How big it is. */
+          @property() size = 'm';
+          @state() private open = false;
+        };
+    `);
+    expect(sized).toMatchObject({
+      name: 'Sized',
+      docs: {
+        description: 'Gives a component a size.',
+        properties: [{name: 'size', description: 'How big it is.'}],
+      },
+    });
+    expect(sized!.docs.properties).toHaveLength(1);
+  });
+
+  test('a function returning a class declared in its body', () => {
+    const [tone] = mixins(`
+      export function Toned(superClass) {
+        class TonedElement extends Sized(superClass) {
+          @property() tone = 'neutral';
+        }
+        return TonedElement;
+      }
+    `);
+    expect(tone).toMatchObject({
+      name: 'Toned',
+      mixins: [{name: 'Sized'}],
+      docs: {properties: [{name: 'tone'}]},
+    });
+  });
+
+  test('functions that return no class are not mixins', () => {
+    expect(
+      extractModuleDocs(
+        `export const twice = (n) => n * 2; export function f() { return 1; }`,
+        '/app/src/m.ts'
+      ).mixins
+    ).toBeUndefined();
   });
 });
 

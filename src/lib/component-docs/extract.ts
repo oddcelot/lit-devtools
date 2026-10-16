@@ -5,6 +5,10 @@
  * superclass left unresolved, and `source-index.ts` joins classes across
  * modules into `ComponentDocs`.
  *
+ * Mixins are read too: a top-level function that returns a class documents
+ * that class's members under the function's name, and a class's `extends
+ * A(B(Base))` names the mixins and the base for the index to follow.
+ *
  * What it reads, in the analyzer's vocabulary: the tag from
  * `@customElement('x-y')` or `customElements.define('x-y', Class)`, the
  * class's JSDoc (`@summary`, `@deprecated`, `@fires`/`@event`, `@slot`,
@@ -54,17 +58,44 @@ export interface ClassDocs {
   /** `true` for `export default class`. */
   isDefaultExport?: boolean;
   /**
-   * The class it extends, when that is a plain identifier (a mixin call is
-   * not followed). `name` is the name it is exported under where it comes
-   * from (`default` for a default import), `specifier` the import source
-   * when it is imported.
+   * The class it extends, when that is an identifier, also as the innermost
+   * argument of mixin calls (`extends Sized(Base)` extends `Base`).
    */
-  superclass?: {name: string; specifier?: string};
+  superclass?: ClassRef;
+  /**
+   * The mixins it is built from, outermost first: `extends A(B(Base))` is
+   * `[A, B]`. Only mixins called by name are listed.
+   */
+  mixins?: ClassRef[];
+  docs: ClassDocsBody;
+}
+
+/**
+ * Names a class or mixin as the module that declares it exports it: `name`
+ * is that export's name (`default` for a default import), `specifier` the
+ * import source when it is imported.
+ */
+export interface ClassRef {
+  name: string;
+  specifier?: string;
+}
+
+/**
+ * A mixin the module declares at its top level: a function that returns a
+ * class, read like one. `mixins` lists the mixins its class applies to the
+ * function's argument in turn.
+ */
+export interface MixinDocs {
+  name: string;
+  isDefaultExport?: true;
+  mixins?: ClassRef[];
   docs: ClassDocsBody;
 }
 
 export interface ModuleDocs {
   classes: ClassDocs[];
+  /** Absent when the module declares none. */
+  mixins?: MixinDocs[];
 }
 
 // --- imports and registrations ---------------------------------------------
@@ -154,14 +185,26 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   return docs;
 };
 
-const superclassOf = (
+/**
+ * What `cls` extends: through any mixin calls (`A(B(Base))`) to the class
+ * at the bottom, with the mixins called by name on the way.
+ */
+const heritageOf = (
   cls: Node,
   imports: Map<string, Imported>
-): ClassDocs['superclass'] => {
-  const superClass = child(cls, 'superClass');
-  if (superClass?.type !== 'Identifier') return undefined;
-  const local = nameOf(superClass)!;
-  return imports.get(local) ?? {name: local};
+): Pick<ClassDocs, 'superclass' | 'mixins'> => {
+  const ref = (local: string): ClassRef => imports.get(local) ?? {name: local};
+  const mixins: ClassRef[] = [];
+  let node = child(cls, 'superClass');
+  while (node?.type === 'CallExpression') {
+    const callee = child(node, 'callee');
+    if (callee?.type === 'Identifier') mixins.push(ref(nameOf(callee)!));
+    node = nodes(node.arguments)[0];
+  }
+  const heritage: Pick<ClassDocs, 'superclass' | 'mixins'> = {};
+  if (node?.type === 'Identifier') heritage.superclass = ref(nameOf(node)!);
+  if (mixins.length > 0) heritage.mixins = mixins;
+  return heritage;
 };
 
 interface ClassSite {
@@ -202,7 +245,81 @@ const classDocs = (
       context.defined.get(name)
   );
   if (isDefault) result.isDefaultExport = true;
-  put(result, 'superclass', superclassOf(cls, context.imports));
+  Object.assign(result, heritageOf(cls, context.imports));
+  return result;
+};
+
+// --- mixins ----------------------------------------------------------------
+
+interface MixinSite {
+  name: string;
+  fn: Node;
+  /** The statement whose doc comment documents the mixin. */
+  declaration: Node;
+  wrapper?: Node;
+}
+
+const FUNCTIONS = ['ArrowFunctionExpression', 'FunctionExpression'];
+
+/** Top-level `function M(…)` and `const M = (…) => …`, with their `export`. */
+const functionSites = (program: Node): MixinSite[] =>
+  nodes(program.body).flatMap((statement): MixinSite[] => {
+    const exported = statement.type.startsWith('Export');
+    const declaration = exported ? child(statement, 'declaration') : statement;
+    const wrapper = exported ? statement : undefined;
+    if (declaration?.type === 'FunctionDeclaration') {
+      const name =
+        nameOf(child(declaration, 'id')) ??
+        (statement.type === 'ExportDefaultDeclaration' ? 'default' : undefined);
+      return name === undefined
+        ? []
+        : [{name, fn: declaration, declaration, wrapper}];
+    }
+    if (declaration?.type !== 'VariableDeclaration') return [];
+    return nodes(declaration.declarations).flatMap((d): MixinSite[] => {
+      const init = child(d, 'init');
+      const name = nameOf(child(d, 'id'));
+      return init !== undefined && FUNCTIONS.includes(init.type) && name
+        ? [{name, fn: init, declaration, wrapper}]
+        : [];
+    });
+  });
+
+/**
+ * The class a function returns: its expression body, or what a top-level
+ * `return` in its body hands back, a class expression or a class declared in
+ * the body by name.
+ */
+const returnedClass = (fn: Node): Node | undefined => {
+  const body = child(fn, 'body');
+  if (body?.type === 'ClassExpression') return body;
+  if (body?.type !== 'BlockStatement') return undefined;
+  const statements = nodes(body.body);
+  for (const statement of statements) {
+    if (statement.type !== 'ReturnStatement') continue;
+    const value = child(statement, 'argument');
+    if (value?.type === 'ClassExpression') return value;
+    if (value?.type !== 'Identifier') continue;
+    const name = nameOf(value);
+    return statements.find(
+      (s) => s.type === 'ClassDeclaration' && nameOf(child(s, 'id')) === name
+    );
+  }
+  return undefined;
+};
+
+const mixinDocs = (
+  code: string,
+  site: MixinSite,
+  imports: Map<string, Imported>
+): MixinDocs | undefined => {
+  const cls = returnedClass(site.fn);
+  if (cls === undefined) return undefined;
+  const doc = docOf(code, site.declaration, site.wrapper) ?? docOf(code, cls);
+  const result: MixinDocs = {name: site.name, docs: bodyOf(code, cls, doc)};
+  if (site.wrapper?.type === 'ExportDefaultDeclaration')
+    result.isDefaultExport = true;
+  put(result, 'mixins', heritageOf(cls, imports).mixins);
   return result;
 };
 
@@ -226,10 +343,15 @@ export const extractModuleDocs = (code: string, id: string): ModuleDocs => {
     imports: importsOf(program),
     defined: definedTags(program),
   };
+  const mixins = functionSites(program).flatMap((site) => {
+    const docs = mixinDocs(code, site, context.imports);
+    return docs === undefined ? [] : [docs];
+  });
   return {
     classes: classSites(program).flatMap((site) => {
       const docs = classDocs(code, site, context);
       return docs === undefined ? [] : [docs];
     }),
+    ...(mixins.length > 0 ? {mixins} : {}),
   };
 };

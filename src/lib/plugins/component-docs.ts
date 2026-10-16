@@ -28,14 +28,20 @@ export const litComponentDocs = (
     const module = code.includes('class')
       ? extractModuleDocs(code, id)
       : {classes: []};
-    if (module.classes.length === 0) {
+    if (module.classes.length === 0 && module.mixins === undefined) {
       index.delete(id);
       return null;
     }
-    // Only imported superclasses need resolving; the index follows the
-    // resolved id to the module that declares the base class.
+    // Only imported superclasses and mixins need resolving; the index
+    // follows the resolved id to the module that declares them.
     const specifiers = new Set(
-      module.classes.flatMap((cls) => cls.superclass?.specifier ?? [])
+      [
+        ...module.classes.flatMap((cls) => [
+          cls.superclass,
+          ...(cls.mixins ?? []),
+        ]),
+        ...(module.mixins ?? []).flatMap((mixin) => mixin.mixins ?? []),
+      ].flatMap((ref) => ref?.specifier ?? [])
     );
     const superclassIds = new Map<string, string>();
     for (const specifier of specifiers) {
