@@ -14,7 +14,13 @@
  */
 
 import type {TimelineEvent} from '../../types/timeline.js';
-import {attributeInput, rollup, toSpans, toUpdateCycles} from './derive.js';
+import {
+  attributeInput,
+  isSelfCaused,
+  rollup,
+  toSpans,
+  toUpdateCycles,
+} from './derive.js';
 import type {ComponentRollup, TimelineSpan, UpdateCycle} from './derive.js';
 import {compileRegex, filterSpans, listElements} from './filter.js';
 import {inRange, normalizeRange, sameRange} from './range.js';
@@ -83,6 +89,23 @@ export const summarizeUpdates = (
 ): {cycles: UpdateCycle[]; components: ComponentRollup[]} => {
   const cycles = updateCycles(events);
   return {cycles, components: rollup(cycles)};
+};
+
+/**
+ * How many times each element re-rendered itself ({@link isSelfCaused}) in
+ * `events`, by element id; elements that never did are absent.
+ */
+export const selfCausedCounts = (
+  events: readonly TimelineEvent[]
+): Map<number, number> => {
+  const counts = new Map<number, number>();
+  for (const span of toSpans(events)) {
+    const id = span.meta?.elementId;
+    if (id !== undefined && isSelfCaused(span)) {
+      counts.set(id, (counts.get(id) ?? 0) + 1);
+    }
+  }
+  return counts;
 };
 
 /**
