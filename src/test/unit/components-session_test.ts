@@ -171,7 +171,7 @@ describe('selecting', () => {
 });
 
 describe('re-arming', () => {
-  test('a ready re-sends the tree, the watch and Live', () => {
+  test('a ready re-sends the tree, the details, the watch and Live', () => {
     const {session, drain} = setup();
     session.select(3);
     drain();
@@ -185,9 +185,36 @@ describe('re-arming', () => {
     expect(drain()).toEqual([
       {type: 'tree'},
       {type: 'overrides'},
+      {type: 'details', id: 3},
       {type: 'watch', id: 3},
       {type: 'observe', enabled: true},
     ]);
+  });
+
+  test('rewatch takes the watch back for the selection, and nothing without one', () => {
+    const {session, drain} = setup();
+    session.rewatch();
+    expect(drain()).toEqual([]);
+    session.select(3);
+    drain();
+    session.rewatch();
+    expect(drain()).toEqual([
+      {type: 'details', id: 3},
+      {type: 'watch', id: 3},
+    ]);
+  });
+
+  test('deselect drops the selection and its watch', () => {
+    const {session, drain} = setup();
+    session.select(3);
+    session.receive({type: 'details', details: {id: 3} as InspectorDetails});
+    drain();
+    session.deselect();
+    expect(drain()).toEqual([{type: 'watch', id: null}]);
+    expect(session.selectedId).toBeNull();
+    expect(session.details).toBeNull();
+    session.deselect();
+    expect(drain()).toEqual([]);
   });
 
   test('a ready with nothing selected and Live paused only asks for the tree and overrides', () => {

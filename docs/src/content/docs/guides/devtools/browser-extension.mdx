@@ -187,6 +187,11 @@ The Lit panel and DevTools' own panels hand off to each other:
   row in the Lit panel's **Components** tab: the node itself if the tree lists
   it (a Lit element, an undefined tag or a non-Lit custom element), else the
   nearest one around it, through shadow roots.
+- The **Elements** panel's sidebar gets a **Lit** tab beside Styles and
+  Computed. It shows the Lit details for the selected node, or the nearest Lit
+  element around it: properties you can edit, state, attributes, slots and
+  parts, and the **defined** and **rendered** links. It follows the Elements
+  selection, so you can stay in Elements and read a component's state there.
 - In the **Console**, `$lit` is the element selected in the Lit panel, next
   to `$0` for the Elements panel's.
 - The **defined** link and, on a page built with the Vite plugin, the

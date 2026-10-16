@@ -97,6 +97,7 @@ import {
 } from './manifest-list.js';
 import {findManifests, manifestCandidates} from './manifest-discovery.js';
 import {useManifestSetting} from '../../src/panel/manifest-setting.js';
+import {followElement} from '../../src/panel/followed-element.js';
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -117,6 +118,11 @@ const manifestNudgeLater = $<HTMLButtonElement>('manifest-nudge-later');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
+/**
+ * Opened as the Lit tab in the Elements sidebar (`devtools.ts`): only the
+ * Components details, for the Lit element at or around `$0`, and no bar.
+ */
+const sidebar = new URLSearchParams(location.search).get('view') === 'sidebar';
 const tabId =
   devtools?.inspectedWindow.tabId ??
   Number(new URLSearchParams(location.search).get('tabId'));
@@ -424,30 +430,50 @@ const pageBreakpoints = (devtools: typeof chrome.devtools): Breakpoints => {
 };
 
 /**
+ * Ask the page for the Components id of the Lit element at or around the
+ * Elements selection (`$0`); `undefined` when no tree row encloses it.
+ */
+const litIdOfSelection = (
+  devtools: typeof chrome.devtools,
+  answer: (id: number | undefined) => void
+): void =>
+  devtools.inspectedWindow.eval<number | undefined>(
+    `globalThis[Symbol.for(${JSON.stringify(
+      LIT_ID_OF_KEY.description
+    )})]?.($0)`,
+    (id, exception) =>
+      answer(!exception && typeof id === 'number' ? id : undefined)
+  );
+
+/**
  * Follows the Elements panel: when its selection (`$0`) is an element the
  * Components tree lists, or sits inside one, the Lit panel selects that row,
  * as a deep link would. `location.replace` with a fragment fires `hashchange` without a
  * history entry. Nothing happens for a node no tree row encloses.
+ *
+ * The sidebar shows exactly what Elements selects instead, including
+ * nothing, so it publishes every answer (`followed-element.ts`), starting
+ * with the selection it opened on.
  */
 const followElementsSelection = (devtools: typeof chrome.devtools): void => {
   const elements = devtools.panels.elements as
     | typeof chrome.devtools.panels.elements
     | undefined;
-  elements?.onSelectionChanged.addListener(() => {
-    devtools.inspectedWindow.eval<number | undefined>(
-      `globalThis[Symbol.for(${JSON.stringify(
-        LIT_ID_OF_KEY.description
-      )})]?.($0)`,
-      (id, exception) => {
-        if (exception || typeof id !== 'number') return;
-        const params = new URLSearchParams({
-          tab: 'components',
-          component: String(id),
-        });
-        location.replace(`#${params}`);
+  const follow = (): void =>
+    litIdOfSelection(devtools, (id) => {
+      if (sidebar) {
+        followElement(id ?? null);
+        return;
       }
-    );
-  });
+      if (id === undefined) return;
+      const params = new URLSearchParams({
+        tab: 'components',
+        component: String(id),
+      });
+      location.replace(`#${params}`);
+    });
+  elements?.onSelectionChanged.addListener(follow);
+  if (sidebar) follow();
 };
 
 const boot = async (): Promise<void> => {
@@ -485,12 +511,15 @@ const boot = async (): Promise<void> => {
   // The extension's own name and mark, not the Lit project's.
   useBrand({name: 'Lit Inspector', iconUrl: chrome.runtime.getURL('icon.svg')});
   await import('../../src/panel/main.js');
-  document.body.prepend(document.createElement('lit-devtools-panel'));
-  barEl.hidden = false;
+  const panel = document.createElement('lit-devtools-panel');
+  panel.detailsOnly = sidebar;
+  document.body.prepend(panel);
+  barEl.hidden = sidebar;
   dial();
   // Links are in the page's head already; its scripts may still be loading.
   void readLinks();
-  suggestSoon();
+  // The sidebar has no bar to nudge from; the Lit tab's Settings offers.
+  if (!sidebar) suggestSoon();
 };
 
 const render = (status: OriginStatus | undefined): void => {

@@ -1,4 +1,11 @@
-import {LitElement, html, css, nothing, type TemplateResult} from 'lit';
+import {
+  LitElement,
+  html,
+  css,
+  nothing,
+  type PropertyValues,
+  type TemplateResult,
+} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
@@ -53,6 +60,7 @@ import {breakKey, breakpoints} from './breakpoints.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {watchPaneVisibility} from './pane-visibility.js';
+import {onFollowedElement} from './followed-element.js';
 import {overrides} from './settings-override.js';
 import {getTimelineEvents, subscribeTimeline} from './timeline-store.js';
 import {elementActivity, type ElementActivity} from '../lib/timeline/model.js';
@@ -1582,6 +1590,13 @@ export class ComponentsView extends LitElement {
 
   /** Where the panel is; the shell hands its own in. */
   @property({attribute: false}) location = new PanelLocation();
+  /**
+   * Just the details pane, following the element a host's own inspector
+   * selects (`followed-element.ts`): the browser extension's Lit tab in the
+   * Elements sidebar. No tree, no toolbar.
+   */
+  @property({type: Boolean, attribute: 'details-only'}) detailsOnly = false;
+  private _unfollow: (() => void) | null = null;
 
   // A link that names an element: select it now. The tree may not hold it
   // yet; the session reveals it once a fresh tree arrives.
@@ -1690,7 +1705,11 @@ export class ComponentsView extends LitElement {
     window.addEventListener('keydown', this._onShift);
     window.addEventListener('keyup', this._onShift);
     window.addEventListener('pagehide', this._onPageHide);
+    // Reconnected: `willUpdate` only follows when `detailsOnly` changes.
+    if (this.detailsOnly && this._unfollow === null) this._follow();
     this._unwatchPane = watchPaneVisibility((visible) => {
+      // Another view on the page may have taken the watch meanwhile.
+      if (visible && this._paneHidden) this._session.rewatch();
       this._paneHidden = !visible;
       if (!visible) this._highlight(null);
       // `updated` takes the anatomy down, or draws it again.
@@ -1726,6 +1745,8 @@ export class ComponentsView extends LitElement {
     window.removeEventListener('pagehide', this._onPageHide);
     this._unwatchPane?.();
     this._unwatchPane = null;
+    this._unfollow?.();
+    this._unfollow = null;
     this._unsubscribeOverride?.();
     this._unsubscribeOverride = null;
     this._unsubscribeSession?.();
@@ -1816,6 +1837,17 @@ export class ComponentsView extends LitElement {
       </dd>`;
   }
 
+  /** In details-only mode, select whatever the host inspector selects. */
+  private _follow(): void {
+    this._unfollow?.();
+    this._unfollow = this.detailsOnly
+      ? onFollowedElement((id) => {
+          if (id === null) this._session.deselect();
+          else this._session.select(id);
+        })
+      : null;
+  }
+
   /** A property row's breakpoint, where the host can set one. */
   private _renderPropBreak(p: InspectorProp): TemplateResult | typeof nothing {
     if (breakpoints() === undefined || this._snapshot) return nothing;
@@ -1825,7 +1857,8 @@ export class ComponentsView extends LitElement {
     );
   }
 
-  protected override willUpdate(): void {
+  protected override willUpdate(changed: PropertyValues<this>): void {
+    if (changed.has('detailsOnly')) this._follow();
     const d = this._session.details;
     if (d === this._shownDetails) return;
     this._expansion.follow(d?.id ?? null);
@@ -3607,7 +3640,7 @@ export class ComponentsView extends LitElement {
         <wa-icon name="target"></wa-icon>
       </wa-button>
       ${
-        revealer === undefined
+        revealer === undefined || this.detailsOnly
           ? nothing
           : html`<wa-button
               class="reveal"
@@ -3631,7 +3664,9 @@ export class ComponentsView extends LitElement {
       if (gone) {
         message = 'This element is no longer in the page.';
       } else if (selectedId === null) {
-        message = 'Select a component to inspect.';
+        message = this.detailsOnly
+          ? 'Select an element inside a Lit component to inspect it.'
+          : 'Select a component to inspect.';
       } else {
         message = 'Loading…';
       }
@@ -3916,6 +3951,10 @@ export class ComponentsView extends LitElement {
   }
 
   override render() {
+    if (this.detailsOnly) {
+      return html`${this._renderOverridesBar()}
+        <div class="details">${this._renderDetails()}</div>`;
+    }
     const treeFilter =
       this._treeQuery.trim() === ''
         ? undefined

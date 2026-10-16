@@ -423,10 +423,31 @@ export class ComponentsSession {
     };
     this.#send({type: 'tree'});
     this.#send({type: 'overrides'});
-    if (this.#selectedId !== null) {
-      this.#send({type: 'watch', id: this.#selectedId});
-    }
+    this.rewatch();
     if (this.#live) this.#send({type: 'observe', enabled: true});
+  }
+
+  /**
+   * Ask again for the selection's details and watch. The page watches one
+   * element for every panel on it, so another view selecting elsewhere
+   * takes the watch; this takes it back.
+   */
+  rewatch(): void {
+    if (this.#selectedId === null) return;
+    this.#send({type: 'details', id: this.#selectedId});
+    this.#send({type: 'watch', id: this.#selectedId});
+  }
+
+  /** Select nothing, as when a followed selection is in no listed element. */
+  deselect(): void {
+    if (this.#selectedId === null) return;
+    this.#send({type: 'watch', id: null});
+    this.#selectedId = null;
+    this.#details = null;
+    this.#gone = false;
+    this.#key = null;
+    this.#locating = null;
+    this.#changed();
   }
 
   /** The selection's details; false for another element's. */

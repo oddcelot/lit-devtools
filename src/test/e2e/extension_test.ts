@@ -694,6 +694,38 @@ test('the Lit tab leaves out what needs a dev server', async () => {
   await page.close();
 }, 60_000);
 
+test("the Elements sidebar's Lit tab shows only an element's details", async () => {
+  const page = await context.newPage();
+  await page.goto(appOrigin);
+  const tabId = await extensionPage.evaluate(
+    async (origin) => (await chrome.tabs.query({url: `${origin}/*`}))[0]?.id,
+    appOrigin
+  );
+  // What `$0` would name; DevTools itself is not scriptable, so the id
+  // arrives as a link instead.
+  const id = await page.evaluate(() =>
+    (globalThis as unknown as Record<symbol, (n: Node) => number | undefined>)[
+      Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of')
+    ]?.(document.querySelector('probe-hello')!)
+  );
+  expect(typeof id).toBe('number');
+  const sidebar = await context.newPage();
+  await sidebar.goto(
+    `chrome-extension://${extensionId}/panel.html?tabId=${tabId}&view=sidebar#tab=components&component=${id}`
+  );
+  await expect
+    .poll(() => sidebar.locator('components-view .details h2').textContent(), {
+      timeout: 15_000,
+    })
+    .toContain('probe-hello');
+  expect(await sidebar.locator('segmented-tabs').count()).toBe(0);
+  expect(await sidebar.locator('components-view .tree').count()).toBe(0);
+  expect(await sidebar.locator('#bar').isVisible()).toBe(false);
+
+  await sidebar.close();
+  await page.close();
+}, 60_000);
+
 test("the Lit tab finds where a component is defined through the page's sourcemap", async () => {
   const page = await context.newPage();
   await page.goto(`${appOrigin}/mapped`);
