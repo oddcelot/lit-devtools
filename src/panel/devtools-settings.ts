@@ -21,7 +21,6 @@ import {
   type SettingsOverride,
 } from '../types/timeline.js';
 import {
-  SETTINGS,
   type SettingKey,
   type SettingKeyOf,
 } from '../lib/setting-definitions.js';
@@ -422,11 +421,10 @@ export class DevtoolsSettings extends LitElement {
     return html`${this._pill(row.value === true)} ${this._badge(row)}`;
   }
 
-  /** How to turn a feature on, naming its plugin option and env var. */
+  /** How to turn a feature on, naming its plugin option. */
   private _enableHint(key: FeatureKey, lead = 'Enable with') {
     return html`<p class="empty">
-      ${lead} <code>${presentationOf(key).option}: true</code> or
-      <code>${SETTINGS[key].env}=true</code>.
+      ${lead} <code>${presentationOf(key).option}: true</code>.
     </p>`;
   }
 
@@ -556,15 +554,7 @@ export class DevtoolsSettings extends LitElement {
     return html`
       <tr class=${row.disabled ? 'row-disabled' : ''}>
         <td class="key" tabindex="0" data-tip=${row.tip}>${row.label}</td>
-        <td class="val">
-          ${this._control(row)} ${this._badge(row)}
-          ${
-            row.definition.role === 'readonly'
-              ? html`<span class="env">${row.definition.env}</span>`
-              : nothing
-          }
-          ${after}
-        </td>
+        <td class="val">${this._control(row)} ${this._badge(row)} ${after}</td>
       </tr>
     `;
   }
@@ -947,9 +937,8 @@ export class DevtoolsSettings extends LitElement {
           </table>
           <p class="note">
             Settings resolve in this order: panel override, then plugin option,
-            then <code>LIT_PLUGIN_*</code> env, then default. An explicit
-            <code>timeline: false</code> in the plugin options is final and
-            ignores env.
+            then default. An explicit <code>timeline: false</code> in the plugin
+            options is final.
           </p>
         </wa-card>
       </section>
@@ -997,21 +986,20 @@ export class DevtoolsSettings extends LitElement {
     const hasOverride = Object.keys(this._override).length > 0;
     return html`
       <p class="note">
-        Resolved from plugin options and <code>LIT_PLUGIN_*</code> env at
-        startup. Controls below override the running app live; the rest are
-        config-time (change them in your Vite config / <code>.env</code> and
-        restart).
+        Resolved from the plugin options at startup. Controls below override the
+        running app live; the rest are config-time (change them in your Vite
+        config and restart).
         ${
           hasOverride
             ? html`<wa-button
                 class="reset"
                 size="small"
                 appearance="outlined"
-                data-tip="Discard every override and use the env and config values"
+                data-tip="Discard every override and use the configured values"
                 @click=${this._reset}
               >
                 <wa-icon slot="start" name="arrow-counter-clockwise"></wa-icon>
-                Reset to env
+                Reset overrides
               </wa-button>`
             : nothing
         }
