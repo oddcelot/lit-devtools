@@ -31,11 +31,7 @@ import {getMeta, litSettingsRpc, type LitClient} from './client.js';
 import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
 import type {OverridableKey} from '../lib/settings-override.js';
 import {overrides} from './settings-override.js';
-import {
-  manifestSetting,
-  type ManifestSetting,
-  type ManifestState,
-} from './manifest-setting.js';
+import {manifestSetting, type ManifestSetting} from './manifest-setting.js';
 
 /** The guide sections on where the Lit tracks appear: Chrome's, then the rest. */
 const CHROME_TRACKS_DOCS =
@@ -257,6 +253,11 @@ export class DevtoolsSettings extends LitElement {
         align-items: center;
         padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
         border-top: 1px solid var(--lit-devtools-border);
+      }
+      .manifest-row code {
+        color: var(--lit-devtools-accent);
+        font-family: var(--lit-devtools-font-mono);
+        margin-right: var(--lit-devtools-space-2);
       }
       .manifest-found code {
         color: var(--lit-devtools-accent);
@@ -695,17 +696,19 @@ export class DevtoolsSettings extends LitElement {
    * Versions, layers and picker as `get-meta` reports them: the first thing
    * to check when the panel or the Components tab looks wrong.
    */
-  private async _saveManifest(e: Event): Promise<void> {
+  private async _addManifest(e: Event): Promise<void> {
     e.preventDefault();
     const input = this.renderRoot.querySelector<WaInput>('.manifest wa-input');
-    const error = await manifestSetting()?.set(String(input?.value ?? ''));
+    const error = await manifestSetting()?.add(String(input?.value ?? ''));
     this._manifestError = error ?? '';
+    if (error === undefined && input !== null) input.value = '';
   }
 
   /**
-   * Which Custom Elements Manifest the panel reads docs from, where the
-   * host lets the user choose (`manifest-setting.ts`): the URL they set,
-   * the page's own links that take precedence, and one found on offer.
+   * Which Custom Elements Manifests the panel reads docs from, where the
+   * host lets the user choose (`manifest-setting.ts`): the ones they added,
+   * the page's own links that take precedence, and found ones on offer or
+   * ignored.
    */
   private _renderManifest() {
     const setting = manifestSetting();
@@ -717,23 +720,36 @@ export class DevtoolsSettings extends LitElement {
       <wa-card>
         <h3 slot="header">Component docs</h3>
         <table>
+          ${m.urls.map(
+            (url) => html`<tr class="manifest-row">
+              <td class="key">manifest</td>
+              <td class="val">
+                <code>${path(url)}</code>
+                <wa-button
+                  size="small"
+                  appearance="plain"
+                  @click=${() => void setting.remove(url)}
+                  >Remove</wa-button
+                >
+              </td>
+            </tr>`
+          )}
           <tr>
             <td
               class="key"
-              data-tip="A Custom Elements Manifest on ${m.site} to read component docs from, for pages that link none. A path or a URL on the site; leave empty to read none."
+              data-tip="A Custom Elements Manifest on ${m.site} to read component docs from, for pages that link none. A path or a URL on the site."
             >
-              manifest
+              ${m.urls.length === 0 ? 'manifest' : 'add another'}
             </td>
             <td class="val">
-              <form class="manifest" @submit=${this._saveManifest}>
+              <form class="manifest" @submit=${this._addManifest}>
                 <wa-input
                   size="small"
                   label="Custom Elements Manifest URL"
                   placeholder="Path or URL on this site"
                   spellcheck="false"
-                  .value=${m.url === undefined ? '' : path(m.url)}
                 ></wa-input>
-                <wa-button size="small" type="submit">Save</wa-button>
+                <wa-button size="small" type="submit">Add</wa-button>
               </form>
               ${
                 this._manifestError === ''
@@ -749,38 +765,39 @@ export class DevtoolsSettings extends LitElement {
           m.linked.length > 0
             ? html`<p class="manifest-note">
                 This page links its own:
-                ${m.linked.map((url) => html`<code>${path(url)}</code> `)}. It
-                is read instead.
+                ${m.linked.map((url) => html`<code>${path(url)}</code> `)}. They
+                are read instead.
               </p>`
             : nothing
         }
-        ${this._renderFoundManifest(setting, m, path)}
+        ${m.found.map((url) =>
+          this._renderFoundManifest(setting, path(url), url, false)
+        )}
+        ${m.ignored.map((url) =>
+          this._renderFoundManifest(setting, path(url), url, true)
+        )}
       </wa-card>
     </section>`;
   }
 
   /**
    * A manifest found beside the page's scripts: on offer, with Use it and
-   * Always ignore, or ignored, with Use it and Reset. Nothing once the user
-   * set one of their own.
+   * Always ignore, or ignored, with Use it and Reset.
    */
   private _renderFoundManifest(
     setting: ManifestSetting,
-    m: ManifestState,
-    path: (url: string) => string
+    shown: string,
+    url: string,
+    ignored: boolean
   ) {
-    if (m.url !== undefined) return nothing;
-    const url = m.found ?? m.ignored;
-    if (url === undefined) return nothing;
-    const ignored = m.found === undefined;
     return html`<div class="manifest-found">
       <span
-        >${ignored ? 'Ignored' : 'Found'} <code>${path(url)}</code>${
+        >${ignored ? 'Ignored' : 'Found'} <code>${shown}</code>${
           ignored ? ', found' : ''
         }
         beside the page's scripts.</span
       >
-      <wa-button size="small" @click=${() => void setting.use()}
+      <wa-button size="small" @click=${() => void setting.use(url)}
         >Use it</wa-button
       >
       ${
@@ -788,13 +805,13 @@ export class DevtoolsSettings extends LitElement {
           ? html`<wa-button
               size="small"
               appearance="plain"
-              @click=${() => void setting.reset()}
+              @click=${() => void setting.reset(url)}
               >Reset</wa-button
             >`
           : html`<wa-button
               size="small"
               appearance="plain"
-              @click=${() => void setting.ignore()}
+              @click=${() => void setting.ignore(url)}
               >Always ignore</wa-button
             >`
       }

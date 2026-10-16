@@ -135,6 +135,25 @@ const MAPPED_MANIFEST = {
   ],
 };
 
+const ROOT_MANIFEST = {
+  schemaVersion: '1.0.0',
+  modules: [
+    {
+      kind: 'javascript-module',
+      path: 'probe-hello.js',
+      declarations: [
+        {
+          kind: 'class',
+          name: 'ProbeHello',
+          tagName: 'probe-hello',
+          customElement: true,
+          summary: 'Found at the site root.',
+        },
+      ],
+    },
+  ],
+};
+
 beforeAll(async () => {
   workDir = tmpRoot('extension');
   await fsp.mkdir(joinPath(workDir, 'src'), {recursive: true});
@@ -203,6 +222,12 @@ beforeAll(async () => {
     if (req.url === '/assets/cem.json') {
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify(UNLINKED_MANIFEST));
+      return;
+    }
+    // At the root: a second manifest for the panel to find.
+    if (req.url === '/custom-elements.json') {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify(ROOT_MANIFEST));
       return;
     }
     // Beside /assets/mapped.js, where the panel looks for one by itself.
@@ -671,14 +696,28 @@ test("the Lit tab finds where an element is rendered by its template's text", as
   await page.close();
 }, 60_000);
 
-/** In the Settings tab: type `value` as the manifest URL and save it. */
-const saveManifest = async (panel: Page, value: string) => {
+/** The Settings tab's Component docs section. */
+const docsSettings = async (panel: Page) => {
   await panel.evaluate(() => location.replace('#tab=settings'));
-  const section = panel
+  return panel
     .locator('devtools-settings section')
     .filter({hasText: 'Component docs'});
+};
+
+/** In the Settings tab: add `value` as a manifest URL. */
+const addManifest = async (panel: Page, value: string) => {
+  const section = await docsSettings(panel);
   await section.locator('wa-input input').fill(value);
-  await section.getByRole('button', {name: 'Save'}).click();
+  await section.getByRole('button', {name: 'Add'}).click();
+};
+
+/** In the Settings tab: remove every manifest the user added. */
+const removeManifests = async (panel: Page) => {
+  const section = await docsSettings(panel);
+  const remove = section.locator('.manifest-row').getByRole('button', {
+    name: 'Remove',
+  });
+  while ((await remove.count()) > 0) await remove.first().click();
 };
 
 /** Back in the Components tab, the details pane as text. */
@@ -687,7 +726,7 @@ const detailsText = async (panel: Page) => {
   return panel.locator('components-view .details').textContent();
 };
 
-test('the Lit tab reads docs from a manifest the user points it at', async () => {
+test('the Lit tab reads docs from the manifests the user points it at', async () => {
   const page = await context.newPage();
   await page.goto(appOrigin);
   const tabId = await extensionPage.evaluate(
@@ -706,18 +745,18 @@ test('the Lit tab reads docs from a manifest the user points it at', async () =>
   await expect.poll(() => detailsText(panel)).toContain('greeting');
   expect(await detailsText(panel)).not.toContain('unlinked manifest');
 
-  await saveManifest(panel, 'https://elsewhere.test/cem.json');
+  await addManifest(panel, 'https://elsewhere.test/cem.json');
   await expect
     .poll(() => panel.locator('devtools-settings [role=alert]').textContent())
     .toContain(`Must be on ${appOrigin}`);
 
-  await saveManifest(panel, '/assets/cem.json');
+  await addManifest(panel, '/assets/cem.json');
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain('Says hello from an unlinked manifest.');
 
-  // Cleared, so later tests see the page as it is.
-  await saveManifest(panel, '');
+  // Removed, so later tests see the page as it is.
+  await removeManifests(panel);
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .not.toContain('Says hello from an unlinked manifest.');
@@ -725,7 +764,7 @@ test('the Lit tab reads docs from a manifest the user points it at', async () =>
   await page.close();
 }, 60_000);
 
-test('the Lit tab offers a manifest it finds beside the scripts: ignore, reset, use', async () => {
+test('the Lit tab offers every manifest it finds: ignore, reset and use each', async () => {
   const page = await context.newPage();
   await page.goto(`${appOrigin}/mapped`);
   const tabId = await extensionPage.evaluate(
@@ -741,41 +780,50 @@ test('the Lit tab offers a manifest it finds beside the scripts: ignore, reset, 
     await panel.reload();
   };
   const nudge = panel.locator('#manifest-nudge');
-  const found = panel.locator('devtools-settings .manifest-found');
-  const settings = () =>
-    panel.evaluate(() => location.replace('#tab=settings'));
+  const row = (path: string) =>
+    panel.locator('devtools-settings .manifest-found').filter({hasText: path});
+  const ASSETS = '/assets/custom-elements.json';
+  const ROOT = 'Found /custom-elements.json';
 
-  // The footer nudges; Not now puts off only the nudge.
+  // Both found, counted in the footer; Not now puts off only the nudge.
   await openPanel();
   await expect.poll(() => nudge.isVisible(), {timeout: 15_000}).toBe(true);
+  expect(await nudge.textContent()).toContain(
+    'Found 2 Custom Elements Manifests'
+  );
   await nudge.getByRole('button', {name: 'Not now'}).click();
   expect(await nudge.isVisible()).toBe(false);
-  await settings();
-  await expect
-    .poll(() => found.textContent())
-    .toContain('Found /assets/custom-elements.json');
+  await docsSettings(panel);
+  await expect.poll(() => row(ASSETS).count()).toBe(1);
+  await expect.poll(() => row(ROOT).count()).toBe(1);
 
-  // Always ignore: no nudge after a reload, but Settings still lists it.
-  await found.getByRole('button', {name: 'Always ignore'}).click();
-  await expect.poll(() => found.textContent()).toContain('Ignored');
+  // Ignore the root one: it stays listed as ignored, after a reload too.
+  await row(ROOT).getByRole('button', {name: 'Always ignore'}).click();
+  await expect
+    .poll(() => row('/custom-elements.json,').textContent())
+    .toContain('Ignored');
   await openPanel();
-  await panel.locator('components-view .row').first().waitFor();
-  await panel.waitForTimeout(3000);
+  await expect
+    .poll(() => nudge.textContent(), {timeout: 15_000})
+    .toContain('Found a Custom Elements Manifest');
+  await docsSettings(panel);
+  await expect
+    .poll(() => row('/custom-elements.json,').textContent(), {timeout: 15_000})
+    .toContain('Ignored');
+
+  // Reset puts it back on offer.
+  await row('/custom-elements.json,')
+    .getByRole('button', {name: 'Reset'})
+    .click();
+  await expect.poll(() => row(ROOT).count()).toBe(1);
+
+  // Use both: both are read, and the bundle's describes mapped-hello.
+  await row(ASSETS).getByRole('button', {name: 'Use it'}).click();
+  await row(ROOT).getByRole('button', {name: 'Use it'}).click();
+  await expect
+    .poll(() => panel.locator('devtools-settings .manifest-row').count())
+    .toBe(2);
   expect(await nudge.isVisible()).toBe(false);
-  await settings();
-  await expect
-    .poll(() => found.textContent())
-    .toContain('Ignored /assets/custom-elements.json');
-
-  // Reset looks again and offers it anew.
-  await found.getByRole('button', {name: 'Reset'}).click();
-  await expect
-    .poll(() => found.textContent(), {timeout: 15_000})
-    .toContain('Found /assets/custom-elements.json');
-  expect(await nudge.isVisible()).toBe(true);
-
-  // Use it: the docs come through.
-  await found.getByRole('button', {name: 'Use it'}).click();
   await panel.evaluate(() => location.replace('#tab=components'));
   await panel
     .locator('components-view .row')
@@ -785,15 +833,14 @@ test('the Lit tab offers a manifest it finds beside the scripts: ignore, reset, 
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain('Found next to the bundle.');
-  expect(await nudge.isVisible()).toBe(false);
 
-  await saveManifest(panel, '');
+  await removeManifests(panel);
   await extensionPage.evaluate(() =>
     chrome.storage.local.remove('lit:manifest-ignored')
   );
   await panel.close();
   await page.close();
-}, 90_000);
+}, 120_000);
 
 test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async () => {
   const page = await context.newPage();

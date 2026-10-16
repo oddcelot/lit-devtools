@@ -1,6 +1,6 @@
 import {describe, expect, test, vi} from 'vite-plus/test';
 import {
-  findManifest,
+  findManifests,
   looksLikeManifest,
   manifestCandidates,
 } from '../../../extension/src/manifest-discovery.js';
@@ -44,22 +44,25 @@ test('looksLikeManifest tells a manifest from an HTML 404 page', () => {
   expect(looksLikeManifest('{"name": "pkg"}')).toBe(false);
 });
 
-describe('findManifest', () => {
+describe('findManifests', () => {
   const served = (bodies: Record<string, [number, string]>) =>
     vi.fn(async (url: string) => {
       const [status, body] = bodies[url] ?? [404, '<!doctype html>'];
       return new Response(body, {status});
     });
 
-  test('probes one at a time and stops at the first manifest', async () => {
+  test('probes each in turn and returns every manifest, in order', async () => {
     const fetchUrl = served({
       [`${SITE}/b.json`]: [200, '<!doctype html><p>soft 404</p>'],
       [`${SITE}/c.json`]: [200, '{"schemaVersion":"1.0.0","modules":[]}'],
       [`${SITE}/d.json`]: [200, '{"schemaVersion":"1.0.0","modules":[]}'],
     });
     const urls = ['a', 'b', 'c', 'd'].map((n) => `${SITE}/${n}.json`);
-    expect(await findManifest(urls, fetchUrl)).toBe(`${SITE}/c.json`);
-    expect(fetchUrl.mock.calls.map(([u]) => u)).toEqual(urls.slice(0, 3));
+    expect(await findManifests(urls, fetchUrl)).toEqual([
+      `${SITE}/c.json`,
+      `${SITE}/d.json`,
+    ]);
+    expect(fetchUrl.mock.calls.map(([u]) => u)).toEqual(urls);
   });
 
   test('reads only the start of a large response', async () => {
@@ -73,7 +76,9 @@ describe('findManifest', () => {
       },
     });
     const url = `${SITE}/big.json`;
-    expect(await findManifest([url], async () => new Response(body))).toBe(url);
+    expect(await findManifests([url], async () => new Response(body))).toEqual([
+      url,
+    ]);
     // Stopped well short of reading on forever.
     expect(pulled).toBeLessThan(10);
   });
@@ -82,6 +87,6 @@ describe('findManifest', () => {
     const fetchUrl = vi.fn(async () => {
       throw new TypeError('network');
     });
-    expect(await findManifest([`${SITE}/x.json`], fetchUrl)).toBeUndefined();
+    expect(await findManifests([`${SITE}/x.json`], fetchUrl)).toEqual([]);
   });
 });

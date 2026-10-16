@@ -232,10 +232,12 @@ test('without custom tracks, the row says the entries go to User Timing', async 
 });
 
 describe('Component docs', () => {
+  const site = 'https://webawesome.com';
   const docsSection = (root: ShadowRoot) =>
     [...root.querySelectorAll('section')].find(
       (s) => s.querySelector('h3')?.textContent?.trim() === 'Component docs'
     );
+  const empty = {site, linked: [], urls: [], found: [], ignored: []};
 
   /** A host setting whose state the test drives, and what it was asked. */
   const fakeSetting = (state: ManifestState) => {
@@ -244,15 +246,16 @@ describe('Component docs', () => {
     let current = state;
     const setting: ManifestSetting = {
       state: () => current,
-      set: async (input) => {
-        asked.push(`set:${input}`);
+      add: async (input) => {
+        asked.push(`add:${input}`);
         return input.startsWith('https://elsewhere')
-          ? `Must be on ${current.site}`
+          ? `Must be on ${site}`
           : undefined;
       },
-      use: async () => void asked.push('use'),
-      ignore: async () => void asked.push('ignore'),
-      reset: async () => void asked.push('reset'),
+      remove: async (url) => void asked.push(`remove:${url}`),
+      use: async (url) => void asked.push(`use:${url}`),
+      ignore: async (url) => void asked.push(`ignore:${url}`),
+      reset: async (url) => void asked.push(`reset:${url}`),
       subscribe: (l) => {
         listeners.add(l);
         return () => listeners.delete(l);
@@ -265,27 +268,36 @@ describe('Component docs', () => {
     return {setting, asked, update};
   };
 
+  const buttons = (el: Element) =>
+    [...el.querySelectorAll('wa-button')].map(
+      (b) => [b.textContent!.trim(), b as HTMLElement] as const
+    );
+
   afterEach(() => useManifestSetting(undefined));
 
   test('is absent when the host has no manifest setting', async () => {
     expect(docsSection(await mount())).toBeUndefined();
   });
 
-  test('saves what the user typed and shows a refusal', async () => {
-    const site = 'https://webawesome.com';
+  test('lists the manifests set, removes one, and adds another', async () => {
     const {setting, asked} = fakeSetting({
-      site,
-      linked: [],
-      url: `${site}/dist/custom-elements.json`,
+      ...empty,
+      urls: [`${site}/a.json`, `${site}/b.json`],
     });
     useManifestSetting(setting);
-    const root = await mount();
-    const section = docsSection(root)!;
+    const section = docsSection(await mount())!;
+    const rows = [...section.querySelectorAll('.manifest-row')];
+    // The site's own URLs read back as their paths.
+    expect(rows.map((r) => r.querySelector('code')!.textContent)).toEqual([
+      '/a.json',
+      '/b.json',
+    ]);
+    buttons(rows[1]!)[0]![1].click();
+    expect(asked).toEqual([`remove:${site}/b.json`]);
+
     const input = section.querySelector('wa-input') as HTMLElement & {
       value: string;
     };
-    // The site's own URL reads back as its path.
-    expect(input.value).toBe('/dist/custom-elements.json');
     input.value = 'https://elsewhere.test/cem.json';
     section
       .querySelector('form')!
@@ -295,63 +307,42 @@ describe('Component docs', () => {
         `Must be on ${site}`
       )
     );
-    expect(asked).toEqual(['set:https://elsewhere.test/cem.json']);
+    expect(asked.at(-1)).toBe('add:https://elsewhere.test/cem.json');
   });
 
-  test('offers a found manifest, and says when the page links its own', async () => {
-    const site = 'https://webawesome.com';
-    const cem = `${site}/dist/custom-elements.json`;
-    const {setting, asked, update} = fakeSetting({site, linked: []});
-    useManifestSetting(setting);
-    const root = await mount();
-    const host = root.host as DevtoolsSettings;
-    const found = () => docsSection(root)!.querySelector('.manifest-found');
-    const buttons = () =>
-      [...found()!.querySelectorAll('wa-button')].map((b) => [
-        b.textContent!.trim(),
-        b as HTMLElement,
-      ]) as Array<[string, HTMLElement]>;
-    expect(found()).toBeNull();
-
-    update({site, linked: [], found: cem});
-    await host.updateComplete;
-    expect(found()!.textContent).toContain('Found /dist/custom-elements.json');
-    expect(buttons().map(([label]) => label)).toEqual([
-      'Use it',
-      'Always ignore',
-    ]);
-    for (const [, button] of buttons()) button.click();
-    expect(asked).toEqual(['use', 'ignore']);
-
-    update({site, linked: [`${site}/own.json`]});
-    await host.updateComplete;
-    expect(docsSection(root)!.textContent).toContain('This page links its own');
-  });
-
-  test('keeps an ignored manifest in view, to use or reset', async () => {
-    const site = 'https://webawesome.com';
-    const cem = `${site}/dist/custom-elements.json`;
+  test('offers each found manifest and keeps each ignored one in view', async () => {
     const {setting, asked, update} = fakeSetting({
-      site,
-      linked: [],
-      ignored: cem,
+      ...empty,
+      found: [`${site}/dist/custom-elements.json`],
+      ignored: [`${site}/vendor/custom-elements.json`],
     });
     useManifestSetting(setting);
     const root = await mount();
     const host = root.host as DevtoolsSettings;
-    const found = docsSection(root)!.querySelector('.manifest-found')!;
-    expect(found.textContent?.replace(/\s+/g, ' ')).toContain(
-      "Ignored /dist/custom-elements.json, found beside the page's scripts."
+    const [found, ignored] =
+      docsSection(root)!.querySelectorAll('.manifest-found');
+    expect(found!.textContent).toContain('Found /dist/custom-elements.json');
+    expect(buttons(found!).map(([label]) => label)).toEqual([
+      'Use it',
+      'Always ignore',
+    ]);
+    expect(ignored!.textContent?.replace(/\s+/g, ' ')).toContain(
+      "Ignored /vendor/custom-elements.json, found beside the page's scripts."
     );
-    const [use, reset] = found.querySelectorAll('wa-button');
-    expect(reset!.textContent!.trim()).toBe('Reset');
-    (use as HTMLElement).click();
-    (reset as HTMLElement).click();
-    expect(asked).toEqual(['use', 'reset']);
+    expect(buttons(ignored!).map(([label]) => label)).toEqual([
+      'Use it',
+      'Reset',
+    ]);
+    for (const [, b] of [...buttons(found!), ...buttons(ignored!)]) b.click();
+    expect(asked).toEqual([
+      `use:${site}/dist/custom-elements.json`,
+      `ignore:${site}/dist/custom-elements.json`,
+      `use:${site}/vendor/custom-elements.json`,
+      `reset:${site}/vendor/custom-elements.json`,
+    ]);
 
-    // Once the user set their own, neither shows.
-    update({site, linked: [], url: `${site}/mine.json`, ignored: cem});
+    update({...empty, linked: [`${site}/own.json`]});
     await host.updateComplete;
-    expect(docsSection(root)!.querySelector('.manifest-found')).toBeNull();
+    expect(docsSection(root)!.textContent).toContain('This page links its own');
   });
 });

@@ -146,20 +146,21 @@ manifests on the enabled site; one on a CDN or another origin is skipped.
 Some sites host a manifest without linking it. Web Awesome's docs, for one,
 serve theirs at `/dist/custom-elements.json`. When a page links none, the
 extension looks for a `custom-elements.json` beside the page's scripts and in
-the folders above them, a few requests to the site itself. If it finds one,
-the bottom of the **Lit** tab says so; **Review in Settings** opens the
-**Component docs** section of the **Settings** tab, where **Use it** turns it
-on, and **Not now** hides the note until the panel opens again. **Always
-ignore** stops the note and the search for that site, but the section keeps
-listing the manifest as ignored, with **Use it** and **Reset**, which looks
-again and offers it anew.
+the folders above them, a few requests to the site itself, and keeps every
+one it finds: a site that loads two libraries may have two. The bottom of
+the **Lit** tab says how many; **Review in Settings** opens the **Component
+docs** section of the **Settings** tab, which lists each with **Use it** and
+**Always ignore**, and **Not now** hides the note until the panel opens
+again. An ignored manifest stays listed, with **Use it** and **Reset**, which
+offers it again.
 
-The same section takes a manifest of your choosing: enter a path such as
-`/dist/custom-elements.json` or a full URL on the same site in **manifest**
-and **Save**. The details pane picks the docs up straight away. The
-extension remembers the URL for that site and reads it only while the page
-links no manifest of its own; the section says when the page links one.
-Save an empty field to forget it.
+The same section takes manifests of your choosing: enter a path such as
+`/dist/custom-elements.json` or a full URL on the same site and click
+**Add**, as many as the site has. The details pane picks the docs up
+straight away, from whichever manifest describes the selected component.
+The extension remembers them for that site, lists each with **Remove**, and
+reads them only while the page links no manifest of its own; the section
+says when the page links one.
 
 ## Open in the browser's own panels
 
