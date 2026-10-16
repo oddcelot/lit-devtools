@@ -65,11 +65,16 @@ const pageIdOf = (data: Record<string, unknown>): string | undefined =>
  * misbehaving page from taking the session down.
  *
  * Calls made before {@link connect} are dropped, not buffered: nothing can
- * reach the page until a carrier exists.
+ * reach the page until a carrier exists. Page messages that arrive before a
+ * sink attaches are dropped too, except the last runtime announcement,
+ * which {@link attach} replays: without it the session would not know a page
+ * exists until that page reloads.
  */
 export class TimelineChannelCodec implements TimelineSource {
   #carrier: PageTransport | undefined;
   #sink: TimelineSink | undefined;
+  /** The runtime announcement that came while no sink was attached. */
+  #unheardReady: [string | undefined, string | undefined] | undefined;
   readonly #onPick: ((id: number) => void) | undefined;
 
   constructor(options: TimelineChannelCodecOptions = {}) {
@@ -134,17 +139,22 @@ export class TimelineChannelCodec implements TimelineSource {
     // The runtime announces itself on every connect and boots from the
     // compiled-in defaults, so the sink replays the session's state to it.
     carrier.on(CHANNEL_RUNTIME_READY, (data) => {
-      this.#sink?.runtimeReady(
+      const ready: [string | undefined, string | undefined] = [
         isRecord(data) ? pageIdOf(data) : undefined,
         isRecord(data) && typeof data.tabId === 'string'
           ? data.tabId
-          : undefined
-      );
+          : undefined,
+      ];
+      if (this.#sink === undefined) this.#unheardReady = ready;
+      else this.#sink.runtimeReady(...ready);
     });
   }
 
   attach(sink: TimelineSink): () => void {
     this.#sink = sink;
+    const ready = this.#unheardReady;
+    this.#unheardReady = undefined;
+    if (ready !== undefined) sink.runtimeReady(...ready);
     return () => {
       if (this.#sink === sink) this.#sink = undefined;
     };
