@@ -49,9 +49,8 @@ test('About lists the plugin version, Lit package versions and precedence', asyn
   expect(text).toContain('lit-html 3.3.3');
   expect(text).toContain('lit-element 4.2.2');
   expect(text).toContain('unavailable (enable sourceOverlay)');
-  expect(text).toContain(
-    'panel override, then plugin option, then LIT_PLUGIN_* env, then default'
-  );
+  expect(text).toContain('panel override, then plugin option, then default');
+  expect(text).not.toContain('LIT_PLUGIN_');
 });
 
 test('About flags duplicate lit copies', async () => {
@@ -212,10 +211,8 @@ test('a feature header says where the feature was switched, and how to turn it o
       .querySelector('.empty')
       ?.textContent?.replace(/\s+/g, ' ')
       .trim();
-  expect(hint('HMR')).toBe('Enable with hmr: true or LIT_PLUGIN_HMR=true.');
-  expect(hint('Source Overlay')).toBe(
-    'Enable with sourceOverlay: true or LIT_PLUGIN_SOURCE_OVERLAY=true.'
-  );
+  expect(hint('HMR')).toBe('Enable with hmr: true.');
+  expect(hint('Source Overlay')).toBe('Enable with sourceOverlay: true.');
 });
 
 test('without custom tracks, the row says the entries go to User Timing', async () => {
