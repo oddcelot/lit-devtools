@@ -133,34 +133,39 @@ with `document.createElement`, have no **rendered** row.
 
 ## Read component documentation
 
-When a page links its
-[Custom Elements Manifests](https://github.com/webcomponents/custom-elements-manifest)
-with `<link rel="custom-elements-manifest" href="…">`, the details pane shows
-what they say about the selected component: its description, events, CSS
-custom properties, and descriptions on the property, attribute, slot and part
-rows. See
+The details pane shows what a
+[Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)
+says about the selected component: its description, events, CSS custom
+properties, and descriptions on the property, attribute, slot and part rows.
+See
 [Read a component's documentation](/vite-plugin-lit/guides/devtools/components/#read-a-components-documentation).
-The extension resolves each link against the page's base URL and fetches only
-manifests on the enabled site; one on a CDN or another origin is skipped.
 
-Some sites host a manifest without linking it. Web Awesome's docs, for one,
-serve theirs at `/dist/custom-elements.json`. When a page links none, the
-extension looks for a `custom-elements.json` beside the page's scripts and in
-the folders above them, a few requests to the site itself, and keeps every
-one it finds: a site that loads two libraries may have two. The bottom of
-the **Lit** tab says how many; **Review in Settings** opens the **Component
-docs** section of the **Settings** tab, which lists each with **Use it** and
-**Always ignore**, and **Not now** hides the note until the panel opens
-again. An ignored manifest stays listed, with **Use it** and **Reset**, which
-offers it again.
+The **Component docs** section of the **Settings** tab lists the manifests
+the extension reads for the site, in order. A component's docs come from the
+first switched-on manifest that describes it, so when two describe the same
+tag, the higher one wins. Each entry has a switch, to skip it without losing
+it, and arrows to move it.
 
-The same section takes manifests of your choosing: enter a path such as
-`/dist/custom-elements.json` or a full URL on the same site and click
-**Add**, as many as the site has. The details pane picks the docs up
-straight away, from whichever manifest describes the selected component.
-The extension remembers them for that site, lists each with **Remove**, and
-reads them only while the page links no manifest of its own; the section
-says when the page links one.
+- **Linked by the page.** Manifests the page names with
+  `<link rel="custom-elements-manifest" href="…">` are listed first and
+  marked **linked by page**. They can be switched off and moved, but not
+  removed, as the page would bring them back.
+- **Added by you.** Enter a path such as `/dist/custom-elements.json` or a
+  full URL on the same site and click **Add**. An added entry has
+  **Remove**.
+- **Found.** Some sites host a manifest without linking it; Web Awesome's
+  docs, for one, serve theirs at `/dist/custom-elements.json`. The extension
+  looks for a `custom-elements.json` beside the page's scripts and in the
+  folders above them, a few requests to the site itself, and offers each it
+  finds below the list with **Use it**, which adds it, and **Always
+  ignore**. An ignored one stays there with **Use it** and **Reset**. While
+  one is on offer, the bottom of the **Lit** tab says so: **Review in
+  Settings** opens the section, **Not now** hides the note until the panel
+  opens again.
+
+The list, its order and its switches are remembered per site. The extension
+fetches manifests only from the enabled site itself, so one on a CDN or
+another origin can't be read.
 
 ## Open in the browser's own panels
 

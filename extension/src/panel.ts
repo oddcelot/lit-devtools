@@ -78,13 +78,23 @@ import {createChromeStorage} from './storage.js';
 import {
   MANIFEST_IGNORED_KEY,
   MANIFEST_URLS_KEY,
-  addManifestUrl,
   parseManifestUrl,
   readIgnoredManifests,
-  readManifestUrls,
-  removeManifestUrl,
+  readManifests,
   setManifestIgnored,
+  writeManifests,
 } from './manifest-url.js';
+import {
+  added,
+  enabledUrls,
+  entriesFor,
+  moved,
+  removed,
+  toStored,
+  toggled,
+  type ManifestEntry,
+  type StoredManifest,
+} from './manifest-list.js';
 import {findManifests, manifestCandidates} from './manifest-discovery.js';
 import {useManifestSetting} from '../../src/panel/manifest-setting.js';
 
@@ -113,8 +123,8 @@ const tabId =
 
 let origin: string | undefined;
 let current: OriginStatus | undefined;
-/** The manifests the user set for this site; see `manifest-url.ts`. */
-let chosen: string[] = [];
+/** The user's arrangement of this site's manifests; see `manifest-list.ts`. */
+let stored: StoredManifest[] = [];
 /** Tells the panel to ask for its docs again; set once the host is up. */
 let docsChanged: (() => void) | undefined;
 let booted: Promise<void> | undefined;
@@ -264,11 +274,9 @@ const pageScripts = (): Promise<string[]> =>
     ]),
   ]);
 
-/** The page's own manifests, else the ones the user set for the site. */
-const docsManifests = async (): Promise<string[]> => {
-  const links = await manifestLinks();
-  return links.length > 0 ? links : chosen;
-};
+/** The switched-on manifests, the page's links among them, in order. */
+const docsManifests = async (): Promise<string[]> =>
+  enabledUrls(entriesFor(stored, await manifestLinks()));
 
 /** The inspected page's URL, to resolve a path the user typed against. */
 const inspectedUrl = async (): Promise<string | undefined> => {
@@ -480,6 +488,8 @@ const boot = async (): Promise<void> => {
   document.body.prepend(document.createElement('lit-devtools-panel'));
   barEl.hidden = false;
   dial();
+  // Links are in the page's head already; its scripts may still be loading.
+  void readLinks();
   suggestSoon();
 };
 
@@ -516,14 +526,19 @@ let snoozed = false;
 let linked: string[] = [];
 const manifestListeners = new Set<() => void>();
 
-/** Found manifests neither used nor ignored: on offer. */
-const offered = (): string[] =>
-  hits.filter((url) => !chosen.includes(url) && !ignored.includes(url));
+/** The site's list as it stands for the page. */
+const entries = (): ManifestEntry[] => entriesFor(stored, linked);
+
+/** Found manifests neither listed nor ignored: on offer. */
+const offered = (): string[] => {
+  const listed = new Set(entries().map((e) => e.url));
+  return hits.filter((url) => !listed.has(url) && !ignored.includes(url));
+};
 
 /** Tell Settings, and nudge in the footer while any is on offer. */
 const manifestChanged = (): void => {
   const count = offered().length;
-  const nudge = count > 0 && !snoozed && linked.length === 0;
+  const nudge = count > 0 && !snoozed;
   manifestNudge.hidden = !nudge;
   pageEl.hidden = nudge;
   manifestNudgeText.textContent =
@@ -533,36 +548,47 @@ const manifestChanged = (): void => {
   for (const listener of manifestListeners) listener();
 };
 
-/** What storage holds for the site: the user's manifests and ignored ones. */
-const loadManifestUrl = async (): Promise<void> => {
-  const storage = chrome.storage.local;
-  const [nextChosen, nextIgnored] =
-    origin === undefined
-      ? [[], []]
-      : await Promise.all([
-          readManifestUrls(storage, origin),
-          readIgnoredManifests(storage, origin),
-        ]);
-  ignored = nextIgnored;
-  const changed = nextChosen.join('\n') !== chosen.join('\n');
-  chosen = nextChosen;
-  manifestChanged();
-  if (!changed) return;
+/** The docs the panel shows may come from other manifests now. */
+const docsMayDiffer = (): void => {
   manifestDocs.reset();
   docsChanged?.();
 };
 
+/** What storage holds for the site: the user's list and ignored ones. */
+const loadManifestUrl = async (): Promise<void> => {
+  const storage = chrome.storage.local;
+  const [nextStored, nextIgnored] =
+    origin === undefined
+      ? [[], []]
+      : await Promise.all([
+          readManifests(storage, origin),
+          readIgnoredManifests(storage, origin),
+        ]);
+  ignored = nextIgnored;
+  const changed = JSON.stringify(nextStored) !== JSON.stringify(stored);
+  stored = nextStored;
+  manifestChanged();
+  if (changed) docsMayDiffer();
+};
+
+/** Read the page's manifest links again, for the list Settings shows. */
+const readLinks = async (): Promise<void> => {
+  const links = await manifestLinks();
+  if (links.join('\n') !== linked.join('\n')) {
+    linked = links;
+    docsMayDiffer();
+  }
+  manifestChanged();
+};
+
 /**
- * Read the page's links again, then, when it links none, look for the
- * manifests the site hosts without linking them.
+ * Read the page's links again, then look for the manifests the site hosts
+ * beside its scripts.
  */
 const suggestManifest = async (): Promise<void> => {
-  linked = await manifestLinks();
+  await readLinks();
   const at = origin;
-  if (at === undefined || linked.length > 0) {
-    manifestChanged();
-    return;
-  }
+  if (at === undefined) return;
   const candidates = manifestCandidates(
     await pageScripts(),
     (url) => site(url) === at
@@ -578,45 +604,51 @@ const suggestSoon = (): void => {
   setTimeout(() => void suggestManifest(), 1500);
 };
 
-/** `act` on the inspected site's storage, if there is a site. */
-const onSite = async (
-  act: (storage: chrome.storage.StorageArea, at: string) => Promise<void>
+/**
+ * Store `change` applied to the site's list. Storage's listener below
+ * loads it, here and in other windows.
+ */
+const saveEntries = async (
+  change: (list: ManifestEntry[]) => ManifestEntry[]
 ): Promise<void> => {
-  if (origin !== undefined) await act(chrome.storage.local, origin);
+  if (origin === undefined) return;
+  await writeManifests(
+    chrome.storage.local,
+    origin,
+    toStored(change(entries()), stored)
+  );
 };
 
-// The Settings tab's Component docs section; the panel renders it. Writes
-// go to storage, whose listener below loads them, here and in other windows.
+const setIgnored = async (url: string, ignore: boolean): Promise<void> => {
+  if (origin !== undefined) {
+    await setManifestIgnored(chrome.storage.local, origin, url, ignore);
+  }
+};
+
+// The Settings tab's Component docs section; the panel renders it.
 useManifestSetting({
   state: () =>
     origin === undefined
       ? undefined
-      : {
-          site: origin,
-          linked,
-          urls: chosen,
-          found: offered(),
-          ignored,
-        },
+      : {site: origin, entries: entries(), found: offered(), ignored},
   async add(input) {
     const base = await inspectedUrl();
     if (origin === undefined || base === undefined) return 'No page to read';
     const parsed = parseManifestUrl(input, base, origin, site);
     if ('error' in parsed) return parsed.error;
-    if (chosen.includes(parsed.url)) return 'Already read';
-    await addManifestUrl(chrome.storage.local, origin, parsed.url);
+    if (entries().some((e) => e.url === parsed.url)) return 'Already listed';
+    await saveEntries((list) => added(list, parsed.url));
     return undefined;
   },
-  remove: (url) => onSite((storage, at) => removeManifestUrl(storage, at, url)),
-  use: (url) =>
-    onSite(async (storage, at) => {
-      await addManifestUrl(storage, at, url);
-      await setManifestIgnored(storage, at, url, false);
-    }),
-  ignore: (url) =>
-    onSite((storage, at) => setManifestIgnored(storage, at, url, true)),
-  reset: (url) =>
-    onSite((storage, at) => setManifestIgnored(storage, at, url, false)),
+  remove: (url) => saveEntries((list) => removed(list, url)),
+  toggle: (url, enabled) => saveEntries((list) => toggled(list, url, enabled)),
+  move: (url, by) => saveEntries((list) => moved(list, url, by)),
+  async use(url) {
+    await saveEntries((list) => added(list, url));
+    await setIgnored(url, false);
+  },
+  ignore: (url) => setIgnored(url, true),
+  reset: (url) => setIgnored(url, false),
   subscribe(listener) {
     manifestListeners.add(listener);
     return () => manifestListeners.delete(listener);

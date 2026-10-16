@@ -237,7 +237,7 @@ describe('Component docs', () => {
     [...root.querySelectorAll('section')].find(
       (s) => s.querySelector('h3')?.textContent?.trim() === 'Component docs'
     );
-  const empty = {site, linked: [], urls: [], found: [], ignored: []};
+  const empty: ManifestState = {site, entries: [], found: [], ignored: []};
 
   /** A host setting whose state the test drives, and what it was asked. */
   const fakeSetting = (state: ManifestState) => {
@@ -253,6 +253,8 @@ describe('Component docs', () => {
           : undefined;
       },
       remove: async (url) => void asked.push(`remove:${url}`),
+      toggle: async (url, on) => void asked.push(`toggle:${url}:${on}`),
+      move: async (url, by) => void asked.push(`move:${url}:${by}`),
       use: async (url) => void asked.push(`use:${url}`),
       ignore: async (url) => void asked.push(`ignore:${url}`),
       reset: async (url) => void asked.push(`reset:${url}`),
@@ -279,22 +281,67 @@ describe('Component docs', () => {
     expect(docsSection(await mount())).toBeUndefined();
   });
 
-  test('lists the manifests set, removes one, and adds another', async () => {
+  test('lists the manifests in order, marks the linked one, and acts on each', async () => {
     const {setting, asked} = fakeSetting({
       ...empty,
-      urls: [`${site}/a.json`, `${site}/b.json`],
+      entries: [
+        {url: `${site}/linked.json`, enabled: true, linked: true},
+        {url: `${site}/a.json`, enabled: false, linked: false},
+      ],
     });
     useManifestSetting(setting);
     const section = docsSection(await mount())!;
     const rows = [...section.querySelectorAll('.manifest-row')];
     // The site's own URLs read back as their paths.
     expect(rows.map((r) => r.querySelector('code')!.textContent)).toEqual([
+      '/linked.json',
       '/a.json',
-      '/b.json',
     ]);
-    buttons(rows[1]!)[0]![1].click();
-    expect(asked).toEqual([`remove:${site}/b.json`]);
+    expect(section.textContent).toContain('Read in this order');
+    const [linked, mine] = rows as [Element, Element];
+    expect(linked.querySelector('wa-badge')?.textContent).toContain(
+      'linked by page'
+    );
+    expect(mine.querySelector('wa-badge')).toBeNull();
+    const switches = rows.map(
+      (r) => r.querySelector('wa-switch') as HTMLElement & {checked: boolean}
+    );
+    expect(switches.map((sw) => sw.checked)).toEqual([true, false]);
 
+    // A link moves and switches but has no Remove; the ends can't move out.
+    const labels = (row: Element) =>
+      buttons(row).map(
+        ([text, b]) => text || b.querySelector('wa-icon')!.getAttribute('label')
+      );
+    expect(labels(linked)).toEqual([
+      'Move /linked.json up',
+      'Move /linked.json down',
+    ]);
+    expect(labels(mine)).toEqual([
+      'Move /a.json up',
+      'Move /a.json down',
+      'Remove',
+    ]);
+    expect(buttons(linked).map(([, b]) => b.hasAttribute('disabled'))).toEqual([
+      true,
+      false,
+    ]);
+
+    switches[1]!.checked = true;
+    switches[1]!.dispatchEvent(new Event('change'));
+    buttons(mine)[0]![1].click();
+    buttons(mine)[2]![1].click();
+    expect(asked).toEqual([
+      `toggle:${site}/a.json:true`,
+      `move:${site}/a.json:-1`,
+      `remove:${site}/a.json`,
+    ]);
+  });
+
+  test('adds what the user typed and shows a refusal', async () => {
+    const {setting, asked} = fakeSetting(empty);
+    useManifestSetting(setting);
+    const section = docsSection(await mount())!;
     const input = section.querySelector('wa-input') as HTMLElement & {
       value: string;
     };
@@ -307,7 +354,7 @@ describe('Component docs', () => {
         `Must be on ${site}`
       )
     );
-    expect(asked.at(-1)).toBe('add:https://elsewhere.test/cem.json');
+    expect(asked).toEqual(['add:https://elsewhere.test/cem.json']);
   });
 
   test('offers each found manifest and keeps each ignored one in view', async () => {
@@ -341,8 +388,8 @@ describe('Component docs', () => {
       `reset:${site}/vendor/custom-elements.json`,
     ]);
 
-    update({...empty, linked: [`${site}/own.json`]});
+    update(empty);
     await host.updateComplete;
-    expect(docsSection(root)!.textContent).toContain('This page links its own');
+    expect(docsSection(root)!.querySelector('.manifest-found')).toBeNull();
   });
 });

@@ -8,14 +8,27 @@
  * the fetches behind it.
  */
 
+/** One manifest in the site's list. */
+export interface ManifestEntryState {
+  url: string;
+  /** Read for docs; switched off, it stays listed but is skipped. */
+  enabled: boolean;
+  /**
+   * The page links it with `<link rel="custom-elements-manifest">`. It can
+   * be switched off and moved, but not removed: the page would bring it back.
+   */
+  linked: boolean;
+}
+
 /** What the panel shows for the inspected site. */
 export interface ManifestState {
   /** The inspected site's origin. */
   site: string;
-  /** The manifests the page links itself; the user's choice yields to them. */
-  linked: string[];
-  /** The manifests the user set for the site, in the order they were added. */
-  urls: string[];
+  /**
+   * The manifests read for docs, in order: the first switched-on one that
+   * describes a tag supplies its docs.
+   */
+  entries: ManifestEntryState[];
   /** Manifests found beside the page's scripts, on offer. */
   found: string[];
   /**
@@ -32,9 +45,13 @@ export interface ManifestSetting {
    * Resolves an error message when it was refused.
    */
   add(input: string): Promise<string | undefined>;
-  /** Stop reading the user's manifest `url`. */
+  /** Take an entry the user added off the list. */
   remove(url: string): Promise<void>;
-  /** Read the found or ignored manifest `url`. */
+  /** Switch an entry on or off. */
+  toggle(url: string, enabled: boolean): Promise<void>;
+  /** Move an entry one place up (`-1`) or down (`1`). */
+  move(url: string, by: -1 | 1): Promise<void>;
+  /** Add the found or ignored manifest `url` to the list. */
   use(url: string): Promise<void>;
   /** Ignore the found manifest `url` on this site, until {@link reset}. */
   ignore(url: string): Promise<void>;
