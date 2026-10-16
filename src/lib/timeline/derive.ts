@@ -128,6 +128,12 @@ export interface UpdateCycle {
   cause?: {layerId: string; type: string; detail?: string; time: number};
   /** Set when the runtime recorded another tick as the cause; its cycle `key`. */
   causedBy?: {groupId: string};
+  /**
+   * The element's own previous tick scheduled this one: a property set in
+   * `updated()` (or after `super.update()`) ran the whole cycle again with
+   * no new outside cause. See {@link isSelfCaused}.
+   */
+  selfCaused?: true;
   /** The first phase in this tick that threw, if any. */
   error?: {phase: string} & SpanError;
   /**
@@ -160,6 +166,11 @@ export interface ComponentRollup {
   redundantChanges?: Array<{key: string; count: number}>;
   /** Cycles in which a phase threw. */
   errors: number;
+  /**
+   * Updates the component's own previous update scheduled (a double render);
+   * omitted when none were seen. Counted within `updates` too.
+   */
+  selfCaused?: number;
   source?: {file: string; line: number; column?: number; url?: string};
   /**
    * Where the first instance seen was written. Per instance, unlike `source`,
@@ -167,6 +178,25 @@ export interface ComponentRollup {
    */
   callSite?: {file: string; line: number; column: number};
 }
+
+/**
+ * A `performUpdate` span whose recorded cause is the same element's previous
+ * tick: the element rendered twice for one outside change, typically because
+ * `updated()` set a reactive property. A property set before the update
+ * finished (in `willUpdate`, say) joins the running tick instead, so it never
+ * shows up here. The causing tick need not still be in the buffer: its
+ * `groupId` (`${elementId}:${tick}`) names the element on its own.
+ */
+export const isSelfCaused = (span: TimelineSpan): boolean => {
+  const elementId = span.meta?.elementId;
+  return (
+    span.layerId === LIFECYCLE_LAYER_ID &&
+    span.name === ROOT_PHASE &&
+    elementId !== undefined &&
+    span.cause?.kind === 'update' &&
+    span.cause.groupId.startsWith(`${elementId}:`)
+  );
+};
 
 /** Reads `data.changed` defensively — `data` is `unknown` on the wire. */
 const changedOf = (event: TimelineEvent): string[] | undefined => {
@@ -440,6 +470,7 @@ const addPhase = (cycle: UpdateCycle, span: TimelineSpan): void => {
   cycle.phases.push(span);
   if (span.start < cycle.start) cycle.start = span.start;
   if (span.name === ROOT_PHASE) cycle.duration = span.duration;
+  if (isSelfCaused(span)) cycle.selfCaused = true;
   mergeChanged(cycle, span);
   for (const detail of span.changedDetail ?? []) {
     cycle.changedDetail ??= [];
@@ -538,6 +569,7 @@ const tally = (
   }
   entry.updates++;
   if (cycle.error !== undefined) entry.errors++;
+  if (cycle.selfCaused) entry.selfCaused = (entry.selfCaused ?? 0) + 1;
   // An open or clock-straddling cycle contributes a count but no time —
   // better than inventing one, and the count is what flags a hot component.
   if (cycle.duration !== undefined) {

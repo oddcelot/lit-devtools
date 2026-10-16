@@ -115,6 +115,10 @@ close it too, and **Expand all** and **Collapse all** in the filter bar open or
 close the phases of every update at once. Rows that are not part of an update
 stay as they are.
 
+An update marked `2×` was scheduled by the same component's previous update, so
+it rendered twice for one change. A property set in `updated()` is the usual
+reason; the detail pane says so next to the cause.
+
 Rows stay in time order, and a column at the left of the list draws what caused
 each update, the way `git log --graph` draws branches. A line connects an update
 to the row that caused it: the update of a parent that set a property on it or

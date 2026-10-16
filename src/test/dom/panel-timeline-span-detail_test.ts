@@ -232,6 +232,18 @@ test('names an event cause by layer and time', async () => {
   expect(value('caused by')).toContain('mouse event at 5.000 ms');
 });
 
+test('says when the cause is the element updating itself', async () => {
+  const root = {...span, name: 'performUpdate'};
+  const self = await mount({
+    span: {...root, cause: {kind: 'update', groupId: '7:1'}},
+  });
+  expect(self.value('caused by')).toContain('rendered twice');
+  const other = await mount({
+    span: {...root, cause: {kind: 'update', groupId: '3:1'}},
+  });
+  expect(other.value('caused by')).not.toContain('rendered twice');
+});
+
 test('has no caused by row without a cause', async () => {
   expect((await mount({span})).value('caused by')).toBeUndefined();
 });

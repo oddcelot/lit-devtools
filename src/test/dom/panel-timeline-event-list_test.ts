@@ -481,3 +481,22 @@ test('warning and error point rows are marked, plain rows are not', async () => 
     false,
   ]);
 });
+
+test('flags a tick its own element scheduled, and only that one', async () => {
+  // Element 2's tick was caused by element 1's: an outside cause.
+  const {el} = await mountChain();
+  expect(el.shadowRoot!.querySelector('.self-caused')).toBeNull();
+
+  const again = tick(1, 3, {kind: 'update', groupId: '1:1'}).map((e) => ({
+    ...e,
+    id: `${e.id}-again`,
+    groupId: '1:2',
+  }));
+  const events = [...tick(1, 0), ...again];
+  el.events = events;
+  el.spans = toSpans(events);
+  await el.updateComplete;
+  const flagged = rows(el).filter((r) => r.querySelector('.self-caused'));
+  expect(flagged).toHaveLength(1);
+  expect(flagged[0]!.querySelector('.time')?.textContent).toBe('3.0ms');
+});

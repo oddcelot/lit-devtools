@@ -7,7 +7,7 @@ import '@awesome.me/webawesome/dist/components/switch/switch.js';
 import {tokens} from '../lib/tokens.js';
 import {waSquare} from './wa-square.js';
 import type {TimelineEvent} from '../types/timeline.js';
-import type {TimelineSpan} from '../lib/timeline/derive.js';
+import {isSelfCaused, type TimelineSpan} from '../lib/timeline/derive.js';
 import {
   emptyStateStyles,
   layerColor,
@@ -821,6 +821,15 @@ export class TimelineEventList extends LitElement {
         ${
           row.logType === 'warning' || row.logType === 'error'
             ? html`<span class="mark" data-tip=${`Lit ${row.logType}`}>!</span>`
+            : nothing
+        }
+        ${
+          isSelfCaused(row)
+            ? html`<span
+                class="flag self-caused"
+                data-tip="Re-rendered: its own previous update scheduled this one"
+                >2×</span
+              >`
             : nothing
         }
         ${

@@ -4,6 +4,7 @@ import {
   ANATOMY_COLORS,
   type InspectorExtra,
   type InspectorTreeNode,
+  type InspectorWarning,
 } from '../../types/inspector.js';
 import {
   answers,
@@ -19,6 +20,12 @@ import {resetHostInfo} from '../../panel/host.js';
 import {useElementRevealer} from '../../panel/element-revealer.js';
 import {useSourceOpener} from '../../panel/source-opener.js';
 vi.mock('../../panel/in-page.js', () => import('./fakes/in-page.js'));
+vi.mock(
+  '../../panel/timeline-store.js',
+  () => import('./fakes/timeline-store.js')
+);
+import {resetStore, setEvents} from './fakes/timeline-store.js';
+import type {TimelineEvent} from '../../types/timeline.js';
 
 beforeAll(async () => {
   await import('../../panel/components-view.js');
@@ -73,6 +80,7 @@ afterEach(() => {
   localStorage.removeItem(ANATOMY_LS_KEY);
   resetClient();
   resetHostInfo();
+  resetStore();
 });
 
 test('offers Pick only when the page has a picker', async () => {
@@ -1583,6 +1591,57 @@ test('badges a component Lit warned about and lists the warning', async () => {
   expect(root.querySelector('.details .warning .text')?.textContent).toContain(
     'x-button scheduled'
   );
+});
+
+/** Ticks 1..n of element 2, each after the first scheduled by the one before. */
+const rerenderedTicks = (n: number): TimelineEvent[] =>
+  Array.from({length: n}, (_, i) => ({
+    layerId: 'lit-lifecycle',
+    time: i * 10,
+    groupId: `2:${i + 1}`,
+    title: 'performUpdate:start',
+    data: {},
+    meta: {elementId: 2, tagName: 'x-button'},
+    ...(i === 0 ? {} : {cause: {kind: 'update' as const, groupId: `2:${i}`}}),
+  }));
+
+/**
+ * Picks element 2 and shows `warnings`, then records `ticks` of it: the
+ * section has to follow a recording that arrives while it is open.
+ */
+const showRerendered = async (ticks: number, warnings?: InspectorWarning[]) => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), ...(warnings ? {warnings} : {})},
+  });
+  await flush(el);
+  setEvents(rerenderedTicks(ticks));
+  await flush(el);
+  return root;
+};
+
+test('warns when the recording shows the element re-rendering itself', async () => {
+  const root = await showRerendered(3);
+  expect(sections(root)).toEqual(['Warnings 1 open']);
+  expect(
+    root.querySelector('.details .warning.self-caused')?.textContent
+  ).toContain('Re-rendered itself 2 times');
+});
+
+test("adds the recorded count to Lit's change-in-update warning", async () => {
+  const root = await showRerendered(2, [
+    {
+      code: 'change-in-update',
+      message: 'Element x-button scheduled an update after an update.',
+    },
+  ]);
+  expect(sections(root)).toEqual(['Warnings 1 open']);
+  expect(root.querySelectorAll('.details .warning')).toHaveLength(1);
+  expect(
+    root.querySelector('.details .warning .self-caused')?.textContent
+  ).toContain('Re-rendered itself once');
 });
 
 test('shows no warning badge or section without warnings', async () => {

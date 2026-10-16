@@ -51,6 +51,9 @@ import {elementRevealer} from './element-revealer.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {overrides} from './settings-override.js';
+import {getTimelineEvents, subscribeTimeline} from './timeline-store.js';
+import {selfCausedCounts} from '../lib/timeline/model.js';
+import type {TimelineEvent} from '../types/timeline.js';
 import {
   docPlainText,
   renderDocInline,
@@ -74,6 +77,9 @@ const DETAILS_WIDTH_MIN = 220;
 
 /** localStorage key remembering that Anatomy was left on. */
 const ANATOMY_LS_KEY = 'lit-devtools-components-anatomy';
+
+/** Lit's dev-mode code for an update scheduled after an update completed. */
+const CHANGE_IN_UPDATE = 'change-in-update';
 
 const readAnatomy = (): boolean => {
   try {
@@ -1449,6 +1455,19 @@ export class ComponentsView extends LitElement {
   private readonly _detailsWidth = readDetailsWidth();
   private _unsubscribeOverride: (() => void) | null = null;
   private _unsubscribeSession: (() => void) | null = null;
+  private _unsubscribeTimeline: (() => void) | null = null;
+  /**
+   * Per element id, how many of its recorded updates its own previous update
+   * scheduled, for the Warnings section. Derived on demand and kept for the
+   * buffer it came from: the view stays mounted behind other tabs, so a busy
+   * recording must not re-derive (or re-render) it on every batch.
+   */
+  private _selfCaused: {
+    events: readonly TimelineEvent[];
+    counts: ReadonlyMap<number, number>;
+  } | null = null;
+  /** The count the Warnings section last showed, keyed to its element. */
+  private _shownSelfCaused: {id: number; count: number} | null = null;
   /** The tree row under the pointer, so Shift can act on it. */
   private _hovered: InspectorTreeNode | null = null;
   /** The tag whose rows are marked while Shift-hovering, or null. */
@@ -1484,6 +1503,12 @@ export class ComponentsView extends LitElement {
     this._unsubscribeOverride = overrides.subscribe((o) => {
       this._flash = o.flashUpdates ?? false;
     });
+    this._unsubscribeTimeline = subscribeTimeline(() => {
+      const shown = this._shownSelfCaused;
+      if (shown !== null && this._selfCausedCount(shown.id) !== shown.count) {
+        this.requestUpdate();
+      }
+    });
     void this._connect();
   }
 
@@ -1495,6 +1520,8 @@ export class ComponentsView extends LitElement {
     this._unsubscribeOverride = null;
     this._unsubscribeSession?.();
     this._unsubscribeSession = null;
+    this._unsubscribeTimeline?.();
+    this._unsubscribeTimeline = null;
     this._session.dispose();
     this._syncAnatomy(null, null);
   }
@@ -2940,6 +2967,79 @@ export class ComponentsView extends LitElement {
    * `shown/total`, a section with no match is left out, and the rest show
    * open without touching the remembered folds.
    */
+  private _selfCausedCount(id: number): number {
+    const events = getTimelineEvents();
+    if (this._selfCaused?.events !== events) {
+      this._selfCaused = {events, counts: selfCausedCounts(events)};
+    }
+    return this._selfCaused.counts.get(id) ?? 0;
+  }
+
+  /**
+   * The Warnings section: Lit's dev-mode warnings, and how often the recording
+   * shows the element re-rendering itself. Lit's dev build warns about that as
+   * `change-in-update`, once per tag; the count joins that warning, and stands
+   * alone only when Lit said nothing (a production build, or the warning
+   * turned off). `shown` counts the rows the filter keeps.
+   */
+  private _warningsView(d: InspectorDetails): {
+    shown: number;
+    section: TemplateResult | typeof nothing;
+  } {
+    const all = d.warnings ?? [];
+    const kept = all.filter((w) => this._matches(w.code, w.message));
+    const rerenders = this._selfCausedCount(d.id);
+    this._shownSelfCaused = {id: d.id, count: rerenders};
+    const note =
+      rerenders === 0
+        ? ''
+        : `Re-rendered itself ${rerenders === 1 ? 'once' : `${rerenders} times`} in the recording.`;
+    const alone =
+      rerenders > 0 && !all.some((w) => w.code === CHANGE_IN_UPDATE);
+    const aloneText = `${note} Its own update scheduled another, so it rendered twice for one change. A property set in updated() does this; set it in willUpdate() instead.`;
+    const aloneShown = alone && this._matches('re-rendered', aloneText);
+    const shown = kept.length + (aloneShown ? 1 : 0);
+    const section = this._renderSection(
+      'Warnings',
+      shown,
+      all.length + (alone ? 1 : 0),
+      html`<div class="kv">
+        ${
+          aloneShown
+            ? html`<div class="warning self-caused">
+                <span class="text">${this._mark(aloneText)}</span>
+              </div>`
+            : nothing
+        }
+        ${kept.map(
+          (w) =>
+            html`<div class="warning">
+              ${
+                w.code === ''
+                  ? nothing
+                  : html`<a
+                      class="code"
+                      href=${`https://lit.dev/msg/${w.code}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      >${w.code}</a
+                    >`
+              }
+              <span class="text">${this._mark(w.message)}</span>
+              ${
+                w.code === CHANGE_IN_UPDATE && note !== ''
+                  ? html`<span class="text self-caused"
+                      >${this._mark(note)}</span
+                    >`
+                  : nothing
+              }
+            </div>`
+        )}
+      </div>`
+    );
+    return {shown, section};
+  }
+
   private _renderSection(
     label: string,
     shown: number,
@@ -3180,7 +3280,7 @@ export class ComponentsView extends LitElement {
     const attributes = d.attributes.filter((a) => byRow(a.name, a.value));
     const extras = allExtras.filter((e) => byRow(e.name, e.value));
     const allWarnings = d.warnings ?? [];
-    const warnings = allWarnings.filter((w) => byRow(w.code, w.message));
+    const warnings = this._warningsView(d);
     const docs = this._docsView(d);
     const anatomyHit =
       d.anatomy !== undefined &&
@@ -3192,7 +3292,7 @@ export class ComponentsView extends LitElement {
         stateProps.length +
         attributes.length +
         extras.length +
-        warnings.length >
+        warnings.shown >
         0 ||
       anatomyHit ||
       docs.anyMatch;
@@ -3313,31 +3413,7 @@ export class ComponentsView extends LitElement {
         <wa-icon slot="start" name="magnifying-glass"></wa-icon>
         <wa-icon slot="clear-icon" name="x"></wa-icon>
       </wa-input>
-      ${this._renderAbout(docs)}
-      ${this._renderSection(
-        'Warnings',
-        warnings.length,
-        allWarnings.length,
-        html`<div class="kv">
-          ${warnings.map(
-            (w) =>
-              html`<div class="warning">
-                ${
-                  w.code === ''
-                    ? nothing
-                    : html`<a
-                        class="code"
-                        href=${`https://lit.dev/msg/${w.code}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        >${w.code}</a
-                      >`
-                }
-                <span class="text">${this._mark(w.message)}</span>
-              </div>`
-          )}
-        </div>`
-      )}
+      ${this._renderAbout(docs)} ${warnings.section}
       ${d.anatomy === undefined ? nothing : this._renderAnatomy(d.anatomy, docs)}
       ${this._renderSection(
         'Properties',

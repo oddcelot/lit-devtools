@@ -6,7 +6,11 @@ import '@awesome.me/webawesome/dist/components/button/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
 import {formatMs} from '../lib/timeline/range.js';
-import {devtoolsCauseType, type TimelineSpan} from '../lib/timeline/derive.js';
+import {
+  devtoolsCauseType,
+  isSelfCaused,
+  type TimelineSpan,
+} from '../lib/timeline/derive.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {layerColor} from './timeline-layers.js';
@@ -195,6 +199,9 @@ export class TimelineSpanDetail extends LitElement {
         font-family: var(--lit-devtools-font-mono);
         font-size: var(--lit-devtools-text-2xs);
         color: inherit;
+      }
+      .self-caused {
+        color: var(--lit-devtools-warning);
       }
       .warning .note {
         color: var(--lit-devtools-text-muted);
@@ -518,6 +525,13 @@ export class TimelineSpanDetail extends LitElement {
             ? this._fact(
                 'caused by',
                 html`<span>${this._causeText(row.cause)}</span>${
+                    isSelfCaused(row)
+                      ? html`<span class="self-caused"
+                          >its own previous update, so it rendered twice; a
+                          property set in updated() does this</span
+                        >`
+                      : nothing
+                  }${
                     row.cause.kind === 'devtools'
                       ? nothing
                       : this._action(

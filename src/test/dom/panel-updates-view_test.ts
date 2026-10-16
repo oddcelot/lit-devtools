@@ -413,3 +413,31 @@ describe('skipped updates', () => {
     expect(root.querySelector('.skipped')).toBeNull();
   });
 });
+
+describe('self-caused updates', () => {
+  const rerendered = (): TimelineEvent[] => {
+    const second = tick(1, 'x-counter', 2, 10);
+    second[0] = {...second[0]!, cause: {kind: 'update', groupId: '1:1'}};
+    return [...tick(1, 'x-counter', 1, 0), ...second];
+  };
+
+  test('counts them on the component row and marks each one', async () => {
+    const {root, rows, settle} = await mount();
+    setEvents(rerendered());
+    await settle();
+    const {row} = rows().find((r) => r.tag === '<x-counter>')!;
+    expect(row.querySelector('.self-caused')?.textContent?.trim()).toBe(
+      '1 re-rendered'
+    );
+    row.click();
+    await settle();
+    expect(root.querySelectorAll('.cycles .self-caused')).toHaveLength(1);
+  });
+
+  test('shows no badge when every update had an outside cause', async () => {
+    const {root, settle} = await mount();
+    setEvents(events);
+    await settle();
+    expect(root.querySelector('.self-caused')).toBeNull();
+  });
+});
