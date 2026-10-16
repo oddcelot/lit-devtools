@@ -71,6 +71,31 @@ test('stores transformed modules and resolves imported superclasses', async () =
   ]);
 });
 
+test('keeps a module of mixins only, and resolves mixin imports', async () => {
+  const {index, transform, resolved} = setup();
+  await transform(
+    `export const Sized = (s) => class extends s {
+      /** From the mixin. */
+      size = 'm';
+    };`,
+    '/app/src/sized.ts'
+  );
+  await transform(
+    `import {Sized} from './sized.js';
+    @customElement('x-mixed') export class X extends Sized(HTMLElement) {}`,
+    '/app/src/x.ts'
+  );
+  expect(resolved).toEqual(['./sized.js']);
+  expect(index.get('x-mixed')!.properties).toEqual([
+    {
+      name: 'size',
+      description: 'From the mixin.',
+      default: "'m'",
+      inheritedFrom: 'Sized',
+    },
+  ]);
+});
+
 test('skips dependencies, SSR, and everything while disabled', async () => {
   const code = `@customElement('x-a') class A {}`;
   const on = setup();

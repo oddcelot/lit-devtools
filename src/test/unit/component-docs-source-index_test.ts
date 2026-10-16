@@ -145,3 +145,46 @@ test('the returned docs are a copy', () => {
   docs.get('x-f')!.properties.push({name: 'b'});
   expect(docs.get('x-f')!.properties).toHaveLength(1);
 });
+
+test('merges mixin members between the class and its base', () => {
+  const {docs, add} = index();
+  add('/app/src/base.ts', BASE);
+  add(
+    '/app/src/sized.ts',
+    `
+    export const Sized = (superClass) =>
+      class extends Toned(superClass) {
+        /** Mixin size. */
+        @property() size = 's';
+        @property() density = 'compact';
+      };
+    const Toned = (superClass) =>
+      class extends superClass {
+        @property() tone = 'neutral';
+      };
+  `
+  );
+  add(
+    '/app/src/x-m.ts',
+    `
+    import {Base} from './base.js';
+    import {Sized} from './sized.js';
+    import {SignalWatcher} from '@lit-labs/signals';
+    @customElement('x-m')
+    export class XM extends SignalWatcher(Sized(Base)) {
+      @property() label = '';
+    }
+  `,
+    {'./base.js': '/app/src/base.ts', './sized.js': '/app/src/sized.ts'}
+  );
+  const result = docs.get('x-m')!;
+  expect(
+    result.properties.map((p) => [p.name, p.inheritedFrom ?? 'own'])
+  ).toEqual([
+    ['label', 'own'],
+    ['size', 'Sized'],
+    ['density', 'Sized'],
+    ['tone', 'Toned'],
+    ['value', 'Base'],
+  ]);
+});
