@@ -19,6 +19,12 @@ afterAll(async () => {
   await fixture?.close();
 });
 
+/** Set by `<ssr-counter>` once its hydration has run. */
+const hydrated = () =>
+  fixture.page.evaluate(
+    `document.querySelector('ssr-counter')?.hasAttribute('hydrated') ?? false`
+  ) as Promise<boolean>;
+
 const shadow = (selector: string, inner: string) =>
   fixture.page.evaluate(
     `[...(document.querySelector(${JSON.stringify(selector)})?.shadowRoot?.querySelectorAll(${JSON.stringify(inner)}) ?? [])].map((n) => n.textContent.trim())`
@@ -36,7 +42,7 @@ test('the server sends the components rendered, in declarative shadow roots', as
 test('a component hydrates in place, without a second render', async () => {
   const {page} = fixture;
   await page.goto(`${fixture.origin}/`);
-  await expect.poll(() => shadow('ssr-counter', '#side')).toEqual(['Hydrated']);
+  await expect.poll(hydrated).toBe(true);
   // A client render over the server's DOM would leave two buttons.
   expect(await shadow('ssr-counter', 'button')).toEqual(['Count: 3']);
   await page.locator('ssr-counter #increment').click();
@@ -48,7 +54,7 @@ test('a component hydrates in place, without a second render', async () => {
 test('defer-hydration holds an element back until it is removed', async () => {
   const {page} = fixture;
   await page.goto(`${fixture.origin}/`);
-  await expect.poll(() => shadow('ssr-counter', '#side')).toEqual(['Hydrated']);
+  await expect.poll(hydrated).toBe(true);
   await page.locator('ssr-deferred #poke').click();
   expect(await shadow('ssr-deferred', 'button')).toEqual(['Clicks: 0']);
 
@@ -62,7 +68,7 @@ test('defer-hydration holds an element back until it is removed', async () => {
 test('an edit patches a hydrated component in place, keeping its state', async () => {
   const {page} = fixture;
   await page.goto(`${fixture.origin}/`);
-  await expect.poll(() => shadow('ssr-counter', '#side')).toEqual(['Hydrated']);
+  await expect.poll(hydrated).toBe(true);
   await page.locator('ssr-counter #increment').click();
   await expect
     .poll(() => shadow('ssr-counter', 'button'))
@@ -110,7 +116,7 @@ test('a deferred element edited before it hydrates hydrates with the new code', 
     if (m.type() === 'error') errors.push(m.text());
   });
   await page.goto(`${fixture.origin}/`);
-  await expect.poll(() => shadow('ssr-counter', '#side')).toEqual(['Hydrated']);
+  await expect.poll(hydrated).toBe(true);
 
   await fixture.edit('src/ssr-deferred.ts', (code) =>
     code.replace('<h2>Deferred</h2>', '<h2>Held</h2>')

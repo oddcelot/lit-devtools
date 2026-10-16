@@ -3,8 +3,10 @@ import {customElement, property, state} from 'lit/decorators.js';
 
 /**
  * Rendered on the server with its starting count, then hydrated: the button
- * works without the page rendering it again. `hydrated` says which side
- * last rendered it.
+ * works without the page rendering it again. The `hydrated` attribute, set
+ * once hydration has run, switches the line that says which side rendered
+ * it. An attribute rather than reactive state, which would render a second
+ * time just to say so.
  */
 @customElement('ssr-counter')
 export class SsrCounter extends LitElement {
@@ -15,13 +17,15 @@ export class SsrCounter extends LitElement {
       border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
       border-radius: 0.5rem;
     }
+    :host([hydrated]) .server,
+    :host(:not([hydrated])) .client {
+      display: none;
+    }
   `;
 
   @property({type: Number}) start = 0;
 
   @state() private count = 0;
-
-  @state() private hydrated = false;
 
   override willUpdate(changed: Map<PropertyKey, unknown>) {
     if (changed.has('start') && !this.hasUpdated) this.count = this.start;
@@ -29,7 +33,7 @@ export class SsrCounter extends LitElement {
 
   override firstUpdated() {
     // Runs only in the browser: the server never updates an element.
-    this.hydrated = true;
+    this.setAttribute('hydrated', '');
   }
 
   override render() {
@@ -38,7 +42,10 @@ export class SsrCounter extends LitElement {
       <button id="increment" @click=${() => this.count++}>
         Count: ${this.count}
       </button>
-      <p id="side">${this.hydrated ? 'Hydrated' : 'Server-rendered'}</p>
+      <p id="side">
+        <span class="server">Server-rendered</span>
+        <span class="client">Hydrated</span>
+      </p>
     `;
   }
 }
