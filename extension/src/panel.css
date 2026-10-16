@@ -92,6 +92,24 @@ lit-devtools-panel {
   cursor: pointer;
 }
 
+#manifest-form {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--lit-devtools-space-2, 8px);
+  min-width: 0;
+}
+
+#manifest-url {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+}
+
+#manifest-error {
+  color: var(--lit-devtools-danger, red);
+}
+
 #bar button:hover {
   text-decoration: underline;
 }

@@ -82,6 +82,8 @@ export interface LocalLitHostOptions {
   locateTemplate?: TemplateLocator;
   /** Component docs from the manifests the page links to. */
   docsSource?: CreateLitDevframeOptions['docsSource'];
+  /** See {@link CreateLitDevframeOptions.onDocsSourceChanged}. */
+  onDocsSourceChanged?: CreateLitDevframeOptions['onDocsSourceChanged'];
 }
 
 /**
@@ -106,6 +108,7 @@ export const createLocalLitHost = (
         resolveDefineSource: options.resolveDefineSource,
         locateTemplate: options.locateTemplate,
         docsSource: options.docsSource,
+        onDocsSourceChanged: options.onDocsSourceChanged,
       },
       () => portPageTransport(options.port)
     ),

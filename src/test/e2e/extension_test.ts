@@ -96,6 +96,25 @@ customElements.define('mapped-hello', MappedHello);
 customElements.define('mapped-item', class extends LitElement {});
 `;
 
+const UNLINKED_MANIFEST = {
+  schemaVersion: '1.0.0',
+  modules: [
+    {
+      kind: 'javascript-module',
+      path: 'probe-hello.js',
+      declarations: [
+        {
+          kind: 'class',
+          name: 'ProbeHello',
+          tagName: 'probe-hello',
+          customElement: true,
+          summary: 'Says hello from an unlinked manifest.',
+        },
+      ],
+    },
+  ],
+};
+
 beforeAll(async () => {
   workDir = tmpRoot('extension');
   await fsp.mkdir(joinPath(workDir, 'src'), {recursive: true});
@@ -158,6 +177,12 @@ beforeAll(async () => {
       res.end(
         '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><rect id="r" width="40" height="40" fill="red"/></svg>'
       );
+      return;
+    }
+    // A manifest the page does not link; the user points the panel at it.
+    if (req.url === '/assets/cem.json') {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify(UNLINKED_MANIFEST));
       return;
     }
     if (req.url === '/probe.js' || req.url === '/app.js') {
@@ -616,6 +641,48 @@ test("the Lit tab finds where an element is rendered by its template's text", as
     })
     .toBe('src/mapped.js:3');
 
+  await panel.close();
+  await page.close();
+}, 60_000);
+
+test('the Lit tab reads docs from a manifest the user points it at', async () => {
+  const page = await context.newPage();
+  await page.goto(appOrigin);
+  const tabId = await extensionPage.evaluate(
+    async (origin) => (await chrome.tabs.query({url: `${origin}/`}))[0]?.id,
+    appOrigin
+  );
+  const panel = await context.newPage();
+  await panel.goto(
+    `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+  );
+  await panel
+    .locator('components-view .row')
+    .filter({hasText: 'probe-hello'})
+    .first()
+    .click({timeout: 15_000});
+  const view = panel.locator('components-view .details');
+  await expect.poll(() => view.textContent()).toContain('greeting');
+  expect(await view.textContent()).not.toContain('unlinked manifest');
+
+  await panel.getByRole('button', {name: 'Manifest…'}).click();
+  await panel
+    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
+    .fill('/assets/cem.json');
+  await panel.getByRole('button', {name: 'Save'}).click();
+  await expect
+    .poll(() => view.textContent(), {timeout: 15_000})
+    .toContain('Says hello from an unlinked manifest.');
+
+  // Cleared, so later tests see the page as it is.
+  await panel.getByRole('button', {name: 'Manifest ✓'}).click();
+  await panel
+    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
+    .fill('');
+  await panel.getByRole('button', {name: 'Save'}).click();
+  await expect
+    .poll(() => view.textContent(), {timeout: 15_000})
+    .not.toContain('Says hello from an unlinked manifest.');
   await panel.close();
   await page.close();
 }, 60_000);

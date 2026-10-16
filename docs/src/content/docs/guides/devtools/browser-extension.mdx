@@ -143,6 +143,15 @@ rows. See
 The extension resolves each link against the page's base URL and fetches only
 manifests on the enabled site; one on a CDN or another origin is skipped.
 
+Some sites host a manifest without linking it. Web Awesome's docs, for one,
+serve theirs at `/dist/custom-elements.json`. Click **Manifest…** at the
+bottom of the **Lit** tab and enter its URL, either a path such as
+`/dist/custom-elements.json` or a full URL on the same site, then **Save**.
+The details pane picks the docs up straight away. The extension remembers
+the URL for that site and reads it only while the page links no manifest of
+its own. The button then reads **Manifest ✓**; save an empty field to forget
+it.
+
 ## Open in the browser's own panels
 
 The Lit panel and DevTools' own panels hand off to each other:
