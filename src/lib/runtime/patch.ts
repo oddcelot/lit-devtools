@@ -61,6 +61,7 @@ export interface PatchOptions {
 interface ReactiveElementLike extends HTMLElement {
   requestUpdate?: () => void;
   renderRoot?: unknown;
+  hasUpdated?: boolean;
   connectedCallback?: () => void;
   disconnectedCallback?: () => void;
 }
@@ -491,6 +492,65 @@ const restoreValues = (
   }
 };
 
+/** Whether `root` holds HTML Lit rendered on the server (its part markers). */
+const hasServerRender = (root: ShadowRoot): boolean => {
+  // 8 is Node.COMMENT_NODE; `Node` itself is not there in every runtime.
+  for (const node of root.childNodes) {
+    if (node.nodeType === 8 && (node as Comment).data.startsWith('lit-part'))
+      return true;
+  }
+  return false;
+};
+
+/**
+ * The base `createRenderRoot`: the top-most class in `el`'s chain that has
+ * one, which is ReactiveElement's. It returns the existing shadow root with
+ * the element's styles adopted, and, unlike the override
+ * `@lit-labs/ssr-client`'s hydrate support puts on LitElement, never marks
+ * the element for hydration.
+ */
+const baseCreateRenderRoot = (
+  el: ReactiveElementLike
+): ((this: ReactiveElementLike) => unknown) | undefined => {
+  let found: unknown;
+  for (
+    let proto = Object.getPrototypeOf(el) as object | null;
+    proto !== null;
+    proto = Object.getPrototypeOf(proto) as object | null
+  ) {
+    const own = Object.getOwnPropertyDescriptor(proto, 'createRenderRoot');
+    if (typeof own?.value === 'function') found = own.value;
+  }
+  return found as ((this: ReactiveElementLike) => unknown) | undefined;
+};
+
+/**
+ * A server-rendered element the patch reaches before it hydrated: held back
+ * by `defer-hydration`, so it has no render root and has never updated. Its
+ * shadow root holds the old code's HTML, which the hydration on its first
+ * update would try to adopt for the new template, and fail. It has no client
+ * state yet, so when it wakes it renders itself instead: an own, one-shot
+ * `createRenderRoot` clears the stale HTML and hands over the shadow root
+ * without marking it for hydration. Until then the server's HTML stays up.
+ */
+const renderFreshOnWake = (el: ReactiveElementLike): void => {
+  if (el.hasUpdated === true || el.renderRoot !== undefined) return;
+  if (Object.hasOwn(el, 'createRenderRoot')) return;
+  const root = el.shadowRoot;
+  if (root == null || !hasServerRender(root)) return;
+  const create = baseCreateRenderRoot(el);
+  if (create === undefined) return;
+  Object.defineProperty(el, 'createRenderRoot', {
+    configurable: true,
+    writable: true,
+    value(this: ReactiveElementLike) {
+      delete (this as {createRenderRoot?: unknown}).createRenderRoot;
+      this.shadowRoot?.replaceChildren();
+      return create.call(this);
+    },
+  });
+};
+
 /**
  * Updates live instances. Re-renders may re-create child elements (edited
  * templates clone fresh DOM); the child-state window pairs them up.
@@ -534,6 +594,7 @@ const updateInstances = (
     // value from the new provider rather than its empty initial one.
     reparentConsumers(el, provided);
     readoptStyles(el, oldSheets);
+    renderFreshOnWake(el);
     state.generationOf.set(el, record.generation);
     el.requestUpdate?.();
   }
