@@ -312,3 +312,54 @@ describe('createSourceMapResolver', () => {
     expect(fetched).toHaveLength(4);
   });
 });
+
+describe('locate', () => {
+  const COMPONENT = `import {html} from 'lit';\nexport const view = (n) =>\n  html\`<p>\${n}</p>\n    <my-item></my-item>\`;\n`;
+  const SITE = {
+    strings: ['<p>', '</p>\n    <my-item></my-item>'],
+    tag: 'my-item',
+    index: 0,
+    scripts: ['https://app.test/bundle.js'],
+  };
+
+  test("finds the tag in the map's sourcesContent", async () => {
+    const ms = new MagicString(COMPONENT);
+    ms.prepend(HEADER);
+    const map = ms.generateMap({source: 'src/view.ts', includeContent: true});
+    const {fetch} = site({
+      'https://app.test/bundle.js': {
+        body: `${ms.toString()}\n//# sourceMappingURL=bundle.js.map`,
+      },
+      'https://app.test/bundle.js.map': {body: map.toString()},
+    });
+    const resolver = createSourceMapResolver({fetch: (u) => fetch(u)});
+    expect(await resolver.locate(SITE)).toEqual({
+      file: 'src/view.ts',
+      line: 4,
+      column: 5,
+      url: 'https://app.test/src/view.ts',
+    });
+  });
+
+  test('falls back to the script itself when nothing maps', async () => {
+    const {fetch} = site({
+      'https://app.test/bundle.js': {body: HEADER + COMPONENT},
+    });
+    const resolver = createSourceMapResolver({fetch: (u) => fetch(u)});
+    expect(await resolver.locate(SITE)).toEqual({
+      file: 'bundle.js',
+      line: 6,
+      column: 5,
+      url: 'https://app.test/bundle.js',
+      generated: {url: 'https://app.test/bundle.js', line: 6, column: 5},
+    });
+  });
+
+  test('finds nothing for a template whose text is not in any script', async () => {
+    const {fetch} = site({'https://app.test/bundle.js': {body: COMPONENT}});
+    const resolver = createSourceMapResolver({fetch: (u) => fetch(u)});
+    expect(
+      await resolver.locate({...SITE, strings: ['<p>', '</p><other-el>']})
+    ).toBeUndefined();
+  });
+});
