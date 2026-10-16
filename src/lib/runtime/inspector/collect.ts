@@ -12,6 +12,7 @@ import {
   isInspectable,
   isListed,
   isUndefinedElement,
+  isUnupgradedElement,
 } from './listed.js';
 import {collectAnatomy} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
@@ -114,7 +115,7 @@ export const listedIdOf = (node: unknown): number | undefined => {
 const nodeFor = (
   el: Element,
   children: InspectorTreeNode[],
-  flag?: 'notDefined' | 'notLit'
+  flag?: 'notDefined' | 'notLit' | 'notUpgraded'
 ): InspectorTreeNode => {
   const meta = metaOf(el);
   // No stamp: a host that can map the define call's stack fills `source`.
@@ -161,10 +162,12 @@ const visit = (
     const children: InspectorTreeNode[] = [];
     descend(el, children, onUndefined);
     sink.push(nodeFor(el, children, 'notDefined'));
-  } else if (isForeignElement(el)) {
+  } else if (isForeignElement(el) || isUnupgradedElement(el)) {
     const children: InspectorTreeNode[] = [];
     descend(el, children, onUndefined);
-    sink.push(nodeFor(el, children, 'notLit'));
+    sink.push(
+      nodeFor(el, children, isForeignElement(el) ? 'notLit' : 'notUpgraded')
+    );
   } else {
     descend(el, sink, onUndefined);
   }
@@ -323,6 +326,7 @@ const statusOf = (
     ...(defineFrames !== undefined ? {defineFrames} : {}),
     ...(isUndefinedElement(el) ? {notDefined: true} : {}),
     ...(isForeignElement(el) ? {notLit: true} : {}),
+    ...(isUnupgradedElement(el) ? {notUpgraded: true} : {}),
   };
 };
 

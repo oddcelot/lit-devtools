@@ -1675,6 +1675,27 @@ test('shows no warning badge or section without warnings', async () => {
   expect(sections(root)).toEqual([]);
 });
 
+test('marks an element that was never upgraded, in its row and details', async () => {
+  const {el, root, rows} = await mount(true, [
+    {id: 2, tagName: 'x-button', notUpgraded: true, children: []},
+  ]);
+  expect(rows()[0]!.querySelector('.status.not-upgraded')?.textContent).toBe(
+    'not upgraded'
+  );
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), notUpgraded: true},
+  });
+  await flush(el);
+  const head = root.querySelector('.details .head')!;
+  expect(head.querySelector('.status.not-upgraded')).not.toBeNull();
+  expect(head.querySelector('[data-action="request-update"]')).toBeNull();
+  expect(root.querySelector('.not-defined-note')?.textContent).toContain(
+    'never upgraded'
+  );
+});
+
 test('marks a tag nothing defines in its row', async () => {
   const {rows} = await mount(false, [
     {id: 1, tagName: 'x-app', children: []},

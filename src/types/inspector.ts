@@ -70,6 +70,12 @@ export interface InspectorTreeNode {
    */
   notLit?: true;
   /**
+   * Set when the tag is defined but this element was never upgraded to its
+   * class: the constructor threw, or it was created before the define and
+   * not connected since. It has no Lit state.
+   */
+  notUpgraded?: true;
+  /**
    * How many distinct Lit dev-mode warnings name this component. Lit issues
    * each once per page, so this is per tag/class, not per instance. Absent
    * when there are none.
@@ -407,6 +413,8 @@ export interface InspectorDetails {
   notDefined?: true;
   /** As {@link InspectorTreeNode.notLit}. */
   notLit?: true;
+  /** As {@link InspectorTreeNode.notUpgraded}. */
+  notUpgraded?: true;
   attributes: Array<{name: string; value: string}>;
   properties: InspectorProp[];
   flags: {
