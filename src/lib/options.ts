@@ -110,8 +110,11 @@ export interface LitPluginOptions {
    * Vite DevTools Timeline panel — a Vue DevTools–style layered event stream
    * for Lit lifecycle, render, mouse, and keyboard events.
    *
-   * Requires `@vitejs/devtools` in the Vite config and the `@vitejs/devtools`
-   * Vite plugin (`DevTools()`) to be active. Defaults to `false` while
+   * With the `@vitejs/devtools` Vite plugin (`DevTools()`) active, the panel
+   * is a dock in Vite DevTools. Without it, the plugin serves the panel on
+   * the dev server at `/__lit/` and prints that URL; its RPC asks for the
+   * one-time code printed in the terminal unless
+   * `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`. Defaults to `false` while
    * experimental.
    *
    * `true` enables all built-in layers with defaults.

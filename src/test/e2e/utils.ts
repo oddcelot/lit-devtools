@@ -70,10 +70,11 @@ export interface PanelHandle {
 export interface StartFixtureOptions {
   /**
    * Turn on the Vite DevTools hub so the plugin mounts its devframe and
-   * serves the built panel at `/__lit/`. Off by default: most tests never
-   * look at the panel and shouldn't pay for the hub. Requires `pnpm build`.
+   * serves the built panel at `/__lit/`. `'no-hub'` leaves the hub off, so
+   * the plugin serves the panel there itself. Off by default: most tests
+   * never look at the panel and shouldn't pay for it. Requires `pnpm build`.
    */
-  panel?: boolean;
+  panel?: boolean | 'no-hub';
   /**
    * Pre-populates the panel's per-user settings (the devframe global store
    * for the `lit` namespace: `override`, `overrideBaselines`, `appearance`)
@@ -134,6 +135,13 @@ export const startFixture = async (
       );
     },
   });
+  // Without the hub, Vite resolves `devtools` to `false` and the
+  // `clientAuth` below is lost, so the panel's code gate is turned off the
+  // other way the plugin reads, for the server's lifetime.
+  const realAuthEnv = process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'];
+  if (options.panel === 'no-hub') {
+    process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'] = 'true';
+  }
   const server = await createServer({
     root,
     configFile: false,
@@ -143,9 +151,9 @@ export const startFixture = async (
     server: {host: '127.0.0.1', port: 0},
     // `clientAuth: false` skips the terminal approval prompt nobody can
     // answer in a test run (same as playground/vite.config.ts).
-    ...(options.panel === true
-      ? {devtools: {enabled: true, clientAuth: false}}
-      : {}),
+    ...(options.panel === undefined || options.panel === false
+      ? {}
+      : {devtools: {enabled: options.panel === true, clientAuth: false}}),
     // Baseline runs keep the CSS import-query plugin and the timeline
     // virtual-module stub (the playground source can't boot without either:
     // hmr-custom-layer.ts imports `virtual:lit-plugin/timeline`) but drop the
@@ -229,7 +237,7 @@ export const startFixture = async (
     home,
     origin,
     openPanel: async () => {
-      if (options.panel !== true) {
+      if (options.panel === undefined || options.panel === false) {
         throw new Error('openPanel needs startFixture({panel: true})');
       }
       const panel = await browser.newPage();
@@ -285,6 +293,11 @@ export const startFixture = async (
       await server.close();
       if (realHome === undefined) delete process.env['HOME'];
       else process.env['HOME'] = realHome;
+      if (realAuthEnv === undefined) {
+        delete process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'];
+      } else {
+        process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'] = realAuthEnv;
+      }
       await rm(root, {recursive: true, force: true});
       await rm(home, {recursive: true, force: true});
     },

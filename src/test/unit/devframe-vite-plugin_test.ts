@@ -1,26 +1,54 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  test,
-  vi,
-} from 'vite-plus/test';
+import {beforeEach, describe, expect, test, vi} from 'vite-plus/test';
+
+const initiate = vi.hoisted(() => ({
+  closed: 0,
+  calls: [] as Array<{base: string}>,
+  middleware: vi.fn((_req: unknown, _res: unknown, next?: () => void) =>
+    next?.()
+  ),
+}));
+vi.mock('devframe/initiate', () => ({
+  initDevframe: (_def: unknown, options: {base: string}) => {
+    initiate.calls.push(options);
+    return {
+      ready: Promise.resolve(),
+      nodeMiddleware: initiate.middleware,
+      close: async () => void initiate.closed++,
+    };
+  },
+}));
 
 type Plugin = ReturnType<
   typeof import('../../lib/devframe/vite.js').createLitDevframePlugin
 >;
+type Middleware = (req: unknown, res: unknown, next: () => void) => void;
 
-// The warn flag is module-level, so each test loads a fresh module.
 const load = async (enabled: () => boolean = () => true): Promise<Plugin> => {
-  vi.resetModules();
   const {createLitDevframePlugin} = await import('../../lib/devframe/vite.js');
   return createLitDevframePlugin({version: '9.9.9', enabled});
 };
 
-const afterConfigure = (plugin: Plugin): void => {
-  const hook = plugin.configureServer as unknown as () => () => void;
-  hook()();
+/** A Vite server double: the middlewares the plugin adds, and its hooks. */
+const fakeServer = () => {
+  const used: Middleware[] = [];
+  const info: string[] = [];
+  const server = {
+    middlewares: {use: (m: Middleware) => void used.push(m)},
+    hot: {on() {}, off() {}, send() {}},
+    httpServer: {once() {}},
+    config: {root: '/project', logger: {info: (m: string) => info.push(m)}},
+    resolvedUrls: {local: ['http://localhost:5173/'], network: []},
+    printUrls: () => {},
+    close: async () => {},
+  };
+  return {server, used, info};
+};
+
+const configure = async (plugin: Plugin, server: unknown): Promise<void> => {
+  const hook = plugin.configureServer as unknown as (
+    s: unknown
+  ) => () => Promise<void>;
+  await hook(server)();
 };
 
 const runSetup = (plugin: Plugin): Promise<void> =>
@@ -28,50 +56,43 @@ const runSetup = (plugin: Plugin): Promise<void> =>
     plugin.devtools as unknown as {setup: (ctx: unknown) => Promise<void>}
   ).setup({install: async () => {}});
 
-const missingWarnings = (messages: string[]): string[] =>
-  messages.filter((m) => m.includes('never mounted'));
-
-describe('missing DevTools warning', () => {
-  let warn: ReturnType<typeof vi.spyOn>;
-  let messages: string[];
+describe('without a Vite DevTools hub', () => {
   beforeEach(() => {
-    messages = [];
-    warn = vi.spyOn(console, 'warn').mockImplementation((m: unknown) => {
-      messages.push(String(m));
-    });
-  });
-  afterEach(() => {
-    warn.mockRestore();
+    initiate.calls.length = 0;
+    initiate.middleware.mockClear();
   });
 
-  test('warns once with the plugin prefix when setup never ran', async () => {
-    afterConfigure(await load());
-    const calls = missingWarnings(messages);
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toContain('[lit-plugin]');
-    expect(calls[0]).toContain('DevTools()');
+  test('serves the panel at /__lit/ and prints its URL', async () => {
+    const {server, used, info} = fakeServer();
+    await configure(await load(), server);
+    expect(initiate.calls).toMatchObject([{base: '/__lit/'}]);
+    // The middleware added up front now hands requests to devframe.
+    const next = vi.fn();
+    used[0]!({}, {}, next);
+    expect(initiate.middleware).toHaveBeenCalledOnce();
+    server.printUrls();
+    expect(info).toEqual(['  ➜  Lit DevTools: http://localhost:5173/__lit/']);
+    // Closing the server closes the panel's sockets too.
+    const before = initiate.closed;
+    await server.close();
+    expect(initiate.closed).toBe(before + 1);
   });
 
-  test('stays quiet when setup ran first', async () => {
+  test('leaves the panel to the hub when setup ran', async () => {
+    const {server, used} = fakeServer();
     const plugin = await load();
     await runSetup(plugin);
-    afterConfigure(plugin);
-    expect(missingWarnings(messages)).toHaveLength(0);
+    await configure(plugin, server);
+    expect(initiate.calls).toEqual([]);
+    const next = vi.fn();
+    used[0]!({}, {}, next);
+    expect(next).toHaveBeenCalledOnce();
+    expect(initiate.middleware).not.toHaveBeenCalled();
   });
 
-  test('stays quiet when the panel is disabled', async () => {
-    afterConfigure(await load(() => false));
-    expect(missingWarnings(messages)).toHaveLength(0);
-  });
-
-  test('warns once across plugin instances', async () => {
-    const first = await load();
-    // Same module instance for the second plugin, so the flag is shared.
-    const {createLitDevframePlugin} =
-      await import('../../lib/devframe/vite.js');
-    const second = createLitDevframePlugin({version: '9.9.9'});
-    afterConfigure(first);
-    afterConfigure(second);
-    expect(missingWarnings(messages)).toHaveLength(1);
+  test('serves nothing when the panel is disabled', async () => {
+    const {server} = fakeServer();
+    await configure(await load(() => false), server);
+    expect(initiate.calls).toEqual([]);
   });
 });

@@ -69,6 +69,24 @@ LIT_PLUGIN_SOURCE_OVERLAY=true
   there.
 </Aside>
 
+## Without Vite DevTools
+
+With `timeline: true` and no `DevTools()`, the dev server serves the panel on
+its own at `/__lit/`, and prints the address under the ones Vite prints:
+
+```text frame="terminal"
+  ➜  Local:   http://localhost:5173/
+  ➜  Lit DevTools: http://localhost:5173/__lit/
+```
+
+Open it in a tab next to the app. The first time, it asks for a one-time code
+that the dev server prints in the terminal, the same check Vite DevTools makes
+before its overlay connects; the browser remembers it after that. Set
+`VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true` to skip the check on a machine only
+you can reach. Everything else in this guide works the same, except that there
+is no dock to bring forward: a pick on the page selects the element in the
+open panel, but the panel's tab stays where it is.
+
 ## Open it and record ten seconds
 
 Start the dev server, open the page, and open the Vite DevTools overlay. Lit
