@@ -73,17 +73,17 @@ import {
   patternsKeepPort,
 } from './registry.js';
 import {createSourceMapResolver} from '../../src/lib/devframe/source-maps.js';
-import {
-  createLinkedDocsSource,
-  MANIFEST_LINK_REL,
-} from '../../src/lib/component-docs/linked.js';
+import {createLinkedDocsSource} from '../../src/lib/component-docs/linked.js';
 import {createChromeStorage} from './storage.js';
 import {
   MANIFEST_URLS_KEY,
+  dismissManifest,
   parseManifestUrl,
+  readDismissedManifest,
   readManifestUrl,
   writeManifestUrl,
 } from './manifest-url.js';
+import {findManifest, manifestCandidates} from './manifest-discovery.js';
 
 const $ = <T extends HTMLElement>(id: string) =>
   document.getElementById(id) as T;
@@ -102,6 +102,10 @@ const manifestForm = $<HTMLFormElement>('manifest-form');
 const manifestInput = $<HTMLInputElement>('manifest-url');
 const manifestError = $('manifest-error');
 const manifestCancel = $<HTMLButtonElement>('manifest-cancel');
+const manifestOffer = $('manifest-offer');
+const manifestOfferUrl = $('manifest-offer-url');
+const manifestUse = $<HTMLButtonElement>('manifest-use');
+const manifestSkip = $<HTMLButtonElement>('manifest-skip');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -210,31 +214,57 @@ const sourceMaps = createSourceMapResolver({
 });
 
 /**
- * The page's `<link rel="custom-elements-manifest">` URLs. `href` reads back
- * absolute, resolved against the document's base URL. Outside DevTools (the
- * test seam) they are read with `chrome.scripting` instead.
+ * Runs `func` in the inspected page for a list of strings: through
+ * DevTools' `eval` in the Lit tab, with `chrome.scripting` outside DevTools
+ * (the test seam). An exception or any other result reads as empty.
  */
-const manifestLinks = async (): Promise<string[]> => {
-  const query = `link[rel~=${JSON.stringify(MANIFEST_LINK_REL)}]`;
+const stringsInPage = async (func: () => string[]): Promise<string[]> => {
+  const valid = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every((v) => typeof v === 'string');
   if (devtools === undefined) {
     const [result] = await chrome.scripting.executeScript({
       target: {tabId},
-      func: (selector: string) =>
-        [...document.querySelectorAll<HTMLLinkElement>(selector)].map(
-          (l) => l.href
-        ),
-      args: [query],
+      func,
     });
-    return Array.isArray(result?.result) ? result.result : [];
+    return valid(result?.result) ? result.result : [];
   }
   return new Promise((resolve) =>
     devtools.inspectedWindow.eval<string[]>(
-      `[...document.querySelectorAll(${JSON.stringify(query)})].map((l) => l.href)`,
-      (urls, exception) =>
-        resolve(!exception && Array.isArray(urls) ? urls : [])
+      `(${func.toString()})()`,
+      (value, exception) => resolve(!exception && valid(value) ? value : [])
     )
   );
 };
+
+/**
+ * The page's `<link rel="custom-elements-manifest">` URLs (`MANIFEST_LINK_REL`,
+ * spelled out: the function runs in the page). `href` reads back absolute,
+ * resolved against the document's base URL.
+ */
+const manifestLinks = (): Promise<string[]> =>
+  stringsInPage(() =>
+    [
+      ...document.querySelectorAll<HTMLLinkElement>(
+        'link[rel~="custom-elements-manifest"]'
+      ),
+    ].map((l) => l.href)
+  );
+
+/** The scripts the page loaded: its `<script src>` tags, then modules. */
+const pageScripts = (): Promise<string[]> =>
+  stringsInPage(() => [
+    ...new Set([
+      ...[...document.scripts].map((s) => s.src).filter((src) => src !== ''),
+      ...performance
+        .getEntriesByType('resource')
+        .filter(
+          (e) =>
+            (e as PerformanceResourceTiming).initiatorType === 'script' ||
+            /\.m?js(?:[?#]|$)/.test(e.name)
+        )
+        .map((e) => e.name),
+    ]),
+  ]);
 
 /** The page's own manifests, else the one the user set for the site. */
 const manifestUrls = async (): Promise<string[]> => {
@@ -453,6 +483,7 @@ const boot = async (): Promise<void> => {
   document.body.prepend(document.createElement('lit-devtools-panel'));
   barEl.hidden = false;
   dial();
+  suggestSoon();
 };
 
 const render = (status: OriginStatus | undefined): void => {
@@ -495,23 +526,82 @@ const loadManifestUrl = async (): Promise<void> => {
       : await readManifestUrl(chrome.storage.local, origin);
   if (next === manifestUrl) return;
   manifestUrl = next;
+  if (next !== undefined) offer(undefined);
   showManifest();
   manifestDocs.reset();
   docsChanged?.();
 };
 
+/** A manifest found on the site and offered to the user; see `manifest-discovery.ts`. */
+let offered: string | undefined;
+
+/** The footer's middle: the form, else an offer, else the page status. */
+const showFooter = (): void => {
+  const editing = !manifestForm.hidden;
+  manifestOffer.hidden = editing || offered === undefined;
+  pageEl.hidden = editing || offered !== undefined;
+  manifestButton.hidden = editing;
+};
+
+const offer = (url: string | undefined): void => {
+  offered = url;
+  if (url !== undefined) manifestOfferUrl.textContent = new URL(url).pathname;
+  showFooter();
+};
+
+/**
+ * Whether to look for a manifest on `at`: the user set none, nothing is on
+ * offer, they did not turn one down there before, and the page links none.
+ */
+const worthLooking = async (at: string): Promise<boolean> =>
+  manifestUrl === undefined &&
+  offered === undefined &&
+  (await readDismissedManifest(chrome.storage.local, at)) === undefined &&
+  (await manifestLinks()).length === 0;
+
+/** Look for a manifest the site hosts without linking it; offer the first. */
+const suggestManifest = async (): Promise<void> => {
+  const at = origin;
+  if (at === undefined || !(await worthLooking(at))) return;
+  const candidates = manifestCandidates(
+    await pageScripts(),
+    (url) => site(url) === at
+  );
+  const found = await findManifest(candidates, (url) => fetch(url));
+  // The site, or the user's own choice, may have changed meanwhile.
+  if (found !== undefined && origin === at && manifestUrl === undefined) {
+    offer(found);
+  }
+};
+
+/** After the page has had time to load its scripts. */
+const suggestSoon = (): void => {
+  setTimeout(() => void suggestManifest(), 1500);
+};
+
+manifestUse.addEventListener('click', async () => {
+  if (origin === undefined || offered === undefined) return;
+  // The storage listener below picks it up, here and in other windows.
+  await writeManifestUrl(chrome.storage.local, origin, offered);
+  offer(undefined);
+});
+
+manifestSkip.addEventListener('click', async () => {
+  if (origin === undefined || offered === undefined) return;
+  await dismissManifest(chrome.storage.local, origin, offered);
+  offer(undefined);
+});
+
 const closeManifestForm = (): void => {
   manifestForm.hidden = true;
-  manifestButton.hidden = false;
-  pageEl.hidden = false;
+  showFooter();
 };
 
 manifestButton.addEventListener('click', () => {
-  manifestInput.value = manifestUrl ?? '';
+  manifestInput.value = manifestUrl ?? offered ?? '';
   manifestError.textContent = '';
   manifestForm.hidden = false;
-  manifestButton.hidden = true;
-  pageEl.hidden = true;
+  showFooter();
   manifestInput.focus();
 });
 
@@ -578,6 +668,11 @@ devtools?.network.onNavigated.addListener((url) => {
   // The new document's scripts may differ under the same URLs.
   sourceMaps.reset();
   manifestDocs.reset();
-  if (site(url) !== origin) void refresh();
+  offer(undefined);
+  if (site(url) !== origin) {
+    void refresh().then(() => {
+      if (booted !== undefined) suggestSoon();
+    });
+  } else if (booted !== undefined) suggestSoon();
 });
 void refresh();

@@ -48,6 +48,7 @@ declare const chrome: {
     };
   };
   tabs: {query(info: {url: string}): Promise<Array<{id?: number}>>};
+  storage: {local: {remove(key: string): Promise<void>}};
 };
 
 const DIST = decodeURIComponent(
@@ -109,6 +110,25 @@ const UNLINKED_MANIFEST = {
           tagName: 'probe-hello',
           customElement: true,
           summary: 'Says hello from an unlinked manifest.',
+        },
+      ],
+    },
+  ],
+};
+
+const MAPPED_MANIFEST = {
+  schemaVersion: '1.0.0',
+  modules: [
+    {
+      kind: 'javascript-module',
+      path: 'src/mapped.js',
+      declarations: [
+        {
+          kind: 'class',
+          name: 'MappedHello',
+          tagName: 'mapped-hello',
+          customElement: true,
+          summary: 'Found next to the bundle.',
         },
       ],
     },
@@ -183,6 +203,12 @@ beforeAll(async () => {
     if (req.url === '/assets/cem.json') {
       res.setHeader('content-type', 'application/json');
       res.end(JSON.stringify(UNLINKED_MANIFEST));
+      return;
+    }
+    // Beside /assets/mapped.js, where the panel looks for one by itself.
+    if (req.url === '/assets/custom-elements.json') {
+      res.setHeader('content-type', 'application/json');
+      res.end(JSON.stringify(MAPPED_MANIFEST));
       return;
     }
     if (req.url === '/probe.js' || req.url === '/app.js') {
@@ -686,6 +712,58 @@ test('the Lit tab reads docs from a manifest the user points it at', async () =>
   await panel.close();
   await page.close();
 }, 60_000);
+
+test('the Lit tab offers a manifest it finds beside the scripts, and remembers a no', async () => {
+  const page = await context.newPage();
+  await page.goto(`${appOrigin}/mapped`);
+  const tabId = await extensionPage.evaluate(
+    async (origin) =>
+      (await chrome.tabs.query({url: `${origin}/mapped`}))[0]?.id,
+    appOrigin
+  );
+  const panel = await context.newPage();
+  const openPanel = () =>
+    panel.goto(
+      `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+    );
+  await openPanel();
+  const offer = panel.locator('#manifest-offer');
+  await expect.poll(() => offer.isVisible(), {timeout: 15_000}).toBe(true);
+  expect(await offer.textContent()).toContain('/assets/custom-elements.json');
+
+  await panel
+    .locator('components-view .row')
+    .filter({hasText: 'mapped-hello'})
+    .first()
+    .click({timeout: 15_000});
+  await panel.getByRole('button', {name: 'Use it'}).click();
+  const details = panel.locator('components-view .details');
+  await expect
+    .poll(() => details.textContent(), {timeout: 15_000})
+    .toContain('Found next to the bundle.');
+  expect(await offer.isVisible()).toBe(false);
+
+  // Forget it again: the next panel offers it anew, and a no sticks.
+  await panel.getByRole('button', {name: 'Manifest ✓'}).click();
+  await panel
+    .getByRole('textbox', {name: 'Custom Elements Manifest URL'})
+    .fill('');
+  await panel.getByRole('button', {name: 'Save'}).click();
+  await openPanel();
+  await panel.reload();
+  await expect.poll(() => offer.isVisible(), {timeout: 15_000}).toBe(true);
+  await panel.getByRole('button', {name: 'Not now'}).click();
+  await panel.reload();
+  await panel.locator('components-view .row').first().waitFor();
+  await panel.waitForTimeout(3000);
+  expect(await offer.isVisible()).toBe(false);
+
+  await extensionPage.evaluate(() =>
+    chrome.storage.local.remove('lit:manifest-dismissed')
+  );
+  await panel.close();
+  await page.close();
+}, 90_000);
 
 test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async () => {
   const page = await context.newPage();

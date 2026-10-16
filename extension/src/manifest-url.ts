@@ -17,32 +17,61 @@ import type {StorageAreaLike} from './registry.js';
 /** The `storage.local` key holding the manifest URL of each origin. */
 export const MANIFEST_URLS_KEY = 'lit:manifest-urls';
 
-type ManifestUrls = Record<string, string>;
+/**
+ * The `storage.local` key holding, per origin, the found manifest the user
+ * turned down, so the panel neither offers nor looks for it again.
+ */
+const MANIFEST_DISMISSED_KEY = 'lit:manifest-dismissed';
 
-const readAll = async (storage: StorageAreaLike): Promise<ManifestUrls> => {
-  const value = (await storage.get(MANIFEST_URLS_KEY))[MANIFEST_URLS_KEY];
-  return value !== null && typeof value === 'object'
-    ? (value as ManifestUrls)
-    : {};
+type ByOrigin = Record<string, string>;
+
+const readAll = async (
+  storage: StorageAreaLike,
+  key: string
+): Promise<ByOrigin> => {
+  const value = (await storage.get(key))[key];
+  return value !== null && typeof value === 'object' ? (value as ByOrigin) : {};
+};
+
+const writeOne = async (
+  storage: StorageAreaLike,
+  key: string,
+  origin: string,
+  url: string | undefined
+): Promise<void> => {
+  const all = {...(await readAll(storage, key))};
+  if (url === undefined) delete all[origin];
+  else all[origin] = url;
+  await storage.set({[key]: all});
 };
 
 /** The manifest URL set for `origin`, if any. */
 export const readManifestUrl = async (
   storage: StorageAreaLike,
   origin: string
-): Promise<string | undefined> => (await readAll(storage))[origin];
+): Promise<string | undefined> =>
+  (await readAll(storage, MANIFEST_URLS_KEY))[origin];
 
 /** Set the manifest URL of `origin`, or forget it with `undefined`. */
-export const writeManifestUrl = async (
+export const writeManifestUrl = (
   storage: StorageAreaLike,
   origin: string,
   url: string | undefined
-): Promise<void> => {
-  const all = {...(await readAll(storage))};
-  if (url === undefined) delete all[origin];
-  else all[origin] = url;
-  await storage.set({[MANIFEST_URLS_KEY]: all});
-};
+): Promise<void> => writeOne(storage, MANIFEST_URLS_KEY, origin, url);
+
+/** The found manifest the user turned down on `origin`, if any. */
+export const readDismissedManifest = async (
+  storage: StorageAreaLike,
+  origin: string
+): Promise<string | undefined> =>
+  (await readAll(storage, MANIFEST_DISMISSED_KEY))[origin];
+
+/** Remember that the user turned down `url` on `origin`. */
+export const dismissManifest = (
+  storage: StorageAreaLike,
+  origin: string,
+  url: string
+): Promise<void> => writeOne(storage, MANIFEST_DISMISSED_KEY, origin, url);
 
 /**
  * What the user typed, as an absolute URL on the inspected site: a path such
