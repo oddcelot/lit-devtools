@@ -329,14 +329,17 @@ that generates the CSS has to emit one. Tailwind's Vite plugin does, and so does
 triggers HMR for that module. See
 [Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
 
-### CSSStyleSheet is not defined in jsdom or Node
+### CSSStyleSheet is not defined in jsdom
 
-**Symptom.** A test or an SSR render throws on import.
+**Symptom.** A test throws when it imports a component that uses a sheet module.
 
 **Cause.** A sheet module constructs a `CSSStyleSheet` at import time, and
-neither jsdom nor Node provides one.
+jsdom can't construct one. In Node, as in a server render with
+`@lit-labs/ssr`, the module builds a stand-in that carries the css text
+instead, so it does not throw there.
 
-**Fix.** Do not import sheet modules in those environments. See
+**Fix.** Run those tests in a browser, or in happy-dom, or keep sheet modules
+out of the code jsdom imports. See
 [CSS delivery](/vite-plugin-lit/concepts/css-delivery/).
 
 ## The DevTools panel

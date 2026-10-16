@@ -189,6 +189,7 @@ const instrument = (
               this.requestUpdate?.();
             }
             state.generationOf.set(this, record.generation);
+            adoptAfterHydration(this);
             original?.call(this);
           }
         : function (this: ReactiveElementLike) {
@@ -345,6 +346,45 @@ const readoptStyles = (
     (s) => !drop.has(s) && !ours.has(s)
   );
   root.adoptedStyleSheets = [...sheets, ...preserved];
+};
+
+/** Server-rendered elements already waiting for {@link adoptAfterHydration}. */
+const hydrating = new WeakSet<ReactiveElementLike>();
+
+/**
+ * Hands a hydrated element's styles to its shadow root the way a client
+ * render would, so hot swaps reach it. Hydration keeps the `<style>` the
+ * server wrote into the declarative shadow root and adopts nothing, so a
+ * `?css-sheet` edit, which `replaceSync()`s the shared sheet in place, and
+ * a patch's style re-adoption never touched a server-rendered element.
+ * Once its first update (the hydration) has run, its `elementStyles` are
+ * adopted and the server's leading `<style>` goes; Lit's parts all sit
+ * after it.
+ */
+const adoptAfterHydration = (el: ReactiveElementLike): void => {
+  if (el.hasUpdated === true || hydrating.has(el)) return;
+  const root = el.shadowRoot;
+  if (root == null || !hasServerRender(root)) return;
+  const done = (el as {updateComplete?: Promise<unknown>}).updateComplete;
+  if (done === undefined) return;
+  hydrating.add(el);
+  void Promise.resolve(done).then(() => {
+    hydrating.delete(el);
+    const sheets = stylesToSheets(
+      (el.constructor as ReactiveCtorLike).elementStyles
+    );
+    if (sheets === null || el.renderRoot !== root) return;
+    const ours = new Set(sheets);
+    root.adoptedStyleSheets = [
+      ...sheets,
+      ...[...root.adoptedStyleSheets].filter((s) => !ours.has(s)),
+    ];
+    // A copy: removing from the live list while walking it skips nodes.
+    for (const node of Array.from(root.childNodes)) {
+      if (node.nodeType === 8) break;
+      if ((node as Element).localName === 'style') node.remove();
+    }
+  });
 };
 
 /**

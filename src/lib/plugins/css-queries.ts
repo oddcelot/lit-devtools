@@ -204,7 +204,7 @@ export const litCssQueries = (
       }
       return prefix + toIdPath(resolved.id, root) + CSS_VIRTUAL_SUFFIX;
     },
-    async load(id) {
+    async load(id, options) {
       const prefix = [CSS_URL_VIRTUAL_PREFIX, CSS_SHEET_VIRTUAL_PREFIX].find(
         (p) => id.startsWith(p)
       );
@@ -219,7 +219,14 @@ export const litCssQueries = (
         prefix === CSS_URL_VIRTUAL_PREFIX
           ? hmrUrlCode(file, isBuild)
           : isBuild
-            ? await buildSheetCode(this, file, getCssSheetBuild(), isLib)
+            ? await buildSheetCode(
+                this,
+                file,
+                // A server has no page to fetch an asset from, so its sheet
+                // carries the css text for the renderer to write out.
+                options?.ssr === true ? 'inline' : getCssSheetBuild(),
+                isLib
+              )
             : devSheetCode(file);
       return {code, moduleType: 'js'};
     },
