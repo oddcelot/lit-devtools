@@ -157,6 +157,40 @@ const providerOf = (consumer: Dict): Element | undefined => {
     : nearest;
 };
 
+/**
+ * Calls `onChange` when a context provider on `el` hands its subscribers a
+ * new value. A provider's `setValue` does not update its own host, so the
+ * host's details would otherwise show the old value until something else
+ * renders it. Wraps each provider's own `updateObservers` (an instance arrow
+ * function, kept by name in the production build) on this element only;
+ * returns a function that puts them back.
+ */
+export const onProviderChange = (
+  el: Element,
+  onChange: () => void
+): (() => void) => {
+  const restores = controllersOf(el)
+    .filter((c) => isProvider(c as Dict))
+    .flatMap((c) => {
+      const p = c as {updateObservers?: unknown};
+      const prev = p.updateObservers;
+      if (typeof prev !== 'function') return [];
+      const wrapped = function (this: unknown, ...args: unknown[]) {
+        (prev as (...a: unknown[]) => unknown).apply(this, args);
+        onChange();
+      };
+      p.updateObservers = wrapped;
+      return [
+        () => {
+          if (p.updateObservers === wrapped) p.updateObservers = prev;
+        },
+      ];
+    });
+  return () => {
+    for (const restore of restores) restore();
+  };
+};
+
 /** Fill in the consumers a provider serves, capped at {@link MAX_CONSUMERS}. */
 const describeConsumers = (info: InspectorContext, v: Dict): void => {
   const subs = dataProp(v, 'subscriptions')?.value as Subscriptions;
@@ -185,6 +219,11 @@ const classifyContext = (
   };
   if (provider) {
     describeConsumers(info, v);
+  } else if (dataProp(v, 'provided')?.value === false) {
+    // Nothing answered the request, so a provider nearby is not its source:
+    // it connected later, or does not match. A subscribing request can still
+    // be answered when a `ContextRoot` replays it.
+    if (dataProp(v, 'subscribe')?.value === true) info.waiting = true;
   } else {
     const found = providerOf(v);
     if (found !== undefined) info.provider = refOf(found);

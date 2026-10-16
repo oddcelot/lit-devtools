@@ -486,6 +486,44 @@ test('an app write under an override re-pushes the watched details', async () =>
   expect(last.details.properties[0]?.override?.intrinsic).toBe('3');
 });
 
+test("a provider's raw setValue re-pushes the watched details, until the watch ends", async () => {
+  const {carrier, idOf} = await load();
+  const {ContextProvider, createContext} = await import('@lit/context');
+  const tag = `x-providing-${n++}`;
+  customElements.define(
+    tag,
+    class extends HTMLElement {
+      __controllers = new Set<object>();
+      addController(c: object) {
+        this.__controllers.add(c);
+      }
+      requestUpdate() {}
+    }
+  );
+  const el = document.createElement(tag) as HTMLElement & {
+    addController(c: object): void;
+  };
+  const provider = new ContextProvider(el, {
+    context: createContext<number>('raw-key'),
+    initialValue: 1,
+  });
+  const original = provider.updateObservers;
+  document.body.append(el);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: idOf(el)});
+  const before = details(carrier);
+  // No host update follows: only the provider's subscribers hear of it.
+  provider.setValue(2);
+  await Promise.resolve();
+  expect(details(carrier)).toBe(before + 1);
+  const last = sentOf(carrier, 'details').at(-1) as {
+    details: {extras: Array<{value: string}>};
+  };
+  expect(last.details.extras[0]?.value).toBe('2');
+
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+  expect(provider.updateObservers).toBe(original);
+});
+
 test('keyed override commands act on the leaf and answer its level', async () => {
   const {carrier, idOf} = await load();
   const tag = `x-settable-${n++}`;

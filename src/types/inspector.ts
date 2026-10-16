@@ -238,6 +238,12 @@ export interface InspectorContext {
   /** Consumer only: the provider that answered it, when one is found. */
   provider?: AnatomyElementRef;
   /**
+   * Consumer only: it subscribed and no provider has answered yet. A
+   * `ContextRoot` above it keeps the request and replays it when a provider
+   * of the key connects.
+   */
+  waiting?: true;
+  /**
    * Provider only: the consumers that subscribed to it, at most 12. A
    * consumer that did not ask for updates is not recorded by the provider.
    */

@@ -1,7 +1,12 @@
 import {afterEach, expect, test, vi} from 'vite-plus/test';
 import {LitElement, html} from 'lit';
 import {Task} from '@lit/task';
-import {ContextConsumer, ContextProvider, createContext} from '@lit/context';
+import {
+  ContextConsumer,
+  ContextProvider,
+  ContextRoot,
+  createContext,
+} from '@lit/context';
 import {Signal} from '@lit-labs/signals';
 import {collectExtras} from '../../lib/runtime/inspector/extras.js';
 
@@ -355,6 +360,71 @@ test('a consumer with no provider says so by omitting the link', async () => {
   await c.updateComplete;
   const [consumer] = collectExtras(c);
   expect(consumer!.context).toEqual({role: 'consumer', key: 'orphan-key'});
+});
+
+test('a subscribing consumer nothing answered is waiting, not linked to a later provider', async () => {
+  const key = createContext<string>('late-key');
+  class Consumer extends LitElement {
+    consumer = new ContextConsumer(this, {context: key, subscribe: true});
+  }
+  customElements.define('x-ctx-c5', Consumer);
+  const outer = document.createElement('x-ctx-p5');
+  const c = new Consumer();
+  outer.append(c);
+  document.body.append(outer);
+  await c.updateComplete;
+  expect(collectExtras(c)[0]!.context).toEqual({
+    role: 'consumer',
+    key: 'late-key',
+    waiting: true,
+  });
+  // The provider upgrades after the request went unanswered; with no
+  // ContextRoot nothing replays it, so the consumer is still waiting.
+  customElements.define(
+    'x-ctx-p5',
+    class extends LitElement {
+      provider = new ContextProvider(this, {context: key, initialValue: 'v'});
+    }
+  );
+  await (outer as LitElement).updateComplete;
+  expect(collectExtras(c)[0]!.context).toMatchObject({waiting: true});
+  expect(collectExtras(c)[0]!.context!.provider).toBeUndefined();
+});
+
+test('a ContextRoot replays a waiting request, and the consumer then links', async () => {
+  const key = createContext<string>('root-key');
+  const root = new ContextRoot();
+  root.attach(document.body);
+  try {
+    class Consumer extends LitElement {
+      consumer = new ContextConsumer(this, {context: key, subscribe: true});
+    }
+    customElements.define('x-ctx-c6', Consumer);
+    const outer = document.createElement('x-ctx-p6');
+    const c = new Consumer();
+    outer.append(c);
+    document.body.append(outer);
+    await c.updateComplete;
+    expect(collectExtras(c)[0]!.context).toMatchObject({waiting: true});
+    customElements.define(
+      'x-ctx-p6',
+      class extends LitElement {
+        provider = new ContextProvider(this, {
+          context: key,
+          initialValue: 'late',
+        });
+      }
+    );
+    await c.updateComplete;
+    const [consumer] = collectExtras(c);
+    expect(consumer).toMatchObject({
+      value: '"late"',
+      context: {provider: {tagName: 'x-ctx-p6'}},
+    });
+    expect(consumer!.context!.waiting).toBeUndefined();
+  } finally {
+    root.detach(document.body);
+  }
 });
 
 test('detects a consumer whose callback is minified, as in the production build', async () => {

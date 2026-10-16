@@ -3011,7 +3011,13 @@ export class ComponentsView extends LitElement {
     if (refs.length === 0) {
       return html`<div class="ctx-links">
         <span class="muted"
-          >${c.role === 'consumer' ? 'no provider found' : 'no subscribers'}</span
+          >${
+            c.role === 'provider'
+              ? 'no subscribers'
+              : c.waiting
+                ? 'waiting for a provider'
+                : 'no provider found'
+          }</span
         >
       </div>`;
     }
