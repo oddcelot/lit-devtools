@@ -108,10 +108,16 @@ const providersOn = (el: Element, context: unknown): Dict[] =>
 
 type Subscriptions = Map<unknown, {consumerHost?: unknown}>;
 
-/** The element one step up from `el`, crossing shadow boundaries. */
+/**
+ * The node one step up from `el` on a composed event's path: the slot it is
+ * assigned to when it is slotted, else its parent, crossing from a shadow
+ * root to its host. Through a slot, the walk visits the shadow tree around
+ * the slot before the host, as a `context-request` does.
+ */
 const parentElementOf = (el: Node): Node | null => {
+  const slot = el instanceof Element ? el.assignedSlot : null;
   const parent: Node | null =
-    el.parentNode ?? (el instanceof ShadowRoot ? el.host : null);
+    slot ?? el.parentNode ?? (el instanceof ShadowRoot ? el.host : null);
   return parent instanceof ShadowRoot ? parent.host : parent;
 };
 
