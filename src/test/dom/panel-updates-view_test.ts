@@ -228,6 +228,9 @@ test('shows old and new values and flags a new reference with equal content', as
     list.row.querySelector('.redundant')?.getAttribute('data-tip')
   ).toContain('items ×1');
   expect(
+    list.row.querySelector('.redundant wa-icon[name="equals"]')
+  ).not.toBeNull();
+  expect(
     rows()
       .find((r) => r.tag === '<x-counter>')!
       .row.querySelector('.redundant')
