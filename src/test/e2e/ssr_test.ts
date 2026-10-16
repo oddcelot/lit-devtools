@@ -195,3 +195,36 @@ test('the Components tree says where hydration stands', async () => {
     .poll(() => states()['ssr-deferred'], {timeout: 10_000})
     .toBe('hydrated');
 });
+
+test('a page whose HTML predates an edit renders once, with the new code', async () => {
+  const {page} = fixture;
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  // The HTML as the server renders it now, then an edit it never saw: the
+  // page that loaded between the two.
+  const before = await (await fetch(`${fixture.origin}/`)).text();
+  await page.goto(`${fixture.origin}/`);
+  await expect.poll(hydrated).toBe(true);
+  await fixture.edit('src/ssr-counter.ts', (code) =>
+    code.replace(/<h2>[^<]*<\/h2>/, '<h2>Newer than the HTML</h2>')
+  );
+  await expect
+    .poll(() => shadow('ssr-counter', 'h2'), {timeout: 10_000})
+    .toEqual(['Newer than the HTML']);
+
+  await page.route(`${fixture.origin}/`, (route) =>
+    route.fulfill({contentType: 'text/html', body: before})
+  );
+  await page.goto(`${fixture.origin}/`);
+  await page.unroute(`${fixture.origin}/`);
+  await expect.poll(hydrated).toBe(true);
+  expect(await shadow('ssr-counter', 'h2')).toEqual(['Newer than the HTML']);
+  expect(await shadow('ssr-counter', 'button')).toEqual(['Count: 3']);
+  // Still interactive, and still one copy after the next render.
+  await page.locator('ssr-counter #increment').click();
+  await expect
+    .poll(() => shadow('ssr-counter', 'button'))
+    .toEqual(['Count: 4']);
+  // The navigation can cut Vite's own socket short; that is not ours.
+  expect(errors.filter((e) => e.includes('Hydration'))).toEqual([]);
+});
