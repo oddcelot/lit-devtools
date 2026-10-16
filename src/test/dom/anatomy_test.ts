@@ -184,6 +184,24 @@ describe('collectAnatomy', () => {
     ).toEqual([]);
   });
 
+  test('slotted parts belong to the tree they sit in, not the slot', () => {
+    // As in the browser: `outer::part(a)` and `outer::part(b)` match, but
+    // `slotting::part(a)` does not, since the slotted span is outer's.
+    const leaf = define('<p part="b"></p>');
+    const slotting = define('<slot></slot>');
+    const outer = mount(
+      define(
+        `<${slotting}><span part="a"></span><${leaf} exportparts="b"></${leaf}></${slotting}>`
+      )
+    );
+    expect(collectAnatomy(outer)!.parts).toEqual([
+      {names: ['a'], tagName: 'span'},
+      {names: ['b'], tagName: 'p', forwarded: {from: leaf}},
+    ]);
+    const inner = outer.shadowRoot!.querySelector(slotting)!;
+    expect(collectAnatomy(inner)!.parts).toEqual([]);
+  });
+
   test('ignores exportparts on a host with no shadow root', () => {
     const plain = define(null);
     const el = mount(define(`<${plain} exportparts="a"></${plain}>`));
