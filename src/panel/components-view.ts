@@ -1659,6 +1659,7 @@ export class ComponentsView extends LitElement {
     super.connectedCallback();
     window.addEventListener('keydown', this._onShift);
     window.addEventListener('keyup', this._onShift);
+    window.addEventListener('pagehide', this._onPageHide);
     this._unsubscribeSession = this._session.subscribe(() => {
       this.requestUpdate();
       this._reportIncompatibilities();
@@ -1684,16 +1685,34 @@ export class ComponentsView extends LitElement {
     super.disconnectedCallback();
     window.removeEventListener('keydown', this._onShift);
     window.removeEventListener('keyup', this._onShift);
+    window.removeEventListener('pagehide', this._onPageHide);
     this._unsubscribeOverride?.();
     this._unsubscribeOverride = null;
     this._unsubscribeSession?.();
     this._unsubscribeSession = null;
     this._unsubscribeTimeline?.();
     this._unsubscribeTimeline = null;
+    this._releasePage();
+  }
+
+  /** Drop what the page keeps for this panel: watch, Live, overlays, breaks. */
+  private _releasePage(): void {
     this._session.dispose();
     this._syncAnatomy(null, null);
+    this._highlight(null);
     this._clearBreaks();
   }
+
+  /**
+   * A panel in its own tab has no in-page channel, so the page never hears
+   * it close and would keep the anatomy overlay, Live and the watch. Closing
+   * the tab tears nothing down, but `pagehide` still runs and its RPC calls
+   * go out. Kept while the page enters the back/forward cache, which it may
+   * leave again.
+   */
+  private readonly _onPageHide = (e: PageTransitionEvent): void => {
+    if (!e.persisted) this._releasePage();
+  };
 
   private _clearBreaks(): void {
     if (this._breaks.size === 0) return;

@@ -388,9 +388,9 @@ on a heavy page. Pausing takes one last snapshot of the tree; turning Live back
 on brings it up to date. The choice is remembered per browser.
 
 Closing the panel stops the page observer, and reopening it with Live on
-starts it again. A panel opened as its own tab, rather than docked in the page,
-cannot tell the page it closed, so there Live keeps observing until the page
-reloads or you toggle Live off.
+starts it again. That holds for a panel opened as its own tab too: closing the
+tab, or leaving it for another page, stops Live and clears the anatomy overlay
+and any outline the panel drew.
 
 ## Flash elements that update
 
@@ -445,7 +445,10 @@ sets `delegatesFocus`.
 The Parts list also includes parts a nested component forwards with
 `exportparts`, marked `forwarded`. A renamed one (`exportparts="body: card-body"`)
 is listed under its outer name, and the tooltip on the badge gives the inner one.
-Forwarding is followed up to four components deep.
+Forwarding is followed up to four components deep. A part on a slotted child,
+or forwarded by one, belongs to the component whose shadow tree the child sits
+in, as `::part()` sees it, so it is listed there and not on the component that
+slots it.
 
 Hover a slot or part row to find its region on the page, even with Anatomy off.
 With Anatomy on, the region gains a ring and the others fade until the pointer
