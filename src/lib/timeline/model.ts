@@ -28,6 +28,9 @@ import type {TimeRange} from './range.js';
 
 const RAW_KEY_PREFIX = 'raw:';
 
+/** Layer whose rows are events a component dispatched on itself. */
+const CUSTOM_EVENTS_LAYER_ID = 'custom-events';
+
 /** Whether `key` names a Raw-mode row rather than a collapsed span. */
 export const isRawKey = (key: string): boolean =>
   key.startsWith(RAW_KEY_PREFIX);
@@ -91,21 +94,47 @@ export const summarizeUpdates = (
   return {cycles, components: rollup(cycles)};
 };
 
+/** What the recording shows one element doing, beyond its update ticks. */
+export interface ElementActivity {
+  /** Updates its own previous update scheduled; see {@link isSelfCaused}. */
+  selfCaused: number;
+  /**
+   * Events it dispatched on itself, per type, most frequent first. Only the
+   * Custom events layer records these, so this is empty while it is off.
+   */
+  dispatched: Array<{type: string; count: number}>;
+}
+
 /**
- * How many times each element re-rendered itself ({@link isSelfCaused}) in
- * `events`, by element id; elements that never did are absent.
+ * Per element id, its {@link ElementActivity} in `events`. Elements that did
+ * neither are absent.
  */
-export const selfCausedCounts = (
+export const elementActivity = (
   events: readonly TimelineEvent[]
-): Map<number, number> => {
-  const counts = new Map<number, number>();
+): Map<number, ElementActivity> => {
+  const selfCaused = new Map<number, number>();
+  const dispatched = new Map<number, Map<string, number>>();
   for (const span of toSpans(events)) {
     const id = span.meta?.elementId;
-    if (id !== undefined && isSelfCaused(span)) {
-      counts.set(id, (counts.get(id) ?? 0) + 1);
+    if (id === undefined) continue;
+    if (span.layerId === CUSTOM_EVENTS_LAYER_ID) {
+      let types = dispatched.get(id);
+      if (types === undefined) dispatched.set(id, (types = new Map()));
+      types.set(span.name, (types.get(span.name) ?? 0) + 1);
+    } else if (isSelfCaused(span)) {
+      selfCaused.set(id, (selfCaused.get(id) ?? 0) + 1);
     }
   }
-  return counts;
+  const activity = new Map<number, ElementActivity>();
+  for (const id of new Set([...selfCaused.keys(), ...dispatched.keys()])) {
+    activity.set(id, {
+      selfCaused: selfCaused.get(id) ?? 0,
+      dispatched: [...(dispatched.get(id) ?? [])]
+        .map(([type, count]) => ({type, count}))
+        .sort((a, b) => b.count - a.count || a.type.localeCompare(b.type)),
+    });
+  }
+  return activity;
 };
 
 /**

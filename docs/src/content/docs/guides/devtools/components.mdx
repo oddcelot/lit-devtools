@@ -208,9 +208,20 @@ about the component, for example `change-in-update` for an update scheduled
 from inside `updated()`. Each row has Lit's message and its code, which links
 to the explanation on lit.dev. Lit warns once per message, so the list
 describes the component and every instance of that tag shows it. A production
-build of Lit issues no warnings, so the section never appears there. The same
-list is in the `warnings` field that `lit_component-details` returns to
-agents.
+build of Lit issues no warnings. The same list is in the `warnings` field that
+`lit_component-details` returns to agents.
+
+While a recording holds updates that the element scheduled for itself, the
+section also counts them for this instance: "Re-rendered itself 3 times in the
+recording". The count joins Lit's `change-in-update` warning, or stands as a
+row of its own when Lit said nothing, as under a production build. The
+[Updates tab](/vite-plugin-lit/guides/devtools/updates/#read-one-components-updates)
+lists those updates.
+
+**Dispatched** counts the events the element dispatched on itself in the
+recording, per type, most frequent first. It needs the Custom events layer,
+which is off by default, and stays hidden until the element dispatched
+something. It counts dispatches only; which listeners ran is not recorded.
 
 **Slots** and **Parts** show how the element composes its content; see
 [See an element's slots and parts](#see-an-elements-slots-and-parts).

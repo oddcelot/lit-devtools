@@ -1,6 +1,7 @@
 import {describe, expect, test} from 'vite-plus/test';
 import {
   TimelineModel,
+  elementActivity,
   isRawKey,
   rawRow,
   summarizeUpdates,
@@ -163,5 +164,55 @@ describe('summarizeUpdates', () => {
     );
     expect(cycles).toHaveLength(1);
     expect(components.map((c) => c.tagName)).toEqual(['x-a']);
+  });
+});
+
+describe('elementActivity', () => {
+  const dispatch = (elementId: number, type: string, time: number) => ({
+    layerId: 'custom-events',
+    time,
+    title: type,
+    data: {type},
+    meta: {elementId, tagName: `x-${elementId}`},
+  });
+  const start = (
+    elementId: number,
+    tick: number,
+    cause?: TimelineEvent['cause']
+  ): TimelineEvent => ({
+    layerId: 'lit-lifecycle',
+    time: tick,
+    groupId: `${elementId}:${tick}`,
+    title: 'performUpdate:start',
+    data: {},
+    meta: {elementId, tagName: `x-${elementId}`},
+    ...(cause ? {cause} : {}),
+  });
+
+  test('counts dispatches per type, most frequent first', () => {
+    const activity = elementActivity([
+      dispatch(1, 'change', 0),
+      dispatch(1, 'input', 1),
+      dispatch(1, 'input', 2),
+      dispatch(2, 'close', 3),
+    ]);
+    expect(activity.get(1)).toEqual({
+      selfCaused: 0,
+      dispatched: [
+        {type: 'input', count: 2},
+        {type: 'change', count: 1},
+      ],
+    });
+    expect(activity.get(2)?.dispatched).toEqual([{type: 'close', count: 1}]);
+  });
+
+  test('counts self-caused updates and leaves quiet elements out', () => {
+    const activity = elementActivity([
+      start(1, 1),
+      start(1, 2, {kind: 'update', groupId: '1:1'}),
+      start(2, 1, {kind: 'update', groupId: '1:2'}),
+    ]);
+    expect(activity.get(1)).toEqual({selfCaused: 1, dispatched: []});
+    expect(activity.has(2)).toBe(false);
   });
 });

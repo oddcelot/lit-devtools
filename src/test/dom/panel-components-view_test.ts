@@ -1644,6 +1644,28 @@ test("adds the recorded count to Lit's change-in-update warning", async () => {
   ).toContain('Re-rendered itself once');
 });
 
+test('counts the events the element dispatched in the recording', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: detailsFor()});
+  await flush(el);
+  expect(sections(root)).toEqual([]);
+  const dispatch = (type: string, time: number): TimelineEvent => ({
+    layerId: 'custom-events',
+    time,
+    title: type,
+    data: {type},
+    meta: {elementId: 2, tagName: 'x-button'},
+  });
+  setEvents([dispatch('press', 0), dispatch('press', 1), dispatch('focus', 2)]);
+  await flush(el);
+  expect(sections(root)).toEqual(['Dispatched 2 open']);
+  const entries = [...root.querySelectorAll('.details .dispatched .entry')].map(
+    (e) => e.textContent!.replace(/\s+/g, ' ').trim()
+  );
+  expect(entries).toEqual(['press ×2', 'focus ×1']);
+});
+
 test('shows no warning badge or section without warnings', async () => {
   const {el, root} = await mount(true);
   push('inspector-message', {type: 'pick', id: 2});
