@@ -11,7 +11,7 @@ Chrome and Firefox that inspects Lit components from DevTools. It covers the ext
 plugin and the `lit-devtools` CLI run on your own machine and are not part of
 it.
 
-Last updated: 7 October 2026.
+Last updated: 16 October 2026.
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with,
 endorsed by, or produced by Google, Mozilla or the Lit project.
@@ -24,13 +24,14 @@ in your browser, and removing the extension removes it.
 
 ## What it stores
 
-| What                     | Where                                               | Why                                                                                                                                  |
-| ------------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Enabled sites            | `chrome.storage.local`, key `enabledOrigins`        | The sites you clicked **Enable on this site** for: origins in Chrome (`https://example.com`), hosts in Firefox (`http://localhost`). |
-| Panel settings           | `chrome.storage.local`, keys `devframe:settings:*`  | Your preferences in the Lit tab, such as appearance and performance tracks.                                                          |
-| Panel preferences mirror | The extension's own `localStorage`                  | A synchronous copy of the same preferences, so the panel paints with them before storage answers.                                    |
-| Page-side preferences    | The enabled site's `localStorage`, `lit-devtools-*` | The preferences the injected runtime applies in the page, such as update flashing and the color scheme.                              |
-| Tab identifiers          | The enabled site's `sessionStorage`                 | A random id per browser tab, so a panel talks to the right tab. Cleared when the tab closes.                                         |
+| What                     | Where                                                                    | Why                                                                                                                                  |
+| ------------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Enabled sites            | `chrome.storage.local`, key `enabledOrigins`                             | The sites you clicked **Enable on this site** for: origins in Chrome (`https://example.com`), hosts in Firefox (`http://localhost`). |
+| Panel settings           | `chrome.storage.local`, keys `devframe:settings:*`                       | Your preferences in the Lit tab, such as appearance and performance tracks.                                                          |
+| Manifest choices         | `chrome.storage.local`, keys `lit:manifest-urls`, `lit:manifest-ignored` | Per site, the Custom Elements Manifests you added or switched off, their order, and found ones you chose to ignore.                  |
+| Panel preferences mirror | The extension's own `localStorage`                                       | A synchronous copy of the same preferences, so the panel paints with them before storage answers.                                    |
+| Page-side preferences    | The enabled site's `localStorage`, `lit-devtools-*`                      | The preferences the injected runtime applies in the page, such as update flashing and the color scheme.                              |
+| Tab identifiers          | The enabled site's `sessionStorage`                                      | A random id per browser tab, so a panel talks to the right tab. Cleared when the tab closes.                                         |
 
 `chrome.storage.local` is local to your browser profile; the extension does
 not use `chrome.storage.sync`. The two page-side rows apply only to sites you
@@ -48,7 +49,8 @@ The extension does not:
 - send any data to the developer or to anyone else, or make network
   requests other than fetching an enabled site's own scripts, sourcemaps and
   Custom Elements Manifests from that site, to show where a component is
-  defined and what its documentation says;
+  defined and what its documentation says (including a few requests that look
+  for a `custom-elements.json` beside the page's scripts);
 - collect personal information, browsing history, page content, form input,
   cookies or credentials;
 - run analytics, telemetry, crash reporting or advertising;
@@ -56,12 +58,12 @@ The extension does not:
 
 ## Permissions
 
-| Permission                                     | Why                                                                                                                                                                                                                                                                    |
-| ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scripting`                                    | Registers two content scripts on the sites you enabled: one in the page's main world that reads Lit component state for the panel, and one in the isolated world that relays it to the panel.                                                                          |
-| `storage`                                      | Keeps the enabled sites and the panel settings listed above.                                                                                                                                                                                                           |
-| `activeTab` (Firefox only)                     | Lets the toolbar popup read the address of the tab you opened it on, to name the site it would enable. Nothing else is read, and only after your click.                                                                                                                |
-| Host access (`<all_urls>`, optional, per site) | Not granted at install. When you click **Enable on this site**, the browser asks for that one site: the origin in Chrome, the host on any port in Firefox. The grant registers the content scripts there and lets the Lit tab fetch the site's scripts and sourcemaps. |
+| Permission                                     | Why                                                                                                                                                                                                                                                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripting`                                    | Registers two content scripts on the sites you enabled: one in the page's main world that reads Lit component state for the panel, and one in the isolated world that relays it to the panel.                                                                                                     |
+| `storage`                                      | Keeps the enabled sites and the panel settings listed above.                                                                                                                                                                                                                                      |
+| `activeTab` (Firefox only)                     | Lets the toolbar popup read the address of the tab you opened it on, to name the site it would enable. Nothing else is read, and only after your click.                                                                                                                                           |
+| Host access (`<all_urls>`, optional, per site) | Not granted at install. When you click **Enable on this site**, the browser asks for that one site: the origin in Chrome, the host on any port in Firefox. The grant registers the content scripts there and lets the Lit tab fetch the site's scripts, sourcemaps and Custom Elements Manifests. |
 
 ## Remove its data
 

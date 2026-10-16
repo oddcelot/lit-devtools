@@ -110,8 +110,10 @@ the reason:
 [lit-plugin] devframe instance-registry discovery unavailable (no HTTP server (middleware mode?)); stdio MCP clients cannot auto-discover this dev server. The MCP endpoint itself is unaffected — point clients at <dev-server-origin>/__devtools/__mcp directly.
 ```
 
-Vite DevTools mounts the endpoint at `/__devtools/__mcp` on the dev server, so
-bridge that URL instead and skip discovery altogether:
+Vite DevTools mounts the endpoint at `/__devtools/__mcp` on the dev server;
+[without Vite DevTools](/vite-plugin-lit/guides/devtools/#without-vite-devtools)
+the panel's own mount serves it at `/__lit/__mcp`. Bridge that URL instead and
+skip discovery altogether:
 
 ```sh frame="terminal"
 claude mcp add lit-devtools -- npx -y mcp-remote http://localhost:5179/__devtools/__mcp
