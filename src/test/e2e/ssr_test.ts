@@ -7,6 +7,12 @@
  */
 
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
+import {
+  INSPECT_CMD_CHANNEL,
+  INSPECT_DATA_CHANNEL,
+  type InspectorMessage,
+  type InspectorTreeNode,
+} from '../../types/inspector.js';
 import {type SsrFixture, startSsrFixture} from './ssr-utils.js';
 
 let fixture: SsrFixture;
@@ -166,4 +172,26 @@ test('an edit to the shared sheet restyles a hydrated component', async () => {
     css.replace('rgb(0, 128, 0)', 'rgb(0, 0, 255)')
   );
   await expect.poll(noteColor, {timeout: 10_000}).toBe('rgb(0, 0, 255)');
+});
+
+test('the Components tree says where hydration stands', async () => {
+  let roots: InspectorTreeNode[] = [];
+  fixture.vite.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+    if (data.type === 'tree') roots = data.roots;
+  });
+  const states = () => {
+    fixture.vite.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+    return Object.fromEntries(roots.map((n) => [n.tagName, n.ssr]));
+  };
+  await fixture.page.goto(`${fixture.origin}/`);
+  await expect.poll(hydrated).toBe(true);
+  await expect.poll(states, {timeout: 10_000}).toEqual({
+    'ssr-counter': 'hydrated',
+    'ssr-deferred': 'deferred',
+    'ssr-themed': 'hydrated',
+  });
+  await fixture.page.locator('#wake').click();
+  await expect
+    .poll(() => states()['ssr-deferred'], {timeout: 10_000})
+    .toBe('hydrated');
 });

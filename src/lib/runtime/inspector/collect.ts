@@ -7,6 +7,7 @@
 import {childrenOf, isExpandable, stepInto} from './inspect-value.js';
 import {idOf} from '../timeline/identity.js';
 import {warningsFor} from '../timeline/lit-warnings.js';
+import {hydrationStateOf} from '../server-render.js';
 import {
   isForeignElement,
   isInspectable,
@@ -124,9 +125,11 @@ const nodeFor = (
     el.localName,
     (el.constructor as {name?: string}).name
   ).length;
+  const ssr = hydrationStateOf(el);
   return {
     id: idOf(el),
     ...(flag !== undefined ? {[flag]: true} : {}),
+    ...(ssr !== undefined ? {ssr} : {}),
     ...(warned > 0 ? {warnings: warned} : {}),
     tagName: el.tagName.toLowerCase(),
     componentName: meta?.componentName,
@@ -372,11 +375,13 @@ const statusOf = (
   // No stamp: the define call's stack, for a host that can map it.
   const defineFrames =
     source === undefined ? defineFramesOf(el.constructor) : undefined;
+  const ssr = hydrationStateOf(el);
   return {
     ...(defineFrames !== undefined ? {defineFrames} : {}),
     ...(isUndefinedElement(el) ? {notDefined: true} : {}),
     ...(isForeignElement(el) ? {notLit: true} : {}),
     ...(isUnupgradedElement(el) ? {notUpgraded: true} : {}),
+    ...(ssr !== undefined ? {ssr} : {}),
   };
 };
 

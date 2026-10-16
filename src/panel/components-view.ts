@@ -208,6 +208,30 @@ const definedAsChip = (n: {
   return nothing;
 };
 
+const HYDRATION_CHIPS = {
+  deferred: {
+    text: 'deferred',
+    tip: 'Rendered on the server and held back by defer-hydration; it hydrates when the attribute is removed',
+  },
+  pending: {
+    text: 'not hydrated',
+    tip: 'Rendered on the server; the first update, which hydrates it, has not run yet',
+  },
+  hydrated: {
+    text: 'SSR',
+    tip: 'Rendered on the server and hydrated in the browser',
+  },
+} as const;
+
+/** Where a server-rendered element stands, as a chip; nothing for others. */
+const hydrationChip = (n: {
+  ssr?: keyof typeof HYDRATION_CHIPS;
+}): TemplateResult | typeof nothing => {
+  if (n.ssr === undefined) return nothing;
+  const {text, tip} = HYDRATION_CHIPS[n.ssr];
+  return html`<span class="status ssr ${n.ssr}" data-tip=${tip}>${text}</span>`;
+};
+
 /** An element the page gave no Lit state: nothing to update or render. */
 const hasNoLitState = (d: InspectorDetails): boolean =>
   d.notDefined === true || d.notLit === true || d.notUpgraded === true;
@@ -813,15 +837,18 @@ export class ComponentsView extends LitElement {
       .status.pending,
       .status.warned,
       .status.undefined,
-      .status.not-upgraded {
+      .status.not-upgraded,
+      .status.ssr.deferred {
         color: var(--lit-devtools-warning);
       }
-      .status.not-lit {
+      .status.not-lit,
+      .status.ssr.hydrated {
         color: var(--lit-devtools-text-muted);
       }
       .row .status.undefined,
       .row .status.not-lit,
       .row .status.not-upgraded,
+      .row .status.ssr,
       .row .status.warned {
         margin-left: var(--lit-devtools-space-3);
       }
@@ -2162,7 +2189,8 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${definedAsChip(node)} ${warnedChip(node.warnings)}
+        ${definedAsChip(node)} ${hydrationChip(node)}
+        ${warnedChip(node.warnings)}
       </div>
       ${
         hasChildren && expanded
@@ -3592,9 +3620,9 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${definedAsChip(d)} ${deprecatedChip(docs.docs)}
+        ${definedAsChip(d)} ${hydrationChip(d)} ${deprecatedChip(docs.docs)}
         ${
-          d.flags.hasUpdated || hasNoLitState(d)
+          d.flags.hasUpdated || hasNoLitState(d) || d.ssr !== undefined
             ? nothing
             : html`<span
                 class="status"

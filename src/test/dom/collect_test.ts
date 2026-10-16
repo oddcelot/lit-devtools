@@ -736,3 +736,44 @@ describe('editable properties', () => {
     expect(asked).toEqual([]);
   });
 });
+
+describe('server-rendered elements', () => {
+  /** A Lit look-alike whose shadow root holds what the server wrote. */
+  const serverRendered = (attrs: Record<string, string> = {}) => {
+    const el = document.createElement(define()) as HTMLElement & {
+      hasUpdated: boolean;
+    };
+    for (const [name, value] of Object.entries(attrs))
+      el.setAttribute(name, value);
+    const root = el.shadowRoot ?? el.attachShadow({mode: 'open'});
+    root.append(
+      document.createComment('lit-part AbCdEf12345='),
+      document.createElement('p'),
+      document.createComment('/lit-part')
+    );
+    document.body.append(el);
+    return el;
+  };
+
+  test('say whether they are held back, waiting, or hydrated', () => {
+    const deferred = serverRendered({'defer-hydration': ''});
+    const pending = serverRendered();
+    const hydrated = serverRendered();
+    hydrated.hasUpdated = true;
+    expect(collectDetails(deferred).ssr).toBe('deferred');
+    expect(collectDetails(pending).ssr).toBe('pending');
+    expect(collectDetails(hydrated).ssr).toBe('hydrated');
+    expect(buildTree().map((n) => n.ssr)).toEqual([
+      'deferred',
+      'pending',
+      'hydrated',
+    ]);
+  });
+
+  test('a browser-rendered element has no ssr field', () => {
+    const el = document.createElement(define({shadow: true}));
+    el.shadowRoot!.append(document.createComment('?lit$123$'));
+    document.body.append(el);
+    expect(collectDetails(el)).not.toHaveProperty('ssr');
+  });
+});
