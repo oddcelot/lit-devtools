@@ -1,5 +1,5 @@
 import {LitElement, html, css, nothing} from 'lit';
-import {customElement, query, state} from 'lit/decorators.js';
+import {customElement, property, query, state} from 'lit/decorators.js';
 import {tokens, injectTokens} from '../lib/tokens.js';
 import {
   applyColorScheme,
@@ -153,6 +153,12 @@ export class LitDevtoolsPanel extends LitElement {
 
   @query('components-view') private _componentsView?: ComponentsView;
 
+  /**
+   * Only the Components details, following the host inspector's selection:
+   * the browser extension's Lit tab in the Elements sidebar.
+   */
+  @property({type: Boolean, attribute: 'details-only'}) detailsOnly = false;
+
   override connectedCallback() {
     super.connectedCallback();
     this._locationOff = this._location.subscribe(() => {
@@ -262,6 +268,14 @@ export class LitDevtoolsPanel extends LitElement {
   }
 
   override render() {
+    if (this.detailsOnly) {
+      return html`<div class="view">
+        <components-view
+          details-only
+          .location=${this._location}
+        ></components-view>
+      </div>`;
+    }
     return html`
       <header>
         ${this._renderBrand()}

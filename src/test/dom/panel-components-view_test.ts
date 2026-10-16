@@ -22,6 +22,10 @@ import {useBreakpoints} from '../../panel/breakpoints.js';
 import type {BreakTarget} from '../../types/inspector.js';
 import {useSourceOpener} from '../../panel/source-opener.js';
 import {overrides} from '../../panel/settings-override.js';
+import {
+  followElement,
+  resetFollowedElement,
+} from '../../panel/followed-element.js';
 vi.mock('../../panel/in-page.js', () => import('./fakes/in-page.js'));
 vi.mock(
   '../../panel/timeline-store.js',
@@ -2900,4 +2904,36 @@ test('a saved override that no longer applies is reported', async () => {
     .textContent!.replace(/\s+/g, ' ')
     .trim();
   expect(text).toBe('A saved override no longer applies: <x-button>.size.');
+});
+
+test('details-only shows just the details, for the element the host inspector selects', async () => {
+  const {el, root, inspects} = await mount(true);
+  el.detailsOnly = true;
+  await flush(el);
+  try {
+    expect(root.querySelector('.toolbar')).toBeNull();
+    expect(root.querySelector('.tree')).toBeNull();
+    const placeholder = () =>
+      root.querySelector('.details .placeholder')?.textContent;
+    expect(placeholder()).toBe(
+      'Select an element inside a Lit component to inspect it.'
+    );
+
+    followElement(2);
+    await flush(el);
+    expect(inspects()).toContainEqual({type: 'watch', id: 2});
+    push('inspector-message', {type: 'details', details: detailsFor()});
+    await flush(el);
+    expect(root.querySelector('.details h2')).not.toBeNull();
+    expect(root.querySelector('[aria-label="Reveal in Elements"]')).toBeNull();
+
+    followElement(null);
+    await flush(el);
+    expect(inspects().at(-1)).toEqual({type: 'watch', id: null});
+    expect(placeholder()).toBe(
+      'Select an element inside a Lit component to inspect it.'
+    );
+  } finally {
+    resetFollowedElement();
+  }
 });
