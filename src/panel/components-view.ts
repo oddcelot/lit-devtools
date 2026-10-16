@@ -52,6 +52,7 @@ import {elementRevealer} from './element-revealer.js';
 import {breakKey, breakpoints} from './breakpoints.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
+import {watchPaneVisibility} from './pane-visibility.js';
 import {overrides} from './settings-override.js';
 import {getTimelineEvents, subscribeTimeline} from './timeline-store.js';
 import {elementActivity, type ElementActivity} from '../lib/timeline/model.js';
@@ -1589,6 +1590,9 @@ export class ComponentsView extends LitElement {
   @state() private _anatomy = readAnatomy();
   /** What the page is drawing (see `_anatomyKey`), `null` for nothing. */
   private _anatomyShown: string | null = null;
+  /** The dock has hidden the panel; nothing it drew should stay on the page. */
+  private _paneHidden = false;
+  private _unwatchPane: (() => void) | null = null;
   /** The slot or part row under the pointer; drawn alone while Anatomy is off. */
   @state() private _hoveredRegion: AnatomyFocus | null = null;
   /** Set when the devframe connection fails; rendered in place of the tree. */
@@ -1660,6 +1664,12 @@ export class ComponentsView extends LitElement {
     window.addEventListener('keydown', this._onShift);
     window.addEventListener('keyup', this._onShift);
     window.addEventListener('pagehide', this._onPageHide);
+    this._unwatchPane = watchPaneVisibility((visible) => {
+      this._paneHidden = !visible;
+      if (!visible) this._highlight(null);
+      // `updated` takes the anatomy down, or draws it again.
+      this.requestUpdate();
+    });
     this._unsubscribeSession = this._session.subscribe(() => {
       this.requestUpdate();
       this._reportIncompatibilities();
@@ -1686,6 +1696,8 @@ export class ComponentsView extends LitElement {
     window.removeEventListener('keydown', this._onShift);
     window.removeEventListener('keyup', this._onShift);
     window.removeEventListener('pagehide', this._onPageHide);
+    this._unwatchPane?.();
+    this._unwatchPane = null;
     this._unsubscribeOverride?.();
     this._unsubscribeOverride = null;
     this._unsubscribeSession?.();
@@ -1847,7 +1859,7 @@ export class ComponentsView extends LitElement {
    * it with Anatomy on, just the hovered region (`only`) with it off.
    */
   private _syncAnatomy(id: number | null, only: AnatomyFocus | null): void {
-    if (!this._anatomy && only === null) id = null;
+    if ((!this._anatomy && only === null) || this._paneHidden) id = null;
     const region = only === null ? '' : `${only.kind}:${only.index}`;
     const key = id === null ? null : `${id}|${region}`;
     if (key === this._anatomyShown) return;
