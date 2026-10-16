@@ -137,6 +137,21 @@ const readDetailsWidth = (): number => {
 /** Values longer than this take a full line under their name. */
 const WIDE_VALUE = 32;
 
+/** The plain-text manifest description of the member called `name`, if any. */
+const descriptionOf = (
+  name: string,
+  documented: readonly DocEntry[]
+): string | undefined => {
+  const description = documented.find((e) => e.name === name)?.description;
+  return description === undefined ? undefined : docPlainText(description);
+};
+
+/** The first of a part's names the manifest documents, or `''` for none. */
+const documentedPart = (
+  names: readonly string[],
+  documented: readonly DocEntry[]
+): string => names.find((n) => documented.some((e) => e.name === n)) ?? '';
+
 /**
  * Which anatomy rows a filter keeps, index for index. A slot matches on its
  * name (`default` for the unnamed one) or an assigned element's tag; a part
@@ -961,6 +976,15 @@ export class ComponentsView extends LitElement {
       .described:hover {
         text-decoration-color: var(--lit-devtools-text-secondary);
       }
+      /* A description shown under its row rather than on hover. */
+      .doc-line {
+        grid-column: 1 / -1;
+        padding: 0 0 2px var(--lit-devtools-space-2);
+        font-family: var(--lit-devtools-font-sans);
+        font-size: var(--lit-devtools-text-xs);
+        color: var(--lit-devtools-text-muted);
+        white-space: normal;
+      }
       .entry > .val.doc {
         font-family: var(--lit-devtools-font-sans);
         color: var(--lit-devtools-text-muted);
@@ -1586,6 +1610,8 @@ export class ComponentsView extends LitElement {
   @state() private _snapshot = false;
   /** Mirror of the `flashUpdates` override; the Settings tab shows it too. */
   @state() private _flash = false;
+  /** Show member descriptions under their rows rather than on hover. */
+  @state() private _inlineDocs = false;
   /** Draw the selected element's slots and parts on the page; remembered. */
   @state() private _anatomy = readAnatomy();
   /** What the page is drawing (see `_anatomyKey`), `null` for nothing. */
@@ -1676,8 +1702,10 @@ export class ComponentsView extends LitElement {
       this._reportWarnings();
     });
     this._flash = overrides.get().flashUpdates ?? false;
+    this._inlineDocs = overrides.get().inlineDocs ?? false;
     this._unsubscribeOverride = overrides.subscribe((o) => {
       this._flash = o.flashUpdates ?? false;
+      this._inlineDocs = o.inlineDocs ?? false;
     });
     this._unsubscribeTimeline = subscribeTimeline(() => {
       const shown = this._shownActivity;
@@ -2252,6 +2280,8 @@ export class ComponentsView extends LitElement {
       edit?: PropEdit;
       /** Extra classes on the row. */
       rowClass?: string;
+      /** A line under the row, across every column (see `_docLine`). */
+      below?: unknown;
     } = {}
   ): TemplateResult {
     const {
@@ -2263,6 +2293,7 @@ export class ComponentsView extends LitElement {
       store,
       edit,
       rowClass = '',
+      below = nothing,
     } = opts;
     const expandable = expand !== undefined && !this._snapshot;
     const editing =
@@ -2290,7 +2321,7 @@ export class ComponentsView extends LitElement {
         copy === undefined || key === undefined
           ? nothing
           : this._renderCopy(key, copy)
-      }
+      }${below}
     </div>`;
   }
 
@@ -2552,21 +2583,33 @@ export class ComponentsView extends LitElement {
 
   /**
    * A row name, with its manifest description as the tooltip when the
-   * manifest documents a member of that name.
+   * manifest documents a member of that name. With inline descriptions on,
+   * the row's {@link _docLine} shows it instead.
    */
   private _describedName(
     name: string,
     documented: readonly DocEntry[],
     shown: TemplateResult | string = this._mark(name)
   ): TemplateResult {
-    const description = documented.find((e) => e.name === name)?.description;
-    const tip =
-      description === undefined ? undefined : docPlainText(description);
+    const tip = this._inlineDocs ? undefined : descriptionOf(name, documented);
     return html`<span
       class=${tip === undefined ? '' : 'described'}
       data-tip=${tip ?? nothing}
       >${shown}</span
     >`;
+  }
+
+  /**
+   * The member's manifest description as a line under its row, when inline
+   * descriptions are on and the manifest has one.
+   */
+  private _docLine(name: string, documented: readonly DocEntry[]) {
+    const description = this._inlineDocs
+      ? descriptionOf(name, documented)
+      : undefined;
+    return description === undefined
+      ? nothing
+      : html`<span class="doc-line">${description}</span>`;
   }
 
   /**
@@ -2766,6 +2809,7 @@ export class ComponentsView extends LitElement {
         }${propOptionBadges(p)}`,
         code: true,
         key: propKey(p.name),
+        below: this._docLine(p.name, documented),
         copy: p.value,
         store: {section: 'prop', name: p.name, keys: []},
         edit: editOf(p, this._snapshot),
@@ -3152,6 +3196,7 @@ export class ComponentsView extends LitElement {
             : nothing
         }
       </span>
+      ${this._docLine(s.name, documented)}
     </div>`;
   }
 
@@ -3228,9 +3273,7 @@ export class ComponentsView extends LitElement {
                         style="background:${color(a.slots.length + j)}"
                       ></span
                       >${this._describedName(
-                        p.names.find((n) =>
-                          docs.cssParts.some((e) => e.name === n)
-                        ) ?? '',
+                        documentedPart(p.names, docs.cssParts),
                         docs.cssParts,
                         this._mark(p.names.join(' '))
                       )}${
@@ -3248,7 +3291,7 @@ export class ComponentsView extends LitElement {
                       ><span class="t-punct">&lt;</span
                       ><span class="t-tag">${p.tagName}</span
                       ><span class="t-punct">&gt;</span></span
-                    >
+                    >${this._docLine(documentedPart(p.names, docs.cssParts), docs.cssParts)}
                   </div>`
             )}
           </div>
@@ -3750,6 +3793,7 @@ export class ComponentsView extends LitElement {
                 {
                   code: true,
                   key: attrKey(a.name),
+                  below: this._docLine(a.name, docs.attributes),
                   // The attribute's own text, without the quotes shown.
                   copy: a.value,
                 }

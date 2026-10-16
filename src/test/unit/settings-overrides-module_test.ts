@@ -419,6 +419,7 @@ test('preferences default to off', () => {
   expect(preferences({})).toEqual({
     flashUpdates: false,
     flashUpdatesRamp: false,
+    inlineDocs: false,
     chromeTracks: false,
   });
   expect(preferences({chromeTracks: true}).chromeTracks).toBe(true);

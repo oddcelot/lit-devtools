@@ -643,14 +643,15 @@ export class DevtoolsSettings extends LitElement {
   }
 
   /**
-   * Page-overlay preferences for the Components tab. Pure preferences, no
-   * config-time baseline, so an unset value simply means off and the
-   * "overridden" marker never applies.
+   * Preferences for the Components tab: the page overlay and the details
+   * pane. Pure preferences, no config-time baseline, so an unset value simply
+   * means off and the "overridden" marker never applies.
    */
   private _renderComponents() {
     return html`
       <table>
         ${this._row('flashUpdates')} ${this._row('flashUpdatesRamp')}
+        ${this._row('inlineDocs')}
       </table>
     `;
   }
