@@ -424,9 +424,11 @@ export default defineConfig({
 
 The panel records Lit lifecycle, render, mouse, keyboard, and custom events and Lit
 warnings, and derives
-per-component update counts, durations, and reasons from them. It needs
-`@vitejs/devtools` active in the same Vite config. `true` enables every built-in
-layer, one category of recorded events with its own colour and toggle.
+per-component update counts, durations, and reasons from them. With
+`@vitejs/devtools` active in the same Vite config the panel docks there;
+without it, the dev server serves the panel itself at `/__lit/`. `true` enables
+every built-in layer, one category of recorded events with its own colour and
+toggle.
 
 **Type:** `boolean` · **Default:** `false` · **Env:** `LIT_PLUGIN_TIMELINE`
 

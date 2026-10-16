@@ -17,8 +17,12 @@
  * @see plans/devframe-foundation.md
  */
 
+import type {Server} from 'node:http';
+import {homedir} from 'node:os';
+import {join} from 'node:path';
 import type {Plugin, ViteDevServer} from 'vite';
 import type {DevframeDefinition} from 'devframe';
+import type {DevframeInstance} from 'devframe/initiate';
 import type {FeatureSettings} from '../../types/timeline.js';
 import type {SourceLocator} from '../source-locator.js';
 import {type NodeActionsOptions, createNodeActions} from './node-actions.js';
@@ -102,22 +106,80 @@ const warnDiscoveryUnavailable = (reason: string): void => {
 };
 
 /**
- * One warning per process, like the one above. The timeline option also
- * injects the page runtime, so a missing `DevTools()` leaves the page loading
- * a runtime nothing listens to, with no panel and no hint in the terminal.
+ * Whether the developer turned client auth off the way Vite DevTools reads
+ * it: `devtools: {clientAuth: false}` (as written, or as Vite resolved it
+ * under `config`) or `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`.
  */
-let warnedDevToolsMissing = false;
-
-const warnDevToolsMissing = (): void => {
-  if (warnedDevToolsMissing) return;
-  warnedDevToolsMissing = true;
-  console.warn(
-    `[lit-plugin] timeline is on, but Vite DevTools never mounted the Lit ` +
-      `panel. Add DevTools() from @vitejs/devtools to \`plugins\` (or a ` +
-      `\`devtools:\` key under Vite+) to get it, or set \`timeline: false\` ` +
-      `to stop injecting the page runtime.`
+const clientAuthDisabled = (server: ViteDevServer): boolean => {
+  type Auth = {clientAuth?: unknown; config?: {clientAuth?: unknown}};
+  const devtools = (server.config as {devtools?: Auth}).devtools;
+  return (
+    devtools?.clientAuth === false ||
+    devtools?.config?.clientAuth === false ||
+    process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'] === 'true'
   );
 };
+
+/** Where the panel is served when no Vite DevTools hub mounts it. */
+const STANDALONE_PANEL_BASE = '/__lit/';
+
+/**
+ * Serve the Lit devframe on Vite's own server when no Vite DevTools hub
+ * mounted it: the panel SPA, `__connection.json`, the RPC WebSocket (on
+ * Vite's HTTP server, or a side-car in middleware mode), SSE and MCP, all
+ * under {@link STANDALONE_PANEL_BASE}. The RPC is gated by devframe's
+ * one-time code, as the hub gates it, since anything that reaches the port
+ * could otherwise drive it; the same switches turn it off (see
+ * {@link clientAuthDisabled}). State lives where the hub keeps it, so
+ * settings carry over between the two.
+ */
+async function serveWithoutHub(
+  definition: DevframeDefinition,
+  server: ViteDevServer
+): Promise<DevframeInstance | undefined> {
+  try {
+    const {initDevframe} = await import('devframe/initiate');
+    const root = server.config.root;
+    const instance = initDevframe(definition, {
+      base: STANDALONE_PANEL_BASE,
+      ...(server.httpServer
+        ? {server: server.httpServer as Server}
+        : {ws: {sidecar: true}}),
+      origin: () => server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '',
+      register: {name: definition.name},
+      ...(clientAuthDisabled(server) ? {auth: false} : {}),
+      getStorageDir: (scope) =>
+        scope === 'workspace'
+          ? join(root, 'node_modules/.vite/devtools')
+          : join(homedir(), '.vite/devtools'),
+    });
+    await instance.ready;
+    // With the server, not its HTTP server: in middleware mode there is none,
+    // and the side-car socket would keep the process alive after close.
+    const close = server.close.bind(server);
+    server.close = async () => {
+      await instance.close().catch(() => {});
+      return close();
+    };
+    // Next to the URLs Vite prints, so the panel is findable without docs.
+    const printUrls = server.printUrls.bind(server);
+    server.printUrls = () => {
+      printUrls();
+      const local = server.resolvedUrls?.local[0];
+      if (local !== undefined) {
+        const url = new URL(STANDALONE_PANEL_BASE.slice(1), local).href;
+        server.config.logger.info(`  ➜  Lit DevTools: ${url}`);
+      }
+    };
+    return instance;
+  } catch (error) {
+    console.warn(
+      `[lit-plugin] could not serve the Lit panel at ` +
+        `${STANDALONE_PANEL_BASE}: ${String(error)}`
+    );
+    return undefined;
+  }
+}
 
 /**
  * Publish this devframe in devframe's global instance registry
@@ -248,10 +310,9 @@ function registerInstanceWhenListening(
 }
 
 /**
- * The Vite plugin that mounts the Lit devframe on the DevTools hub. A no-op
- * when DevTools is not active: without it nothing calls `devtools.setup()`,
- * so the definition is never installed and the panel simply isn't there; the
- * dev server warns once about that instead of staying silent.
+ * The Vite plugin that mounts the Lit devframe on the DevTools hub. Without
+ * the hub nothing calls `devtools.setup()`, so the plugin serves the panel
+ * on Vite's own server at {@link STANDALONE_PANEL_BASE} instead.
  */
 export function createLitDevframePlugin(
   options: CreateLitDevframePluginOptions
@@ -281,16 +342,27 @@ export function createLitDevframePlugin(
     }),
   });
 
+  // Serving the panel itself, when no hub did; see `serveWithoutHub`.
+  let standalone: DevframeInstance | undefined;
+
   return {
     name: `devframe:${LIT_DEVFRAME_ID}`,
-    configureServer() {
+    configureServer(server) {
+      // Mounted now, ahead of Vite's own middlewares, whose SPA fallback
+      // would otherwise answer `/__lit/` with the app's index.html. It
+      // passes everything on until the panel is served here.
+      server.middlewares.use((req, res, next) => {
+        if (standalone === undefined) next();
+        else standalone.nodeMiddleware(req, res, next);
+      });
       // Returned callbacks run after every plugin's `configureServer` has been
       // awaited, and DevTools mounts devframes from inside its own, so by then
       // `setup()` has run if it is going to.
-      return () => {
+      return async () => {
         if (setupRan) return;
         if (options.enabled && !options.enabled()) return;
-        warnDevToolsMissing();
+        source.connect(fromViteHot(server.hot));
+        standalone = await serveWithoutHub(definition, server);
       };
     },
     devtools: {

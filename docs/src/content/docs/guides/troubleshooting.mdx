@@ -350,13 +350,12 @@ out of the code jsdom imports. See
 
 **Cause.** `timeline` defaults to `false`, `DevTools()` is missing from
 `plugins`, or `@vitejs/devtools` is not installed. When `timeline` is on and
-`DevTools()` is missing, the dev server prints a one-time
-`[lit-plugin] timeline is on, but Vite DevTools never mounted the Lit panel.`
-warning.
+`DevTools()` is missing, the panel is not in a dock: the dev server serves it
+at `/__lit/` instead and prints `Lit DevTools:` with its address.
 
-**Fix.** Add `DevTools()` to `plugins` (under Vite+, a `devtools:` key in the
-config does the same; use one, not both), or work through
-[Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
+**Fix.** Open that address, or add `DevTools()` to `plugins` to get the dock
+(under Vite+, a `devtools:` key in the config does the same; use one, not
+both). See [Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
 
 ### Vite errors with DTK0034
 

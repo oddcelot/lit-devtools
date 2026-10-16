@@ -220,8 +220,26 @@ describe('TimelineChannelCodec inbound', () => {
   test('drops messages with no sink attached, and after detach', () => {
     const {sink, deliver, detach} = setup();
     detach();
-    deliver(CHANNEL_RUNTIME_READY, {});
+    deliver(CHANNEL_PUSH_EVENT, {events: []});
+    deliver(INSPECT_DATA_CHANNEL, {type: 'ready'});
     expect(sink.calls).toEqual([]);
+  });
+
+  test('replays the last ready that came with no sink to the next one', () => {
+    const {codec, deliver, detach} = setup();
+    detach();
+    deliver(CHANNEL_RUNTIME_READY, {pageId: 'a'});
+    deliver(CHANNEL_RUNTIME_READY, {pageId: 'b', tabId: 't'});
+    const next = new RecordingSink();
+    codec.attach(next);
+    expect(next.calls).toEqual([['runtimeReady', undefined]]);
+    expect(next.pageIds).toEqual(['b']);
+    expect(next.tabIds).toEqual(['t']);
+    // Once only.
+    codec.attach(new RecordingSink());
+    const again = new RecordingSink();
+    codec.attach(again);
+    expect(again.calls).toEqual([]);
   });
 
   test('a stale detach does not remove a newer sink', () => {
