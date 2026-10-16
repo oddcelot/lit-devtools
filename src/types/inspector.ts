@@ -648,6 +648,33 @@ export const ELEMENT_BY_ID_KEY = Symbol.for(
  */
 export const LIT_ID_OF_KEY = Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of');
 
+/**
+ * What a breakpoint on one element pauses on: entering its `update()` or
+ * `render()`, or a change to one of its reactive properties (one that
+ * `hasChanged` accepts, so a write of the same value does not pause).
+ */
+export type BreakTarget =
+  | {kind: 'method'; name: 'update' | 'render'}
+  | {kind: 'prop'; name: string};
+
+/**
+ * The `globalThis` key under which the page runtime exposes its breakpoints
+ * ({@link PageBreakpoints}). The extension sets them through
+ * `inspectedWindow.eval`, which, like {@link ELEMENT_BY_ID_KEY}, can only
+ * pass the panel's numeric id as source text.
+ */
+export const BREAKPOINTS_KEY = Symbol.for(
+  '@oddsquad/vite-plugin-lit#breakpoints'
+);
+
+/** The page runtime's breakpoints, as {@link BREAKPOINTS_KEY} exposes them. */
+export interface PageBreakpoints {
+  /** Arm or disarm `target` on element `id`; false when it cannot be armed. */
+  set(id: number, target: BreakTarget, on: boolean): boolean;
+  /** Disarm every breakpoint on every element. */
+  clear(): void;
+}
+
 /** HMR channel the server uses to forward a panel command to the app runtime. */
 export const INSPECT_CMD_CHANNEL = 'lit:inspect:cmd';
 

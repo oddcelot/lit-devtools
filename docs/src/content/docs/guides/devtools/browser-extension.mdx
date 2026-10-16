@@ -157,6 +157,23 @@ The Lit panel and DevTools' own panels hand off to each other:
 Opening in **Sources** needs Chrome: Firefox has no way for an extension to
 open it, so there the links stay plain text.
 
+## Pause on an update or a change
+
+Because the Lit panel runs inside DevTools, it can stop the page in the
+debugger. The details pane has a **break on** line with **update** and
+**render** toggles: arm one and the page pauses the next time the selected
+element enters `update()` or `render()`. Hovering a row under **Properties** or
+**State** shows a pause toggle for that property; armed, the page pauses when
+the property changes. A write of the same value, or one its `hasChanged`
+rejects, does not pause.
+
+The pause stops in a small wrapper of the extension's. Its `litBreakpoint`
+variable in the **Scope** pane names the element and, for a property, the old
+and new value. Step into the call to reach the element's own `update()` or
+`render()`, or step out to find the code that set the property. Breakpoints
+cover only the selected instance, never other elements of the same class, and
+they are all removed when you select another element or the page reloads.
+
 ## What the extension can't do
 
 The extension has no dev server behind it. Open in editor, **Rendered at** links

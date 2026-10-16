@@ -1,4 +1,4 @@
-import {afterEach, beforeAll, expect, test, vi} from 'vite-plus/test';
+import {afterEach, beforeAll, describe, expect, test, vi} from 'vite-plus/test';
 import type {ComponentsView} from '../../panel/components-view.js';
 import {
   ANATOMY_COLORS,
@@ -18,6 +18,8 @@ import {
 vi.mock('../../panel/client.js', () => import('./fakes/client.js'));
 import {resetHostInfo} from '../../panel/host.js';
 import {useElementRevealer} from '../../panel/element-revealer.js';
+import {useBreakpoints} from '../../panel/breakpoints.js';
+import type {BreakTarget} from '../../types/inspector.js';
 import {useSourceOpener} from '../../panel/source-opener.js';
 vi.mock('../../panel/in-page.js', () => import('./fakes/in-page.js'));
 vi.mock(
@@ -1560,6 +1562,104 @@ test('Reveal in Elements calls the host revealer with the element id', async () 
   } finally {
     useElementRevealer(undefined);
   }
+});
+
+describe('breakpoints', () => {
+  const sets: Array<[number, BreakTarget, boolean]> = [];
+  let clears = 0;
+  let accept = true;
+  afterEach(() => {
+    useBreakpoints(undefined);
+    sets.length = 0;
+    clears = 0;
+    accept = true;
+  });
+
+  const withProp = () => ({
+    ...detailsFor(),
+    properties: [
+      {
+        name: 'count',
+        value: '1',
+        type: 'number',
+        attribute: 'count',
+        reflects: false,
+        state: false,
+      },
+    ],
+  });
+
+  const show = async (details: object = withProp()) => {
+    const mounted = await mount(true);
+    push('inspector-message', {type: 'pick', id: 2});
+    push('inspector-message', {type: 'details', details});
+    await flush(mounted.el);
+    return mounted;
+  };
+
+  const host = () =>
+    useBreakpoints({
+      set: (...args) => {
+        sets.push(args);
+        return accept;
+      },
+      clear: () => void clears++,
+    });
+
+  test('are not offered by a host that cannot pause the page', async () => {
+    const {root} = await show();
+    expect(root.querySelector('.break')).toBeNull();
+  });
+
+  test('arm update(), render() and a property, and show which are on', async () => {
+    host();
+    const {el, root} = await show();
+    const update = root.querySelector<HTMLElement>('.break-on .break')!;
+    update.click();
+    await flush(el);
+    expect(sets).toEqual([[2, {kind: 'method', name: 'update'}, true]]);
+    expect(update.getAttribute('aria-pressed')).toBe('true');
+
+    root.querySelector<HTMLElement>('.entry .break')!.click();
+    await flush(el);
+    expect(sets[1]).toEqual([2, {kind: 'prop', name: 'count'}, true]);
+
+    update.click();
+    await flush(el);
+    expect(sets[2]).toEqual([2, {kind: 'method', name: 'update'}, false]);
+    expect(update.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  test('stay off when the page refuses one', async () => {
+    host();
+    accept = false;
+    const {el, root} = await show();
+    const toggle = root.querySelector<HTMLElement>('.entry .break')!;
+    toggle.click();
+    await flush(el);
+    expect(toggle.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  test('are cleared in the page when the selection moves', async () => {
+    host();
+    const {el, root} = await show();
+    root.querySelector<HTMLElement>('.break-on .break')!.click();
+    await flush(el);
+    push('inspector-message', {type: 'pick', id: 1});
+    push('inspector-message', {
+      type: 'details',
+      details: {...withProp(), id: 1, tagName: 'x-app'},
+    });
+    await flush(el);
+    expect(clears).toBe(1);
+    expect(root.querySelector('.break[aria-pressed="true"]')).toBeNull();
+  });
+
+  test('have no line for an element without Lit state', async () => {
+    host();
+    const {root} = await show({...withProp(), notLit: true});
+    expect(root.querySelector('.break-on')).toBeNull();
+  });
 });
 
 test('a location with a url but no host viewer stays plain text', async () => {

@@ -51,8 +51,13 @@ import type {PortLike} from '../../src/lib/devframe/port-link.js';
 import {useBrand} from '../../src/panel/brand.js';
 import {useLocalClient} from '../../src/panel/client.js';
 import {useElementRevealer} from '../../src/panel/element-revealer.js';
+import {useBreakpoints, type Breakpoints} from '../../src/panel/breakpoints.js';
 import {useSourceOpener} from '../../src/panel/source-opener.js';
-import {ELEMENT_BY_ID_KEY, LIT_ID_OF_KEY} from '../../src/types/inspector.js';
+import {
+  BREAKPOINTS_KEY,
+  ELEMENT_BY_ID_KEY,
+  LIT_ID_OF_KEY,
+} from '../../src/types/inspector.js';
 import type {ElementSource} from '../../src/types/inspector.js';
 import {loadedUrlFor} from './loaded-source.js';
 import {CHANNEL_PAGE_STATUS, PANEL_PORT} from './protocol.js';
@@ -327,6 +332,31 @@ const revealInElements = (
   );
 
 /**
+ * The page runtime's breakpoints, reached by evaluating in the page like
+ * {@link revealInElements}. DevTools is open whenever this panel is, so the
+ * runtime's `debugger` statement pauses there. A page without the runtime
+ * (or an older one) answers false, and nothing is armed.
+ */
+const pageBreakpoints = (devtools: typeof chrome.devtools): Breakpoints => {
+  const call = (expression: string): Promise<boolean> =>
+    new Promise((resolve) =>
+      devtools.inspectedWindow.eval<boolean>(
+        `(() => { const bp = globalThis[Symbol.for(${JSON.stringify(
+          BREAKPOINTS_KEY.description
+        )})]; return bp === undefined ? false : ${expression}; })()`,
+        (result, exception) => resolve(!exception && result === true)
+      )
+    );
+  return {
+    set: (id, target, on) =>
+      call(`bp.set(${JSON.stringify(id)}, ${JSON.stringify(target)}, ${on})`),
+    clear: async () => {
+      await call('(bp.clear(), true)');
+    },
+  };
+};
+
+/**
  * Follows the Elements panel: when its selection (`$0`) is an element the
  * Components tree lists, or sits inside one, the Lit panel selects that row,
  * as a deep link would. `location.replace` with a fragment fires `hashchange` without a
@@ -378,6 +408,7 @@ const boot = async (): Promise<void> => {
     typeof devtools.inspectedWindow.eval === 'function'
   ) {
     useElementRevealer((id) => revealInElements(devtools, id));
+    useBreakpoints(pageBreakpoints(devtools));
     followElementsSelection(devtools);
   }
   // The extension's own name and mark, not the Lit project's.

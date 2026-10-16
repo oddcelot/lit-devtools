@@ -45,6 +45,7 @@ import {forgetWaiting, onRestored, saveOverrides} from './override-store.js';
 import {anatomyById, clearAnatomy, focusAnatomy} from './anatomy-overlay.js';
 import {shadowOf} from './anatomy.js';
 import {onLitWarning} from '../timeline/lit-warnings.js';
+import {clearBreakpoints, setBreakpoint} from './breakpoints.js';
 import {
   clearHighlight,
   highlightAll,
@@ -57,11 +58,13 @@ import {
 } from '../../../types/in-page.js';
 import {
   INSPECT_CMD_CHANNEL,
+  BREAKPOINTS_KEY,
   ELEMENT_BY_ID_KEY,
   LIT_ID_OF_KEY,
   INSPECT_DATA_CHANNEL,
   type GeneratedFrame,
   type InspectorCommand,
+  type PageBreakpoints,
   type InspectorMessage,
   type InspectorTreeNode,
   type LitPackageVersions,
@@ -126,6 +129,16 @@ if (typeof window !== 'undefined') {
   // panel should select, for the extension's Elements-to-Lit sync.
   (globalThis as unknown as Record<symbol, unknown>)[LIT_ID_OF_KEY] =
     listedIdOf;
+  // The extension's breakpoints, set from DevTools by the same route.
+  const breakpoints: PageBreakpoints = {
+    set: (id, target, on) => {
+      const el = elementById(id);
+      return el !== undefined && setBreakpoint(el, target, on);
+    },
+    clear: clearBreakpoints,
+  };
+  (globalThis as unknown as Record<symbol, unknown>)[BREAKPOINTS_KEY] =
+    breakpoints;
   const channel = createPageScriptChannel<LitInPageProtocol>({
     name: LIT_IN_PAGE_CHANNEL,
     functions: {},
