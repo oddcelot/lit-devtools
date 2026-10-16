@@ -18,6 +18,11 @@ export interface ManifestState {
   url?: string;
   /** A manifest found beside the page's scripts, on offer. */
   found?: string;
+  /**
+   * A found manifest the user chose to ignore on this site: not offered or
+   * searched for again, but still theirs to use or reset.
+   */
+  ignored?: string;
 }
 
 export interface ManifestSetting {
@@ -27,10 +32,12 @@ export interface ManifestSetting {
    * site; empty clears it. Resolves an error message when it was refused.
    */
   set(input: string): Promise<string | undefined>;
-  /** Take the manifest on offer. */
+  /** Take the manifest on offer, or the ignored one. */
   use(): Promise<void>;
-  /** Turn down the manifest on offer, for good on this site. */
-  dismiss(): Promise<void>;
+  /** Ignore the manifest on offer on this site, until {@link reset}. */
+  ignore(): Promise<void>;
+  /** Forget the ignored manifest and look for one again. */
+  reset(): Promise<void>;
   /** Called whenever {@link state} changes; returns an unsubscribe. */
   subscribe(listener: () => void): () => void;
 }
