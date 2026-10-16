@@ -64,6 +64,7 @@ import {
   INSPECT_DATA_CHANNEL,
   type GeneratedFrame,
   type InspectorCommand,
+  type InspectorDetails,
   type PageBreakpoints,
   type InspectorMessage,
   type InspectorTreeNode,
@@ -296,12 +297,23 @@ if (typeof window !== 'undefined') {
     // the lookup skips it and cannot recurse.
     const ownPrev = hadOwn ? el.updated : undefined;
     const ref = new WeakRef(el);
-    const push = (): void => {
+    /** The details last sent, for {@link onSlotChange} to compare with. */
+    let lastSent: InspectorDetails | undefined;
+    const push = (onlyIfChanged = false): void => {
       // Skip if the watch ended or moved on in the meantime.
       if (watched?.ref !== ref) return;
       const cur = ref.deref();
       if (cur !== undefined) {
-        send({type: 'details', details: collectDetails(cur)});
+        const details = collectDetails(cur);
+        // Serialized only on this path: slot and child changes are rare,
+        // updates are not.
+        if (
+          !onlyIfChanged ||
+          JSON.stringify(details) !== JSON.stringify(lastSent)
+        ) {
+          lastSent = details;
+          send({type: 'details', details});
+        }
         // The app may have replaced an object a leaf override was in.
         if (sweepLeaves(cur)) replyOverrides();
       }
@@ -311,13 +323,16 @@ if (typeof window !== 'undefined') {
     // too. The event bubbles to the shadow root; one listener there covers
     // every slot, including ones a later render adds. Several slots usually
     // change together, so they share one push.
+    // The children observer below hears a slot move too, a microtask after
+    // `slotchange`, so a queued push that would repeat the last one is
+    // dropped.
     let pushQueued = false;
     const onSlotChange = (): void => {
       if (pushQueued) return;
       pushQueued = true;
       queueMicrotask(() => {
         pushQueued = false;
-        push();
+        push(true);
       });
     };
     // The shadow root can appear after the first render, so `updated` retries.
@@ -326,6 +341,19 @@ if (typeof window !== 'undefined') {
       shadowOf(target)?.addEventListener('slotchange', onSlotChange);
     };
     listen(el);
+    // A light child whose slot name no slot has is assigned nowhere, so its
+    // arrival, removal or renaming fires no `slotchange`: the Anatomy list of
+    // content that isn't rendered would go stale. Light children only.
+    const children = new MutationObserver((records) => {
+      const direct = (r: MutationRecord): boolean =>
+        r.type === 'childList' ? r.target === el : r.target.parentNode === el;
+      if (records.some(direct)) onSlotChange();
+    });
+    children.observe(el, {
+      childList: true,
+      subtree: true,
+      attributeFilter: ['slot'],
+    });
     el.updated = function (this: Updatable, changed: unknown) {
       const current =
         ownPrev ?? (Object.getPrototypeOf(this) as Updatable | null)?.updated;
@@ -343,6 +371,7 @@ if (typeof window !== 'undefined') {
       ref,
       queuePush: onSlotChange,
       restore: () => {
+        children.disconnect();
         const cur = ref.deref();
         if (cur === undefined) return;
         shadowOf(cur)?.removeEventListener('slotchange', onSlotChange);
@@ -351,7 +380,8 @@ if (typeof window !== 'undefined') {
       },
     };
     // Push an immediate snapshot so the panel doesn't wait for the next update.
-    send({type: 'details', details: collectDetails(el)});
+    lastSent = collectDetails(el);
+    send({type: 'details', details: lastSent});
   };
 
   // -------------------------------------------------------------------------
