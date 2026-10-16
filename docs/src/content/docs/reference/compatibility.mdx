@@ -51,9 +51,10 @@ what serves the DevTools overlay the panel docks into.
 | <Logo name="firefox" /> Firefox | 101     |
 | <Logo name="safari" /> Safari   | 16.4    |
 
-Importing a sheet module throws in jsdom and in Node SSR, because neither
-provides `CSSStyleSheet`. Keep those imports out of code that runs on the
-server.
+Importing a sheet module throws in jsdom, which can't construct a
+`CSSStyleSheet`. Node has none at all; there, as in a server render with
+`@lit-labs/ssr`, the module builds a stand-in that carries the css text, and
+Lit's server renderer writes it into the page.
 
 ## Editors
 

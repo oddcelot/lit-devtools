@@ -138,3 +138,17 @@ test('a deferred element edited before it hydrates hydrates with the new code', 
     .toEqual(['Clicks: 1']);
   expect(errors).toEqual([]);
 });
+
+const noteColor = () =>
+  fixture.page.evaluate(
+    `getComputedStyle(document.querySelector('ssr-themed').shadowRoot.querySelector('.note')).color`
+  );
+
+test('a shared sheet renders on the server and applies after hydration', async () => {
+  const html = await (await fetch(`${fixture.origin}/`)).text();
+  const themed = html.slice(html.indexOf('<ssr-themed'));
+  expect(themed).toMatch(/<style>[^<]*\.note\s*\{[^<]*rgb\(0, 128, 0\)/);
+
+  await fixture.page.goto(`${fixture.origin}/`);
+  await expect.poll(noteColor).toBe('rgb(0, 128, 0)');
+});

@@ -195,8 +195,16 @@ are building.
 | dev server                 | `replaceSync()` over the `?inline` text, swapped on each edit |
 | `vite build` (app)         | fetch over the emitted content-hashed `.css` asset            |
 | `vite build` + `build.lib` | `new CSSStyleSheet()` + `replaceSync()` over inlined css text |
+| a server render (SSR)      | the css text, which Lit's server renderer writes out          |
 
-`cssSheetBuild` overrides that choice.
+On the server, where Node has no `CSSStyleSheet`, the sheet is a stand-in that
+carries the css text. Lit's server renderer writes it into the component's
+declarative shadow root, so the styles arrive with the HTML, in dev and in a
+`vite build --ssr` alike. Once the component hydrates, it adopts the real sheet
+in place of the server's `<style>`, so edits to the css still hot-swap it.
+
+`cssSheetBuild` overrides the choice for browser builds; a server build always
+inlines.
 
 | Value          | Build output                                                        |
 | -------------- | ------------------------------------------------------------------- |

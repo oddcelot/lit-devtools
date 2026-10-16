@@ -61,3 +61,31 @@ describe('litCssQueries resolveId', () => {
     expect(warn).toHaveBeenCalledOnce();
   });
 });
+
+describe('litCssQueries load', () => {
+  /** The `?css-sheet` module a build makes for `/app/src/x.css`. */
+  const buildSheet = async (ssr: boolean) => {
+    const plugin = litCssQueries(() => 'url');
+    const configResolved = plugin.configResolved as (config: object) => void;
+    configResolved({command: 'build', root: '/app', build: {lib: false}});
+    const load = plugin.load as (
+      this: unknown,
+      id: string,
+      options?: {ssr?: boolean}
+    ) => Promise<{code: string}>;
+    const context = {
+      resolve: (id: string) => Promise.resolve({id}),
+      load: () => Promise.resolve({code: 'export default ".x{}"'}),
+    };
+    return (
+      await load.call(context, '\0lit-plugin:css-sheet:./src/x.css.js', {ssr})
+    ).code;
+  };
+
+  test('a server build inlines the css, whatever cssSheetBuild says', async () => {
+    expect(await buildSheet(false)).toContain('fetchedSheet');
+    const server = await buildSheet(true);
+    expect(server).toContain('inlinedSheet');
+    expect(server).toContain('/app/src/x.css?inline');
+  });
+});

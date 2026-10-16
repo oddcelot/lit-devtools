@@ -11,12 +11,14 @@
  * stylesheet. These helpers close that gap.
  *
  * This module imports nothing outside the package's runtime and must stay
- * safe to load in any environment.
+ * safe to load in any environment, a server render included (see
+ * `new-sheet.ts`).
  *
  * @module
  */
 
 import {hoistPropertyRules} from './property-rules.js';
+import {newSheet, noSheets} from './new-sheet.js';
 
 /**
  * Vite's dev flag. Accessed as a direct member expression (`import.meta.env.DEV`)
@@ -73,7 +75,7 @@ const devDirect = (url: string): string => {
 
 /** A sheet plus the function that replaces its rules, keeping `@property` hoisted. */
 const replaceableSheet = () => {
-  const sheet = new CSSStyleSheet();
+  const sheet = newSheet();
   const hoist = hoistPropertyRules(sheet);
   return {
     sheet,
@@ -167,6 +169,9 @@ export const urlSheet = (url: string): UrlSheet => {
   // clobber) a newer one. Only the most recently issued request applies.
   let latest = 0;
   const update = (next: string): Promise<void> => {
+    // A server render has no page to fetch relative to; the sheet stays
+    // empty there, as it starts in the browser.
+    if (noSheets()) return Promise.resolve();
     const token = ++latest;
     return fetch(devDirect(next))
       .then((r) => {
