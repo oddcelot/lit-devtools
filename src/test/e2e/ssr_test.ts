@@ -228,3 +228,31 @@ test('a page whose HTML predates an edit renders once, with the new code', async
   // The navigation can cut Vite's own socket short; that is not ours.
   expect(errors.filter((e) => e.includes('Hydration'))).toEqual([]);
 });
+
+test('the live tree and the details follow an element as it hydrates', async () => {
+  let pushed: InspectorTreeNode[] = [];
+  let details: {id: number; ssr?: string} | undefined;
+  fixture.vite.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+    if (data.type === 'tree') pushed = data.roots;
+    if (data.type === 'details') details = data.details;
+  });
+  const stateOf = (tag: string) => pushed.find((n) => n.tagName === tag)?.ssr;
+  await fixture.page.goto(`${fixture.origin}/`);
+  await expect.poll(hydrated).toBe(true);
+  // Live, as the panel turns it on; from here every tree is a push.
+  fixture.vite.hot.send(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: true});
+  await expect
+    .poll(() => stateOf('ssr-deferred'), {timeout: 10_000})
+    .toBe('deferred');
+  const id = pushed.find((n) => n.tagName === 'ssr-deferred')!.id;
+  fixture.vite.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id});
+  await expect.poll(() => details?.ssr).toBe('deferred');
+
+  await fixture.page.locator('#wake').click();
+  await expect
+    .poll(() => stateOf('ssr-deferred'), {timeout: 10_000})
+    .toBe('hydrated');
+  await expect.poll(() => details?.ssr).toBe('hydrated');
+  fixture.vite.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+  fixture.vite.hot.send(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: false});
+});

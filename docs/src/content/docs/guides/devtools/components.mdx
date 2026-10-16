@@ -59,8 +59,8 @@ Lit doesn't render it. Plain HTML elements are still left out.
 A component Lit rendered on the server carries a chip that says where its
 hydration stands: an amber `deferred` while `defer-hydration` holds it back,
 `not hydrated` until its first update hydrates it, and a muted `SSR` once it
-has. The tree reads the state when it refreshes, so a row can lag behind the
-details pane, which follows the element. The same state is the `ssr` field
+has. Both the row and the details pane switch as soon as the element hydrates.
+The same state is the `ssr` field
 that `lit_list-components` and `lit_component-details` return to agents.
 
 An element whose tag is defined but that never became an instance of its class
