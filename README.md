@@ -114,11 +114,13 @@ Reference:
 ## Coding agents (MCP)
 
 The DevTools panel's data is also exposed as MCP tools — `lit_list-components`,
-`lit_component-details`, `lit_update-summary`, `lit_recent-events`,
-`lit_range-summary`, `lit_get-meta`, `lit_hmr-history`, `lit_hmr-incompatibilities`, `lit_set-recording` — so an agent
-can read the live component tree and timeline instead of guessing from source.
+`lit_component-details`, `lit_component-docs`, `lit_update-summary`,
+`lit_recent-events`, `lit_range-summary`, `lit_get-meta`, `lit_hmr-history`,
+`lit_hmr-incompatibilities`, `lit_set-recording`, `lit_set-prop` — so an agent
+can read the live component tree and timeline instead of guessing from source,
+and try a property value on a live element.
 
-These answer only while a Vite dev server with DevTools is **running**. There
+These answer only while a Vite dev server with `timeline` on is **running**. There
 is no stored data and nothing to go stale: with the server down an agent gets
 a connection error, not an empty answer.
 
@@ -128,7 +130,8 @@ Point an MCP client at it either way:
 # Auto-discovers every running dev server on this machine.
 claude mcp add lit-devtools -- npx -y @oddsquad/vite-plugin-lit mcp
 
-# Or dial one server directly, if you'd rather pin the port.
+# Or dial one server directly, if you'd rather pin the port
+# (`/__lit/__mcp` when the server runs without Vite DevTools).
 claude mcp add lit-devtools -- npx -y mcp-remote http://localhost:5179/__devtools/__mcp
 ```
 

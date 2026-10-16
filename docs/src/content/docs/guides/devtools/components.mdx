@@ -346,9 +346,10 @@ the components the dev server hasn't transformed. When a manifest is
 regenerated while the server runs, the pane updates within a second or so.
 
 The browser extension has no disk to read and doesn't see the dev server's
-transforms, so it shows the manifests the page links to with
-`<link rel="custom-elements-manifest" href="…">` instead, from the same site
-only; see
+transforms, so it reads manifests from the site instead: the ones the page
+links to with `<link rel="custom-elements-manifest" href="…">`, ones it finds
+beside the page's scripts, and ones you add in its Settings, from the same
+site only; see
 [the extension guide](/vite-plugin-lit/guides/devtools/browser-extension/#read-component-documentation).
 On pages it serves, the Vite plugin adds those links for every manifest it
 found, so the extension shows the same library docs there, but not docs read
