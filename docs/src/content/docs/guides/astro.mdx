@@ -81,6 +81,14 @@ hydrate the server's HTML, and `client:only` renders in the browser only.
 With more than one renderer in the project, name this one for `client:only`:
 `client:only="@oddsquad/vite-plugin-lit"`.
 
+## Render on demand
+
+Prebuilt pages and on-demand rendering work alike. With `output: 'server'`
+and an adapter, the renderer runs for each request, and the browser hydrates
+the result as it does a prebuilt page. `@lit-labs/ssr` and `lit` stay
+external to the server build, so the server loads them from your
+`node_modules`, one copy of each.
+
 ## Open the panel
 
 Run `astro dev` and click the Lit logo in the dev toolbar. The panel opens in
