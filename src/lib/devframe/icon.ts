@@ -5,7 +5,7 @@
 // it renders at the same box size as the built-in phosphor icons. Inlined as a
 // data: URI rather than `logos:lit-icon` so it also works offline (no Iconify
 // API fetch).
-const LIT_LOGO_SVG =
+export const LIT_LOGO_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-32 0 320 320">' +
   '<path fill="#00e8ff" d="m64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"/>' +
   '<path fill="#283198" d="M128 256V128l64-64v128zM0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"/>' +

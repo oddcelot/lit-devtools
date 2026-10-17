@@ -30,7 +30,9 @@
   "dynamicallyLoaded": [
     "src/lib/runtime/{css,css-build,indicator,intern,patch,source-overlay,standalone}.ts",
     "src/lib/runtime/timeline/{install,public-api,warnings-boot}.ts",
-    "src/lib/runtime/inspector/{install,persist}.ts"
+    "src/lib/runtime/inspector/{install,persist}.ts",
+    // src/astro.ts hands Astro this file's path as a dev toolbar app.
+    "src/lib/astro/toolbar-app.ts"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`

@@ -4,6 +4,7 @@
   "exports": {
     ".": "./index.js",
     "./build": "./build.js",
+    "./astro": "./astro.js",
     "./css.js": "./lib/runtime/css.js",
     "./connect.js": "./lib/runtime/rpc-transport.js",
     "./uno": "./lib/uno-sheet.js"
@@ -20,8 +21,16 @@
       "types/",
       "index.*",
       "build.*",
+      "astro.*",
       "client.d.ts"
     ],
-    "exclude": ["!lib/", "!dist/", "!types/", "!index.*", "!build.*"]
+    "exclude": [
+      "!lib/",
+      "!dist/",
+      "!types/",
+      "!index.*",
+      "!build.*",
+      "!astro.*"
+    ]
   }
 }

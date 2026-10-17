@@ -1,6 +1,7 @@
 # Build outputs
 /index.*
 /build.*
+/astro.*
 /lib/
 /types/
 /panel/
