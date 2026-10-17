@@ -63,12 +63,16 @@ properties and holds the element back until the browser has them too.
 />
 
 On a plain tag, the values travel as JSON in a `data-lit-props` attribute. In
-an island, Astro hands them over itself, with its own serialization.
+an island, Astro hands them over itself, with its own serialization, which
+also carries `Date`, `Map`, `Set`, `URL`, `BigInt`, `RegExp` (its source,
+without flags), `Uint8Array`, `Uint16Array`, `Uint32Array`, `Infinity` and
+`undefined`, nested or not.
 
-<Aside type="note" title="Functions need an island">
-  JSON can't carry a function or a class instance. On a plain tag the renderer
-  leaves such a prop out and warns in the terminal. Make the element an island
-  to pass it.
+<Aside type="note" title="Functions stay on the server">
+  No prop can carry a function to the browser, and a class instance arrives as a
+  plain object, if at all. On a plain tag the renderer leaves such a prop out
+  and warns in the terminal; in an island Astro sends `null` for a function. Set
+  them from a page script once the element is defined.
 </Aside>
 
 ## Choose when it hydrates
