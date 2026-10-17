@@ -1,0 +1,119 @@
+---
+// Server imports: Web Awesome's elements are Lit elements, so the renderer
+// renders them to HTML with declarative shadow roots like the demo's own.
+import '@awesome.me/webawesome/dist/components/badge/badge.js';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/card/card.js';
+import '@awesome.me/webawesome/dist/components/input/input.js';
+import '@awesome.me/webawesome/dist/components/rating/rating.js';
+import '@awesome.me/webawesome/dist/components/switch/switch.js';
+import '../components/seed-order.ts';
+// The theme's design tokens only, not its styles for native elements, so the
+// rest of the page keeps the demo's look. Its rules sit in cascade layers,
+// which the demo's own styles win over.
+import '@awesome.me/webawesome/dist/styles/themes/default.css';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+---
+
+<Demo
+  title="Web Awesome"
+  lede="A component library built on Lit, server-rendered and hydrated like the demo's own elements."
+>
+  <Showcase
+    title="A library's elements, rendered on the server"
+    code={`<wa-card with-header with-footer>
+  <h3 slot="header">Seed packets</h3>
+  <wa-input label="Name on the label" with-label></wa-input>
+  <wa-rating label="Rating" value="4"></wa-rating>
+  <wa-switch checked>Weekly reminders</wa-switch>
+  <div slot="footer">
+    <wa-badge variant="success">In stock</wa-badge>
+    <wa-button variant="brand">Add to cart</wa-button>
+  </div>
+</wa-card>`}
+  >
+    <p slot="explain">
+      Web Awesome's elements are Lit elements, so a plain tag needs nothing
+      more than its import in the page's frontmatter: the renderer writes
+      each one into a declarative shadow root, and its class hydrates it in
+      the browser. The <code>with-header</code> and <code>with-footer</code>
+      attributes are Web Awesome's own, there for SSR: they tell the server's
+      HTML to lay out those slots before the card hydrates.
+    </p>
+    <div class="wa-dark">
+      <wa-card with-header with-footer>
+        <h3 slot="header">Seed packets</h3>
+        <div class="fields">
+          <wa-input label="Name on the label" with-label></wa-input>
+          <wa-rating label="Rating" value="4"></wa-rating>
+          <wa-switch checked>Weekly reminders</wa-switch>
+        </div>
+        <div slot="footer" class="footer">
+          <wa-badge variant="success">In stock</wa-badge>
+          <wa-button variant="brand">Add to cart</wa-button>
+        </div>
+      </wa-card>
+    </div>
+    <ul slot="try">
+      <li>View the page source: every <code>wa-*</code> element arrives with its shadow root.</li>
+      <li>
+        In the Lit panel, the Components tab lists them, each marked
+        <code>hydrated</code>, with their properties and slots.
+      </li>
+    </ul>
+  </Showcase>
+
+  <Showcase
+    title="Inside a Lit component"
+    code={`<seed-order plant="Sweet pea" price="3.5"></seed-order>`}
+  >
+    <p slot="explain">
+      <code>&lt;seed-order&gt;</code> renders Web Awesome elements in its own
+      template. The server renders it and everything inside it as one piece
+      of HTML, and the browser hydrates the lot.
+    </p>
+    <div class="wa-dark">
+      <seed-order plant="Sweet pea" price="3.5"></seed-order>
+    </div>
+    <ul slot="try">
+      <li>Set a few packets and turn on gift wrap: the total follows.</li>
+      <li>
+        Edit <code>src/components/seed-order.ts</code>, the gift wrap's label
+        for one: the order is patched in place and keeps what you set.
+      </li>
+    </ul>
+  </Showcase>
+
+  <script>
+    import '@awesome.me/webawesome/dist/components/badge/badge.js';
+    import '@awesome.me/webawesome/dist/components/button/button.js';
+    import '@awesome.me/webawesome/dist/components/card/card.js';
+    import '@awesome.me/webawesome/dist/components/input/input.js';
+    import '@awesome.me/webawesome/dist/components/rating/rating.js';
+    import '@awesome.me/webawesome/dist/components/switch/switch.js';
+    import '../components/seed-order.ts';
+  </script>
+</Demo>
+
+<style>
+  .wa-dark {
+    /* Web Awesome's dark tokens behind the demo's dark page; its brand
+       colour becomes Lit blue. */
+    --wa-color-brand-fill-loud: var(--accent);
+    --wa-color-brand-border-loud: var(--accent);
+    max-width: 26rem;
+  }
+  .fields {
+    display: grid;
+    gap: var(--wa-space-m);
+  }
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  h3 {
+    margin: 0;
+  }
+</style>

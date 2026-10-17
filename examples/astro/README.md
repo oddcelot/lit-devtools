@@ -21,6 +21,7 @@ asks for the code the terminal prints.
 | `/nested/`      | Lit elements rendering Lit elements, server-rendered as one                                   |
 | `/transitions/` | Pages swapped in by the `ClientRouter` that still hydrate, and a persisted element            |
 | `/frameworks/`  | Preact islands next to Lit's, and Lit elements inside a Preact component                      |
+| `/web-awesome/` | Web Awesome's elements as plain tags and inside a Lit component, server-rendered and hydrated |
 | `/on-demand/`   | A page the Node adapter renders for each request                                              |
 | `/devtools/`    | Edits that keep state, the toolbar panel, the source overlay                                  |
 
