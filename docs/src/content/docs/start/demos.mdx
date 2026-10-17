@@ -1,6 +1,6 @@
 ---
 title: Demos
-description: Try the plugin in the browser. StackBlitz embeds of the Lit flame, Web Awesome, Fernhouse and CSS examples and the playground, each running the latest release.
+description: Try the plugin in the browser. StackBlitz embeds of the Lit flame, Web Awesome, Fernhouse, CSS, Tailwind and SSR examples and the playground, each running the latest release.
 sidebar:
   order: 3
 ---
@@ -90,6 +90,22 @@ the sheet gains it in place. See the
   path="examples/tailwind"
   file="src/tailwind.css"
   title="The Tailwind example running on StackBlitz"
+/>
+
+## Lit SSR
+
+Components rendered on the server with
+[`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/) and hydrated in the
+page. The counter arrives as server HTML and says _Hydrated_ once it wakes;
+click it, then edit `src/ssr-counter.ts` and the count stays. The next page
+load renders your edit on the server too. See the
+[example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/ssr)
+and the [SSR guide](/vite-plugin-lit/guides/ssr/).
+
+<StackBlitzEmbed
+  path="examples/ssr"
+  file="src/ssr-counter.ts"
+  title="The Lit SSR example running on StackBlitz"
 />
 
 ## Playground

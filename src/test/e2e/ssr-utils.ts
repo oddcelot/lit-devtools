@@ -10,6 +10,7 @@
 
 import {randomUUID} from 'node:crypto';
 import {cp, readFile, rm, writeFile} from 'node:fs/promises';
+import {createServer as createHttpServer, type Server} from 'node:http';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {InlineConfig, ViteDevServer} from 'vite';
@@ -40,7 +41,9 @@ interface SsrServer {
 export const startSsrFixture = async (
   plugin: LitPluginOptions = {timeline: true},
   /** Merged into the dev server's Vite config, as `devtools` for the hub. */
-  vite: InlineConfig = {}
+  vite: InlineConfig = {},
+  /** Serve every socket from the page's port, as `stackblitz.mjs` does. */
+  {onePort = false}: {onePort?: boolean} = {}
 ): Promise<SsrFixture> => {
   const root = path.join(EXAMPLE_DIR, '.e2e-tmp', randomUUID().slice(0, 8));
   // Entry by entry: the copy lives inside the example, which `cp` won't
@@ -48,6 +51,7 @@ export const startSsrFixture = async (
   for (const entry of [
     'index.html',
     'server.mjs',
+    'one-port.mjs',
     'tsconfig.json',
     'public',
     'src',
@@ -60,7 +64,16 @@ export const startSsrFixture = async (
   const {startSsrServer} = (await import(path.join(root, 'server.mjs'))) as {
     startSsrServer: (options: object) => Promise<SsrServer>;
   };
+  const http = createHttpServer();
+  const shared: InlineConfig = onePort
+    ? (
+        (await import(path.join(root, 'one-port.mjs'))) as {
+          onePort: (http: Server) => InlineConfig;
+        }
+      ).onePort(http)
+    : {};
   const server = await startSsrServer({
+    http,
     root,
     port: 0,
     host: '127.0.0.1',
@@ -72,7 +85,8 @@ export const startSsrFixture = async (
       // `pnpm dev`, under other configs, and a stale one re-optimizes in the
       // middle of a test, mixing two generations of Lit in one page.
       cacheDir: path.join(root, '.vite'),
-      plugins: [litPlugin(plugin)],
+      ...(shared.server ? {server: shared.server} : {}),
+      plugins: [...(shared.plugins ?? []), litPlugin(plugin)],
     },
   });
 

@@ -9,8 +9,8 @@
  * module graph, so an edit to a component reaches the next server render
  * without a restart, while the open page is hot-patched by the plugin.
  *
- * `startSsrServer` is also what the repo's e2e tests start, with their own
- * root, plugins and port.
+ * `startSsrServer` is also what the repo's e2e tests and `stackblitz.mjs`
+ * start, with their own root, plugins and port.
  */
 
 import {createServer as createHttpServer} from 'node:http';
@@ -28,12 +28,15 @@ const OUTLET = '<!--ssr-outlet-->';
  * @param {import('vite').InlineConfig} [options.vite] Merged into Vite's config.
  * @param {number} [options.port]
  * @param {string} [options.host]
+ * @param {import('node:http').Server} [options.http] The HTTP server to serve
+ *   from, for a caller that hands it to Vite as well.
  */
 export const startSsrServer = async ({
   root = here,
   vite: extra = {},
   port = 5180,
   host = 'localhost',
+  http = createHttpServer(),
 } = {}) => {
   const vite = await createServer({
     root,
@@ -55,7 +58,7 @@ export const startSsrServer = async ({
     return template.replace(OUTLET, await renderPage());
   };
 
-  const http = createHttpServer((req, res) => {
+  http.on('request', (req, res) => {
     vite.middlewares(req, res, async () => {
       // Anything Vite didn't serve is a page.
       try {
