@@ -209,51 +209,56 @@ const warnedChip = (
   >`;
 };
 
-/** Marks a custom element another library defined, in the tree and the pane. */
-const notLitChip = html`<span
-  class="status not-lit"
-  data-tip="A custom element, but not a Lit component"
-  >not Lit</span
->`;
-
 const notUpgradedChip = html`<span
   class="status not-upgraded"
   data-tip="The tag is defined, but this element never became an instance of its class"
   >not upgraded</span
 >`;
 
-/** The chip saying a defined tag gave this element no Lit state, if one does. */
+/**
+ * The chip saying a defined tag gave this element no Lit state, if one does.
+ * One another library defined carries none: the tree leaves it unmarked.
+ */
 const definedAsChip = (n: {
-  notLit?: true;
   notUpgraded?: true;
-}): TemplateResult | typeof nothing => {
-  if (n.notLit === true) return notLitChip;
-  if (n.notUpgraded === true) return notUpgradedChip;
-  return nothing;
-};
+}): TemplateResult | typeof nothing =>
+  n.notUpgraded === true ? notUpgradedChip : nothing;
 
-const HYDRATION_CHIPS = {
+const HYDRATION_PILLS = {
   deferred: {
     text: 'deferred',
+    icon: 'drop-slash-fill',
+    variant: 'warning',
     tip: 'Rendered on the server and held back by defer-hydration; it hydrates when the attribute is removed',
   },
   pending: {
     text: 'not hydrated',
+    icon: 'drop-half-fill',
+    variant: 'warning',
     tip: 'Rendered on the server; the first update, which hydrates it, has not run yet',
   },
   hydrated: {
-    text: 'SSR',
+    text: 'hydrated',
+    icon: 'drop-simple-fill',
+    variant: 'brand',
     tip: 'Rendered on the server and hydrated in the browser',
   },
 } as const;
 
-/** Where a server-rendered element stands, as a chip; nothing for others. */
-const hydrationChip = (n: {
-  ssr?: keyof typeof HYDRATION_CHIPS;
+/** Where a server-rendered element stands, as a pill; nothing for others. */
+const hydrationPill = (n: {
+  ssr?: keyof typeof HYDRATION_PILLS;
 }): TemplateResult | typeof nothing => {
   if (n.ssr === undefined) return nothing;
-  const {text, tip} = HYDRATION_CHIPS[n.ssr];
-  return html`<span class="status ssr ${n.ssr}" data-tip=${tip}>${text}</span>`;
+  const {text, icon, variant, tip} = HYDRATION_PILLS[n.ssr];
+  return html`<wa-badge
+    class="ssr ${n.ssr}"
+    variant=${variant}
+    appearance="outlined"
+    pill
+    data-tip=${tip}
+    ><wa-icon name=${icon}></wa-icon>${text}</wa-badge
+  >`;
 };
 
 /** An element the page gave no Lit state: nothing to update or render. */
@@ -861,20 +866,33 @@ export class ComponentsView extends LitElement {
       .status.pending,
       .status.warned,
       .status.undefined,
-      .status.not-upgraded,
-      .status.ssr.deferred {
+      .status.not-upgraded {
         color: var(--lit-devtools-warning);
       }
-      .status.not-lit,
-      .status.ssr.hydrated {
-        color: var(--lit-devtools-text-muted);
-      }
       .row .status.undefined,
-      .row .status.not-lit,
       .row .status.not-upgraded,
-      .row .status.ssr,
-      .row .status.warned {
+      .row .status.warned,
+      .row wa-badge.ssr {
         margin-left: var(--lit-devtools-space-3);
+      }
+      /* A true pill, the one round shape in the square theme, so the
+         hydration state reads apart from the plain-text chips. */
+      /* Sized in em so it scales with the label. The icon side's padding
+         matches the vertical padding, which centres the round icon in the
+         pill's round end; the text side gets about half the height, so the
+         label clears the curve. */
+      wa-badge.ssr {
+        --wa-border-radius-pill: 9999px;
+        flex-shrink: 0;
+        gap: 0.3em;
+        font-size: calc(var(--lit-devtools-text-2xs) - 1px);
+        font-weight: normal;
+        line-height: 1;
+        padding: 0.2em 0.6em 0.2em 0.2em;
+      }
+      /* Kept at the 2xs pill's size while the label shrinks. */
+      wa-badge.ssr wa-icon {
+        font-size: 1.2em;
       }
       .not-defined-note {
         margin: var(--lit-devtools-space-3) 0;
@@ -2281,7 +2299,7 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${definedAsChip(node)} ${hydrationChip(node)}
+        ${definedAsChip(node)} ${hydrationPill(node)}
         ${warnedChip(node.warnings)}
       </div>
       ${
@@ -3735,7 +3753,7 @@ export class ComponentsView extends LitElement {
               >`
             : nothing
         }
-        ${definedAsChip(d)} ${hydrationChip(d)} ${deprecatedChip(docs.docs)}
+        ${definedAsChip(d)} ${hydrationPill(d)} ${deprecatedChip(docs.docs)}
         ${
           d.flags.hasUpdated || hasNoLitState(d) || d.ssr !== undefined
             ? nothing
