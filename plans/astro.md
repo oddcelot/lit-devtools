@@ -91,6 +91,16 @@ another one such as `@awesome.me/astro-lit`. Experimental.
 - **`LitElementRenderer` directly, not `render()` of a template.** Rendering
   the element through a template would leave `lit-part` markers around it in
   the page.
+- **Slots go in as light DOM, not `<astro-slot>`.** A wrapper would be the
+  element's one slotted child, so the default slot would show it whole and
+  named content inside it would never reach its slot. Without the wrapper
+  Astro also keeps each slot of an island in a
+  `<template data-astro-template>`, inert, dropped as the island hydrates,
+  and what a `client:only` island builds its children from: the slot HTML
+  goes out twice for an island, the cost of keeping slots working.
+  `supportsAstroStaticSlot` only changes which wrapper Astro looks for and
+  strips (`<astro-static-slot>` outside islands), so it stays off
+  (`src/test/e2e/astro-slots_test.ts`).
 - **No `parse5`.** It would be a dependency for every user of the Vite
   plugin, for one job a small scanner does.
 
@@ -98,5 +108,3 @@ another one such as `@awesome.me/astro-lit`. Experimental.
 
 - Is the server DOM shim swap astro-lit does needed on any Astro version we
   support? Not on 7.3.
-- `supportsAstroStaticSlot`: left off until it is clear what it changes for
-  a web component's light DOM.
