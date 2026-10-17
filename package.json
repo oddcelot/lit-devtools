@@ -1,6 +1,6 @@
 {
   "name": "@oddsquad/vite-plugin-lit",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "True HMR for Lit components, plus CSS helpers and a DevTools panel",
   "license": "BSD-3-Clause",
   "author": "oddcelot",

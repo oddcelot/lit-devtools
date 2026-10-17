@@ -3,6 +3,127 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.19.0 — 2026-10-17
+
+Lit rendered on the server with `@lit-labs/ssr` now works with the plugin:
+edits hot-patch hydrated components and reach the next server render, shared
+sheets arrive styled, and the Components tab shows where hydration stands. A
+new SSR example covers dev, production builds and StackBlitz. Lit Inspector
+gains a Lit tab in the Elements panel and reads Custom Elements Manifests from
+more places, and the DevTools flag double renders. Nothing needs action to
+upgrade.
+
+[![Watch the 0.19.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.19.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.19.0/vite-plugin-lit-0.19.0.mp4)
+
+### Added
+
+- **Server-rendered Lit works in the dev server.** With `@lit-labs/ssr` in
+  your Vite server, an edit patches hydrated components in place and the next
+  server render uses the new code instead of failing because the tag is
+  already defined. A `?css-sheet` renders into the declarative shadow root, so
+  the page arrives styled, and its edits restyle hydrated components. A
+  `defer-hydration` component edited before it wakes renders the new template,
+  and a page whose HTML predates an edit renders that component once in the
+  browser instead of failing to hydrate. The new SSR guide shows the setup, and
+  Troubleshooting covers the dock's socket in middleware mode.
+- **The Components tab shows hydration state.** A server-rendered component
+  is marked _deferred_ while `defer-hydration` holds it back, _not hydrated_
+  until its first update, and _SSR_ the moment it hydrates, in the tree and the
+  details pane.
+- **An SSR example, on StackBlitz too.** Open it from the README or the docs'
+  Demos page: the counter arrives as server HTML, hydrates, and keeps its
+  count through an edit, with the DevTools dock connected.
+- **Server-rendered pages in production builds, with the Lit panel.** The SSR
+  guide and example cover a production build served without Vite: shared
+  `?css-sheet` styles arrive inlined, and the Lit panel attaches through
+  `lit-devtools dev` with each element's hydration state.
+- **The Lit panel works without Vite DevTools.** With `timeline: true` and no
+  `DevTools()`, the dev server serves the panel at `/__lit/` and prints its
+  address, instead of only warning that the panel never mounted.
+- **A Lit tab in the Elements panel.** The browser extension adds a Lit tab to
+  the Elements sidebar, beside Styles and Computed, showing the properties,
+  state, slots, parts and source links of the Lit element you select there.
+- **Double renders are flagged.** An update that a component's own previous
+  update scheduled, usually because `updated()` set a property, is marked
+  _re-rendered_ in the Updates tab and `2×` in the Timeline list, and
+  `lit_update-summary` reports it as `selfCaused`. The Components tab's
+  Warnings count how many times the recording shows an element re-rendering
+  itself, also under a production build.
+- **The Components tab counts dispatched events.** With the Custom events
+  layer on, a Dispatched section lists how many times the selected element
+  dispatched each event type during the recording.
+- **Properties show which class declared them.** For a component that extends
+  a base class or uses mixins, the Properties and State tables group their
+  rows under the declaring class, the element's own first.
+- **Component docs include members from your mixins.** For a component
+  written as `extends Sized(Base)`, the Components tab lists what your
+  project's `Sized` mixin adds, marked as inherited from it, and still reaches
+  `Base` past a package mixin such as `SignalWatcher`.
+- **Agents can set component properties.** The new `lit_set-prop` tool sets a
+  reactive property, or a field inside the object it holds, on a live element
+  and answers with the element's details afterwards. Agent edits land as
+  overrides in the panel, where you can switch them off or clear them.
+- **Lit Inspector can pause on an update or a property change.** Arm _update_
+  or _render_ on the selected element, or the pause toggle on one of its
+  properties, and the page stops in the debugger when it happens.
+- **Lit Inspector finds more Custom Elements Manifests.** When a page links
+  none, the Lit tab looks for every `custom-elements.json` beside the page's
+  scripts and offers them, so Web Awesome's docs show component documentation
+  with one click. Manifests on another site, such as a CDN, work once Chrome
+  is granted access to it, through an Allow access button for a linked one.
+- **Choose the manifests Lit Inspector reads.** The Settings tab's Component
+  docs section lists the page's linked manifests, the ones found and the ones
+  you add by URL, such as `/dist/custom-elements.json`. Each can be switched
+  off, ignored and reset, or moved up and down; the first switched-on one that
+  describes a component supplies its docs.
+- **The extension shows where an element is rendered.** On a page without the
+  Vite plugin, the details pane's rendered row names the template tag that
+  created an element, found by the template's text in the page's sources, and
+  in Chrome a click opens it in the Sources panel.
+- **Read component docs without hovering.** Turn on "inline descriptions"
+  under Components in the Settings tab, and every documented property,
+  attribute, slot and part shows its description under its row.
+- **`unoSheet()` works with presetWind4.** Pass `preflights: true` to keep
+  Wind4's theme variables and `@property` rules in the shared sheet; drop the
+  reset at the preset with `presetWind4({preflights: {reset: false}})`.
+- **Context consumers waiting for a provider say so.** A subscribing consumer
+  that no provider has answered yet reads "waiting for a provider" instead of
+  linking to a provider that never answered it, and links as soon as a
+  ContextRoot replays its request.
+
+### Changed
+
+- **The Settings tab no longer lists env var names.** Hints name the plugin
+  option alone, the reset button reads "Reset overrides", and a value set from
+  the environment still shows its "(env)" badge.
+
+### Fixed
+
+- **Hiding the panel clears what it drew on the page.** Collapsing the dock,
+  closing DevTools with the browser extension, or closing a panel opened as
+  its own tab now takes down the anatomy overlay, hover outline and
+  breakpoints and stops Live, instead of leaving them until the page reloads.
+  The overlay comes back when the dock opens again.
+- **Slotted context consumers link to the right provider.** A consumer
+  slotted into a component whose shadow tree provides the context now links to
+  that provider, instead of to none or to one further out.
+- **A provider's details follow a value set directly.** Setting a context
+  provider's value with `setValue`, without its host updating, refreshes the
+  selected provider's row right away instead of on its next update.
+- **A component whose constructor threw is no longer called "not Lit".** The
+  Components tab marks it _not upgraded_ and says its constructor probably
+  threw, instead of claiming another library defined it.
+- **The Anatomy "not rendered" list follows the page.** A light child added
+  with a slot name the element doesn't have, or renamed to one, shows up
+  without reselecting the element.
+- **The Updates tab's equal-content badge shows its icon again.** The badge
+  that flags a property changed to a new reference with equal content rendered
+  as a bare number.
+- **`lit-devtools mcp` finds dev servers behind your own HTTP server.** When
+  Vite runs in middleware mode with your server passed in, the plugin
+  registers that server's real port instead of probing 5173 and warning that
+  discovery is unavailable.
+
 ## 0.18.0 — 2026-10-14
 
 Shared stylesheets now work with utility frameworks: UnoCSS utilities become
