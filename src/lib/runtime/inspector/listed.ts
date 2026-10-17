@@ -14,13 +14,15 @@ export const isInspectable = (el: Element): boolean =>
 
 /**
  * A tag that can name a custom element (it has a hyphen) and isn't devtools
- * UI: ours, or the devframes dock the Vite DevTools hub mounts in the page.
+ * UI: ours, the devframes dock the Vite DevTools hub mounts in the page, or
+ * Astro's dev toolbar (`<astro-island>` is the page's own, and stays).
  */
 const isCustomTag = (tag: string): boolean =>
   tag.includes('-') &&
   tag !== 'lit-source-overlay' &&
   !tag.startsWith('lit-devtools-') &&
-  !tag.startsWith('devframes-');
+  !tag.startsWith('devframes-') &&
+  !tag.startsWith('astro-dev-');
 
 /**
  * A custom-element tag nothing has defined: a forgotten import, a typo, a
