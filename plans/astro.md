@@ -28,6 +28,10 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   content, which Astro hands over with the attribute taken off.
 - **`lib/astro/boot.ts` and `release.ts`**, the page script: releases the
   elements the renderer deferred, again after a view transition.
+- **`lib/astro/shadow-roots.ts`**, also the page script's: attaches the
+  incoming page's declarative shadow roots on `astro:before-swap`. Astro's
+  router attaches them only after the swap, once each Lit element has made
+  its own, so they would be dropped and rendered anew.
 - **`lib/astro/toolbar-app.ts`**, the dev toolbar window around `/__lit/`,
   and its auth code handling.
 
