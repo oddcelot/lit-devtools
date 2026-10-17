@@ -48,6 +48,10 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   properties is rendered with `defer-hydration` and `data-lit-props`. The
   page script and the client renderer remove `defer-hydration` only from
   elements carrying the marker, so one written by hand waits for its author.
+- **An island waits for its directive.** The renderer writes every island
+  with `defer-hydration` and an empty marker, properties or not, and only
+  the client renderer releases it. Otherwise a page script that defines
+  the class (for a plain tag of it elsewhere) hydrates the island at once.
 - **Hydrate support loads before Lit, from the project.** The injected
   script imports `@lit-labs/ssr-client/lit-element-hydrate-support.js` by
   bare name, so it resolves as the project's `lit` does, and is in

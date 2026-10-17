@@ -136,6 +136,16 @@ describe('renderToStaticMarkup', () => {
     );
   });
 
+  test('defers an island without properties too, until its directive fires', async () => {
+    const markup = await render('rendered-card', {heading: 'A'}, undefined, {
+      hydrate: 'visible',
+    });
+    expect(markup).toMatch(/^<rendered-card defer-hydration data-lit-props=""/);
+    expect(await render('rendered-card', {heading: 'A'})).not.toContain(
+      'defer-hydration'
+    );
+  });
+
   test('warns about the properties a plain tag cannot carry', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await render('rendered-card', {tags: [], onPick: () => {}});
