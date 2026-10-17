@@ -52,6 +52,12 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   again), which can't be constructed. The client renderer creates elements
   with `document.createElement(customElements.getName(Class))`, and the HMR
   runtime's `getName()` also answers for later versions (`runtime/patch.ts`).
+- **Tested through Astro's JavaScript API.** `src/test/e2e/astro*_test.ts`
+  run a copy of `examples/astro` with `dev()`, or `build()` then
+  `preview()`, in the test process, one setup per file: the server-side
+  registry is global, so two builds can't share a process. Astro drops its
+  request handler under `VITEST` and HMR under `NODE_ENV=test`; the fixture
+  unsets both.
 - **The page script is dev and production alike.** Nothing it does depends
   on the dev server, so a build hydrates as dev does.
 
@@ -94,4 +100,3 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   support? Not on 7.3.
 - `supportsAstroStaticSlot`: left off until it is clear what it changes for
   a web component's light DOM.
-- An e2e suite on `examples/astro` (bead `vpl-u4x3`).
