@@ -9,7 +9,7 @@
  * strings, so only the icons listed here ship, `<wa-icon name>` never leaves
  * the bundle, and an unlisted name renders nothing.
  *
- * Names are Phosphor's, all in the regular weight.
+ * Names are Phosphor's, in the regular weight unless they end in `-fill`.
  *
  * This module also defines `<wa-icon>`, and views import it instead of Web
  * Awesome's icon.js, so the element never exists without the library above.
@@ -30,6 +30,9 @@ import caretRight from '@phosphor-icons/core/assets/regular/caret-right.svg?raw'
 import caretUp from '@phosphor-icons/core/assets/regular/caret-up.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
 import clock from '@phosphor-icons/core/assets/regular/clock.svg?raw';
+import dropHalfFill from '@phosphor-icons/core/assets/fill/drop-half-fill.svg?raw';
+import dropSimpleFill from '@phosphor-icons/core/assets/fill/drop-simple-fill.svg?raw';
+import dropSlashFill from '@phosphor-icons/core/assets/fill/drop-slash-fill.svg?raw';
 import crosshair from '@phosphor-icons/core/assets/regular/crosshair.svg?raw';
 import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
 import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
@@ -72,6 +75,9 @@ const ICONS = {
   crosshair,
   cube,
   'cursor-click': cursorClick,
+  'drop-half-fill': dropHalfFill,
+  'drop-simple-fill': dropSimpleFill,
+  'drop-slash-fill': dropSlashFill,
   equals,
   export: exportIcon,
   eye,

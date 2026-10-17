@@ -1877,8 +1877,13 @@ test('marks server-rendered elements by where hydration stands', async () => {
     {id: 2, tagName: 'x-button', ssr: 'hydrated', children: []},
   ]);
   expect(
-    rows().map((r) => r.querySelector('.status.ssr')?.textContent)
-  ).toEqual(['deferred', 'SSR']);
+    rows().map((r) => r.querySelector('wa-badge.ssr')?.textContent)
+  ).toEqual(['deferred', 'hydrated']);
+  expect(
+    rows().map((r) =>
+      r.querySelector('wa-badge.ssr wa-icon')?.getAttribute('name')
+    )
+  ).toEqual(['drop-slash-fill', 'drop-simple-fill']);
   push('inspector-message', {type: 'pick', id: 2});
   push('inspector-message', {
     type: 'details',
@@ -1890,7 +1895,10 @@ test('marks server-rendered elements by where hydration stands', async () => {
   });
   await flush(el);
   const head = root.querySelector('.details .head')!;
-  expect(head.querySelector('.status.ssr')?.textContent).toBe('not hydrated');
+  expect(head.querySelector('wa-badge.ssr')?.textContent).toBe('not hydrated');
+  expect(head.querySelector('wa-badge.ssr wa-icon')?.getAttribute('name')).toBe(
+    'drop-half-fill'
+  );
   // The server rendered it; "not rendered" would be wrong.
   expect(head.textContent).not.toContain('not rendered');
 });

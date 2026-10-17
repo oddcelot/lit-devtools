@@ -133,12 +133,12 @@ test('the page hydrates, and the panel says where hydration stands', async () =>
 
   const panel = await browser.newPage();
   await panel.goto(`${devOrigin}/#tab=components`);
-  const chips = panel.locator('components-view .status.ssr');
+  const chips = panel.locator('components-view wa-badge.ssr');
   await expect
     .poll(() => chips.allInnerTexts(), {timeout: 15_000})
-    .toEqual(['SSR', 'deferred', 'SSR']);
+    .toEqual(['hydrated', 'deferred', 'hydrated']);
   await page.locator('#wake').click();
   await expect
     .poll(() => chips.allInnerTexts(), {timeout: 10_000})
-    .toEqual(['SSR', 'SSR', 'SSR']);
+    .toEqual(['hydrated', 'hydrated', 'hydrated']);
 }, 60_000);
