@@ -1,0 +1,64 @@
+---
+import '../components/arrival-badge.ts';
+import '../components/island-probe.ts';
+import '../components/tag-list.ts';
+import {IslandProbe} from '../components/island-probe.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+---
+
+<Demo
+  title="View transitions"
+  lede="Every link on this site goes through Astro's ClientRouter: the next page is swapped in without a reload, and its Lit elements still hydrate the server's HTML."
+>
+  <Showcase
+    title="Swapped in, then hydrated"
+    code={`---
+import {ClientRouter} from 'astro:transitions';
+---
+<head>
+  <ClientRouter />
+</head>`}
+  >
+    <p slot="explain">
+      The router fetches the next page and parses it, which leaves its
+      declarative shadow roots as plain templates. The integration attaches
+      them before the swap, so the elements below hydrate what the server sent
+      rather than render again, and an element holding an array gets it from
+      its marker as on a full load.
+    </p>
+    <arrival-badge id="arrival"></arrival-badge>
+    <island-probe id="plain" label="plain tag"></island-probe>
+    <IslandProbe id="island" label="client:load" client:load />
+    <tag-list id="tags" tags={['swapped', 'still', 'hydrated']}>
+      <h3 slot="title">Carried in the marker</h3>
+    </tag-list>
+    <p slot="try">
+      Go to another page in the nav and come back: the badge says this page
+      was swapped in, and both probes say <em>Hydrated</em>, not <em
+        >Rendered in the browser</em
+      >.
+    </p>
+  </Showcase>
+
+  <Showcase
+    title="An element that stays"
+    code={`<visit-counter transition:persist></visit-counter>`}
+  >
+    <p slot="explain">
+      The counter at the bottom of the nav is marked{' '}
+      <code>transition:persist</code>. Astro moves that one element into each
+      page it swaps in, so its state carries on; only a full reload starts it
+      over.
+    </p>
+    <p slot="try">
+      Click through a few pages, then reload: the count goes back to 1.
+    </p>
+  </Showcase>
+
+  <script>
+    import '../components/arrival-badge.ts';
+    import '../components/island-probe.ts';
+    import '../components/tag-list.ts';
+  </script>
+</Demo>

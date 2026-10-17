@@ -35,7 +35,7 @@ test('the toolbar window shows the panel the hub mounts', async () => {
     websocket: {path: '../__devtools/__ws'},
   });
 
-  await page.goto(`${fixture.origin}/`);
+  await page.goto(`${fixture.origin}/basics/`);
   await page.locator('#dev-bar [data-app-id="lit-devtools"]').click();
   await expect
     .poll(

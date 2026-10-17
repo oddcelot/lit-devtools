@@ -1,32 +1,31 @@
 # Lit in Astro
 
-Lit components rendered on the server by Astro and hydrated in the page,
-through `@oddsquad/vite-plugin-lit/astro`: Astro's renderer for Lit, the
-plugin's HMR, and its Lit panel in Astro's dev toolbar.
+A demo site for `@oddsquad/vite-plugin-lit/astro`: Astro's renderer for
+Lit, the plugin's HMR, and its Lit panel in Astro's dev toolbar, with a page
+for each thing they do.
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-`astro.config.mjs` adds one integration, `lit()`. Click the Lit logo in the
-dev toolbar to open the panel; the first time, it asks for the code the
-terminal prints.
+Click the Lit logo in the dev toolbar to open the panel; the first time, it
+asks for the code the terminal prints.
 
-- `<ssr-counter>` is a plain tag. It hydrates as soon as its class loads,
-  and says _Hydrated_.
-- `<ssr-deferred>` is written with `defer-hydration`, which the renderer
-  leaves alone: its plant hangs wilted until **Water the plant** removes the
-  attribute.
-- `<ssr-themed>` adopts a `?css-sheet` stylesheet, which the server writes
-  into its shadow root.
-- `<tag-list>` takes an array, which no attribute can carry. As a plain tag
-  (`#plain`) the array rides along as JSON; as a `client:visible` island
-  (`#island`) Astro hands it over when it scrolls into view; as
-  `client:only` (`#only`) it renders in the browser only.
+| Page            | What it shows                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------- |
+| `/basics/`      | Declarative shadow roots, hydration in place, `?css-sheet`, a `defer-hydration` you control   |
+| `/islands/`     | Every `client:` directive, each element saying when it hydrated                               |
+| `/props/`       | Attributes and properties; `Date`, `Map`, `Set`, `URL`, `BigInt` on a plain tag and an island |
+| `/slots/`       | Default and named slots on a plain tag, a hydrated island and a `client:only` one             |
+| `/nested/`      | Lit elements rendering Lit elements, server-rendered as one                                   |
+| `/transitions/` | Pages swapped in by the `ClientRouter` that still hydrate, and a persisted element            |
+| `/frameworks/`  | Preact islands next to Lit's, and Lit elements inside a Preact component                      |
+| `/on-demand/`   | A page the Node adapter renders for each request                                              |
+| `/devtools/`    | Edits that keep state, the toolbar panel, the source overlay                                  |
 
-Edit a component while the page is open: it updates in place and keeps its
-state.
+The site is styled with the Lit design system's tokens (`src/styles/tokens.css`);
+the components share one `?css-sheet`, `src/components/ui.css`.
 
 ## Production build
 
@@ -35,17 +34,8 @@ pnpm build
 pnpm preview
 ```
 
-The build hydrates as dev does, with no devtools in it.
-
-## On-demand rendering
-
-```sh
-pnpm build:server
-pnpm start:server
-```
-
-`astro.server.config.mjs` is the same site with `output: 'server'` and the
-Node adapter, so each request renders the page anew.
+The build hydrates as dev does, with no devtools in it. `/on-demand/` is
+served by the Node adapter; every other page is prebuilt.
 
 ## Container API
 
@@ -53,16 +43,11 @@ Node adapter, so each request renders the page anew.
 pnpm test
 ```
 
-`test/container.test.ts` renders the page with Astro's container API and
+`test/container.test.ts` renders `/basics/` with Astro's container API and
 the renderer from `getContainerRenderer()`.
 
 ## Next to Preact
 
-```sh
-pnpm build:multi
-pnpm preview:multi
-```
-
-`astro.multi.config.mjs` puts a Preact island next to Lit's, on the pages in
-`multi/`. Preact's integration is limited to `.tsx` files, so it leaves Lit's
-decorated `.ts` to Lit.
+`astro.config.mjs` adds Preact's integration, limited to `.tsx` files so it
+leaves Lit's decorated `.ts` to Lit. `/frameworks/` puts Preact islands next
+to Lit's, and Lit elements inside a Preact component.

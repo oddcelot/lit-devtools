@@ -1,5 +1,6 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
+import ui from './ui.css?css-sheet';
 
 /**
  * Rendered with `defer-hydration`, so it stays server HTML until the
@@ -10,104 +11,104 @@ import {customElement, state} from 'lit/decorators.js';
  */
 @customElement('ssr-deferred')
 export class SsrDeferred extends LitElement {
-  static override styles = css`
-    :host {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
-      border-radius: 0.5rem;
-      --grow: 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s;
-    }
-    svg {
-      width: 7.5rem;
-      flex: none;
-      overflow: visible;
-    }
-
-    /* Wilted: the server's HTML, and the element until it hydrates. */
-    .stem {
-      transform-origin: 60px 100px;
-      transform: rotate(12deg);
-    }
-    .head {
-      transform-origin: 60px 64px;
-      transform: rotate(105deg);
-    }
-    .leaf-l {
-      transform-origin: 60px 82px;
-      transform: rotate(-40deg);
-    }
-    .leaf-r {
-      transform-origin: 60px 70px;
-      transform: rotate(40deg);
-    }
-    .bloom {
-      transform-origin: 60px 34px;
-      transform: scale(0.35);
-    }
-    .green {
-      fill: #a8955f;
-      stroke: #a8955f;
-    }
-    .petal {
-      fill: #b9a586;
-    }
-    .drop {
-      fill: #5aa9e6;
-      opacity: 0;
-    }
-    .stem,
-    .head,
-    .leaf-l,
-    .leaf-r,
-    .bloom,
-    .green,
-    .petal {
-      transition:
-        transform var(--grow),
-        fill var(--grow),
-        stroke var(--grow);
-    }
-
-    /* Hydrated: watered, so it comes alive. */
-    :host([hydrated]) :is(.stem, .head, .leaf-l, .leaf-r, .bloom) {
-      transform: none;
-    }
-    :host([hydrated]) .green {
-      fill: #3f9d4a;
-      stroke: #3f9d4a;
-    }
-    :host([hydrated]) .petal {
-      fill: #e2557a;
-    }
-    :host([hydrated]) .drop {
-      animation: fall 0.5s ease-in both;
-    }
-    :host([hydrated]) .drop:nth-of-type(2) {
-      animation-delay: 0.12s;
-    }
-    :host([hydrated]) .drop:nth-of-type(3) {
-      animation-delay: 0.24s;
-    }
-    @keyframes fall {
-      from {
-        opacity: 1;
-        transform: translateY(-24px);
+  static override styles = [
+    ui,
+    css`
+      :host {
+        display: flex;
+        align-items: center;
+        gap: var(--space-8);
+        --grow: 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s;
       }
-      to {
+      svg {
+        width: 7.5rem;
+        flex: none;
+        overflow: visible;
+      }
+
+      /* Wilted: the server's HTML, and the element until it hydrates. */
+      .stem {
+        transform-origin: 60px 100px;
+        transform: rotate(12deg);
+      }
+      .head {
+        transform-origin: 60px 64px;
+        transform: rotate(105deg);
+      }
+      .leaf-l {
+        transform-origin: 60px 82px;
+        transform: rotate(-40deg);
+      }
+      .leaf-r {
+        transform-origin: 60px 70px;
+        transform: rotate(40deg);
+      }
+      .bloom {
+        transform-origin: 60px 34px;
+        transform: scale(0.35);
+      }
+      .green {
+        fill: #a8955f;
+        stroke: #a8955f;
+      }
+      .petal {
+        fill: #b9a586;
+      }
+      .drop {
+        fill: #5aa9e6;
         opacity: 0;
-        transform: translateY(40px);
       }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        transition: none !important;
-        animation: none !important;
+      .stem,
+      .head,
+      .leaf-l,
+      .leaf-r,
+      .bloom,
+      .green,
+      .petal {
+        transition:
+          transform var(--grow),
+          fill var(--grow),
+          stroke var(--grow);
       }
-    }
-  `;
+
+      /* Hydrated: watered, so it comes alive. */
+      :host([hydrated]) :is(.stem, .head, .leaf-l, .leaf-r, .bloom) {
+        transform: none;
+      }
+      :host([hydrated]) .green {
+        fill: #3f9d4a;
+        stroke: #3f9d4a;
+      }
+      :host([hydrated]) .petal {
+        fill: #e2557a;
+      }
+      :host([hydrated]) .drop {
+        animation: fall 0.5s ease-in both;
+      }
+      :host([hydrated]) .drop:nth-of-type(2) {
+        animation-delay: 0.12s;
+      }
+      :host([hydrated]) .drop:nth-of-type(3) {
+        animation-delay: 0.24s;
+      }
+      @keyframes fall {
+        from {
+          opacity: 1;
+          transform: translateY(-24px);
+        }
+        to {
+          opacity: 0;
+          transform: translateY(40px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+    `,
+  ];
 
   @state() private clicks = 0;
 

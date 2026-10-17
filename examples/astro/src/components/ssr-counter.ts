@@ -1,5 +1,6 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
+import ui from './ui.css?css-sheet';
 
 /**
  * Rendered on the server with its starting count, then hydrated: the button
@@ -10,18 +11,18 @@ import {customElement, property, state} from 'lit/decorators.js';
  */
 @customElement('ssr-counter')
 export class SsrCounter extends LitElement {
-  static override styles = css`
-    :host {
-      display: block;
-      padding: 1rem;
-      border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
-      border-radius: 0.5rem;
-    }
-    :host([hydrated]) .server,
-    :host(:not([hydrated])) .client {
-      display: none;
-    }
-  `;
+  static override styles = [
+    ui,
+    css`
+      :host([hydrated]) .server,
+      :host(:not([hydrated])) .client {
+        display: none;
+      }
+      #side {
+        margin: var(--space-5) 0 0;
+      }
+    `,
+  ];
 
   @property({type: Number}) start = 0;
 
@@ -43,8 +44,8 @@ export class SsrCounter extends LitElement {
         Count: ${this.count}
       </button>
       <p id="side">
-        <span class="server">Server-rendered</span>
-        <span class="client">Hydrated</span>
+        <span class="badge server">Server-rendered</span>
+        <span class="badge hydrated client">Hydrated</span>
       </p>
     `;
   }

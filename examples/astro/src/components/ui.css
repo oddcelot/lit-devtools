@@ -1,0 +1,85 @@
+/*
+ * What the demo's Lit components share, adopted as a `?css-sheet`: on the
+ * server it renders into each shadow root, in the browser it is one sheet.
+ * The tokens it reads come from the page and inherit into shadow roots.
+ */
+
+:host {
+  display: block;
+  padding: var(--space-7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-container);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+h2,
+h3 {
+  margin: 0 0 var(--space-4);
+  color: var(--text-strong);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+}
+
+button {
+  padding: var(--space-3) var(--space-6);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: var(--weight-semibold) var(--text-md) var(--font-sans);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+
+button:hover {
+  background: var(--accent-hover);
+}
+
+button:active {
+  background: var(--accent-pressed);
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-4);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.server {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.hydrated {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.muted {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}

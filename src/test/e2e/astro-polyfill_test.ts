@@ -11,10 +11,16 @@ import {counterHydrates, open, shadow} from './astro-build-utils.js';
 import {type AstroFixture, startAstroFixture} from './astro-utils.js';
 
 const CONFIG = `import {defineConfig} from 'astro/config';
+import node from '@astrojs/node';
+import preact from '@astrojs/preact';
 import lit from '@oddsquad/vite-plugin-lit/astro';
 
 export default defineConfig({
-  integrations: [lit({shadowRootPolyfill: true})],
+  adapter: node({mode: 'standalone'}),
+  integrations: [
+    preact({include: ['**/*.tsx']}),
+    lit({shadowRootPolyfill: true}),
+  ],
 });
 `;
 

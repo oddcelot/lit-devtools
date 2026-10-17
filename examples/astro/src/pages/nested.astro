@@ -1,0 +1,48 @@
+---
+import '../components/task-list.ts';
+import {TaskList} from '../components/task-list.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+
+const tasks = ['Render on the server', 'Hydrate the list', 'Hydrate each item'];
+---
+
+<Demo
+  title="Nested elements"
+  lede="A Lit element that renders Lit elements is server-rendered as a whole, and hydrates from the outside in."
+>
+  <Showcase
+    title="Elements inside elements"
+    code={`<task-list tasks={['Render on the server', …]}></task-list>
+
+// task-list.ts renders a <task-item> per task:
+html\`\${this.tasks.map((task) => html\`<task-item .label=\${task}></task-item>\`)}\``}
+  >
+    <p slot="explain">
+      <code>@lit-labs/ssr</code> renders each <code>&lt;task-item&gt;</code>
+      into the list's shadow root, with a shadow root of its own, and holds it
+      back with <code>defer-hydration</code>. The list hydrates first and sets
+      each item's <code>label</code>, then releases it.
+    </p>
+    <task-list id="plain" tasks={tasks}></task-list>
+    <ul slot="try">
+      <li>Tick a task: the item keeps its own state and tells the list.</li>
+      <li>
+        In the Lit panel, expand <code>&lt;task-list&gt;</code>: the items sit
+        under it, each marked <code>SSR</code>.
+      </li>
+    </ul>
+  </Showcase>
+
+  <Showcase title="As an island" code={`<TaskList client:visible tasks={tasks} />`}>
+    <p slot="explain">
+      The same nesting inside an island: everything waits for the directive,
+      then hydrates in the same order.
+    </p>
+    <TaskList id="island" client:visible tasks={tasks} />
+  </Showcase>
+
+  <script>
+    import '../components/task-list.ts';
+  </script>
+</Demo>

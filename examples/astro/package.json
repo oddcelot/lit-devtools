@@ -8,24 +8,21 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "dev:server": "astro dev --config astro.server.config.mjs",
-    "build:server": "astro build --config astro.server.config.mjs",
-    "start:server": "node dist/server/entry.mjs",
-    "test": "vitest run",
-    "build:multi": "astro build --config astro.multi.config.mjs",
-    "preview:multi": "astro preview --config astro.multi.config.mjs"
+    "test": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource/roboto-mono": "^5.3.0",
     "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
     "astro": "^7.3.5",
     "lit": "^3.3.3"
   },
   "devDependencies": {
-    "@oddsquad/vite-plugin-lit": "*",
     "@astrojs/node": "^11.1.8",
-    "vitest": "^5.0.5",
     "@astrojs/preact": "^6.1.0",
-    "preact": "^11.0.1"
+    "@oddsquad/vite-plugin-lit": "*",
+    "preact": "^11.0.1",
+    "vitest": "^5.0.5"
   }
 }
