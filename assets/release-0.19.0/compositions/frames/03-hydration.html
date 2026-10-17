@@ -1,0 +1,673 @@
+<template>
+  <style>
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 500;
+      src: url('assets/manrope-medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 600;
+      src: url('assets/manrope-semibold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 700;
+      src: url('assets/manrope-bold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 800;
+      src: url('assets/manrope-extrabold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto Mono';
+      font-weight: 400;
+      src: url('assets/RobotoMono-Latin-400.woff2') format('woff2');
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Manrope', sans-serif;
+      color: #e3e3e3;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+
+    .f03-hyd-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle 1000px at 1344px 430px,
+          rgba(42, 44, 157, 0.35),
+          rgba(42, 44, 157, 0) 100%
+        ),
+        #030308;
+    }
+    .f03-hyd-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .f03-hyd-eyebrow {
+      position: absolute;
+      left: 115px;
+      top: 230px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4d63ff;
+    }
+    .f03-hyd-hl {
+      position: absolute;
+      left: 115px;
+      top: 273px;
+      width: 576px;
+      font-weight: 800;
+      font-size: 69px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    .f03-hyd-line {
+      display: block;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f03-hyd-cy {
+      color: #00e8ff;
+    }
+    .f03-hyd-sub {
+      position: absolute;
+      left: 115px;
+      top: 442px;
+      width: 556px;
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 1.4;
+      color: #a1a1a1;
+      opacity: 0;
+    }
+
+    .f03-hyd-call {
+      position: absolute;
+      left: 1056px;
+      top: 20px;
+      width: 768px;
+      display: flex;
+      justify-content: center;
+      opacity: 0;
+      z-index: 6;
+    }
+    .f03-hyd-callin {
+      height: 48px;
+      padding: 0 22px;
+      border-radius: 99px;
+      background: #292929;
+      border: 1px solid rgba(77, 99, 255, 0.45);
+      box-shadow: 0 19px 38px rgba(0, 0, 0, 0.6);
+      font-family: 'Roboto Mono', monospace;
+      font-size: 19px;
+      line-height: 46px;
+      color: #82aaff;
+      white-space: nowrap;
+    }
+    .f03-hyd-callin .f03-hyd-s {
+      color: #c3e88d;
+    }
+
+    .f03-hyd-win {
+      position: absolute;
+      left: 768px;
+      top: 86px;
+      width: 1056px;
+      height: 912px;
+      background: #121212;
+      border: 1px solid #363636;
+      border-radius: 15px;
+      box-shadow: 0 38px 96px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+    .f03-hyd-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 56px;
+      background: #1c1c1c;
+      border-bottom: 1px solid #363636;
+      z-index: 3;
+    }
+    .f03-hyd-flame {
+      position: absolute;
+      left: 31px;
+      top: 17px;
+      height: 22px;
+      width: auto;
+    }
+    .f03-hyd-brand {
+      position: absolute;
+      left: 58px;
+      top: 0;
+      line-height: 55px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .f03-hyd-tabs {
+      position: absolute;
+      left: 250px;
+      top: 0;
+      height: 55px;
+      display: flex;
+      gap: 38px;
+    }
+    .f03-hyd-tab {
+      position: relative;
+      line-height: 55px;
+      font-weight: 600;
+      font-size: 17px;
+      color: #a1a1a1;
+      white-space: nowrap;
+    }
+    .f03-hyd-tabon {
+      color: #4d63ff;
+    }
+    .f03-hyd-under {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 53px;
+      height: 2px;
+      background: #4d63ff;
+    }
+    .f03-hyd-ver {
+      position: absolute;
+      right: 27px;
+      top: 13px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      line-height: 22px;
+      color: #00e8ff;
+      border: 1px solid rgba(0, 232, 255, 0.4);
+      border-radius: 99px;
+      padding: 3px 15px;
+    }
+
+    .f03-hyd-comp {
+      position: absolute;
+      left: 0;
+      top: 56px;
+      right: 0;
+      bottom: 0;
+    }
+    .f03-hyd-tree {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 288px;
+      bottom: 0;
+      border-right: 1px solid #363636;
+      padding: 23px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 17px;
+      color: #a1a1a1;
+    }
+    .f03-hyd-trow {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      line-height: 40px;
+      height: 40px;
+      white-space: nowrap;
+    }
+    .f03-hyd-sel {
+      position: absolute;
+      left: 0;
+      top: 63px;
+      width: 287px;
+      height: 40px;
+      background: rgba(77, 99, 255, 0.16);
+      box-shadow: inset 4px 0 0 #4d63ff;
+      opacity: 0;
+    }
+
+    .f03-hyd-slot {
+      position: relative;
+      display: inline-grid;
+      align-items: center;
+      justify-items: start;
+    }
+    .f03-hyd-slot > * {
+      grid-area: 1 / 1;
+    }
+    .f03-hyd-chip {
+      display: inline-block;
+      height: 24px;
+      padding: 0 9px;
+      border-radius: 99px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 22px;
+      white-space: nowrap;
+    }
+    .f03-hyd-ssr {
+      color: #34e0a1;
+      background: rgba(52, 224, 161, 0.12);
+      border: 1px solid rgba(52, 224, 161, 0.45);
+    }
+    .f03-hyd-def {
+      color: #8c9bff;
+      background: rgba(77, 99, 255, 0.16);
+      border: 1px solid rgba(77, 99, 255, 0.45);
+    }
+    .f03-hyd-not {
+      color: #a1a1a1;
+      background: transparent;
+      border: 1px solid #616161;
+    }
+    .f03-hyd-flash {
+      position: absolute;
+      inset: -3px;
+      border-radius: 99px;
+      background: rgba(0, 232, 255, 0.55);
+      box-shadow: 0 0 24px rgba(0, 232, 255, 0.7);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .f03-hyd-det {
+      position: absolute;
+      left: 288px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      padding: 27px 35px;
+    }
+    .f03-hyd-empty {
+      position: absolute;
+      left: 35px;
+      top: 27px;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 36px;
+      color: #616161;
+    }
+    .f03-hyd-detin {
+      opacity: 0;
+    }
+    .f03-hyd-dh {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 23px;
+      line-height: 36px;
+      color: #89ddff;
+    }
+    .f03-hyd-src {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 14px;
+      line-height: 20px;
+      color: #616161;
+      margin-top: 4px;
+    }
+    .f03-hyd-sec {
+      margin-top: 15px;
+      padding-top: 15px;
+      padding-bottom: 10px;
+      border-top: 1px solid #363636;
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #616161;
+    }
+    .f03-hyd-row {
+      display: flex;
+      align-items: center;
+      gap: 19px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 18px;
+      line-height: 36px;
+      height: 36px;
+      color: #b2ccd6;
+      white-space: nowrap;
+    }
+    .f03-hyd-n {
+      color: #f78c6c;
+    }
+    .f03-hyd-desc {
+      position: relative;
+      display: inline-grid;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: #a1a1a1;
+    }
+    .f03-hyd-desc > * {
+      grid-area: 1 / 1;
+      white-space: nowrap;
+    }
+    .f03-hyd-desc code {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 15px;
+      color: #89ddff;
+    }
+    .f03-hyd-ok {
+      color: #34e0a1;
+      opacity: 0;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-hm27"
+    id="root"
+    data-composition-id="03-hydration"
+    data-width="1920"
+    data-height="1080"
+    data-duration="6.206"
+  >
+    <div
+      data-hf-id="hf-242g"
+      id="f03-hyd-ground"
+      class="f03-hyd-ground clip"
+      data-start="0"
+      data-duration="6.206"
+      data-track-index="0"
+    ></div>
+
+    <div
+      data-hf-id="hf-li19"
+      id="f03-hyd-stage"
+      class="f03-hyd-stage clip"
+      data-start="0"
+      data-duration="6.206"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-i5xy" class="f03-hyd-eyebrow" id="f03-hyd-eyebrow">
+        Added
+      </div>
+      <div data-hf-id="hf-kziu" class="f03-hyd-hl">
+        <span data-hf-id="hf-q8j6" class="f03-hyd-line" id="f03-hyd-l1"
+          >Hydration,</span
+        >
+        <span data-hf-id="hf-lmv3" class="f03-hyd-line" id="f03-hyd-l2"
+          ><span data-hf-id="hf-296h" class="f03-hyd-cy"
+            >in the tree.</span
+          ></span
+        >
+      </div>
+      <div data-hf-id="hf-nq5x" class="f03-hyd-sub" id="f03-hyd-sub">
+        Deferred, not hydrated, SSR: each server-rendered element says where it
+        stands, the moment it changes.
+      </div>
+
+      <div data-hf-id="hf-ztwy" class="f03-hyd-call" id="f03-hyd-call">
+        <div data-hf-id="hf-e2pi" class="f03-hyd-callin">
+          removeAttribute(<span data-hf-id="hf-0nlb" class="f03-hyd-s"
+            >'defer-hydration'</span
+          >)
+        </div>
+      </div>
+
+      <div data-hf-id="hf-nd1m" class="f03-hyd-win" id="f03-hyd-win">
+        <div data-hf-id="hf-m36t" class="f03-hyd-bar">
+          <img
+            data-hf-id="hf-g6xh"
+            class="f03-hyd-flame"
+            src="assets/flame.svg"
+            alt=""
+          />
+          <div data-hf-id="hf-k2oc" class="f03-hyd-brand">LIT DEVTOOLS</div>
+          <div data-hf-id="hf-l4za" class="f03-hyd-tabs">
+            <span data-hf-id="hf-e9j0" class="f03-hyd-tab f03-hyd-tabon"
+              >Components<span data-hf-id="hf-xzvv" class="f03-hyd-under"></span
+            ></span>
+            <span data-hf-id="hf-0q1a" class="f03-hyd-tab">Updates</span>
+            <span data-hf-id="hf-6w8r" class="f03-hyd-tab">Timeline</span>
+            <span data-hf-id="hf-bvkl" class="f03-hyd-tab">Settings</span>
+          </div>
+          <div data-hf-id="hf-06yb" class="f03-hyd-ver">0.19.0</div>
+        </div>
+
+        <div data-hf-id="hf-2fhr" class="f03-hyd-comp">
+          <div data-hf-id="hf-oxxa" class="f03-hyd-tree">
+            <div
+              data-hf-id="hf-i3gi"
+              class="f03-hyd-sel"
+              id="f03-hyd-sel"
+            ></div>
+            <div data-hf-id="hf-xeu6" class="f03-hyd-trow">
+              <span data-hf-id="hf-4672">ssr-counter</span>
+              <span data-hf-id="hf-20rj" class="f03-hyd-slot">
+                <span
+                  data-hf-id="hf-mq1l"
+                  class="f03-hyd-chip f03-hyd-not"
+                  id="f03-hyd-c1not"
+                  >not hydrated</span
+                >
+                <span
+                  data-hf-id="hf-w6po"
+                  class="f03-hyd-chip f03-hyd-ssr"
+                  id="f03-hyd-c1ssr"
+                  style="opacity: 0"
+                  >SSR</span
+                >
+              </span>
+            </div>
+            <div data-hf-id="hf-vcgq" class="f03-hyd-trow" id="f03-hyd-r2">
+              <span data-hf-id="hf-34tk" id="f03-hyd-r2tag">ssr-deferred</span>
+              <span data-hf-id="hf-9crj" class="f03-hyd-slot">
+                <span
+                  data-hf-id="hf-8js5"
+                  class="f03-hyd-chip f03-hyd-def"
+                  id="f03-hyd-c2def"
+                  >deferred</span
+                >
+                <span
+                  data-hf-id="hf-eblt"
+                  class="f03-hyd-chip f03-hyd-ssr"
+                  id="f03-hyd-c2ssr"
+                  style="opacity: 0"
+                  >SSR</span
+                >
+                <span
+                  data-hf-id="hf-421a"
+                  class="f03-hyd-flash"
+                  id="f03-hyd-c2flash"
+                ></span>
+              </span>
+            </div>
+            <div data-hf-id="hf-4lz6" class="f03-hyd-trow">
+              <span data-hf-id="hf-cnyh">ssr-themed</span>
+              <span data-hf-id="hf-8ygi" class="f03-hyd-slot">
+                <span
+                  data-hf-id="hf-8f4j"
+                  class="f03-hyd-chip f03-hyd-not"
+                  id="f03-hyd-c3not"
+                  >not hydrated</span
+                >
+                <span
+                  data-hf-id="hf-m852"
+                  class="f03-hyd-chip f03-hyd-ssr"
+                  id="f03-hyd-c3ssr"
+                  style="opacity: 0"
+                  >SSR</span
+                >
+              </span>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-r02t" class="f03-hyd-det">
+            <div data-hf-id="hf-utaw" class="f03-hyd-empty" id="f03-hyd-empty">
+              Select a component to inspect it.
+            </div>
+            <div data-hf-id="hf-9k9a" class="f03-hyd-detin" id="f03-hyd-detin">
+              <div data-hf-id="hf-xe2s" class="f03-hyd-dh">
+                &lt;ssr-deferred&gt;
+              </div>
+              <div data-hf-id="hf-mwhr" class="f03-hyd-src">
+                src/ssr-deferred.ts:9
+              </div>
+              <div data-hf-id="hf-ajwl" class="f03-hyd-sec">Hydration</div>
+              <div data-hf-id="hf-zoa6" class="f03-hyd-row">
+                <span data-hf-id="hf-8k5h" class="f03-hyd-slot">
+                  <span
+                    data-hf-id="hf-mtas"
+                    class="f03-hyd-chip f03-hyd-def"
+                    id="f03-hyd-ddef"
+                    >deferred</span
+                  >
+                  <span
+                    data-hf-id="hf-8mva"
+                    class="f03-hyd-chip f03-hyd-ssr"
+                    id="f03-hyd-dssr"
+                    style="opacity: 0"
+                    >SSR</span
+                  >
+                  <span
+                    data-hf-id="hf-l2ox"
+                    class="f03-hyd-flash"
+                    id="f03-hyd-dflash"
+                  ></span>
+                </span>
+                <span data-hf-id="hf-0fa4" class="f03-hyd-desc">
+                  <span data-hf-id="hf-o73u" id="f03-hyd-dheld"
+                    >held back by
+                    <code data-hf-id="hf-64j3">defer-hydration</code></span
+                  >
+                  <span data-hf-id="hf-z1ks" class="f03-hyd-ok" id="f03-hyd-dok"
+                    >hydrated</span
+                  >
+                </span>
+              </div>
+              <div data-hf-id="hf-2bcc" class="f03-hyd-sec">Properties</div>
+              <div data-hf-id="hf-h8ky" class="f03-hyd-row">
+                <span data-hf-id="hf-3n0o">clicks</span
+                ><span data-hf-id="hf-dcql" class="f03-hyd-n">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) {
+        return document.getElementById('f03-hyd-' + id);
+      };
+      var tl = gsap.timeline({paused: true});
+      var F = 1 / 60;
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, {opacity: 1, y: dy}, at);
+        tl.to(el, {y: 0, duration: dur, ease: 'power4.out'}, at);
+      }
+
+      // A chip swap: the old state fades, the new one pops in place.
+      function swap(from, to, at) {
+        tl.to(from, {opacity: 0, duration: 0.12, ease: 'power2.in'}, at);
+        tl.fromTo(
+          to,
+          {opacity: 0, scale: 0.6},
+          {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(3)'},
+          at
+        );
+      }
+
+      function flash(el, at) {
+        tl.fromTo(
+          el,
+          {opacity: 0.9},
+          {
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          at
+        );
+      }
+
+      // 0: window set, headline in; chips read not hydrated / deferred / not hydrated.
+      tl.fromTo(
+        $('win'),
+        {y: 40, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.5, ease: 'power3.out'},
+        0
+      );
+      tl.fromTo(
+        $('eyebrow'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.4, ease: 'power2.out'},
+        0.05
+      );
+      arrive($('l1'), 0.1, 80, 0.2);
+      arrive($('l2'), 0.3 - F, 60, 0.18);
+
+      // 1.09: ssr-counter hydrates; 1.37: ssr-themed.
+      swap($('c1not'), $('c1ssr'), 1.09);
+      swap($('c3not'), $('c3ssr'), 1.37);
+      arrive($('sub'), 1.09, 30, 0.2);
+
+      // 1.64: ssr-deferred selected, details pane fills.
+      tl.fromTo(
+        $('sel'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.15, ease: 'power2.out'},
+        1.64
+      );
+      tl.to($('r2tag'), {color: '#ffffff', duration: 0.15}, 1.64);
+      tl.set($('empty'), {opacity: 0}, 1.64);
+      tl.fromTo(
+        $('detin'),
+        {opacity: 0, y: 12},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        1.64
+      );
+
+      // 2.73: the callout drops in; 3.27: the tree chip and the details row hydrate together.
+      tl.fromTo(
+        $('call'),
+        {opacity: 0, y: -24},
+        {opacity: 1, y: 0, duration: 0.35, ease: 'power3.out'},
+        2.73
+      );
+      swap($('c2def'), $('c2ssr'), 3.27);
+      swap($('ddef'), $('dssr'), 3.27);
+      tl.to($('dheld'), {opacity: 0, duration: 0.12, ease: 'power2.in'}, 3.27);
+      tl.fromTo(
+        $('dok'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.2, ease: 'power2.out'},
+        3.27
+      );
+      flash($('c2flash'), 3.27);
+      flash($('dflash'), 3.27);
+
+      // 3.82 → end: held read.
+      tl.set({}, {}, 6.545);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(
+        1.117715
+      ); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({paused: true}).add(tl, 0);
+      window.__timelines['03-hydration'] = tlOuter;
+    })();
+  </script>
+</template>

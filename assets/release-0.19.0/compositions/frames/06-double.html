@@ -1,0 +1,730 @@
+<template>
+  <style>
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 500;
+      src: url('assets/manrope-medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 600;
+      src: url('assets/manrope-semibold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 700;
+      src: url('assets/manrope-bold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 800;
+      src: url('assets/manrope-extrabold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto Mono';
+      font-weight: 400;
+      src: url('assets/RobotoMono-Latin-400.woff2') format('woff2');
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Manrope', sans-serif;
+      color: #e3e3e3;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+
+    .f06-dbl-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle 1000px at 1344px 430px,
+          rgba(42, 44, 157, 0.35),
+          rgba(42, 44, 157, 0) 100%
+        ),
+        #030308;
+    }
+    .f06-dbl-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .f06-dbl-eyebrow {
+      position: absolute;
+      left: 115px;
+      top: 115px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4d63ff;
+    }
+    .f06-dbl-hl {
+      position: absolute;
+      left: 115px;
+      top: 158px;
+      font-weight: 800;
+      font-size: 69px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+      white-space: nowrap;
+    }
+    .f06-dbl-hl span {
+      display: inline-block;
+      opacity: 0;
+    }
+    .f06-dbl-cy {
+      color: #00e8ff;
+    }
+    .f06-dbl-sub {
+      position: absolute;
+      left: 115px;
+      top: 254px;
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 1.4;
+      color: #a1a1a1;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-sub code {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 22px;
+      color: #e3e3e3;
+    }
+
+    .f06-dbl-panel {
+      position: absolute;
+      top: 326px;
+      height: 634px;
+      border: 1px solid #363636;
+      border-radius: 12px;
+      box-shadow: 0 38px 96px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+    .f06-dbl-left {
+      left: 115px;
+      width: 806px;
+      background: #0b0b12;
+    }
+    .f06-dbl-right {
+      left: 979px;
+      width: 826px;
+      background: #121212;
+    }
+
+    /* Code card */
+    .f06-dbl-file {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 32px;
+      border-bottom: 1px solid #363636;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      color: #616161;
+      white-space: nowrap;
+    }
+    .f06-dbl-file i {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #4d63ff;
+    }
+    .f06-dbl-code {
+      position: relative;
+      padding: 34px 32px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 26px;
+      line-height: 50px;
+      color: #e3e3e3;
+    }
+    .f06-dbl-ln {
+      position: relative;
+      height: 50px;
+      white-space: pre;
+    }
+    .f06-dbl-ln > span > span {
+      opacity: 0;
+    }
+    .f06-dbl-k {
+      color: #c792ea;
+    }
+    .f06-dbl-c {
+      color: #82aaff;
+    }
+    .f06-dbl-p {
+      color: #b2ccd6;
+    }
+    .f06-dbl-s {
+      color: #c3e88d;
+    }
+    .f06-dbl-o {
+      color: #a1a1a1;
+    }
+    .f06-dbl-ul {
+      position: absolute;
+      left: 62px;
+      top: 42px;
+      width: 546px;
+      height: 3px;
+      border-radius: 2px;
+      background: #ff6b6b;
+      transform-origin: 0 50%;
+      transform: scaleX(0);
+    }
+    .f06-dbl-note {
+      position: absolute;
+      left: 32px;
+      top: 270px;
+      font-family: 'Manrope', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+      font-size: 20px;
+      color: #ff6b6b;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-note code {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 19px;
+    }
+
+    /* Updates panel header (after 0.18.0 05-request) */
+    .f06-dbl-bar {
+      position: relative;
+      height: 56px;
+      background: #1c1c1c;
+      border-bottom: 1px solid #363636;
+    }
+    .f06-dbl-flame {
+      position: absolute;
+      left: 31px;
+      top: 17px;
+      height: 22px;
+      width: auto;
+    }
+    .f06-dbl-brand {
+      position: absolute;
+      left: 58px;
+      top: 0;
+      line-height: 55px;
+      font-weight: 800;
+      font-size: 18px;
+      letter-spacing: 0.12em;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .f06-dbl-tabs {
+      position: absolute;
+      left: 250px;
+      top: 0;
+      height: 55px;
+      display: flex;
+      gap: 38px;
+    }
+    .f06-dbl-tab {
+      position: relative;
+      line-height: 55px;
+      font-weight: 600;
+      font-size: 17px;
+      color: #a1a1a1;
+      white-space: nowrap;
+    }
+    .f06-dbl-tab.f06-dbl-on {
+      color: #4d63ff;
+    }
+    .f06-dbl-tab.f06-dbl-on::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 53px;
+      height: 2px;
+      background: #4d63ff;
+    }
+    .f06-dbl-ver {
+      position: absolute;
+      right: 27px;
+      top: 13px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      line-height: 22px;
+      color: #00e8ff;
+      border: 1px solid rgba(0, 232, 255, 0.4);
+      border-radius: 99px;
+      padding: 3px 15px;
+    }
+
+    .f06-dbl-upd {
+      position: relative;
+      padding: 24px 35px;
+    }
+    .f06-dbl-uhead {
+      display: flex;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #363636;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #616161;
+    }
+    .f06-dbl-urow {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 64px;
+      margin: 0 -35px;
+      padding: 0 35px;
+      border-bottom: 1px solid rgba(54, 54, 54, 0.7);
+      font-family: 'Roboto Mono', monospace;
+      font-size: 19px;
+      color: #a1a1a1;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-ucol {
+      width: 330px;
+      flex: 0 0 auto;
+    }
+    .f06-dbl-utag {
+      color: #89ddff;
+    }
+    .f06-dbl-pair {
+      background: rgba(77, 99, 255, 0.08);
+    }
+    .f06-dbl-chip {
+      display: inline-block;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 99px;
+      font-family: 'Manrope', sans-serif;
+      font-weight: 600;
+      font-size: 17px;
+      line-height: 34px;
+      border: 1px solid rgba(0, 232, 255, 0.5);
+      background: rgba(0, 232, 255, 0.1);
+      color: #00e8ff;
+    }
+    .f06-dbl-link {
+      position: absolute;
+      left: -21px;
+      z-index: 1;
+      top: 0;
+      width: 3px;
+      height: 128px;
+      border-radius: 2px;
+      background: #00e8ff;
+      transform-origin: 50% 0;
+      transform: scaleY(0);
+    }
+
+    .f06-dbl-sec {
+      margin-top: 22px;
+      padding-top: 15px;
+      padding-bottom: 10px;
+      border-top: 1px solid #363636;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #616161;
+      opacity: 0;
+    }
+    .f06-dbl-trow {
+      display: flex;
+      align-items: center;
+      height: 52px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 19px;
+      color: #a1a1a1;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-trow .f06-dbl-ucol {
+      width: 330px;
+    }
+    .f06-dbl-fn {
+      width: 250px;
+      color: #82aaff;
+    }
+    .f06-dbl-x2 {
+      font-size: 22px;
+      color: #00e8ff;
+    }
+    .f06-dbl-warn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      height: 52px;
+      font-weight: 500;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);
+    }
+    .f06-dbl-mcp {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 22px;
+      height: 44px;
+      padding: 0 20px;
+      border-radius: 99px;
+      background: #292929;
+      border: 1px solid #363636;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 18px;
+      color: #a1a1a1;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f06-dbl-mcp i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4d63ff;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-skhx"
+    id="root"
+    data-composition-id="06-double"
+    data-width="1920"
+    data-height="1080"
+    data-duration="7.281"
+  >
+    <div
+      data-hf-id="hf-s8q4"
+      id="f06-dbl-ground"
+      class="f06-dbl-ground clip"
+      data-start="0"
+      data-duration="7.281"
+      data-track-index="0"
+    ></div>
+
+    <div
+      data-hf-id="hf-0875"
+      id="f06-dbl-stage"
+      class="f06-dbl-stage clip"
+      data-start="0"
+      data-duration="7.281"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-7hga" class="f06-dbl-eyebrow" id="f06-dbl-eyebrow">
+        Added
+      </div>
+      <div data-hf-id="hf-dlk6" class="f06-dbl-hl">
+        <span data-hf-id="hf-dpcn" id="f06-dbl-h1">Double renders,</span>
+        <span data-hf-id="hf-doz1" id="f06-dbl-h2" class="f06-dbl-cy"
+          >flagged.</span
+        >
+      </div>
+      <div data-hf-id="hf-ax8f" class="f06-dbl-sub" id="f06-dbl-sub">
+        An update your own <code data-hf-id="hf-0c40">updated()</code> scheduled
+        is marked, counted, and reported to agents as
+        <code data-hf-id="hf-epk3">selfCaused</code>.
+      </div>
+
+      <div
+        data-hf-id="hf-n07u"
+        class="f06-dbl-panel f06-dbl-left"
+        id="f06-dbl-left"
+      >
+        <div data-hf-id="hf-h8u4" class="f06-dbl-file">
+          <i data-hf-id="hf-wt6k"></i>src/components/cart-button.ts
+        </div>
+        <div data-hf-id="hf-xl8u" class="f06-dbl-code" id="f06-dbl-code">
+          <div data-hf-id="hf-r64k" class="f06-dbl-ln" id="f06-dbl-c1"></div>
+          <div data-hf-id="hf-21m7" class="f06-dbl-ln" id="f06-dbl-c2"></div>
+          <div data-hf-id="hf-vvwe" class="f06-dbl-ln" id="f06-dbl-c3">
+            <span
+              data-hf-id="hf-7aqz"
+              class="f06-dbl-ul"
+              id="f06-dbl-ul"
+            ></span>
+          </div>
+          <div data-hf-id="hf-6re1" class="f06-dbl-ln" id="f06-dbl-c4"></div>
+          <div data-hf-id="hf-8k6q" class="f06-dbl-note" id="f06-dbl-note">
+            <span data-hf-id="hf-ehs0" class="f06-dbl-dot"></span
+            ><span data-hf-id="hf-v5xh"
+              >Setting a property in
+              <code data-hf-id="hf-2gq0">updated()</code> schedules a second
+              render.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div
+        data-hf-id="hf-kd4a"
+        class="f06-dbl-panel f06-dbl-right"
+        id="f06-dbl-right"
+      >
+        <div data-hf-id="hf-qpit" class="f06-dbl-bar">
+          <img
+            data-hf-id="hf-4uph"
+            class="f06-dbl-flame"
+            src="assets/flame.svg"
+            alt=""
+          />
+          <div data-hf-id="hf-9n4s" class="f06-dbl-brand">LIT DEVTOOLS</div>
+          <div data-hf-id="hf-v41y" class="f06-dbl-tabs">
+            <span data-hf-id="hf-rs7s" class="f06-dbl-tab">Components</span>
+            <span data-hf-id="hf-qx9d" class="f06-dbl-tab f06-dbl-on"
+              >Updates</span
+            >
+            <span data-hf-id="hf-7o7j" class="f06-dbl-tab">Timeline</span>
+            <span data-hf-id="hf-9eu9" class="f06-dbl-tab">Settings</span>
+          </div>
+          <div data-hf-id="hf-2yzn" class="f06-dbl-ver">0.19.0</div>
+        </div>
+        <div data-hf-id="hf-t5rz" class="f06-dbl-upd">
+          <div data-hf-id="hf-burp" class="f06-dbl-uhead">
+            <span data-hf-id="hf-a29x" class="f06-dbl-ucol">Component</span
+            ><span data-hf-id="hf-ptsk">Cause</span>
+          </div>
+          <div data-hf-id="hf-z7r6" style="position: relative">
+            <span
+              data-hf-id="hf-o22b"
+              class="f06-dbl-link"
+              id="f06-dbl-link"
+            ></span>
+            <div
+              data-hf-id="hf-2gyz"
+              data-layout-allow-overflow
+              class="f06-dbl-urow"
+              id="f06-dbl-r1"
+            >
+              <span data-hf-id="hf-355l" class="f06-dbl-ucol f06-dbl-utag"
+                >fh-cart-button</span
+              ><span data-hf-id="hf-klwm">price changed</span>
+            </div>
+            <div
+              data-hf-id="hf-1a1s"
+              data-layout-allow-overflow
+              class="f06-dbl-urow f06-dbl-pair"
+              id="f06-dbl-r2"
+            >
+              <span data-hf-id="hf-hfvx" class="f06-dbl-ucol f06-dbl-utag"
+                >fh-cart-button</span
+              ><span data-hf-id="hf-g2tm" class="f06-dbl-chip"
+                >re-rendered</span
+              >
+            </div>
+          </div>
+          <div data-hf-id="hf-9o4h" class="f06-dbl-sec" id="f06-dbl-tsec">
+            Timeline
+          </div>
+          <div data-hf-id="hf-pjdm" class="f06-dbl-trow" id="f06-dbl-trow">
+            <span data-hf-id="hf-imt0" class="f06-dbl-ucol f06-dbl-utag"
+              >fh-cart-button</span
+            ><span data-hf-id="hf-c11t" class="f06-dbl-fn">performUpdate</span
+            ><span data-hf-id="hf-p3ye" class="f06-dbl-x2">2×</span>
+          </div>
+          <div data-hf-id="hf-d0s6" class="f06-dbl-sec" id="f06-dbl-wsec">
+            Warnings
+          </div>
+          <div data-hf-id="hf-f8b3" class="f06-dbl-warn" id="f06-dbl-warn">
+            <span data-hf-id="hf-tshk" class="f06-dbl-dot"></span>Re-rendered
+            itself 3 times in this recording
+          </div>
+          <div data-hf-id="hf-ock2" class="f06-dbl-mcp" id="f06-dbl-mcp">
+            <i data-hf-id="hf-zeb8"></i
+            ><span data-hf-id="hf-0row" style="color: #82aaff"
+              >lit_update-summary</span
+            ><span data-hf-id="hf-p70p">→</span
+            ><span data-hf-id="hf-e7b5"
+              ><span data-hf-id="hf-nld5" style="color: #b2ccd6"
+                >selfCaused</span
+              >:
+              <span data-hf-id="hf-3qbu" style="color: #f78c6c">3</span></span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) {
+        return document.getElementById('f06-dbl-' + id);
+      };
+      var tl = gsap.timeline({paused: true});
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, {opacity: 1, y: dy}, at);
+        tl.to(el, {y: 0, duration: dur, ease: 'power4.out'}, at);
+      }
+      function show(id, at) {
+        tl.fromTo(
+          $(id),
+          {opacity: 0, x: -10},
+          {opacity: 1, x: 0, duration: 0.2, ease: 'power3.out'},
+          at
+        );
+      }
+      // A code line types in over one half-beat; tokens are [text, colour class].
+      function typeLine(id, tokens, at) {
+        var line = $(id);
+        var wrap = document.createElement('span');
+        line.insertBefore(wrap, line.firstChild);
+        var chars = [];
+        tokens.forEach(function (t) {
+          for (var c = 0; c < t[0].length; c++) {
+            var ch = document.createElement('span');
+            ch.textContent = t[0][c];
+            if (t[1]) ch.className = 'f06-dbl-' + t[1];
+            wrap.appendChild(ch);
+            chars.push(ch);
+          }
+        });
+        var step = 0.24 / chars.length;
+        chars.forEach(function (ch, i) {
+          tl.set(ch, {opacity: 1}, at + i * step);
+        });
+      }
+
+      // 0: headline.
+      tl.fromTo(
+        $('eyebrow'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.4, ease: 'power2.out'},
+        0.05
+      );
+      arrive($('h1'), 0.1, 70, 0.2);
+      arrive($('h2'), 0.38, 70, 0.2);
+      tl.fromTo(
+        $('sub'),
+        {opacity: 0, y: 12},
+        {opacity: 1, y: 0, duration: 0.35, ease: 'power3.out'},
+        0.45
+      );
+
+      // 0.55: the two panels split in from opposite wings.
+      tl.fromTo(
+        $('left'),
+        {x: -140, rotationY: 12, opacity: 0, transformPerspective: 1600},
+        {x: 0, rotationY: 0, opacity: 1, duration: 0.54, ease: 'power3.out'},
+        0.55
+      );
+      tl.fromTo(
+        $('right'),
+        {x: 140, rotationY: -12, opacity: 0, transformPerspective: 1600},
+        {x: 0, rotationY: 0, opacity: 1, duration: 0.54, ease: 'power3.out'},
+        0.55
+      );
+
+      // 0.55: the hook types in, one line per half-beat.
+      typeLine(
+        'c1',
+        [
+          ['updated', 'c'],
+          ['(', 'o'],
+          ['changed', 'p'],
+          [') {', 'o'],
+        ],
+        0.55
+      );
+      typeLine(
+        'c2',
+        [
+          ['  '],
+          ['if', 'k'],
+          [' ('],
+          ['changed', 'p'],
+          ['.', 'o'],
+          ['has', 'c'],
+          ['(', 'o'],
+          ["'price'", 's'],
+          [')', 'o'],
+          [')', 'o'],
+        ],
+        0.82
+      );
+      typeLine(
+        'c3',
+        [
+          ['    '],
+          ['this', 'k'],
+          ['.', 'o'],
+          ['total', 'p'],
+          [' = ', 'o'],
+          ['this', 'k'],
+          ['.', 'o'],
+          ['price', 'p'],
+          [' * ', 'o'],
+          ['this', 'k'],
+          ['.', 'o'],
+          ['qty', 'p'],
+          [';', 'o'],
+        ],
+        1.09
+      );
+      typeLine('c4', [['}', 'o']], 1.36);
+
+      // 1.64: the first update lands.
+      show('r1', 1.64);
+
+      // 2.73: the paired re-render, and the line that caused it.
+      show('r2', 2.73);
+      tl.to($('link'), {scaleY: 1, duration: 0.25, ease: 'power3.out'}, 2.73);
+      tl.to($('ul'), {scaleX: 1, duration: 0.25, ease: 'power3.out'}, 2.73);
+      tl.fromTo(
+        $('note'),
+        {opacity: 0, y: 8},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        2.85
+      );
+
+      // 3.82: the Timeline list counts it; 4.36: Warnings; 4.91: the agent sees it.
+      show('tsec', 3.82);
+      show('trow', 3.82);
+      tl.fromTo(
+        $('trow').querySelector('.f06-dbl-x2'),
+        {scale: 1.6},
+        {scale: 1, duration: 0.3, ease: 'back.out(2.5)'},
+        3.82
+      );
+      show('wsec', 4.36);
+      show('warn', 4.36);
+      tl.fromTo(
+        $('mcp'),
+        {opacity: 0, scale: 0.8},
+        {opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(2)'},
+        4.91
+      );
+
+      // 5.45 → end: held read.
+      tl.set({}, {}, 7.635);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(
+        1.117715
+      ); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({paused: true}).add(tl, 0);
+      window.__timelines['06-double'] = tlOuter;
+    })();
+  </script>
+</template>
