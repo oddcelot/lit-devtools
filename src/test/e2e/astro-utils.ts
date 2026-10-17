@@ -11,7 +11,7 @@
  */
 
 import {randomUUID} from 'node:crypto';
-import {cp, readFile, rm, writeFile} from 'node:fs/promises';
+import {cp, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {createServer} from 'node:net';
 import * as path from 'node:path';
@@ -44,6 +44,8 @@ export interface AstroFixtureOptions {
   build?: boolean;
   /** Merged into the copy's Vite config. */
   vite?: Record<string, unknown>;
+  /** Files written into the copy before it starts, by path under its root. */
+  files?: Record<string, string>;
 }
 
 interface Stoppable {
@@ -89,6 +91,7 @@ export const startAstroFixture = async ({
   config = 'astro.config.mjs',
   build = false,
   vite = {},
+  files = {},
 }: AstroFixtureOptions = {}): Promise<AstroFixture> => {
   const root = path.join(EXAMPLE_DIR, '.e2e-tmp', randomUUID().slice(0, 8));
   // Entry by entry: the copy lives inside the example, which `cp` won't
@@ -97,6 +100,10 @@ export const startAstroFixture = async ({
     await cp(path.join(EXAMPLE_DIR, entry), path.join(root, entry), {
       recursive: true,
     });
+  }
+  for (const [rel, content] of Object.entries(files)) {
+    await mkdir(path.dirname(path.join(root, rel)), {recursive: true});
+    await writeFile(path.join(root, rel), content);
   }
   const env = {...process.env};
   process.env['ASTRO_TELEMETRY_DISABLED'] = '1';
