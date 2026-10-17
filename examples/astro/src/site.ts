@@ -16,4 +16,14 @@ export const pages = [
     title: 'Props',
     blurb: 'Attributes, properties, and the types that reach the browser.',
   },
+  {
+    href: '/slots/',
+    title: 'Slots',
+    blurb: 'Default and named slots, on plain tags and in islands.',
+  },
+  {
+    href: '/nested/',
+    title: 'Nested elements',
+    blurb: 'Lit elements rendering Lit elements, server-rendered as one.',
+  },
 ] as const;

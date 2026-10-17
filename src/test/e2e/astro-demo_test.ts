@@ -107,3 +107,65 @@ test('props keep their types on a plain tag and on an island', async () => {
   );
   expect(errors).toEqual([]);
 });
+
+test('slots fill the same way on a plain tag and in islands', async () => {
+  const errors = await visit('/slots/');
+  /** What each named slot of a card shows, text only. */
+  const filled = (id: string) =>
+    fixture.page.evaluate(
+      `(() => {
+        const card = document.getElementById(${JSON.stringify(id)});
+        if (!card?.shadowRoot) return null;
+        const text = (slot) => slot.assignedNodes().map((n) => n.textContent.trim()).filter(Boolean);
+        return Object.fromEntries([...card.shadowRoot.querySelectorAll('slot')].map((s) => [s.name || 'default', text(s)]));
+      })()`
+    );
+  await expect
+    .poll(() => filled('plain'))
+    .toEqual({
+      title: ['Plain tag'],
+      meta: ['as written'],
+      default: ['The default slot takes the rest, as written.'],
+    });
+  await expect
+    .poll(() => filled('load'))
+    .toEqual({
+      title: ['client:load'],
+      meta: ['hydrated'],
+      default: ['Server-rendered, slots and all.'],
+    });
+  await expect
+    .poll(() => filled('only'))
+    .toEqual({
+      title: ['client:only'],
+      meta: ['browser only'],
+      default: ["Built in the browser from Astro's slot templates."],
+    });
+  expect(errors).toEqual([]);
+});
+
+test('nested items hydrate inside their list and report to it', async () => {
+  const {page} = fixture;
+  const errors = await visit('/nested/');
+  const items = (id: string) =>
+    page.evaluate(
+      `[...document.getElementById(${JSON.stringify(id)}).shadowRoot.querySelectorAll('task-item')].map((i) => ({label: i.label, deferred: i.hasAttribute('defer-hydration'), checked: i.shadowRoot.querySelector('input').checked}))`
+    );
+  const unticked = [
+    'Render on the server',
+    'Hydrate the list',
+    'Hydrate each item',
+  ].map((label) => ({label, deferred: false, checked: false}));
+  await expect.poll(() => items('plain')).toEqual(unticked);
+  await page.locator('#plain task-item').first().locator('input').check();
+  await expect.poll(() => shadowText('#plain', '#done')).toBe('1 of 3 done');
+  // Below the fold until scrolled to: still unticked in the server's HTML.
+  expect(
+    await page.evaluate(
+      `[...document.getElementById('island').shadowRoot.querySelectorAll('input')].some((i) => i.checked)`
+    )
+  ).toBe(false);
+  await page.locator('#island').scrollIntoViewIfNeeded();
+  await expect.poll(() => items('island')).toEqual(unticked);
+  expect(errors).toEqual([]);
+});
