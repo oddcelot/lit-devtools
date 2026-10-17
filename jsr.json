@@ -5,6 +5,9 @@
     ".": "./index.js",
     "./build": "./build.js",
     "./astro": "./astro.js",
+    "./astro/server": "./lib/astro/server.js",
+    "./astro/client": "./lib/astro/client.js",
+    "./astro/boot": "./lib/astro/boot.js",
     "./css.js": "./lib/runtime/css.js",
     "./connect.js": "./lib/runtime/rpc-transport.js",
     "./uno": "./lib/uno-sheet.js"

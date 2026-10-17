@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-lit-astro-example",
-  "description": "Lit components server-rendered by Astro through @awesome.me/astro-lit and hydrated in the page, with @oddsquad/vite-plugin-lit hot-patching them and its panel in Astro's dev toolbar.",
+  "description": "Lit components server-rendered by Astro through @oddsquad/vite-plugin-lit's renderer and hydrated in the page, hot-patched in dev, with the Lit panel in Astro's dev toolbar.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,9 +10,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@awesome.me/astro-lit": "^5.0.4",
+    "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
-    "@webcomponents/template-shadowroot": "^0.2.1",
     "astro": "^7.3.5",
     "lit": "^3.3.3"
   },

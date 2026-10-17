@@ -21,10 +21,7 @@
     // Served by bench/run.mjs.
     "bench/index.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
-    "docs/src/routeData.ts",
-    // examples/astro/astro.config.mjs hands Astro its path as a client
-    // directive.
-    "examples/astro/directives/on.js"
+    "docs/src/routeData.ts"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
@@ -34,8 +31,9 @@
     "src/lib/runtime/{css,css-build,indicator,intern,patch,source-overlay,standalone}.ts",
     "src/lib/runtime/timeline/{install,public-api,warnings-boot}.ts",
     "src/lib/runtime/inspector/{install,persist}.ts",
-    // src/astro.ts hands Astro this file's path as a dev toolbar app.
-    "src/lib/astro/toolbar-app.ts"
+    // src/astro.ts hands Astro this file's path as a dev toolbar app, and
+    // the renderer's entrypoints and page script by package export.
+    "src/lib/astro/{toolbar-app,server,client,boot}.ts"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`
@@ -63,10 +61,7 @@
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
     "@phosphor-icons/core",
-    "sugar-high",
-    // examples/astro: @awesome.me/astro-lit asks Vite to pre-bundle it, which
-    // resolves from the example's root, not from astro-lit's own install.
-    "@lit-labs/ssr-client"
+    "sugar-high"
   ],
   "ignoreExports": [
     // Stand-ins for src/panel modules, loaded with

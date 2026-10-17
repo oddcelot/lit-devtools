@@ -2,19 +2,18 @@
 /**
  * The plugin as an Astro integration. Astro runs on Vite, so this adds
  * `litPlugin()` to Astro's Vite config, with the timeline and its panel on,
- * and puts the panel in Astro's dev toolbar, which takes the place of the
- * Vite DevTools dock there:
+ * registers Astro's renderer for Lit (`lib/astro/server.ts` and
+ * `client.ts`), and puts the panel in Astro's dev toolbar, which takes the
+ * place of the Vite DevTools dock there:
  *
  * ```js
  * // astro.config.mjs
- * import lit from '@awesome.me/astro-lit';
- * import litDevtools from '@oddsquad/vite-plugin-lit/astro';
+ * import lit from '@oddsquad/vite-plugin-lit/astro';
  *
- * export default defineConfig({integrations: [lit(), litDevtools()]});
+ * export default defineConfig({integrations: [lit()]});
  * ```
  *
- * Server rendering stays with a Lit renderer such as `@awesome.me/astro-lit`;
- * this only brings HMR and the DevTools. Astro renders pages without Vite's
+ * `litDevtools()` leaves the renderer out, for a site that keeps another. Astro renders pages without Vite's
  * `transformIndexHtml`, so in dev the integration adds the plugin's page
  * runtime to each page itself (`lib/astro/page-tags.ts`). It imports nothing from `astro`: the
  * hook arguments are declared below as the slices it uses.
@@ -38,6 +37,19 @@ import {type LitPluginOptions, litPlugin} from './lib/plugin.js';
 
 export interface LitAstroOptions extends LitPluginOptions {
   /**
+   * Render Lit components on the server and hydrate them, as Astro's
+   * renderer for Lit. Needs `@lit-labs/ssr` and `@lit-labs/ssr-client`.
+   * Turn it off to keep another Lit renderer and take only HMR and the
+   * DevTools ({@link litDevtools} does that). Defaults to `true`.
+   */
+  render?: boolean;
+  /**
+   * Load a polyfill for declarative shadow DOM in browsers without it, from
+   * `@webcomponents/template-shadowroot`, which you then install. Every
+   * current browser parses it natively. Defaults to `false`.
+   */
+  shadowRootPolyfill?: boolean;
+  /**
    * Put the Lit panel in Astro's dev toolbar. Needs the panel, so it does
    * nothing with `timeline: false`. Defaults to `true`.
    */
@@ -51,7 +63,15 @@ interface AstroLogger {
 /** The slices of Astro's integration hook arguments this integration uses. */
 interface ConfigSetup {
   command: 'dev' | 'build' | 'preview' | 'sync';
-  updateConfig: (config: {vite: {plugins: Plugin[]}}) => unknown;
+  updateConfig: (config: {
+    vite: {plugins?: Plugin[]; optimizeDeps?: {include: string[]}};
+  }) => unknown;
+  addRenderer: (renderer: {
+    name: string;
+    serverEntrypoint: string;
+    clientEntrypoint: string;
+  }) => void;
+  injectScript: (stage: 'page' | 'before-hydration', content: string) => void;
   addDevToolbarApp: (app: {
     id: string;
     name: string;
@@ -86,18 +106,66 @@ const TOOLBAR_ENTRY = fileURLToPath(
   new URL('./lib/astro/toolbar-app.js', import.meta.url)
 );
 
-export const litDevtools = (
-  options: LitAstroOptions = {}
-): LitAstroIntegration => {
-  const {toolbar = true, ...pluginOptions} = options;
+/** Lit's hydrate support, which must load before LitElement does. */
+const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
+
+/**
+ * What the renderer's pages load first: Lit's hydrate support, then
+ * `lib/astro/boot.ts`. The support is imported here, not by the boot
+ * module, so it resolves from the project, as the project's own Lit does:
+ * from the plugin's directory it can find a second copy of Lit.
+ */
+const BOOT = `import '${HYDRATE_SUPPORT}';
+import '@oddsquad/vite-plugin-lit/astro/boot';`;
+
+// Only where the browser can't parse declarative shadow roots itself.
+const SHADOW_ROOT_POLYFILL = `
+if (!Object.hasOwn(HTMLTemplateElement.prototype, 'shadowRootMode')) {
+  import('@webcomponents/template-shadowroot/template-shadowroot.js').then(
+    ({hydrateShadowRoots}) => hydrateShadowRoots(document.body)
+  );
+}`;
+
+/**
+ * Lit in Astro: renders Lit components on the server and hydrates them,
+ * hot-patches them in dev, and puts the Lit panel in the dev toolbar.
+ */
+export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
+  const {
+    render = true,
+    shadowRootPolyfill = false,
+    toolbar = true,
+    ...pluginOptions
+  } = options;
   const timeline = pluginOptions.timeline ?? true;
   const withToolbar = toolbar && timeline;
   const plugins = litPlugin({...pluginOptions, timeline});
   return {
     name: '@oddsquad/vite-plugin-lit/astro',
     hooks: {
-      'astro:config:setup': ({command, updateConfig, addDevToolbarApp}) => {
+      'astro:config:setup': ({
+        command,
+        updateConfig,
+        addRenderer,
+        injectScript,
+        addDevToolbarApp,
+      }) => {
         updateConfig({vite: {plugins}});
+        if (render) {
+          // Pre-bundled with the project's Lit from the start, rather than
+          // found on the first page load, which reloads the page.
+          updateConfig({vite: {optimizeDeps: {include: [HYDRATE_SUPPORT]}}});
+          addRenderer({
+            name: '@oddsquad/vite-plugin-lit',
+            serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
+            clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
+          });
+          // Both: a page without islands loads only `page` scripts, and an
+          // island may hydrate before them.
+          injectScript('page', BOOT);
+          injectScript('before-hydration', BOOT);
+          if (shadowRootPolyfill) injectScript('page', SHADOW_ROOT_POLYFILL);
+        }
         if (command !== 'dev' || !withToolbar) return;
         addDevToolbarApp({
           id: ASTRO_TOOLBAR_APP_ID,
@@ -128,4 +196,21 @@ export const litDevtools = (
   };
 };
 
-export default litDevtools;
+/**
+ * HMR and the Lit panel, without the renderer: for a site that keeps
+ * another Lit renderer, such as `@awesome.me/astro-lit`.
+ */
+export const litDevtools = (
+  options: Omit<LitAstroOptions, 'render' | 'shadowRootPolyfill'> = {}
+): LitAstroIntegration => lit({...options, render: false});
+
+/** For Astro's container API: the renderer, as `renderers` takes it. */
+export const getContainerRenderer = (): {
+  name: string;
+  serverEntrypoint: string;
+} => ({
+  name: '@oddsquad/vite-plugin-lit',
+  serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
+});
+
+export default lit;

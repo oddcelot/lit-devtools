@@ -1,6 +1,6 @@
 import type {Plugin, ViteDevServer} from 'vite';
 import {describe, expect, test, vi} from 'vite-plus/test';
-import {litDevtools} from '../../astro.js';
+import {lit, litDevtools} from '../../astro.js';
 import {collectPageTags, injectPageTags} from '../../lib/astro/page-tags.js';
 
 /**
@@ -12,8 +12,37 @@ import {collectPageTags, injectPageTags} from '../../lib/astro/page-tags.js';
 const setup = (command: 'dev' | 'build') => {
   const updateConfig = vi.fn();
   const addDevToolbarApp = vi.fn();
-  return {command, updateConfig, addDevToolbarApp};
+  const addRenderer = vi.fn();
+  const injectScript = vi.fn();
+  return {command, updateConfig, addDevToolbarApp, addRenderer, injectScript};
 };
+
+describe('lit()', () => {
+  test('registers the renderer and loads its page script before islands', () => {
+    const args = setup('build');
+    lit().hooks['astro:config:setup'](args);
+    expect(args.addRenderer).toHaveBeenCalledWith({
+      name: '@oddsquad/vite-plugin-lit',
+      serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
+      clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
+    });
+    const stages = args.injectScript.mock.calls.map(([stage]) => stage);
+    expect(stages).toEqual(['page', 'before-hydration']);
+    // Hydrate support first, so LitElement finds it when it loads.
+    expect(args.injectScript.mock.calls[0]![1]).toMatch(
+      /^import '@lit-labs\/ssr-client\/lit-element-hydrate-support\.js';/
+    );
+  });
+
+  test('adds the shadow root polyfill only when asked', () => {
+    const args = setup('build');
+    lit({shadowRootPolyfill: true}).hooks['astro:config:setup'](args);
+    expect(args.injectScript).toHaveBeenCalledWith(
+      'page',
+      expect.stringContaining('@webcomponents/template-shadowroot')
+    );
+  });
+});
 
 describe('litDevtools()', () => {
   test('adds the plugin with the timeline on, and the toolbar app in dev', () => {
@@ -27,6 +56,13 @@ describe('litDevtools()', () => {
         entrypoint: expect.stringMatching(/lib\/astro\/toolbar-app\.js$/),
       })
     );
+  });
+
+  test('leaves the renderer to another integration', () => {
+    const args = setup('dev');
+    litDevtools().hooks['astro:config:setup'](args);
+    expect(args.addRenderer).not.toHaveBeenCalled();
+    expect(args.injectScript).not.toHaveBeenCalled();
   });
 
   test('adds no toolbar app to a build', () => {

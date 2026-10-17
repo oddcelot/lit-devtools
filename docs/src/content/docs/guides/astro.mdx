@@ -1,6 +1,6 @@
 ---
-title: Use the plugin in Astro
-description: 'Add the plugin to an Astro site with one integration: hot patches on server-rendered Lit components, and the Lit panel in the Astro dev toolbar.'
+title: Use Lit in Astro
+description: 'One integration renders Lit components on the server, hydrates them, hot-patches them, and puts the Lit panel in the Astro dev toolbar.'
 sidebar:
   label: Astro
   badge:
@@ -10,51 +10,86 @@ sidebar:
 
 import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import config from '../../../../../examples/astro/astro.config.mjs?raw';
-import directive from '../../../../../examples/astro/directives/on.js?raw';
 import page from '../../../../../examples/astro/src/pages/index.astro?raw';
+import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
+import {stripHeader} from '../../../lib/fixture';
 
-One integration gives an Astro site hot patches on its Lit components and the
-Lit panel in Astro's dev toolbar. Astro renders Lit on the server through
-[`@awesome.me/astro-lit`](https://github.com/shoelace-style/astro-lit), so
-read [Server-side rendering](/vite-plugin-lit/guides/ssr/) first if hydration
-is new to you.
+One integration renders your Lit components in Astro and hydrates them, hot
+patches them while you edit, and puts the Lit panel in the dev toolbar. Read
+[Server-side rendering](/vite-plugin-lit/guides/ssr/) first if hydration is
+new to you.
 
 ## Set it up
 
-Install the plugin next to the Lit renderer and its polyfill.
+Install the plugin with Lit's server renderer and its hydrate support.
 
 ```sh frame="terminal"
-npm install lit @awesome.me/astro-lit @webcomponents/template-shadowroot
+npm install lit @lit-labs/ssr @lit-labs/ssr-client
 npm install -D @oddsquad/vite-plugin-lit
 ```
 
-Add both integrations. `litDevtools()` takes the plugin's
-[options](/vite-plugin-lit/reference/options/) and turns the timeline on, since
-the panel needs it.
+Add `lit()` from `@oddsquad/vite-plugin-lit/astro`. It takes the plugin's
+[options](/vite-plugin-lit/reference/options/) and turns the timeline on,
+since the panel needs it.
 
-<Code code={config} lang="js" title="astro.config.mjs" mark={[4, 22]} />
+<Code code={config} lang="js" title="astro.config.mjs" mark={[5]} />
 
-Import the components in the page's frontmatter, so Astro renders them. Load
-`astro-lit`'s hydration support in a page script before any component, so the
-server's HTML hydrates instead of rendering again.
+Import each component in the page's frontmatter, so Astro renders it, and in
+a page script, so the browser defines it. The integration loads Lit's hydrate
+support ahead of your scripts, so the server's HTML hydrates instead of
+rendering again.
 
 <Code
   code={page}
   lang="astro"
   title="src/pages/index.astro"
-  mark={[4, 5, 37, 38]}
+  mark={[4, 5, 6, 7, 49, 50, 51, 52]}
 />
+
+## Pass props
+
+Strings, numbers and booleans become attributes, under the attribute of the
+reactive property they name. Arrays, objects and properties declared with
+`attribute: false` can't ride in an attribute, so the renderer sets them as
+properties and holds the element back until the browser has them too.
+
+<Code
+  code={stripHeader(tagList)}
+  lang="ts"
+  title="src/components/tag-list.ts"
+  mark={[31]}
+/>
+
+On a plain tag, the values travel as JSON in a `data-lit-props` attribute. In
+an island, Astro hands them over itself, with its own serialization.
+
+<Aside type="note" title="Functions need an island">
+  JSON can't carry a function or a class instance. On a plain tag the renderer
+  leaves such a prop out and warns in the terminal. Make the element an island
+  to pass it.
+</Aside>
+
+## Choose when it hydrates
+
+A plain tag hydrates as soon as its class loads. Write `defer-hydration` on
+it to hold it back, and remove the attribute when it should wake: the
+renderer leaves your `defer-hydration` alone.
+
+An imported class used as a component is an island, so Astro's directives
+apply: `client:load`, `client:idle`, `client:visible` and `client:media`
+hydrate the server's HTML, and `client:only` renders in the browser only.
+With more than one renderer in the project, name this one for `client:only`:
+`client:only="@oddsquad/vite-plugin-lit"`.
 
 ## Open the panel
 
 Run `astro dev` and click the Lit logo in the dev toolbar. The panel opens in
-a toolbar window, following the page you are on. The terminal prints its
-address too, under `Lit DevTools`, for a tab of its own.
+a toolbar window, following the page you are on, with each element's
+hydration state in the Components tab.
 
 The first time, the window asks for a code. The terminal prints it in a
 `Devframe` box when the panel connects. Type it in, or open the link in that
-box: it loads the page with the panel open and approved. The browser keeps
-the approval until the dev server forgets it.
+box: it loads the page with the panel open and approved.
 
 <Aside type="caution" title="Client auth guards the panel">
   The code stops other pages and devices that reach the dev server from driving
@@ -62,27 +97,11 @@ the approval until the dev server forgets it.
   machine you trust, with `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`.
 </Aside>
 
-## Hold back hydration
+## Keep another renderer
 
-`astro-lit` removes `defer-hydration` from every element outside an island
-once its class loads. A plain element held back that way hydrates at once.
-Make it an island instead, and let a client directive pick the moment. The
-example adds `client:on`, which hydrates on a click elsewhere in the page:
-
-<Code code={directive} lang="js" title="directives/on.js" />
-
-Astro's own `client:visible` and `client:idle` work the same way.
-
-## What works
-
-- **Hot patches on hydrated components.** An edit patches a component in
-  place, keeping its state and its element, in islands and outside them.
-- **The Lit panel.** The Components tab lists the page's components with
-  their hydration state, as in a Vite app.
-- **The HMR indicator and the source overlay.** Both run in the page as they
-  do with Vite.
-- **Production builds.** `astro build` applies the plugin's build-time CSS
-  handling and adds no devtools code.
+To keep a different Lit renderer, such as `@awesome.me/astro-lit`, use
+`litDevtools()` instead of `lit()`. It brings the plugin's HMR and the panel,
+and leaves rendering to the other integration.
 
 ## Limits
 
@@ -90,9 +109,9 @@ Astro renders pages without Vite's `transformIndexHtml`, which is how the
 plugin adds its page runtime. In dev the integration adds it to each HTML
 page itself, so Astro sends a page once it is complete, not as a stream.
 
-The panel lives in the toolbar here, not in the Vite DevTools dock. Leave
-Vite's `devtools` option off: with the dock on, the plugin serves the panel
-there instead, and the toolbar window has nothing to load.
+Every current browser parses declarative shadow roots. For an older one,
+install `@webcomponents/template-shadowroot` and pass
+`shadowRootPolyfill: true`.
 
 ## Related
 
