@@ -39,13 +39,9 @@ The build hydrates as dev does, with no devtools in it.
 
 ## On-demand rendering
 
-```sh
-pnpm build:server
-pnpm start:server
-```
-
-`astro.server.config.mjs` is the same site with `output: 'server'` and the
-Node adapter, so each request renders the page anew.
+`astro.config.mjs` uses the Node adapter: the site is prebuilt, except
+`/on-demand/`, which sets `prerender = false` and renders for each request.
+`pnpm build` then `pnpm preview` serves both.
 
 ## Container API
 

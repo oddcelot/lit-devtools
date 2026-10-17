@@ -2,7 +2,8 @@
 /**
  * `examples/astro` under Astro's JavaScript API, as `ssr-utils.ts` serves
  * `examples/ssr`: a throwaway copy, a server for it and a browser on it.
- * The dev server is Astro's `dev()`, a build is `build()` then `preview()`,
+ * The dev server is Astro's `dev()`, a build is `build()` then the Node
+ * adapter's server in a process of its own, as it would be deployed,
  * all in this process, so the plugin under test is the repo's build output
  * (`examples/astro` links it as `@oddsquad/vite-plugin-lit`).
  *
@@ -10,6 +11,7 @@
  * adapters resolve from the example's own `node_modules`.
  */
 
+import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {cp, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
@@ -23,14 +25,8 @@ const EXAMPLE_DIR = fileURLToPath(
   new URL('../../../examples/astro', import.meta.url)
 );
 
-/**
- * The configs in `examples/astro`, one per setup, or one a test writes
- * into the copy with `files`.
- */
-export type AstroConfig =
-  | 'astro.config.mjs'
-  | 'astro.server.config.mjs'
-  | `${string}.config.mjs`;
+/** The example's config, or one a test writes into the copy with `files`. */
+export type AstroConfig = 'astro.config.mjs' | `${string}.config.mjs`;
 
 export interface AstroFixture {
   browser: Browser;
@@ -61,10 +57,9 @@ interface Stoppable {
 type AstroApi = {
   dev(config: object): Promise<Stoppable>;
   build(config: object): Promise<void>;
-  preview(config: object): Promise<Stoppable>;
 };
 
-/** A port nothing listens on: the Node adapter's preview reports 0 back. */
+/** A port nothing listens on, for the server to take. */
 const freePort = () =>
   new Promise<number>((resolve, reject) => {
     const server = createServer();
@@ -75,6 +70,39 @@ const freePort = () =>
     });
   });
 
+/**
+ * The built site, served by the Node adapter's own server in a child
+ * process. Not in this one: the build already defined the site's elements
+ * in its registry, and the server's bundle would define them again.
+ */
+const serveBuild = async (root: string, port: number): Promise<Stoppable> => {
+  const child = spawn(
+    process.execPath,
+    [path.join(root, 'dist/server/entry.mjs')],
+    {
+      cwd: root,
+      env: {...process.env, HOST: '127.0.0.1', PORT: String(port)},
+      stdio: ['ignore', 'ignore', 'inherit'],
+    }
+  );
+  for (let tries = 0; ; tries++) {
+    try {
+      await fetch(`http://127.0.0.1:${port}/`);
+      break;
+    } catch (error) {
+      if (tries > 100 || child.exitCode !== null) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+  return {
+    stop: () =>
+      new Promise<void>((resolve) => {
+        child.once('exit', () => resolve());
+        child.kill();
+      }),
+  };
+};
+
 /** The example's Astro, not one the repo root might find. */
 const loadAstro = async (): Promise<AstroApi> => {
   const require = createRequire(path.join(EXAMPLE_DIR, 'package.json'));
@@ -83,13 +111,7 @@ const loadAstro = async (): Promise<AstroApi> => {
   )) as AstroApi;
 };
 
-const COPIED = [
-  'astro.config.mjs',
-  'astro.server.config.mjs',
-  'tsconfig.json',
-  'public',
-  'src',
-];
+const COPIED = ['astro.config.mjs', 'tsconfig.json', 'public', 'src'];
 
 export const startAstroFixture = async ({
   config = 'astro.config.mjs',
@@ -141,7 +163,7 @@ export const startAstroFixture = async ({
   let server: Stoppable;
   if (build) {
     await astro.build(inline);
-    server = await astro.preview(inline);
+    server = await serveBuild(root, inline.server.port);
   } else {
     server = await astro.dev(inline);
   }

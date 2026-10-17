@@ -36,4 +36,9 @@ export const pages = [
     title: 'Next to Preact',
     blurb: 'Lit and Preact islands on one page, and Lit inside Preact.',
   },
+  {
+    href: '/on-demand/',
+    title: 'On demand',
+    blurb: 'Rendered for each request by the Node adapter.',
+  },
 ] as const;

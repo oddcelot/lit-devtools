@@ -1,8 +1,11 @@
 import {defineConfig} from 'astro/config';
+import node from '@astrojs/node';
 import preact from '@astrojs/preact';
 import lit from '@oddsquad/vite-plugin-lit/astro';
 
 export default defineConfig({
+  // Prebuilt pages, but /on-demand/ renders for each request on Node.
+  adapter: node({mode: 'standalone'}),
   integrations: [
     // Preact for the islands next to Lit's, on its own files only: by
     // default it runs Babel over every `.ts`, which can't parse decorators.

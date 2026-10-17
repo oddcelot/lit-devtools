@@ -1,0 +1,72 @@
+---
+import '../components/request-card.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+
+// Rendered for each request, by the Node adapter, rather than at build time.
+export const prerender = false;
+
+const name = Astro.url.searchParams.get('name')?.slice(0, 40) || 'stranger';
+const renderedAt = new Date();
+---
+
+<Demo
+  title="On demand"
+  lede="With an adapter, a page can render for each request: the renderer runs on the server every time, and the browser hydrates the result like any other page."
+>
+  <Showcase
+    title="Rendered for this request"
+    code={`---
+export const prerender = false;
+const name = Astro.url.searchParams.get('name') || 'stranger';
+---
+<request-card name={name} renderedAt={new Date()}></request-card>`}
+  >
+    <p slot="explain">
+      This site's other pages are built ahead of time; this one sets <code
+        >prerender = false</code
+      >, so the Node adapter renders it when you ask for it. <code>renderedAt</code> is a <code>Date</code>, carried to
+      the browser in the element's marker.
+    </p>
+    <request-card id="card" name={name} renderedAt={renderedAt}></request-card>
+    <form method="get">
+      <label>
+        Your name
+        <input name="name" value={name === 'stranger' ? '' : name} />
+      </label>
+      <button>Render again</button>
+    </form>
+    <p slot="try">
+      Build the site with <code>pnpm build</code> and run
+      <code>pnpm preview</code>: every reload of this page is a new render on
+      the server, with a new time.
+    </p>
+  </Showcase>
+
+  <script>
+    import '../components/request-card.ts';
+  </script>
+</Demo>
+
+<style>
+  form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-5);
+  }
+  label {
+    display: grid;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+  input {
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+  }
+</style>
