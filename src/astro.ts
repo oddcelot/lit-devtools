@@ -118,6 +118,9 @@ const TOOLBAR_ENTRY = fileURLToPath(
  */
 const RENDERER_NAME = 'lit';
 
+/** What the page runtime imports, named through the plugin for pnpm. */
+const RUNTIME_DEP = '@oddsquad/vite-plugin-lit > devframe/in-page-channel';
+
 /** Lit's hydrate support, which must load before LitElement does. */
 const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 
@@ -164,6 +167,13 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
         addDevToolbarApp,
       }) => {
         updateConfig({vite: {plugins}});
+        if (command === 'dev' && timeline) {
+          // The page runtime's own dependency, pre-bundled from the start.
+          // Found on the first page load instead, it re-runs the optimizer,
+          // which next to some integrations (Preact's) leaves Astro's dev
+          // toolbar loading outdated deps until the server restarts.
+          updateConfig({vite: {optimizeDeps: {include: [RUNTIME_DEP]}}});
+        }
         if (render) {
           const missing = missingPeers(fileURLToPath(config.root));
           if (missing.length > 0) throw new Error(missingPeersMessage(missing));
