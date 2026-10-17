@@ -6,4 +6,9 @@ export const pages = [
     blurb:
       'Declarative shadow roots, hydration, shared sheets, held-back elements.',
   },
+  {
+    href: '/islands/',
+    title: 'Islands',
+    blurb: 'Every client: directive, and when each one hydrates.',
+  },
 ] as const;
