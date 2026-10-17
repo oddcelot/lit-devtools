@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "dev:server": "astro dev --config astro.server.config.mjs",
     "build:server": "astro build --config astro.server.config.mjs",
-    "start:server": "node dist/server/entry.mjs"
+    "start:server": "node dist/server/entry.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "@lit-labs/ssr": "^4.1.0",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "*",
-    "@astrojs/node": "^11.1.8"
+    "@astrojs/node": "^11.1.8",
+    "vitest": "^5.0.5"
   }
 }

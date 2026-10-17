@@ -46,3 +46,12 @@ pnpm start:server
 
 `astro.server.config.mjs` is the same site with `output: 'server'` and the
 Node adapter, so each request renders the page anew.
+
+## Container API
+
+```sh
+pnpm test
+```
+
+`test/container.test.ts` renders the page with Astro's container API and
+the renderer from `getContainerRenderer()`.
