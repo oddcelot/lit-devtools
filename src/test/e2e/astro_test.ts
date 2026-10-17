@@ -225,6 +225,14 @@ test("devframe's link with the code opens the toolbar app, connected", async () 
       .toBeGreaterThan(0);
     // Taken out of the address, so a reload doesn't reuse it.
     expect(new URL(page.url()).hash).toBe('');
+    // The code went in with the link: no form asking for one.
+    const header = page.locator(
+      'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] header'
+    );
+    expect(await header.locator('form').isVisible()).toBe(false);
+    expect(
+      await header.getByRole('button', {name: 'Enter a new code'}).isVisible()
+    ).toBe(true);
   } finally {
     await page.context().close();
   }
