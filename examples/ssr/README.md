@@ -36,6 +36,27 @@ could reach neither Vite's HMR socket nor the dock's on ports of their own;
 serves both from the page's server, and lets the dock connect from
 StackBlitz's origin.
 
+## Production build
+
+```sh
+pnpm build
+pnpm preview
+```
+
+`build` makes two bundles: the client in `dist/client`, and
+`src/entry-server.ts` built for the server in `dist/server`, where the shared
+`?css-sheet` is inlined into the rendered HTML. `preview.mjs` serves them
+from a plain Node HTTP server, with no Vite at runtime, so there is no HMR or
+DevTools dock. The Lit panel still attaches through standalone mode: start
+`npx lit-devtools dev` and pass the script URL it prints,
+
+```sh
+pnpm preview --devtools http://localhost:5180/lit-devtools.js
+```
+
+and the Components tab shows the tree, the inspector and where each element's
+hydration stands. `src/test/e2e/ssr-production_test.ts` checks this path.
+
 This example is also the fixture for the repo's SSR end-to-end tests
 (`src/test/e2e/ssr_test.ts`), which start `startSsrServer` from `server.mjs`
 with the repo's build of the plugin.

@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "node server.mjs",
+    "build": "vite build --outDir dist/client && vite build --ssr src/entry-server.ts --outDir dist/server",
+    "preview": "node preview.mjs",
     "stackblitz": "node stackblitz.mjs"
   },
   "dependencies": {
