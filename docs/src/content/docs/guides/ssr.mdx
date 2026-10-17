@@ -70,6 +70,19 @@ the components.
 - **Hydration state in the DevTools.** The Components tab marks a
   server-rendered component _deferred_, _not hydrated_ or _SSR_ (hydrated).
 
+## In a production build
+
+Build the client and the server entry separately (`vite build`, then
+`vite build --ssr src/entry-server.ts`) and serve them without Vite, as the
+example's `preview.mjs` does. A `?css-sheet` import is inlined in the server
+build, so the rendered HTML still arrives styled.
+
+There is no dev server then, so no HMR and no DevTools dock. The Lit panel
+can still attach through
+[`lit-devtools dev`](/vite-plugin-lit/reference/cli/#production-builds): put
+its script tag first in `<head>`, before the client entry hydrates anything,
+and the Components tab shows the tree and each element's hydration state.
+
 ## Limits
 
 The plugin leaves the server's own modules untransformed: no HMR wrappers, no
