@@ -44,6 +44,9 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   second Lit into the page. It is injected at both `page` and
   `before-hydration`: a page without islands loads only the first, and an
   island may hydrate before it.
+- **The renderer is named `lit`.** Astro finds the renderer for
+  `client:only` by name once there is more than one, and `lit` is the hint
+  people write.
 - **Tags, not constructors, in the browser.** In dev an island can import a
   later version of a class than the registered one (the module evaluated
   again), which can't be constructed. The client renderer creates elements
@@ -54,21 +57,22 @@ another one such as `@awesome.me/astro-lit`. Experimental.
 
 ## Parity with @awesome.me/astro-lit
 
-| Feature                                           | astro-lit 5.0.4               | here                                                 |
-| ------------------------------------------------- | ----------------------------- | ---------------------------------------------------- |
-| Render a tag in a page (`<my-el>`)                | yes                           | yes                                                  |
-| Render an imported class (`<MyEl client:load />`) | patches `define`              | `customElements.getName()`, no patch                 |
-| Attributes vs properties                          | by name                       | by name, and a property's name maps to its attribute |
-| Object props on an island                         | yes                           | yes                                                  |
-| Object props on a plain tag                       | lost                          | carried as JSON in `data-lit-props`                  |
-| `defer-hydration` written by hand                 | released at once              | respected                                            |
-| Named slots                                       | `parse5`                      | top-level scanner, also wraps loose text             |
-| `client:only`                                     | yes                           | yes, by tag                                          |
-| Client bootstrap                                  | two imports by hand, in order | injected                                             |
-| Declarative shadow DOM polyfill                   | import by hand                | `shadowRootPolyfill: true`                           |
-| Container API (`getContainerRenderer`)            | yes                           | yes, tested (`examples/astro/test`)                  |
-| Server DOM shim swap                              | replaces `HTMLElement`        | not needed on Astro 7                                |
-| HMR, `?css-sheet` on the server, panel            | no                            | yes                                                  |
+| Feature                                           | astro-lit 5.0.4               | here                                                       |
+| ------------------------------------------------- | ----------------------------- | ---------------------------------------------------------- |
+| Render a tag in a page (`<my-el>`)                | yes                           | yes                                                        |
+| Render an imported class (`<MyEl client:load />`) | patches `define`              | `customElements.getName()`, no patch                       |
+| Attributes vs properties                          | by name                       | by name, and a property's name maps to its attribute       |
+| Object props on an island                         | yes                           | yes                                                        |
+| Object props on a plain tag                       | lost                          | carried as JSON in `data-lit-props`                        |
+| `defer-hydration` written by hand                 | released at once              | respected                                                  |
+| Named slots                                       | `parse5`                      | top-level scanner, also wraps loose text                   |
+| `client:only`                                     | yes                           | yes, by tag                                                |
+| Next to another renderer                          | yes                           | yes, renderer named `lit`, so `client:only="lit"` resolves |
+| Client bootstrap                                  | two imports by hand, in order | injected                                                   |
+| Declarative shadow DOM polyfill                   | import by hand                | `shadowRootPolyfill: true`                                 |
+| Container API (`getContainerRenderer`)            | yes                           | yes, tested (`examples/astro/test`)                        |
+| Server DOM shim swap                              | replaces `HTMLElement`        | not needed on Astro 7                                      |
+| HMR, `?css-sheet` on the server, panel            | no                            | yes                                                        |
 
 ## Decisions
 

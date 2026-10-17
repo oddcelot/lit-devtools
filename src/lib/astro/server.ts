@@ -145,7 +145,7 @@ const renderToStaticMarkup = async (
 };
 
 export default {
-  name: '@oddsquad/vite-plugin-lit',
+  name: 'lit',
   check,
   renderToStaticMarkup,
 };
