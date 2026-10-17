@@ -35,6 +35,7 @@ import {
   type InspectorMessage,
   type InspectorTreeNode,
   PAGE_RUNTIME_NAMES,
+  sentenceStart,
   type ValueChild,
   type ValuePath,
   type ValueSegment,
@@ -1420,18 +1421,10 @@ export class ComponentsView extends LitElement {
       }
       .runtimes-banner {
         flex-shrink: 0;
-        display: flex;
-        align-items: baseline;
-        gap: var(--lit-devtools-space-3);
         padding: var(--lit-devtools-space-2) var(--lit-devtools-space-5);
         border-bottom: 1px solid var(--lit-devtools-border);
-        background: var(--lit-devtools-warning-soft);
-        color: var(--lit-devtools-warning);
+        color: var(--lit-devtools-text-muted);
         font-size: var(--lit-devtools-text-xs);
-      }
-      .runtimes-banner wa-icon {
-        flex-shrink: 0;
-        align-self: center;
       }
       .hmr-banner {
         flex-shrink: 0;
@@ -3900,23 +3893,21 @@ export class ComponentsView extends LitElement {
   }
 
   /**
-   * Warns that more than one DevTools runtime is on the page, the extension's
-   * beside the dev server's: they share one channel, so the picker and this
-   * tree can break (`runtime-registry.ts`). A snapshot has no live page.
+   * Says which runtime serves the page when more than one loaded, the
+   * extension's beside the dev server's: the first serves both panels and
+   * the later one only shares its channel (`runtime-registry.ts`), so what
+   * this tab shows comes from the first one's version. A snapshot has no
+   * live page.
    */
   private _renderRuntimesBanner(): TemplateResult | typeof nothing {
     const runtimes = this._snapshot
       ? []
       : (this._session.runtime?.runtimes ?? []);
     if (runtimes.length < 2) return nothing;
-    const names = runtimes.map((k) => PAGE_RUNTIME_NAMES[k]).join(' and ');
+    const [first, ...later] = runtimes.map((k) => PAGE_RUNTIME_NAMES[k]);
     return html`<div class="runtimes-banner" role="status">
-      <wa-icon name="warning"></wa-icon>
-      <span
-        >Two Lit DevTools runtimes are on this page: ${names}. The picker and
-        this tree can break; on a dev server that runs the plugin, turn the
-        extension off for the site.</span
-      >
+      ${sentenceStart(first!)} serves this page; ${later.join(' and ')} shares
+      its runtime.
     </div>`;
   }
 

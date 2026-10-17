@@ -33,6 +33,7 @@ import {subscribeOverride} from '../overrides.js';
 import {preferences} from '../../settings-override.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID, TAB_ID} from '../page-id.js';
+import {yieldsToAnotherRuntime} from '../runtime-registry.js';
 import type {ViteHotLike} from '../page-channel.js';
 import {
   CHANNEL_LAYERS_CHANGED,
@@ -41,89 +42,100 @@ import {
 } from '../../../types/timeline.js';
 import type {TimelineLayersState} from '../../../types/timeline.js';
 
-// Recording state is written by the panel toggle, the Chrome tracks flag by
-// the settings override (a page-side preference, independent of recording).
-const capture = createCaptureController({
-  emit,
-  chromeTracks: createChromeTracksSink(profilerStamp(chromeTracksSupported())),
-  setRenderDebug: setRenderDebugEnabled,
-  resetClock,
-});
-
-// ---------------------------------------------------------------------------
-// Capture layer installation
-// ---------------------------------------------------------------------------
-
-const {out, capturing, enabled} = capture;
-installCustomEventsLayer({
-  emit: out,
-  recording: capturing,
-  enabled: enabled.customEvents,
-  groupOf: updateGroupOf,
-});
-installLifecycleLayer(out, capturing, enabled.lifecycle, enabled.changedValues);
-// Normally hooked already by `warnings-boot`; this covers a page without it.
-installLitWarningCapture();
-const warnings = installWarningsLayer({
-  emit: out,
-  replayTo: capture.panel,
-  recording: capturing,
-  enabled: enabled.warnings,
-  groupOf: updateGroupOf,
-});
-installRenderLayer(out, capturing, enabled.render, enabled.renderVerbose);
-installMouseLayer(out, capturing, enabled.mouse);
-installKeyboardLayer(out, capturing, enabled.keyboard);
-
-// Flash-on-update rides the lifecycle wrappers but not the recording gate:
-// it's a page-side visual the panel toggles as a preference, so it follows the
-// settings override (read at boot, pushed live) rather than the layer state.
-setUpdateHook(flashUpdate);
-
-// ---------------------------------------------------------------------------
-// Page channel wiring
-// ---------------------------------------------------------------------------
-
 // `import.meta.hot` exists in Vite dev builds; the tsconfig lib set doesn't
 // include it, so we access it through the un-typed global shape.
 const hot = (import.meta as {hot?: ViteHotLike}).hot;
-
-subscribeOverride(hot, (o) => {
-  const prefs = preferences(o);
-  setFlashEnabled(prefs.flashUpdates);
-  setFlashRamp(prefs.flashUpdatesRamp);
-  capture.setChromeTracks(prefs.chromeTracks);
-});
-
 if (hot !== undefined) pageChannel.useViteHot(hot);
 
-// Wired whether or not Vite is present: a page outside Vite gets its carrier
-// later from `connectToDevServer()`, and these listeners move onto it then.
-{
-  setHotClient(pageChannel);
-
-  let panelRecording = false;
-
-  // Panel → app: toggle recording and per-layer flags.
-  pageChannel.on(CHANNEL_RECORDING_CHANGED, (data) => {
-    const {recording} = data as {recording: boolean};
-    capture.setRecording(recording);
-    if (recording && !panelRecording) warnings.replay();
-    panelRecording = recording;
+// On a page another runtime serves, its capture records this page and its
+// events reach this carrier too: a second set of layers would count each
+// update twice.
+if (!yieldsToAnotherRuntime(hot)) {
+  // Recording state is written by the panel toggle, the Chrome tracks flag by
+  // the settings override (a page-side preference, independent of recording).
+  const capture = createCaptureController({
+    emit,
+    chromeTracks: createChromeTracksSink(
+      profilerStamp(chromeTracksSupported())
+    ),
+    setRenderDebug: setRenderDebugEnabled,
+    resetClock,
   });
 
-  pageChannel.on(CHANNEL_LAYERS_CHANGED, (data) => {
-    const wasOn = enabled.warnings();
-    capture.setLayers(data as Partial<TimelineLayersState>);
-    // Mid-recording, the warnings issued while the layer was off are still
-    // in the page.
-    if (panelRecording && !wasOn && enabled.warnings()) warnings.replay();
-  });
+  // ---------------------------------------------------------------------------
+  // Capture layer installation
+  // ---------------------------------------------------------------------------
 
-  // Announce readiness so the panel can detect the runtime.
-  pageChannel.send(CHANNEL_RUNTIME_READY, {pageId: PAGE_ID, tabId: TAB_ID});
-  // A carrier attached later starts with no idea a runtime exists.
-  pageChannel.onAttach(() =>
-    pageChannel.send(CHANNEL_RUNTIME_READY, {pageId: PAGE_ID, tabId: TAB_ID})
+  const {out, capturing, enabled} = capture;
+  installCustomEventsLayer({
+    emit: out,
+    recording: capturing,
+    enabled: enabled.customEvents,
+    groupOf: updateGroupOf,
+  });
+  installLifecycleLayer(
+    out,
+    capturing,
+    enabled.lifecycle,
+    enabled.changedValues
   );
+  // Normally hooked already by `warnings-boot`; this covers a page without it.
+  installLitWarningCapture();
+  const warnings = installWarningsLayer({
+    emit: out,
+    replayTo: capture.panel,
+    recording: capturing,
+    enabled: enabled.warnings,
+    groupOf: updateGroupOf,
+  });
+  installRenderLayer(out, capturing, enabled.render, enabled.renderVerbose);
+  installMouseLayer(out, capturing, enabled.mouse);
+  installKeyboardLayer(out, capturing, enabled.keyboard);
+
+  // Flash-on-update rides the lifecycle wrappers but not the recording gate:
+  // it's a page-side visual the panel toggles as a preference, so it follows the
+  // settings override (read at boot, pushed live) rather than the layer state.
+  setUpdateHook(flashUpdate);
+
+  // ---------------------------------------------------------------------------
+  // Page channel wiring
+  // ---------------------------------------------------------------------------
+
+  subscribeOverride(hot, (o) => {
+    const prefs = preferences(o);
+    setFlashEnabled(prefs.flashUpdates);
+    setFlashRamp(prefs.flashUpdatesRamp);
+    capture.setChromeTracks(prefs.chromeTracks);
+  });
+
+  // Wired whether or not Vite is present: a page outside Vite gets its carrier
+  // later from `connectToDevServer()`, and these listeners move onto it then.
+  {
+    setHotClient(pageChannel);
+
+    let panelRecording = false;
+
+    // Panel → app: toggle recording and per-layer flags.
+    pageChannel.on(CHANNEL_RECORDING_CHANGED, (data) => {
+      const {recording} = data as {recording: boolean};
+      capture.setRecording(recording);
+      if (recording && !panelRecording) warnings.replay();
+      panelRecording = recording;
+    });
+
+    pageChannel.on(CHANNEL_LAYERS_CHANGED, (data) => {
+      const wasOn = enabled.warnings();
+      capture.setLayers(data as Partial<TimelineLayersState>);
+      // Mid-recording, the warnings issued while the layer was off are still
+      // in the page.
+      if (panelRecording && !wasOn && enabled.warnings()) warnings.replay();
+    });
+
+    // Announce readiness so the panel can detect the runtime.
+    pageChannel.send(CHANNEL_RUNTIME_READY, {pageId: PAGE_ID, tabId: TAB_ID});
+    // A carrier attached later starts with no idea a runtime exists.
+    pageChannel.onAttach(() =>
+      pageChannel.send(CHANNEL_RUNTIME_READY, {pageId: PAGE_ID, tabId: TAB_ID})
+    );
+  }
 }

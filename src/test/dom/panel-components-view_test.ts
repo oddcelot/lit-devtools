@@ -1328,7 +1328,7 @@ test('explains an empty tree inside an iframe', async () => {
   expect((await emptyText()).text()).toContain('iframe');
 });
 
-test('warns when two DevTools runtimes share the page', async () => {
+test('says which runtime serves a page two of them loaded on', async () => {
   const {el, root} = await mount(false);
   const banner = () =>
     root.querySelector('.runtimes-banner')?.textContent?.replace(/\s+/g, ' ');
@@ -1336,15 +1336,15 @@ test('warns when two DevTools runtimes share the page', async () => {
   await flush(el);
   expect(banner()).toBeUndefined();
 
-  // The extension's runtime joined: every runtime re-announces with both.
+  // The dev server's runtime joined the extension's: it re-announces both.
   push('inspector-message', {type: 'ready', runtimes: ['extension', 'vite']});
   await flush(el);
-  expect(banner()).toContain(
-    "the Lit Inspector extension and the dev server's plugin"
+  expect(banner()?.trim()).toBe(
+    "The Lit Inspector extension serves this page; the dev server's plugin shares its runtime."
   );
 });
 
-test('never warns about runtimes in a snapshot', async () => {
+test('never names runtimes in a snapshot', async () => {
   setSnapshot(true);
   meta.runtime = {
     ready: true,

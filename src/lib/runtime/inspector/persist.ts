@@ -7,8 +7,13 @@
 
 import {setProp} from './collect.js';
 import {installOverrideStore} from './override-store.js';
+import {yieldsToAnotherRuntime} from '../runtime-registry.js';
 
-if (typeof window !== 'undefined') {
+// The extension keeps the overrides of a page it serves in its own storage.
+if (
+  typeof window !== 'undefined' &&
+  !yieldsToAnotherRuntime((import.meta as {hot?: unknown}).hot)
+) {
   try {
     installOverrideStore(sessionStorage, setProp);
   } catch {

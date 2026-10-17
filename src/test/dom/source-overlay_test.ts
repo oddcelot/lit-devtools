@@ -143,6 +143,21 @@ describe('registration', () => {
     document.querySelector('lit-source-overlay')!.remove();
   });
 
+  test('a second init configures the overlay already on the page', () => {
+    // The extension's runtime put one up first; the dev server's config
+    // goes to it rather than to a second picker.
+    mod.initSourceOverlay({hosts: 'lit'});
+    const existing = document.querySelector('lit-source-overlay')!;
+    const configure = vi.spyOn(
+      existing as unknown as {configure(o: object): void},
+      'configure'
+    );
+    mod.initSourceOverlay({openInEditorPath: '/__open'});
+    expect(document.querySelectorAll('lit-source-overlay')).toHaveLength(1);
+    expect(configure).toHaveBeenCalledWith({openInEditorPath: '/__open'});
+    existing.remove();
+  });
+
   test('toggleSourceOverlay flips the mounted overlay', () => {
     mount();
     mod.toggleSourceOverlay();

@@ -578,7 +578,12 @@ class LitSourceOverlay extends HTMLElement {
   };
 }
 
-customElements.define('lit-source-overlay', LitSourceOverlay);
+// The extension's runtime defines it first on a page it serves alongside the
+// dev server's: a second define would reach the HMR patch as an edit and
+// swap this class onto that runtime's element.
+if (customElements.get('lit-source-overlay') === undefined) {
+  customElements.define('lit-source-overlay', LitSourceOverlay);
+}
 
 export const initSourceOverlay = (
   initOptions: SourceOverlayInitOptions = {}
@@ -587,6 +592,16 @@ export const initSourceOverlay = (
   // An SVG or XML document makes a plain element that never upgrades, and
   // has no <body> to hold it; there is nothing to pick there anyway.
   if (!(document.body instanceof HTMLElement)) return;
+  // One picker per page: another runtime's already listens for the toggle
+  // on the shared channel. It takes this config, the dev server's, so the
+  // editor and the pickable hosts are the ones the plugin was given.
+  const existing = document.querySelector(
+    'lit-source-overlay'
+  ) as LitSourceOverlay | null;
+  if (existing !== null) {
+    existing.configure(initOptions);
+    return;
+  }
   const el = document.createElement('lit-source-overlay') as LitSourceOverlay;
   el.configure(initOptions);
   document.body.append(el);

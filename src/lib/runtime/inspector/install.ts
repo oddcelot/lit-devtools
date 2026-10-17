@@ -15,7 +15,11 @@ import {withDevtoolsCause} from '../timeline/cause-context.js';
 import {findByKey, keyOf} from './element-key.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
-import {onRuntimeJoined, runtimesOnPage} from '../runtime-registry.js';
+import {
+  onRuntimeJoined,
+  runtimesOnPage,
+  yieldsToAnotherRuntime,
+} from '../runtime-registry.js';
 import type {ViteHotLike} from '../page-channel.js';
 import {
   buildTree,
@@ -83,6 +87,8 @@ const LIT_VERSION_GLOBALS = [
 
 const hot = (import.meta as {hot?: ViteHotLike}).hot;
 if (hot !== undefined) pageChannel.useViteHot(hot);
+// On a page another runtime serves, its inspector answers this carrier too.
+const installs = typeof window !== 'undefined' && !yieldsToAnotherRuntime(hot);
 
 // The direct panel channel, outside the `hot` gate on purpose: it is the one
 // part of the inspector that does not need a dev server, which is what lets
@@ -138,7 +144,7 @@ const exposeSelection = (selected: () => Element | undefined): void => {
   }
 };
 
-if (typeof window !== 'undefined') {
+if (installs) {
   // The browser extension's "Reveal in Elements": DevTools' `inspectedWindow
   // .eval` runs in the page's main world and holds only the panel's numeric
   // id, so it turns it back into the node through this to call `inspect()`.
@@ -186,7 +192,7 @@ if (typeof window !== 'undefined') {
   });
 }
 
-if (typeof window !== 'undefined') {
+if (installs) {
   /**
    * Reads one of the page's own scripts for a host that cannot (the
    * standalone server). Only http(s) URLs on this page's origin are fetched:

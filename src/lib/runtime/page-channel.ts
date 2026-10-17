@@ -5,9 +5,11 @@
  * notices) goes through {@link pageChannel}, never through `import.meta.hot`
  * directly, so the carrier can be swapped without touching a call site.
  *
- * The default carrier is Vite's HMR channel ({@link fromViteHot}). An
- * alternative (see `rpc-transport.ts`) is attached with
- * {@link PageChannel.attach}; listeners registered earlier move over to it.
+ * Carriers: Vite's HMR channel ({@link fromViteHot}), a dev server's RPC
+ * (`rpc-transport.ts`), the extension's window relay (`window-transport.ts`).
+ * More than one can be attached at once, when the extension's panel and the
+ * dev server's both watch a page; each is attached with
+ * {@link PageChannel.attach}, and listeners registered earlier bind to it.
  *
  * Vite's own lifecycle events (`vite:afterUpdate`, `vite:beforeFullReload`,
  * `vite:ws:*`) are not part of this channel: they describe the HMR connection
@@ -25,17 +27,22 @@ import {
 export interface PageChannel extends PageTransport {
   /** Whether a carrier is attached. Sends made before one is are dropped. */
   readonly attached: boolean;
-  /** The carrier in use, so a replacement can hand the channel back. */
-  readonly transport: PageTransport | undefined;
+  /** The carriers in use, so a replacement can hand the channel back. */
+  readonly carriers: readonly PageTransport[];
   /**
-   * Make `transport` the carrier. Listeners already registered are moved onto
-   * it and removed from the previous carrier, and `onAttach` callbacks run so
-   * their owners can announce themselves to the new peer.
+   * Add `transport` as a carrier, or announce again on one already added.
+   * Sends go to every carrier and listeners hear each, so two peers (the
+   * extension's panel and the dev server's) can share one runtime. Listeners
+   * already registered are bound to it, and `onAttach` callbacks run so their
+   * owners can announce themselves to the new peer.
    */
   attach(transport: PageTransport): void;
+  /** Remove a carrier `attach` added; its listeners are unbound. */
+  detach(transport: PageTransport): void;
   /**
-   * Attach Vite's HMR client, unless a carrier is already in place, and
-   * count the Vite-served runtime among the page's (`runtime-registry.ts`).
+   * Add Vite's HMR client as a carrier, once per page whichever module asks
+   * first, and count the Vite-served runtime among the page's
+   * (`runtime-registry.ts`).
    */
   useViteHot(hot: ViteHotLike): void;
   /** Run `callback` on every later {@link attach}. Not run for past ones. */
@@ -43,42 +50,50 @@ export interface PageChannel extends PageTransport {
 }
 
 const createPageChannel = (): PageChannel => {
-  let transport: PageTransport | undefined;
+  const carriers: PageTransport[] = [];
+  let viteCarrier = false;
   const listeners: Array<{
     channel: string;
     handler: (data: unknown) => void;
-    off?: () => void;
+    offs: Map<PageTransport, () => void>;
   }> = [];
   const attachCallbacks: Array<() => void> = [];
 
-  const bind = (entry: (typeof listeners)[number]): void => {
-    entry.off = transport?.on(entry.channel, entry.handler);
+  const bind = (
+    entry: (typeof listeners)[number],
+    carrier: PageTransport
+  ): void => {
+    entry.offs.get(carrier)?.();
+    entry.offs.set(carrier, carrier.on(entry.channel, entry.handler));
   };
 
   const channel: PageChannel = {
     get attached() {
-      return transport !== undefined;
+      return carriers.length > 0;
     },
-    get transport() {
-      return transport;
+    get carriers() {
+      return [...carriers];
     },
     send(name, data) {
-      transport?.send(name, data);
+      for (const carrier of carriers) carrier.send(name, data);
     },
     on(name, handler) {
-      const entry: (typeof listeners)[number] = {channel: name, handler};
+      const entry: (typeof listeners)[number] = {
+        channel: name,
+        handler,
+        offs: new Map(),
+      };
       listeners.push(entry);
-      bind(entry);
+      for (const carrier of carriers) bind(entry, carrier);
       return () => {
-        entry.off?.();
+        for (const off of entry.offs.values()) off();
         const index = listeners.indexOf(entry);
         if (index !== -1) listeners.splice(index, 1);
       };
     },
     attach(next) {
-      for (const entry of listeners) entry.off?.();
-      transport = next;
-      for (const entry of listeners) bind(entry);
+      if (!carriers.includes(next)) carriers.push(next);
+      for (const entry of listeners) bind(entry, next);
       for (const callback of attachCallbacks) {
         try {
           callback();
@@ -87,10 +102,22 @@ const createPageChannel = (): PageChannel => {
         }
       }
     },
+    detach(carrier) {
+      const index = carriers.indexOf(carrier);
+      if (index === -1) return;
+      carriers.splice(index, 1);
+      for (const entry of listeners) {
+        entry.offs.get(carrier)?.();
+        entry.offs.delete(carrier);
+      }
+    },
     useViteHot(hot) {
-      // Every module of the Vite-served runtime comes through here.
+      // Every module of the Vite-served runtime comes through here, each
+      // with its own `import.meta.hot` on the one socket: one carrier.
       joinPage('vite');
-      if (transport === undefined) channel.attach(fromViteHot(hot));
+      if (viteCarrier) return;
+      viteCarrier = true;
+      channel.attach(fromViteHot(hot));
     },
     onAttach(callback) {
       attachCallbacks.push(callback);
