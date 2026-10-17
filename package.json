@@ -57,6 +57,10 @@
       "types": "./lib/astro/boot.d.ts",
       "default": "./lib/astro/boot.js"
     },
+    "./astro/polyfill": {
+      "types": "./lib/astro/polyfill.d.ts",
+      "default": "./lib/astro/polyfill.js"
+    },
     "./css.js": {
       "types": "./lib/runtime/css.d.ts",
       "default": "./lib/runtime/css.js"

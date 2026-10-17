@@ -160,9 +160,8 @@ Astro renders pages without Vite's `transformIndexHtml`, which is how the
 plugin adds its page runtime. In dev the integration adds it to each HTML
 page itself, so Astro sends a page once it is complete, not as a stream.
 
-Every current browser parses declarative shadow roots. For an older one,
-install `@webcomponents/template-shadowroot` and pass
-`shadowRootPolyfill: true`.
+Every current browser parses declarative shadow roots. For an older one, pass
+`shadowRootPolyfill: true`; there is nothing to install.
 
 ## Related
 

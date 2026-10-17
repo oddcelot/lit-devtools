@@ -531,10 +531,11 @@ with `render: false`.
 
 ### shadowRootPolyfill
 
-Loads a polyfill for declarative shadow DOM in browsers that can't parse it,
-from `@webcomponents/template-shadowroot`, which you install yourself. Every
-current browser parses it natively, and the polyfill loads only where one
-doesn't.
+Attaches declarative shadow roots in browsers that can't parse them, before
+any of your components is defined, so the server's HTML still hydrates rather
+than rendering again. Every current browser parses them natively, and the
+polyfill does nothing there. It is part of the plugin: there is nothing to
+install.
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';

@@ -45,9 +45,9 @@ export interface LitAstroOptions extends LitPluginOptions {
    */
   render?: boolean;
   /**
-   * Load a polyfill for declarative shadow DOM in browsers without it, from
-   * `@webcomponents/template-shadowroot`, which you then install. Every
-   * current browser parses it natively. Defaults to `false`.
+   * Attach declarative shadow roots in browsers that can't parse them,
+   * before any component is defined, so the server's HTML still hydrates.
+   * Every current browser parses them natively. Defaults to `false`.
    */
   shadowRootPolyfill?: boolean;
   /**
@@ -119,21 +119,21 @@ const RENDERER_NAME = 'lit';
 const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 
 /**
- * What the renderer's pages load first: Lit's hydrate support, then
- * `lib/astro/boot.ts`. The support is imported here, not by the boot
- * module, so it resolves from the project, as the project's own Lit does:
- * from the plugin's directory it can find a second copy of Lit.
+ * What the renderer's pages load first: Lit's hydrate support, then with
+ * `shadowRootPolyfill` the shadow roots a browser didn't attach
+ * (`lib/astro/polyfill.ts`), then `lib/astro/boot.ts`. The support is
+ * imported here, not by the boot module, so it resolves from the project,
+ * as the project's own Lit does: from the plugin's directory it can find a
+ * second copy of Lit.
  */
-const BOOT = `import '${HYDRATE_SUPPORT}';
-import '@oddsquad/vite-plugin-lit/astro/boot';`;
-
-// Only where the browser can't parse declarative shadow roots itself.
-const SHADOW_ROOT_POLYFILL = `
-if (!Object.hasOwn(HTMLTemplateElement.prototype, 'shadowRootMode')) {
-  import('@webcomponents/template-shadowroot/template-shadowroot.js').then(
-    ({hydrateShadowRoots}) => hydrateShadowRoots(document.body)
-  );
-}`;
+const boot = (shadowRootPolyfill: boolean): string =>
+  [
+    `import '${HYDRATE_SUPPORT}';`,
+    ...(shadowRootPolyfill
+      ? [`import '@oddsquad/vite-plugin-lit/astro/polyfill';`]
+      : []),
+    `import '@oddsquad/vite-plugin-lit/astro/boot';`,
+  ].join('\n');
 
 /**
  * Lit in Astro: renders Lit components on the server and hydrates them,
@@ -174,9 +174,8 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
           });
           // Both: a page without islands loads only `page` scripts, and an
           // island may hydrate before them.
-          injectScript('page', BOOT);
-          injectScript('before-hydration', BOOT);
-          if (shadowRootPolyfill) injectScript('page', SHADOW_ROOT_POLYFILL);
+          injectScript('page', boot(shadowRootPolyfill));
+          injectScript('before-hydration', boot(shadowRootPolyfill));
         }
         if (command !== 'dev' || !withToolbar) return;
         addDevToolbarApp({

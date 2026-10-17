@@ -43,13 +43,18 @@ describe('lit()', () => {
     );
   });
 
-  test('adds the shadow root polyfill only when asked', () => {
-    const args = setup('build');
-    lit({shadowRootPolyfill: true}).hooks['astro:config:setup'](args);
-    expect(args.injectScript).toHaveBeenCalledWith(
-      'page',
-      expect.stringContaining('@webcomponents/template-shadowroot')
-    );
+  test('attaches shadow roots before the boot script only when asked', () => {
+    const scripts = (options: {shadowRootPolyfill?: boolean}) => {
+      const args = setup('build');
+      lit(options).hooks['astro:config:setup'](args);
+      return args.injectScript.mock.calls.map(([, code]) => code);
+    };
+    for (const code of scripts({shadowRootPolyfill: true})) {
+      expect(code).toMatch(
+        /\/astro\/polyfill';\nimport '@oddsquad\/vite-plugin-lit\/astro\/boot';$/
+      );
+    }
+    for (const code of scripts({})) expect(code).not.toContain('polyfill');
   });
 });
 
