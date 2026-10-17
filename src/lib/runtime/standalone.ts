@@ -32,8 +32,10 @@ import './inspector/install.js';
 import {initSourceOverlay} from './source-overlay/overlay-element.js';
 import {pickInto} from './panel-window.js';
 import {connectToDevServer} from './rpc-transport.js';
+import {joinPage} from './runtime-registry.js';
 import type {ConnectOptions} from './rpc-transport.js';
 
+joinPage('standalone');
 // Where each class is defined comes from the stack of its define call, so
 // this has to run before the page's scripts do: only defines after it are
 // seen, hence the script belongs in <head>, ahead of the app. (Our own

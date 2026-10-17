@@ -182,6 +182,7 @@ export function createRecordingSession(
     litPackages: {},
     topFrame: true,
     chromeTracks: true,
+    runtimes: [],
   };
   const details = new Map<number, InspectorDetails>(
     replay?.details.map((d) => [d.id, d])
@@ -314,6 +315,7 @@ export function createRecordingSession(
           ),
           topFrame: message.topFrame ?? true,
           chromeTracks: message.chromeTracks ?? true,
+          runtimes: [...(message.runtimes ?? [])],
         };
       }
     },

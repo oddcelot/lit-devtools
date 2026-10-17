@@ -23,7 +23,9 @@ import '../../src/lib/runtime/inspector/install.js';
 import {installWindowOverrideStore} from '../../src/lib/runtime/inspector/window-override-storage.js';
 import {initSourceOverlay} from '../../src/lib/runtime/source-overlay/overlay-element.js';
 import {attachWindowTransport} from '../../src/lib/runtime/window-transport.js';
+import {joinPage} from '../../src/lib/runtime/runtime-registry.js';
 
+joinPage('extension');
 // Where each class is defined comes from the stack of its define call, so
 // this has to run before the page's scripts do (our own imports' defines
 // are not the page's and need no record).

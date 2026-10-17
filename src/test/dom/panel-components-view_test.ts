@@ -1328,6 +1328,35 @@ test('explains an empty tree inside an iframe', async () => {
   expect((await emptyText()).text()).toContain('iframe');
 });
 
+test('warns when two DevTools runtimes share the page', async () => {
+  const {el, root} = await mount(false);
+  const banner = () =>
+    root.querySelector('.runtimes-banner')?.textContent?.replace(/\s+/g, ' ');
+  push('inspector-message', {type: 'ready', runtimes: ['vite']});
+  await flush(el);
+  expect(banner()).toBeUndefined();
+
+  // The extension's runtime joined: every runtime re-announces with both.
+  push('inspector-message', {type: 'ready', runtimes: ['extension', 'vite']});
+  await flush(el);
+  expect(banner()).toContain(
+    "the Lit Inspector extension and the dev server's plugin"
+  );
+});
+
+test('never warns about runtimes in a snapshot', async () => {
+  setSnapshot(true);
+  meta.runtime = {
+    ready: true,
+    litPackages: {},
+    topFrame: true,
+    chromeTracks: true,
+    runtimes: ['extension', 'vite'],
+  };
+  const {root} = await mount(false);
+  expect(root.querySelector('.runtimes-banner')).toBeNull();
+});
+
 test('keeps the plain message for a healthy runtime with no components', async () => {
   expect((await emptyText()).text()).toBe(
     'No Lit components found on the page.'

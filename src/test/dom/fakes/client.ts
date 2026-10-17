@@ -90,6 +90,8 @@ export const meta: {
     litPackages: Record<string, string[]>;
     topFrame: boolean;
     chromeTracks: boolean;
+    /** Absent, as from a server older than the field. */
+    runtimes?: Array<'vite' | 'extension' | 'standalone'>;
   };
   version: string;
   capabilities: {
