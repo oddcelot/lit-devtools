@@ -124,6 +124,7 @@
     "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
     "@vitejs/devtools-kit": "^0.7.5",
+    "astro": "^7.3.0",
     "cac": "^7.0.0",
     "lightningcss": "^1.30.0",
     "lit": "^3.0.0",
@@ -141,6 +142,9 @@
       "optional": true
     },
     "@vitejs/devtools-kit": {
+      "optional": true
+    },
+    "astro": {
       "optional": true
     },
     "cac": {
