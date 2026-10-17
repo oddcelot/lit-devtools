@@ -89,17 +89,21 @@ const carried = (tag: string, properties: Record<string, unknown>): string => {
 };
 
 /**
- * Properties don't survive in the HTML: hold the element back until the
- * browser has set them again. An island's come from Astro's props; any
- * other element's ride along in the marker.
+ * Whether to hold the element back, and with what. An island always waits
+ * for its directive: with its class defined by anything else on the page,
+ * it would otherwise hydrate on its own, `client:visible` or not. Its
+ * properties come from Astro's props. Any other element is held back only
+ * when it gets properties, which don't survive in the HTML: they ride along
+ * in the marker, for the browser to set before it hydrates.
  */
 const deferral = (
   tag: string,
   properties: Record<string, unknown>,
   metadata?: Metadata
 ): string => {
-  if (Object.keys(properties).length === 0) return '';
-  const json = metadata?.hydrate === undefined ? carried(tag, properties) : '';
+  const island = metadata?.hydrate !== undefined;
+  if (!island && Object.keys(properties).length === 0) return '';
+  const json = island ? '' : carried(tag, properties);
   return ` defer-hydration ${PROPS_ATTRIBUTE}="${escapeAttribute(json)}"`;
 };
 
