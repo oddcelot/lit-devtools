@@ -209,28 +209,20 @@ const warnedChip = (
   >`;
 };
 
-/** Marks a custom element another library defined, in the tree and the pane. */
-const notLitChip = html`<span
-  class="status not-lit"
-  data-tip="A custom element, but not a Lit component"
-  >not Lit</span
->`;
-
 const notUpgradedChip = html`<span
   class="status not-upgraded"
   data-tip="The tag is defined, but this element never became an instance of its class"
   >not upgraded</span
 >`;
 
-/** The chip saying a defined tag gave this element no Lit state, if one does. */
+/**
+ * The chip saying a defined tag gave this element no Lit state, if one does.
+ * One another library defined carries none: the tree leaves it unmarked.
+ */
 const definedAsChip = (n: {
-  notLit?: true;
   notUpgraded?: true;
-}): TemplateResult | typeof nothing => {
-  if (n.notLit === true) return notLitChip;
-  if (n.notUpgraded === true) return notUpgradedChip;
-  return nothing;
-};
+}): TemplateResult | typeof nothing =>
+  n.notUpgraded === true ? notUpgradedChip : nothing;
 
 const HYDRATION_PILLS = {
   deferred: {
@@ -877,11 +869,7 @@ export class ComponentsView extends LitElement {
       .status.not-upgraded {
         color: var(--lit-devtools-warning);
       }
-      .status.not-lit {
-        color: var(--lit-devtools-text-muted);
-      }
       .row .status.undefined,
-      .row .status.not-lit,
       .row .status.not-upgraded,
       .row .status.warned,
       .row wa-badge.ssr {
