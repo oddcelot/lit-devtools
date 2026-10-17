@@ -31,6 +31,7 @@ import {fromViteHot} from '../runtime/page-transport.js';
 import {TimelineChannelCodec} from './page-codec.js';
 import {PANEL_DIST_DIR} from './paths.js';
 import {LIT_DEVFRAME_ID} from './protocol.js';
+import {STANDALONE_PANEL_BASE, clientAuthDisabled} from './standalone-panel.js';
 
 /**
  * The slice of the Vite DevTools hub context this plugin uses. Structurally a
@@ -104,24 +105,6 @@ const warnDiscoveryUnavailable = (reason: string): void => {
       `<dev-server-origin>/__devtools/__mcp directly.`
   );
 };
-
-/**
- * Whether the developer turned client auth off the way Vite DevTools reads
- * it: `devtools: {clientAuth: false}` (as written, or as Vite resolved it
- * under `config`) or `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`.
- */
-const clientAuthDisabled = (server: ViteDevServer): boolean => {
-  type Auth = {clientAuth?: unknown; config?: {clientAuth?: unknown}};
-  const devtools = (server.config as {devtools?: Auth}).devtools;
-  return (
-    devtools?.clientAuth === false ||
-    devtools?.config?.clientAuth === false ||
-    process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'] === 'true'
-  );
-};
-
-/** Where the panel is served when no Vite DevTools hub mounts it. */
-const STANDALONE_PANEL_BASE = '/__lit/';
 
 /**
  * Serve the Lit devframe on Vite's own server when no Vite DevTools hub
