@@ -37,6 +37,11 @@ export const pages = [
     blurb: 'Lit and Preact islands on one page, and Lit inside Preact.',
   },
   {
+    href: '/web-awesome/',
+    title: 'Web Awesome',
+    blurb: "A Lit component library's elements, server-rendered and hydrated.",
+  },
+  {
     href: '/on-demand/',
     title: 'On demand',
     blurb: 'Rendered for each request by the Node adapter.',
