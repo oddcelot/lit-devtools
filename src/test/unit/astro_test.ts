@@ -14,7 +14,16 @@ const setup = (command: 'dev' | 'build') => {
   const addDevToolbarApp = vi.fn();
   const addRenderer = vi.fn();
   const injectScript = vi.fn();
-  return {command, updateConfig, addDevToolbarApp, addRenderer, injectScript};
+  // The repo root, where the renderer's peers are installed.
+  const config = {root: new URL('../../../', import.meta.url)};
+  return {
+    command,
+    config,
+    updateConfig,
+    addDevToolbarApp,
+    addRenderer,
+    injectScript,
+  };
 };
 
 describe('lit()', () => {

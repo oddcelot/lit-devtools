@@ -33,6 +33,7 @@ import {
   type AstroToolbarAuth,
 } from './lib/astro/toolbar-protocol.js';
 import {pageTagsMiddleware} from './lib/astro/page-tags.js';
+import {missingPeers, missingPeersMessage} from './lib/astro/peers.js';
 import {type LitPluginOptions, litPlugin} from './lib/plugin.js';
 
 export interface LitAstroOptions extends LitPluginOptions {
@@ -63,6 +64,7 @@ interface AstroLogger {
 /** The slices of Astro's integration hook arguments this integration uses. */
 interface ConfigSetup {
   command: 'dev' | 'build' | 'preview' | 'sync';
+  config: {root: URL};
   updateConfig: (config: {
     vite: {plugins?: Plugin[]; optimizeDeps?: {include: string[]}};
   }) => unknown;
@@ -145,6 +147,7 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
     hooks: {
       'astro:config:setup': ({
         command,
+        config,
         updateConfig,
         addRenderer,
         injectScript,
@@ -152,6 +155,8 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
       }) => {
         updateConfig({vite: {plugins}});
         if (render) {
+          const missing = missingPeers(fileURLToPath(config.root));
+          if (missing.length > 0) throw new Error(missingPeersMessage(missing));
           // Pre-bundled with the project's Lit from the start, rather than
           // found on the first page load, which reloads the page.
           updateConfig({vite: {optimizeDeps: {include: [HYDRATE_SUPPORT]}}});
