@@ -3,12 +3,12 @@
  * integration's renderer and hydrated in the page, as plain tags and as
  * islands; edits hot-patched in and outside islands; the page runtime added
  * to Astro's HTML; and the Lit panel in Astro's dev toolbar, behind
- * devframe's one-time code.
+ * devframe's one-time code, typed in or opened from the printed link.
  */
 
 import {getTempAuthCode} from 'devframe/node/auth';
 import type {Page} from 'playwright-core';
-import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
+import {afterAll, beforeAll, expect, test, vi} from 'vite-plus/test';
 import {type AstroFixture, startAstroFixture} from './astro-utils.js';
 
 let fixture: AstroFixture;
@@ -216,24 +216,60 @@ test('the toolbar app asks for the code, then its panel lists the components', a
   }
 });
 
-test("devframe's link with the code opens the toolbar app, connected", async () => {
+test('the link printed with the code opens the panel, connected', async () => {
+  // What devframe prints, through either door.
+  const printed: string[] = [];
+  const write = vi
+    .spyOn(process.stdout, 'write')
+    .mockImplementation((chunk: unknown) => {
+      printed.push(String(chunk));
+      return true;
+    });
+  const log = vi.spyOn(console, 'log').mockImplementation((...args) => {
+    printed.push(args.join(' '));
+  });
+  const link = () =>
+    /https?:\/\/\S+#devframe_otp=\w+/.exec(printed.join(''))?.[0];
+  // A page for the panel to follow.
+  await open();
+  const asker = await freshPage();
   const page = await freshPage();
   try {
-    await page.goto(`${fixture.origin}/#devframe_otp=${getTempAuthCode()}`);
+    // A panel with no token asks for a code, which prints it with the link.
+    await asker.goto(`${fixture.origin}/__lit/`);
+    await expect.poll(link, {timeout: 10_000}).toBeDefined();
+    const url = new URL(link()!);
+    expect(url.pathname).toBe('/__lit/');
+
+    await page.goto(`${fixture.origin}${url.pathname}${url.hash}`);
+    await expect
+      .poll(
+        () =>
+          page
+            .locator('components-view .row')
+            .filter({hasText: '<ssr-counter>'})
+            .count(),
+        {timeout: 15_000}
+      )
+      .toBeGreaterThan(0);
+
+    // The token it got serves the toolbar window too.
+    await open(page);
+    await page.locator('#dev-bar [data-app-id="lit-devtools"]').click();
     await expect
       .poll(panelListsCounter(page), {timeout: 15_000})
       .toBeGreaterThan(0);
-    // Taken out of the address, so a reload doesn't reuse it.
-    expect(new URL(page.url()).hash).toBe('');
-    // The code went in with the link: no form asking for one.
-    const header = page.locator(
-      'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] header'
-    );
-    expect(await header.locator('form').isVisible()).toBe(false);
     expect(
-      await header.getByRole('button', {name: 'Enter a new code'}).isVisible()
-    ).toBe(true);
+      await page
+        .locator(
+          'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] form'
+        )
+        .isVisible()
+    ).toBe(false);
   } finally {
+    write.mockRestore();
+    log.mockRestore();
+    await asker.context().close();
     await page.context().close();
   }
 });

@@ -8,8 +8,8 @@
  * frame. So the window asks instead, when the server says a code is needed
  * and this browser holds no token yet, and hands the code to the panel in
  * its URL fragment, where devframe reads it. The link devframe prints with
- * the code opens the site's page rather than the panel; when the page URL
- * carries one, the app opens and passes it on the same way.
+ * the code opens the panel at `/__lit/` itself, whose token then serves this
+ * window too.
  */
 
 import {STANDALONE_PANEL_BASE as PANEL_URL} from '../devframe/standalone-panel.js';
@@ -21,7 +21,6 @@ import {
 /** The slice of Astro's `ToolbarAppEventTarget` the app uses. */
 interface ToolbarApp {
   onToggled(callback: (options: {state: boolean}) => void): void;
-  toggleState(options: {state: boolean}): void;
 }
 
 /** The slice of Astro's toolbar `serverHelpers` the app uses. */
@@ -93,21 +92,6 @@ const STYLES = `
   }
 `;
 
-/** A code in the page URL, removed from it so a reload doesn't reuse it. */
-const takeCodeFromPage = (): string | null => {
-  const params = new URLSearchParams(location.hash.slice(1));
-  const code = params.get(OTP_PARAM);
-  if (code === null) return null;
-  params.delete(OTP_PARAM);
-  const hash = params.size > 0 ? `#${params}` : '';
-  history.replaceState(
-    history.state,
-    '',
-    location.pathname + location.search + hash
-  );
-  return code;
-};
-
 const hasToken = (): boolean => {
   try {
     return localStorage.getItem(TOKEN_KEY) !== null;
@@ -149,7 +133,7 @@ export default {
 
     let frame: HTMLIFrameElement | undefined;
     /**
-     * Whether the panel was handed a code, typed in or from the page URL.
+     * Whether the panel was handed a code typed in here.
      * It holds no token until it has exchanged the code, which can be after
      * the server's auth reply, so that reply alone would ask again.
      */
@@ -203,10 +187,5 @@ export default {
     app.onToggled(({state}) => {
       if (state) load();
     });
-    const code = takeCodeFromPage();
-    if (code !== null) {
-      load(code);
-      app.toggleState({state: true});
-    }
   },
 };

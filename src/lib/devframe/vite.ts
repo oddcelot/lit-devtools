@@ -121,16 +121,31 @@ async function serveWithoutHub(
   server: ViteDevServer
 ): Promise<DevframeInstance | undefined> {
   try {
-    const {initDevframe} = await import('devframe/initiate');
+    const [{initDevframe}, {createInteractiveAuth}] = await Promise.all([
+      import('devframe/initiate'),
+      import('devframe/recipes/interactive-auth'),
+    ]);
     const root = server.config.root;
+    const origin = () =>
+      server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '';
     const instance = initDevframe(definition, {
       base: STANDALONE_PANEL_BASE,
       ...(server.httpServer
         ? {server: server.httpServer as Server}
         : {ws: {sidecar: true}}),
-      origin: () => server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '',
+      origin,
       register: {name: definition.name},
-      ...(clientAuthDisabled(server) ? {auth: false} : {}),
+      // The link printed with the code opens the panel, which takes the code
+      // from it; by default it would open the app at the origin, which never
+      // reads it. A factory, since the handler needs devframe's context:
+      // initDevframe passes it on to the instance shell, which takes one,
+      // though its own type says otherwise.
+      auth: clientAuthDisabled(server)
+        ? false
+        : (((ctx: Parameters<typeof createInteractiveAuth>[0]) =>
+            createInteractiveAuth(ctx, {
+              serverUrl: () => `${origin()}${STANDALONE_PANEL_BASE}`,
+            })) as unknown as ReturnType<typeof createInteractiveAuth>),
       getStorageDir: (scope) =>
         scope === 'workspace'
           ? join(root, 'node_modules/.vite/devtools')
