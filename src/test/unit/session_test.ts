@@ -401,6 +401,7 @@ describe('inspector caches and capture', () => {
       litPackages: {},
       topFrame: true,
       chromeTracks: true,
+      runtimes: [],
     });
 
     s.applyInspector({
@@ -413,6 +414,7 @@ describe('inspector caches and capture', () => {
       litPackages: {'lit-element': ['4.2.2', '4.1.0']},
       topFrame: false,
       chromeTracks: true,
+      runtimes: [],
     });
 
     // A page reload with fewer copies replaces the announcement.
@@ -426,6 +428,7 @@ describe('inspector caches and capture', () => {
       litPackages: {'lit-element': ['4.2.2']},
       topFrame: true,
       chromeTracks: true,
+      runtimes: [],
     });
   });
 
@@ -437,6 +440,7 @@ describe('inspector caches and capture', () => {
       litPackages: {},
       topFrame: true,
       chromeTracks: true,
+      runtimes: [],
     });
   });
 

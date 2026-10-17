@@ -487,6 +487,19 @@ export interface InspectorDetails {
 export type LitPackageVersions = Record<string, string[]>;
 
 /** App runtime → panel messages, carried on SSE `event: inspect`. */
+/**
+ * A Lit DevTools runtime a page can carry: the plugin's, served through Vite;
+ * the Lit Inspector extension's; or the `lit-devtools dev` script's.
+ */
+export type PageRuntimeKind = 'vite' | 'extension' | 'standalone';
+
+/** How the console and the panel name each {@link PageRuntimeKind}. */
+export const PAGE_RUNTIME_NAMES: Record<PageRuntimeKind, string> = {
+  vite: "the dev server's plugin",
+  extension: 'the Lit Inspector extension',
+  standalone: 'the lit-devtools dev script',
+};
+
 export type InspectorMessage =
   /**
    * The runtime came online; the panel should (re)request the tree. Carries
@@ -499,6 +512,8 @@ export type InspectorMessage =
       topFrame?: boolean;
       /** Whether the browser draws the Chrome Performance tracks. */
       chromeTracks?: boolean;
+      /** The DevTools runtimes on the page; more than one get in each other's way. */
+      runtimes?: PageRuntimeKind[];
     }
   | {type: 'tree'; roots: InspectorTreeNode[]}
   | {type: 'details'; details: InspectorDetails}

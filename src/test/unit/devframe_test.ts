@@ -598,17 +598,20 @@ describe('lit devframe definition', () => {
       litPackages: {},
       topFrame: true,
       chromeTracks: true,
+      runtimes: [],
     });
     source.sink!.inspectorMessage({
       type: 'ready',
       litPackages: {'lit-element': ['4.2.2', '4.1.0']},
       topFrame: false,
+      runtimes: ['extension', 'vite'],
     });
     expect((await ctx.rpc.invokeLocal('lit:get-meta')).runtime).toEqual({
       ready: true,
       litPackages: {'lit-element': ['4.2.2', '4.1.0']},
       topFrame: false,
       chromeTracks: true,
+      runtimes: ['extension', 'vite'],
     });
   });
 

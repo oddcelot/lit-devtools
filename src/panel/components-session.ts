@@ -420,6 +420,7 @@ export class ComponentsSession {
       litPackages: message.litPackages ?? {},
       topFrame: message.topFrame ?? true,
       chromeTracks: message.chromeTracks ?? true,
+      runtimes: message.runtimes ?? [],
     };
     this.#send({type: 'tree'});
     this.#send({type: 'overrides'});

@@ -15,6 +15,7 @@
  */
 
 export type {PageTransport, ViteHotLike} from './page-transport.js';
+import {joinPage} from './runtime-registry.js';
 import {
   fromViteHot,
   type PageTransport,
@@ -32,7 +33,10 @@ export interface PageChannel extends PageTransport {
    * their owners can announce themselves to the new peer.
    */
   attach(transport: PageTransport): void;
-  /** Attach Vite's HMR client, unless a carrier is already in place. */
+  /**
+   * Attach Vite's HMR client, unless a carrier is already in place, and
+   * count the Vite-served runtime among the page's (`runtime-registry.ts`).
+   */
   useViteHot(hot: ViteHotLike): void;
   /** Run `callback` on every later {@link attach}. Not run for past ones. */
   onAttach(callback: () => void): void;
@@ -84,6 +88,8 @@ const createPageChannel = (): PageChannel => {
       }
     },
     useViteHot(hot) {
+      // Every module of the Vite-served runtime comes through here.
+      joinPage('vite');
       if (transport === undefined) channel.attach(fromViteHot(hot));
     },
     onAttach(callback) {

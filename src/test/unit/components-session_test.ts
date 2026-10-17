@@ -181,6 +181,7 @@ describe('re-arming', () => {
       litPackages: {lit: ['3.0.0']},
       topFrame: true,
       chromeTracks: true,
+      runtimes: [],
     });
     expect(drain()).toEqual([
       {type: 'tree'},

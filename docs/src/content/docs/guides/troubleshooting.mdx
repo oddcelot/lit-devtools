@@ -429,6 +429,20 @@ listed.
 
 **Fix.** Open the framed app directly in its own tab.
 
+### The Components tab warns about two DevTools runtimes
+
+**Symptom.** A banner says two Lit DevTools runtimes are on the page, and the
+console says the same once. Pick may do nothing, and the tree may miss
+updates.
+
+**Cause.** Two runtimes loaded into one page: most often the Lit Inspector
+extension, enabled for a site that is a dev server already running the
+plugin. They share the page's channel, so they get in each other's way.
+
+**Fix.** Keep one. On a dev server that runs the plugin, turn the extension off
+for that site and use the plugin's panel; keep the extension for sites without
+the plugin.
+
 ### The tree shows a different page, or the recording vanished
 
 **Symptom.** The Components tree changes to another page's, or a recording you

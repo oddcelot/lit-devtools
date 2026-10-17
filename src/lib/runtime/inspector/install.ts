@@ -15,6 +15,7 @@ import {withDevtoolsCause} from '../timeline/cause-context.js';
 import {findByKey, keyOf} from './element-key.js';
 import {pageChannel} from '../page-channel.js';
 import {PAGE_ID} from '../page-id.js';
+import {onRuntimeJoined, runtimesOnPage} from '../runtime-registry.js';
 import type {ViteHotLike} from '../page-channel.js';
 import {
   buildTree,
@@ -252,6 +253,7 @@ if (typeof window !== 'undefined') {
       litPackages,
       topFrame,
       chromeTracks: chromeTracksSupported(),
+      runtimes: [...runtimesOnPage()],
     };
   };
 
@@ -869,4 +871,6 @@ if (typeof window !== 'undefined') {
   // A carrier attached later (a standalone dev server) starts with no idea a
   // runtime exists.
   pageChannel.onAttach(() => send(readyMessage()));
+  // Another runtime arriving is news for the panel: they collide.
+  onRuntimeJoined(() => send(readyMessage()));
 }

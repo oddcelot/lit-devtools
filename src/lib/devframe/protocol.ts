@@ -22,6 +22,7 @@ import type {
   InspectorMessage,
   InspectorTreeNode,
   LitPackageVersions,
+  PageRuntimeKind,
 } from '../../types/inspector.js';
 import type {ComponentDocs} from '../../types/component-docs.js';
 import type {HmrIncompatibilityEvent} from '../../types/hmr-incompatibility.js';
@@ -274,6 +275,12 @@ export interface LitRuntimeInfo {
    * otherwise, so an older runtime keeps the switch usable.
    */
   chromeTracks: boolean;
+  /**
+   * The DevTools runtimes on the page (`runtime-registry.ts`). More than one
+   * get in each other's way, which the Components tab warns about. Empty
+   * until a runtime says, and for one too old to.
+   */
+  runtimes: PageRuntimeKind[];
 }
 
 /**

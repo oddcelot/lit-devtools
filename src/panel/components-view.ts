@@ -34,6 +34,7 @@ import {
   type InspectorExtra,
   type InspectorMessage,
   type InspectorTreeNode,
+  PAGE_RUNTIME_NAMES,
   type ValueChild,
   type ValuePath,
   type ValueSegment,
@@ -1416,6 +1417,21 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-muted);
         padding: var(--lit-devtools-space-8) 0;
         text-align: center;
+      }
+      .runtimes-banner {
+        flex-shrink: 0;
+        display: flex;
+        align-items: baseline;
+        gap: var(--lit-devtools-space-3);
+        padding: var(--lit-devtools-space-2) var(--lit-devtools-space-5);
+        border-bottom: 1px solid var(--lit-devtools-border);
+        background: var(--lit-devtools-warning-soft);
+        color: var(--lit-devtools-warning);
+        font-size: var(--lit-devtools-text-xs);
+      }
+      .runtimes-banner wa-icon {
+        flex-shrink: 0;
+        align-self: center;
       }
       .hmr-banner {
         flex-shrink: 0;
@@ -3884,6 +3900,27 @@ export class ComponentsView extends LitElement {
   }
 
   /**
+   * Warns that more than one DevTools runtime is on the page, the extension's
+   * beside the dev server's: they share one channel, so the picker and this
+   * tree can break (`runtime-registry.ts`). A snapshot has no live page.
+   */
+  private _renderRuntimesBanner(): TemplateResult | typeof nothing {
+    const runtimes = this._snapshot
+      ? []
+      : (this._session.runtime?.runtimes ?? []);
+    if (runtimes.length < 2) return nothing;
+    const names = runtimes.map((k) => PAGE_RUNTIME_NAMES[k]).join(' and ');
+    return html`<div class="runtimes-banner" role="status">
+      <wa-icon name="warning"></wa-icon>
+      <span
+        >Two Lit DevTools runtimes are on this page: ${names}. The picker and
+        this tree can break; on a dev server that runs the plugin, turn the
+        extension off for the site.</span
+      >
+    </div>`;
+  }
+
+  /**
    * Collapsible banner listing components that couldn't be hot-patched in
    * place, most recent first. Rendered only when there's at least one —
    * see `hmrIncompatibilityCount` for the tab-strip badge that covers the
@@ -4053,7 +4090,7 @@ export class ComponentsView extends LitElement {
               )
         }
       </div>
-      ${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
+      ${this._renderRuntimesBanner()}${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
       <wa-split-panel
         primary="end"
         position-in-pixels=${this._detailsWidth}
