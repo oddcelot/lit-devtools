@@ -229,6 +229,11 @@ at** links in the Updates view and the Timeline.
 Render events on the timeline need Lit's development build. It sees the top
 frame of `http:` and `https:` pages only.
 
+Enabled on a Vite dev server that runs the plugin, the extension and the
+plugin share one runtime: the extension's loads first and serves the page, and
+the plugin's panel in Vite DevTools sees the same tree. The Components tab says
+so in a line above the tree.
+
 The extension collects no data. Its only network requests fetch an enabled
 site's own scripts, sourcemaps and Custom Elements Manifests, from that site,
 to find where components are defined and what their documentation says. It stores the sites you enabled and your panel settings in your

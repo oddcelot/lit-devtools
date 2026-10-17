@@ -429,19 +429,21 @@ listed.
 
 **Fix.** Open the framed app directly in its own tab.
 
-### The Components tab warns about two DevTools runtimes
+### The Components tab says another runtime serves the page
 
-**Symptom.** A banner says two Lit DevTools runtimes are on the page, and the
-console says the same once. Pick may do nothing, and the tree may miss
-updates.
+**Symptom.** A line above the tree says the Lit Inspector extension serves
+this page and the dev server's plugin shares its runtime. The console says the
+same once.
 
-**Cause.** Two runtimes loaded into one page: most often the Lit Inspector
-extension, enabled for a site that is a dev server already running the
-plugin. They share the page's channel, so they get in each other's way.
+**Cause.** The extension is enabled for a site that is a dev server already
+running the plugin, so both brought a runtime. The extension's loads first and
+serves the page; the plugin's adds its connection to it instead of installing a
+second one. Both panels, the extension's and the dev server's, show the same
+tree, and Pick works from either.
 
-**Fix.** Keep one. On a dev server that runs the plugin, turn the extension off
-for that site and use the plugin's panel; keep the extension for sites without
-the plugin.
+**Fix.** Nothing is broken. What the panels show comes from the extension's
+runtime, so if the extension is a different version from the plugin, turn the
+extension off for that site to use the plugin's own.
 
 ### The tree shows a different page, or the recording vanished
 

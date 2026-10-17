@@ -493,12 +493,19 @@ export type LitPackageVersions = Record<string, string[]>;
  */
 export type PageRuntimeKind = 'vite' | 'extension' | 'standalone';
 
-/** How the console and the panel name each {@link PageRuntimeKind}. */
+/**
+ * How the console and the panel name each {@link PageRuntimeKind}, written
+ * to sit mid-sentence; {@link sentenceStart} for the first word.
+ */
 export const PAGE_RUNTIME_NAMES: Record<PageRuntimeKind, string> = {
   vite: "the dev server's plugin",
   extension: 'the Lit Inspector extension',
   standalone: 'the lit-devtools dev script',
 };
+
+/** `text` with its first letter capitalized, to open a sentence. */
+export const sentenceStart = (text: string): string =>
+  text.charAt(0).toUpperCase() + text.slice(1);
 
 export type InspectorMessage =
   /**

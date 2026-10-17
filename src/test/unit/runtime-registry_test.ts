@@ -3,20 +3,23 @@ import {
   joinPage,
   onRuntimeJoined,
   runtimesOnPage,
+  yieldsToAnotherRuntime,
 } from '../../lib/runtime/runtime-registry.js';
 
 const KEY = Symbol.for('@oddsquad/vite-plugin-lit#runtimes');
 const g = globalThis as unknown as Record<symbol, unknown>;
+/** What a Vite-served module passes: its `import.meta.hot`. */
+const HOT = {};
 
-let warn: ReturnType<typeof vi.spyOn>;
+let info: ReturnType<typeof vi.spyOn>;
 
 beforeEach(() => {
   delete g[KEY];
-  warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  info = vi.spyOn(console, 'info').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  warn.mockRestore();
+  info.mockRestore();
   delete g[KEY];
 });
 
@@ -25,17 +28,29 @@ test('one runtime joining many times is one runtime, and quiet', () => {
   joinPage('vite');
   joinPage('vite');
   expect(runtimesOnPage()).toEqual(['vite']);
-  expect(warn).not.toHaveBeenCalled();
+  expect(yieldsToAnotherRuntime(HOT)).toBe(false);
+  expect(info).not.toHaveBeenCalled();
 });
 
-test('a second runtime is warned about once, naming both', () => {
+test('the Vite-served runtime yields to one that joined first', () => {
+  // Asked before it joins, too: `persist` runs ahead of every other module.
+  expect(yieldsToAnotherRuntime(HOT)).toBe(false);
+  joinPage('extension');
+  expect(yieldsToAnotherRuntime(HOT)).toBe(true);
+  joinPage('vite');
+  expect(yieldsToAnotherRuntime(HOT)).toBe(true);
+  // The extension's own copies have no `hot` and always install.
+  expect(yieldsToAnotherRuntime(undefined)).toBe(false);
+});
+
+test('a second runtime is noted once, naming who serves the page', () => {
   joinPage('extension');
   joinPage('vite');
   joinPage('standalone');
   expect(runtimesOnPage()).toEqual(['extension', 'vite', 'standalone']);
-  expect(warn).toHaveBeenCalledOnce();
-  expect(String(warn.mock.calls[0]![0])).toContain(
-    "the Lit Inspector extension and the dev server's plugin"
+  expect(info).toHaveBeenCalledOnce();
+  expect(String(info.mock.calls[0]![0])).toBe(
+    "[lit-plugin] The Lit Inspector extension already serves this page, so the dev server's plugin shares its runtime instead of loading a second one."
   );
 });
 

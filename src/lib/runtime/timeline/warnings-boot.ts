@@ -5,5 +5,9 @@
  */
 
 import {installLitWarningCapture} from './lit-warnings.js';
+import {yieldsToAnotherRuntime} from '../runtime-registry.js';
 
-installLitWarningCapture();
+// A page the extension already serves has its Set hooked by that runtime.
+if (!yieldsToAnotherRuntime((import.meta as {hot?: unknown}).hot)) {
+  installLitWarningCapture();
+}
