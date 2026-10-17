@@ -149,12 +149,23 @@ export default {
 
     let frame: HTMLIFrameElement | undefined;
     /**
+     * Whether the panel was handed a code, typed in or from the page URL.
+     * It holds no token until it has exchanged the code, which can be after
+     * the server's auth reply, so that reply alone would ask again.
+     */
+    let codeGiven = false;
+    /**
      * Loads the panel, and again in a new frame when a code comes in for
      * it: a new fragment alone would navigate within the loaded panel,
      * which reads the code only as it connects.
      */
     const load = (code?: string) => {
       if (frame !== undefined && code === undefined) return;
+      if (code !== undefined) {
+        codeGiven = true;
+        form.hidden = true;
+        newCode.hidden = false;
+      }
       frame?.remove();
       frame = document.createElement('iframe');
       frame.title = 'Lit DevTools';
@@ -168,8 +179,6 @@ export default {
     const connect = () => {
       const code = input.value.trim();
       if (code === '') return;
-      form.hidden = true;
-      newCode.hidden = false;
       input.value = '';
       load(code);
     };
@@ -185,7 +194,7 @@ export default {
     server.on<AstroToolbarAuth>(
       `${ASTRO_TOOLBAR_APP_ID}:auth`,
       ({required}) => {
-        form.hidden = !required || hasToken();
+        form.hidden = !required || codeGiven || hasToken();
         newCode.hidden = !required || !form.hidden;
       }
     );
