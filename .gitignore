@@ -13,6 +13,7 @@
 # Tooling caches
 /.e2e-tmp/
 /examples/ssr/.e2e-tmp/
+/examples/astro/.e2e-tmp/
 /.vite/
 /.fallow/
 docs/dist/
