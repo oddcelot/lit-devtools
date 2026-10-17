@@ -1,0 +1,73 @@
+---
+import '../components/prop-inspector.ts';
+import {PropInspector} from '../components/prop-inspector.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+
+const props = {
+  heading: 'Release',
+  itemCount: 3,
+  active: true,
+  when: new Date('2026-10-17T12:00:00Z'),
+  scores: new Map([
+    ['lit', 3],
+    ['astro', 7],
+  ]),
+  tags: new Set(['ssr', 'islands']),
+  site: new URL('https://lit.dev/'),
+  big: 2n ** 64n,
+  pattern: /^lit-/,
+  nested: {dates: [new Date('2026-01-01T00:00:00Z')]},
+  far: Infinity,
+};
+---
+
+<Demo
+  title="Props"
+  lede="Strings, numbers and booleans become attributes; everything else is set as a property, and reaches the browser before the element hydrates."
+>
+  <Showcase
+    title="Attributes and properties"
+    code={`<prop-inspector
+  heading="Release"
+  itemCount={3}
+  active
+  when={new Date('2026-10-17T12:00:00Z')}
+  scores={new Map([['lit', 3], ['astro', 7]])}
+  tags={new Set(['ssr', 'islands'])}
+  site={new URL('https://lit.dev/')}
+  big={2n ** 64n}
+  pattern={/^lit-/}
+  nested={{dates: [new Date('2026-01-01T00:00:00Z')]}}
+  far={Infinity}
+/>`}
+  >
+    <p slot="explain">
+      A primitive goes in the HTML as an attribute, under the attribute of the
+      property it names: <code>itemCount</code> becomes <code>item-count</code>.
+      The rest are properties. On a plain tag they travel in a
+      <code>data-lit-props</code> attribute, tagged the way Astro tags island
+      props, so a <code>Date</code> stays a <code>Date</code>.
+    </p>
+    <prop-inspector id="plain" {...props} />
+    <p slot="try">
+      View the page source and find <code>data-lit-props</code> on the
+      element: its values are the ones in the table.
+    </p>
+  </Showcase>
+
+  <Showcase
+    title="The same props on an island"
+    code={`<PropInspector client:load {...props} />`}
+  >
+    <p slot="explain">
+      As an island, Astro serializes the props itself and hands them to the
+      renderer when the directive fires. The table comes out the same.
+    </p>
+    <PropInspector id="island" client:load {...props} />
+  </Showcase>
+
+  <script>
+    import '../components/prop-inspector.ts';
+  </script>
+</Demo>

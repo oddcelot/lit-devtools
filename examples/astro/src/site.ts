@@ -11,4 +11,9 @@ export const pages = [
     title: 'Islands',
     blurb: 'Every client: directive, and when each one hydrates.',
   },
+  {
+    href: '/props/',
+    title: 'Props',
+    blurb: 'Attributes, properties, and the types that reach the browser.',
+  },
 ] as const;

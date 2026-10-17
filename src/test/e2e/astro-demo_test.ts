@@ -73,3 +73,37 @@ test('each island hydrates when its directive says', async () => {
     await page.setViewportSize({width: 1280, height: 720});
   }
 });
+
+test('props keep their types on a plain tag and on an island', async () => {
+  const errors = await visit('/props/');
+  /** The type column, rendered again from the element's own values. */
+  const types = (id: string) =>
+    fixture.page.evaluate(
+      `(async () => {
+        const el = document.getElementById(${JSON.stringify(id)});
+        if (el.hasAttribute('defer-hydration')) return null;
+        el.requestUpdate();
+        await el.updateComplete;
+        return [...el.shadowRoot.querySelectorAll('td:nth-child(2)')].map((td) => td.textContent);
+      })()`
+    );
+  const expected = [
+    'string',
+    'number',
+    'boolean',
+    'Date',
+    'Map',
+    'Set',
+    'URL',
+    'BigInt',
+    'RegExp',
+    'Object',
+    'number',
+  ];
+  await expect.poll(() => types('plain')).toEqual(expected);
+  await expect.poll(() => types('island')).toEqual(expected);
+  expect(await shadowText('#plain', 'tr:nth-child(11) td:nth-child(3)')).toBe(
+    '{dates: [Date(2026-01-01T00:00:00.000Z)]}'
+  );
+  expect(errors).toEqual([]);
+});
