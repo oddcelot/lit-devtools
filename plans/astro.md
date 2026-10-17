@@ -106,10 +106,9 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   `supportsAstroStaticSlot` only changes which wrapper Astro looks for and
   strips (`<astro-static-slot>` outside islands), so it stays off
   (`src/test/e2e/astro-slots_test.ts`).
+- **Astro 7.3 and later.** `astro` is an optional peer at `^7.3.0`, the
+  version everything was tested on; astro-lit's server DOM shim swap, for
+  older Astro, isn't needed there. Supporting Astro 6 would mean that swap
+  and a second fixture.
 - **No `parse5`.** It would be a dependency for every user of the Vite
   plugin, for one job a small scanner does.
-
-## Open questions
-
-- Is the server DOM shim swap astro-lit does needed on any Astro version we
-  support? Not on 7.3.
