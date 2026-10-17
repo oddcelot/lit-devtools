@@ -1,0 +1,4 @@
+.note {
+  color: var(--success, rgb(0, 128, 0));
+  font-weight: 700;
+}

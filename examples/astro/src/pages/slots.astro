@@ -1,0 +1,68 @@
+---
+import '../components/media-card.ts';
+import {MediaCard} from '../components/media-card.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+---
+
+<Demo
+  title="Slots"
+  lede="Children go into the element's light DOM, each named slot's under its name, on a plain tag and in an island alike."
+>
+  <Showcase
+    title="Named and default slots"
+    code={`<media-card>
+  <h3 slot="title">Plain tag</h3>
+  <span slot="meta">as written</span>
+  <p>The default slot takes the rest, as written.</p>
+</media-card>`}
+  >
+    <p slot="explain">
+      On a plain tag, children stay as you wrote them, <code>slot</code>
+      attributes included, and the element's shadow root takes each to its
+      slot.
+    </p>
+    <media-card id="plain">
+      <h3 slot="title">Plain tag</h3>
+      <span slot="meta">as written</span>
+      <p>The default slot takes the rest, as written.</p>
+    </media-card>
+  </Showcase>
+
+  <Showcase
+    title="In islands"
+    code={`<MediaCard client:load>
+  <h3 slot="title">client:load</h3>
+  <Fragment slot="meta">hydrated</Fragment>
+  <p>Server-rendered, slots and all.</p>
+</MediaCard>
+<MediaCard client:only="lit">…</MediaCard>`}
+  >
+    <p slot="explain">
+      An island's children reach the renderer as Astro's named slots, without
+      their <code>slot</code> attributes. The renderer puts them back and wraps
+      loose text, which can't carry one, in a <code>span</code>: the meta
+      line here is plain text. For <code>client:only</code>, with no server
+      HTML, the children are built in the browser from Astro's slot
+      templates.
+    </p>
+    <MediaCard id="load" client:load>
+      <h3 slot="title">client:load</h3>
+      <Fragment slot="meta">hydrated</Fragment>
+      <p>Server-rendered, slots and all.</p>
+    </MediaCard>
+    <MediaCard id="only" client:only="lit">
+      <h3 slot="title">client:only</h3>
+      <Fragment slot="meta">browser only</Fragment>
+      <p>Built in the browser from Astro's slot templates.</p>
+    </MediaCard>
+    <p slot="try">
+      In the Lit panel, select a card: its details list each slot and what
+      fills it. Turn on <strong>Anatomy</strong> to outline them on the page.
+    </p>
+  </Showcase>
+
+  <script>
+    import '../components/media-card.ts';
+  </script>
+</Demo>

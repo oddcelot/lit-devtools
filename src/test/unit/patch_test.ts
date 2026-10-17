@@ -258,6 +258,42 @@ describe('install / define interceptor', () => {
     expect(protoOf(XD1)['fresh']).toBeTypeOf('function');
   });
 
+  test('getName() names a later version of a class by its tag', () => {
+    class NamingRegistry extends FakeRegistry {
+      getName(ctor: ElementCtor): string | null {
+        for (const [name, defined] of this.defined) {
+          if (defined === ctor) return name;
+        }
+        return null;
+      }
+    }
+    delete (globalThis as unknown as Record<symbol, unknown>)[STATE_KEY];
+    registry = new NamingRegistry();
+    (globalThis as {customElements?: unknown}).customElements = registry;
+    install({onIncompatible: 'warn'});
+    class XN1 extends FakeElement {}
+    class XN2 extends FakeElement {}
+    define('x-n', XN1);
+    define('x-n', XN2);
+    const getName = (ctor: ElementCtor) =>
+      customElements.getName(ctor as unknown as CustomElementConstructor);
+    expect(getName(XN1)).toBe('x-n');
+    expect(getName(XN2)).toBe('x-n');
+    expect(getName(class extends FakeElement {})).toBeNull();
+  });
+
+  test('getName() stands in where the registry has none', () => {
+    class XO1 extends FakeElement {}
+    class XO2 extends FakeElement {}
+    define('x-o', XO1);
+    define('x-o', XO2);
+    const getName = (ctor: ElementCtor) =>
+      customElements.getName(ctor as unknown as CustomElementConstructor);
+    expect(getName(XO1)).toBe('x-o');
+    expect(getName(XO2)).toBe('x-o');
+    expect(getName(class extends FakeElement {})).toBeNull();
+  });
+
   test('a second install() does not re-wrap customElements.define', () => {
     const before = Object.getOwnPropertyDescriptor(customElements, 'define')
       ?.value as unknown;

@@ -1,0 +1,28 @@
+{
+  "name": "vite-plugin-lit-astro-example",
+  "description": "Lit components server-rendered by Astro through @oddsquad/vite-plugin-lit's renderer and hydrated in the page, hot-patched in dev, with the Lit panel in Astro's dev toolbar.",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource/roboto-mono": "^5.3.0",
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
+    "astro": "^7.3.5",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@astrojs/node": "^11.1.8",
+    "@astrojs/preact": "^6.1.0",
+    "@oddsquad/vite-plugin-lit": "*",
+    "preact": "^11.0.1",
+    "vitest": "^5.0.5"
+  }
+}

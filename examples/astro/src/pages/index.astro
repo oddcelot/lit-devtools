@@ -1,0 +1,72 @@
+---
+import Demo from '../layouts/Demo.astro';
+import {pages} from '../site.ts';
+---
+
+<Demo
+  title="Lit in Astro"
+  lede="One integration renders your Lit components on the server, hydrates them, hot-patches them while you edit, and puts the Lit panel in Astro's dev toolbar."
+>
+  <pre class="setup"><code>{`// astro.config.mjs
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({integrations: [lit()]});`}</code></pre>
+
+  <p>Each page shows one thing the integration does, live:</p>
+
+  <ul class="tour">
+    {
+      pages.map((page) => (
+        <li>
+          <a href={page.href}>
+            <strong>{page.title}</strong>
+            <span>{page.blurb}</span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</Demo>
+
+<style>
+  .setup {
+    margin: var(--space-9) 0;
+    padding: var(--space-6) var(--space-7);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    font-size: var(--text-sm);
+  }
+  .setup code {
+    padding: 0;
+    background: none;
+  }
+  .tour {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+    gap: var(--space-5);
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tour a {
+    display: grid;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-6);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: var(--text-md);
+    text-decoration: none;
+    transition: border-color var(--dur-fast) var(--ease-standard);
+  }
+  .tour a:hover {
+    border-color: var(--accent);
+  }
+  .tour strong {
+    color: var(--text-strong);
+    font-size: var(--text-base);
+  }
+</style>

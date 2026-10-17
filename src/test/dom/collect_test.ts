@@ -237,6 +237,20 @@ describe('custom elements other libraries define', () => {
     ).toBe(false);
   });
 
+  test("leaves out Astro's dev toolbar, not its islands", () => {
+    customElements.define(
+      'astro-dev-toolbar-test',
+      class extends HTMLElement {}
+    );
+    customElements.define('astro-island-test', class extends HTMLElement {});
+    expect(
+      isForeignElement(document.createElement('astro-dev-toolbar-test'))
+    ).toBe(false);
+    expect(isForeignElement(document.createElement('astro-island-test'))).toBe(
+      true
+    );
+  });
+
   test('keeps it in place, with the components in its shadow and light DOM', () => {
     const outer = document.createElement(defineForeign(true));
     const inShadow = define();

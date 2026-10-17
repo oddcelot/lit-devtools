@@ -1,0 +1,211 @@
+---
+title: Use Lit in Astro
+description: 'One integration renders Lit components on the server, hydrates them, hot-patches them, and puts the Lit panel in the Astro dev toolbar.'
+sidebar:
+  label: Astro
+  badge:
+    text: Experimental
+    variant: caution
+---
+
+import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
+import containerTest from '../../../../../examples/astro/test/container.test.ts?raw';
+import vitestConfig from '../../../../../examples/astro/vitest.config.ts?raw';
+import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
+import {stripHeader} from '../../../lib/fixture';
+
+One integration renders your Lit components in Astro and hydrates them, hot
+patches them while you edit, and puts the Lit panel in the dev toolbar. Read
+[Server-side rendering](/vite-plugin-lit/guides/ssr/) first if hydration is
+new to you.
+
+## Set it up
+
+Install the plugin with Lit's server renderer and its hydrate support. The
+integration needs Astro 7.3 or later.
+
+```sh frame="terminal"
+npm install lit @lit-labs/ssr @lit-labs/ssr-client
+npm install -D @oddsquad/vite-plugin-lit
+```
+
+Add `lit()` from `@oddsquad/vite-plugin-lit/astro`. It takes the plugin's
+[options](/vite-plugin-lit/reference/options/), turns the timeline on, since
+the panel needs it, and has [three of its
+own](/vite-plugin-lit/reference/options/#astro-options).
+
+```js title="astro.config.mjs" {5}
+import {defineConfig} from 'astro/config';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [lit()],
+});
+```
+
+Import each component in the page's frontmatter, so Astro renders it, and in
+a page script, so the browser defines it. The integration loads Lit's hydrate
+support ahead of your scripts, so the server's HTML hydrates instead of
+rendering again.
+
+```astro title="src/pages/index.astro" {3-4,13-14}
+---
+// The server renders each element to HTML, its shadow root included.
+import '../components/ssr-counter.ts';
+import {TagList} from '../components/tag-list.ts';
+---
+
+<html lang="en">
+  <body>
+    <ssr-counter start="3"></ssr-counter>
+    <TagList client:visible tags={['island', 'visible']} />
+    <script>
+      // The browser defines them, and they hydrate.
+      import '../components/ssr-counter.ts';
+      import '../components/tag-list.ts';
+    </script>
+  </body>
+</html>
+```
+
+`examples/astro` in the repository is a demo site with a page for each thing
+this guide covers, all of it running live.
+
+## Pass props
+
+Strings, numbers and booleans become attributes, under the attribute of the
+reactive property they name. Arrays, objects and properties declared with
+`attribute: false` can't ride in an attribute, so the renderer sets them as
+properties and holds the element back until the browser has them too.
+
+<Code
+  code={stripHeader(tagList)}
+  lang="ts"
+  title="src/components/tag-list.ts"
+  mark={[31]}
+/>
+
+Beyond JSON, both carry `Date`, `Map`, `Set`, `URL`, `BigInt`, `RegExp` (its
+source, without flags), `Uint8Array`, `Uint16Array`, `Uint32Array`,
+`Infinity` and `undefined`, nested or not. In an island, Astro hands the values
+over itself. On a plain tag, they travel in a `data-lit-props` attribute: as
+plain JSON when that's enough, otherwise in the form Astro uses for islands.
+
+<Aside type="note" title="Functions stay on the server">
+  No prop can carry a function to the browser, and a class instance arrives as a
+  plain object, if at all. On a plain tag the renderer leaves such a prop out
+  and warns in the terminal; in an island Astro sends `null` for a function. Set
+  them from a page script once the element is defined.
+</Aside>
+
+## Choose when it hydrates
+
+A plain tag hydrates as soon as its class loads. Write `defer-hydration` on
+it to hold it back, and remove the attribute when it should wake: the
+renderer leaves your `defer-hydration` alone.
+
+An imported class used as a component is an island, so Astro's directives
+apply: `client:load`, `client:idle`, `client:visible` and `client:media`
+hydrate the server's HTML, and `client:only="lit"` renders in the browser
+only. The renderer is named `lit`, so that hint finds it in a project with
+other renderers too.
+
+## Next to other frameworks
+
+Lit shares a page with React, Preact, Solid or Vue islands. Restrict a JSX
+framework's integration to its own files with `include`. By default
+`@astrojs/preact` and `@astrojs/react` run Babel over every `.ts` file, and
+Babel can't parse Lit's decorators:
+
+```js title="astro.config.mjs"
+import {defineConfig} from 'astro/config';
+import preact from '@astrojs/preact';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [preact({include: ['**/*.tsx']}), lit()],
+});
+```
+
+A Lit element inside another framework's component is that framework's to
+render. On the server it becomes a plain tag, without a shadow root, and Lit
+renders it in the browser once its class is defined, so import the class in
+the component. Preact's hydration leaves properties as the server's HTML had
+them, so an array or object prop reaches the element when the component's
+state next changes; give the island `client:only="preact"` if it must be
+there from the start.
+
+## Render on demand
+
+Prebuilt pages and on-demand rendering work alike. With `output: 'server'`
+and an adapter, the renderer runs for each request, and the browser hydrates
+the result as it does a prebuilt page. With `@astrojs/node`, `@astrojs/vercel`
+and `@astrojs/netlify`, `@lit-labs/ssr` and `lit` stay external to the server
+build, so the server loads them from your `node_modules`, one copy of each.
+`@astrojs/cloudflare` bundles them for the Workers runtime, where the
+integration picks Lit's server builds, as Node would.
+
+## Test with the container API
+
+Astro's container API renders a component to a string in Vitest. Load the
+renderer with `getContainerRenderer()` from the same entry as `lit()`.
+
+<Code
+  code={containerTest}
+  lang="ts"
+  title="test/container.test.ts"
+  mark={[3, 8]}
+/>
+
+Build the Vitest config with Astro's `getViteConfig()`, so the integration
+and the plugin's transforms apply, and set `css: true`. Vitest empties css it
+doesn't process, and a `?css-sheet` import then renders an empty `<style>`.
+
+<Code code={vitestConfig} lang="ts" title="vitest.config.ts" mark={[9]} />
+
+## Open the panel
+
+Run `astro dev` and click the Lit logo in the dev toolbar. The panel opens in
+a toolbar window, following the page you are on, with each element's
+hydration state in the Components tab.
+
+The first time, the window asks for a code. The terminal prints it in a
+`Devframe` box when the panel connects. Type it in, or open the link in that
+box: it opens the panel in a tab of its own, approved, and the toolbar window
+is approved with it.
+
+<Aside type="caution" title="Client auth guards the panel">
+  The code stops other pages and devices that reach the dev server from driving
+  the panel, which can write files and open your editor. Turn it off only on a
+  machine you trust, with `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`.
+</Aside>
+
+## Keep another renderer
+
+To keep a different Lit renderer, such as `@awesome.me/astro-lit`, use
+`litDevtools()` instead of `lit()`. It brings the plugin's HMR and the panel,
+and leaves rendering to the other integration.
+
+## Limits
+
+Astro renders pages without Vite's `transformIndexHtml`, which is how the
+plugin adds its page runtime. In dev the integration adds it to each HTML
+page itself, so Astro sends a page once it is complete, not as a stream.
+
+Every current browser parses declarative shadow roots. For an older one, pass
+`shadowRootPolyfill: true`; there is nothing to install.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Render Lit on the server"
+    description="What the plugin does for hydrated components."
+    href="/vite-plugin-lit/guides/ssr/"
+  />
+  <LinkCard
+    title="Inspect live components"
+    description="The Components tab, where hydration state shows."
+    href="/vite-plugin-lit/guides/devtools/components/"
+  />
+</CardGrid>

@@ -146,6 +146,7 @@ export default defineConfig({
               items: [{autogenerate: {directory: 'guides/devtools'}}],
             },
             'guides/ecosystem',
+            'guides/astro',
             'guides/source-overlay',
             'guides/troubleshooting',
           ],

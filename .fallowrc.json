@@ -21,7 +21,10 @@
     // Served by bench/run.mjs.
     "bench/index.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
-    "docs/src/routeData.ts"
+    "docs/src/routeData.ts",
+    // examples/astro/astro.multi.config.mjs sets `srcDir: './multi'`, which
+    // fallow's Astro plugin doesn't read.
+    "examples/astro/multi/pages/**/*.astro"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
@@ -30,7 +33,10 @@
   "dynamicallyLoaded": [
     "src/lib/runtime/{css,css-build,indicator,intern,patch,source-overlay,standalone}.ts",
     "src/lib/runtime/timeline/{install,public-api,warnings-boot}.ts",
-    "src/lib/runtime/inspector/{install,persist}.ts"
+    "src/lib/runtime/inspector/{install,persist}.ts",
+    // src/astro.ts hands Astro this file's path as a dev toolbar app, and
+    // the renderer's entrypoints and page script by package export.
+    "src/lib/astro/{toolbar-app,server,client,boot}.ts"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`

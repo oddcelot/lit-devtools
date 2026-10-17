@@ -31,6 +31,7 @@ import {fromViteHot} from '../runtime/page-transport.js';
 import {TimelineChannelCodec} from './page-codec.js';
 import {PANEL_DIST_DIR} from './paths.js';
 import {LIT_DEVFRAME_ID} from './protocol.js';
+import {STANDALONE_PANEL_BASE, clientAuthDisabled} from './standalone-panel.js';
 
 /**
  * The slice of the Vite DevTools hub context this plugin uses. Structurally a
@@ -106,24 +107,6 @@ const warnDiscoveryUnavailable = (reason: string): void => {
 };
 
 /**
- * Whether the developer turned client auth off the way Vite DevTools reads
- * it: `devtools: {clientAuth: false}` (as written, or as Vite resolved it
- * under `config`) or `VITE_DEVTOOLS_DISABLE_CLIENT_AUTH=true`.
- */
-const clientAuthDisabled = (server: ViteDevServer): boolean => {
-  type Auth = {clientAuth?: unknown; config?: {clientAuth?: unknown}};
-  const devtools = (server.config as {devtools?: Auth}).devtools;
-  return (
-    devtools?.clientAuth === false ||
-    devtools?.config?.clientAuth === false ||
-    process.env['VITE_DEVTOOLS_DISABLE_CLIENT_AUTH'] === 'true'
-  );
-};
-
-/** Where the panel is served when no Vite DevTools hub mounts it. */
-const STANDALONE_PANEL_BASE = '/__lit/';
-
-/**
  * Serve the Lit devframe on Vite's own server when no Vite DevTools hub
  * mounted it: the panel SPA, `__connection.json`, the RPC WebSocket (on
  * Vite's HTTP server, or a side-car in middleware mode), SSE and MCP, all
@@ -138,16 +121,31 @@ async function serveWithoutHub(
   server: ViteDevServer
 ): Promise<DevframeInstance | undefined> {
   try {
-    const {initDevframe} = await import('devframe/initiate');
+    const [{initDevframe}, {createInteractiveAuth}] = await Promise.all([
+      import('devframe/initiate'),
+      import('devframe/recipes/interactive-auth'),
+    ]);
     const root = server.config.root;
+    const origin = () =>
+      server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '';
     const instance = initDevframe(definition, {
       base: STANDALONE_PANEL_BASE,
       ...(server.httpServer
         ? {server: server.httpServer as Server}
         : {ws: {sidecar: true}}),
-      origin: () => server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '',
+      origin,
       register: {name: definition.name},
-      ...(clientAuthDisabled(server) ? {auth: false} : {}),
+      // The link printed with the code opens the panel, which takes the code
+      // from it; by default it would open the app at the origin, which never
+      // reads it. A factory, since the handler needs devframe's context:
+      // initDevframe passes it on to the instance shell, which takes one,
+      // though its own type says otherwise.
+      auth: clientAuthDisabled(server)
+        ? false
+        : (((ctx: Parameters<typeof createInteractiveAuth>[0]) =>
+            createInteractiveAuth(ctx, {
+              serverUrl: () => `${origin()}${STANDALONE_PANEL_BASE}`,
+            })) as unknown as ReturnType<typeof createInteractiveAuth>),
       getStorageDir: (scope) =>
         scope === 'workspace'
           ? join(root, 'node_modules/.vite/devtools')

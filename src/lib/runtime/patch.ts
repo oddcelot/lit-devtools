@@ -92,6 +92,12 @@ interface PatchState {
   hot?: HotChannel;
   /** Pairs re-created child elements with the ones they replace. */
   childState?: ChildState;
+  /**
+   * The tag of each class defined since install, every later version
+   * included, which the registry never sees: the canonical class stands in
+   * for it once patched. Read by `customElements.getName()`.
+   */
+  tagOfVersion: WeakMap<CustomElementConstructor, string>;
 }
 
 type LifecycleName = 'connectedCallback' | 'disconnectedCallback';
@@ -801,6 +807,7 @@ export const install = (options: PatchOptions = {}): void => {
       childState: options.childState ?? 'transfer',
     },
     hot: hot === undefined ? undefined : pageChannel,
+    tagOfVersion: new WeakMap(),
   };
   state.childState = createChildState({
     mode: () => state.options.childState,
@@ -846,6 +853,7 @@ export const install = (options: PatchOptions = {}): void => {
         generation: 0,
       };
       state.records.set(name, record);
+      state.tagOfVersion.set(ctor, name);
       instrument(state, ctor.prototype, record);
       return nativeDefine.call(this, name, ctor, defineOptions);
     }
@@ -853,6 +861,26 @@ export const install = (options: PatchOptions = {}): void => {
       // Same class object re-defined; nothing to patch.
       return;
     }
+    state.tagOfVersion.set(ctor, name);
     hotPatch(state, record, ctor as ReactiveCtorLike);
+  };
+
+  // A module evaluated again exports a later version of its class, which
+  // the registry never holds, so `getName()` would not know it. Code that
+  // maps a class to its tag (Astro's client renderer, given the class an
+  // island imports) asks with that version, and the tag is still right.
+  // Where the browser has no `getName()` (Safari before 17), this one is
+  // all there is, and knows the classes defined since install.
+  // oxlint-disable-next-line typescript/unbound-method
+  const nativeGetName = customElements.getName as
+    | CustomElementRegistry['getName']
+    | undefined;
+  customElements.getName = function (
+    this: CustomElementRegistry,
+    ctor: CustomElementConstructor
+  ) {
+    return (
+      nativeGetName?.call(this, ctor) ?? state.tagOfVersion.get(ctor) ?? null
+    );
   };
 };

@@ -25,6 +25,7 @@
     "/types/",
     "/index.{d.ts,d.ts.map,js,js.map}",
     "/build.{d.ts,d.ts.map,js,js.map}",
+    "/astro.{d.ts,d.ts.map,js,js.map}",
     "/client.d.ts",
     "/bin.mjs"
   ],
@@ -39,6 +40,26 @@
     "./build": {
       "types": "./build.d.ts",
       "default": "./build.js"
+    },
+    "./astro": {
+      "types": "./astro.d.ts",
+      "default": "./astro.js"
+    },
+    "./astro/server": {
+      "types": "./lib/astro/server.d.ts",
+      "default": "./lib/astro/server.js"
+    },
+    "./astro/client": {
+      "types": "./lib/astro/client.d.ts",
+      "default": "./lib/astro/client.js"
+    },
+    "./astro/boot": {
+      "types": "./lib/astro/boot.d.ts",
+      "default": "./lib/astro/boot.js"
+    },
+    "./astro/polyfill": {
+      "types": "./lib/astro/polyfill.d.ts",
+      "default": "./lib/astro/polyfill.js"
     },
     "./css.js": {
       "types": "./lib/runtime/css.d.ts",
@@ -104,7 +125,10 @@
   },
   "peerDependencies": {
     "@devframes/agentic": "^1.0.0",
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
     "@vitejs/devtools-kit": "^0.7.5",
+    "astro": "^7.3.0",
     "cac": "^7.0.0",
     "lightningcss": "^1.30.0",
     "lit": "^3.0.0",
@@ -115,7 +139,16 @@
     "@devframes/agentic": {
       "optional": true
     },
+    "@lit-labs/ssr": {
+      "optional": true
+    },
+    "@lit-labs/ssr-client": {
+      "optional": true
+    },
     "@vitejs/devtools-kit": {
+      "optional": true
+    },
+    "astro": {
       "optional": true
     },
     "cac": {
@@ -148,6 +181,8 @@
     "@devframes/agentic": "1.1.0",
     "@devframes/service-open": "1.1.0",
     "@lit-labs/signals": "^0.3.0",
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
     "@lit-labs/ssr-dom-shim": "^1.6.0",
     "@lit-labs/virtualizer": "^2.1.1",
     "@lit/context": "^1.1.6",

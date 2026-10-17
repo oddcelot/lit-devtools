@@ -1,6 +1,7 @@
 # Build outputs
 /index.*
 /build.*
+/astro.*
 /lib/
 /types/
 /panel/
@@ -12,10 +13,12 @@
 # Tooling caches
 /.e2e-tmp/
 /examples/ssr/.e2e-tmp/
+/examples/astro/.e2e-tmp/
 /.vite/
 /.fallow/
 docs/dist/
 docs/.astro/
+examples/astro/.astro/
 
 # Dependencies
 node_modules/

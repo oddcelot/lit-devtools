@@ -1,0 +1,94 @@
+---
+// One capability on a page: what it is, the live elements, and how they
+// are written. `explain` and `try` are named slots; the default slot is the
+// stage the elements render on.
+import {Code} from 'astro:components';
+
+interface Props {
+  title: string;
+  /** The page source that renders the stage, shown under it. */
+  code?: string;
+  lang?: 'astro' | 'ts' | 'tsx' | 'js';
+}
+
+const {title, code, lang = 'astro'} = Astro.props;
+---
+
+<section class="showcase">
+  <h2>{title}</h2>
+  <div class="explain"><slot name="explain" /></div>
+  <div class="stage"><slot /></div>
+  {
+    Astro.slots.has('try') && (
+      <div class="try">
+        <strong>Try it</strong>
+        <slot name="try" />
+      </div>
+    )
+  }
+  {
+    code && (
+      <details>
+        <summary>How it's written</summary>
+        <Code code={code.trim()} lang={lang} theme="github-dark-dimmed" />
+      </details>
+    )
+  }
+</section>
+
+<style>
+  .showcase {
+    margin-top: var(--space-12);
+  }
+  h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-extrabold);
+  }
+  .explain {
+    color: var(--text-secondary);
+  }
+  .explain :global(p) {
+    margin: 0 0 var(--space-5);
+  }
+  .stage {
+    display: grid;
+    gap: var(--space-6);
+    margin-top: var(--space-6);
+  }
+  .try {
+    margin-top: var(--space-6);
+    padding: var(--space-5) var(--space-6);
+    border-radius: var(--radius-md);
+    background: var(--info-soft);
+    color: var(--text);
+    font-size: var(--text-md);
+  }
+  .try strong {
+    display: block;
+    color: var(--info);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+  }
+  .try :global(p),
+  .try :global(ul) {
+    margin: var(--space-2) 0 0;
+  }
+  details {
+    margin-top: var(--space-6);
+  }
+  summary {
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+  }
+  details :global(pre) {
+    margin: var(--space-4) 0 0;
+    padding: var(--space-6);
+    border-radius: var(--radius-md);
+    font-size: var(--text-sm);
+    overflow-x: auto;
+  }
+</style>
