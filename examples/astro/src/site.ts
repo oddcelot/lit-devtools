@@ -41,4 +41,9 @@ export const pages = [
     title: 'On demand',
     blurb: 'Rendered for each request by the Node adapter.',
   },
+  {
+    href: '/devtools/',
+    title: 'DevTools and HMR',
+    blurb: 'Edit a component and keep its state; inspect it in the toolbar.',
+  },
 ] as const;

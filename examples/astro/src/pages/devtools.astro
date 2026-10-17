@@ -1,0 +1,75 @@
+---
+import '../components/edit-me.ts';
+import '../components/tick-clock.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+---
+
+<Demo
+  title="DevTools and HMR"
+  lede="In dev, the plugin patches edited components in place and puts the Lit panel in Astro's dev toolbar."
+>
+  <Showcase title="Edit without losing state">
+    <p slot="explain">
+      Saving a component's file swaps its new code into the elements on the
+      page: templates, styles and methods change, and every property and bit
+      of state stays. The marker in the corner counts the updates.
+    </p>
+    <edit-me id="edit"></edit-me>
+    <ol slot="try">
+      <li>Click the button a few times.</li>
+      <li>
+        Open <code>src/components/edit-me.ts</code>, change the heading or the
+        swatch's colour, and save.
+      </li>
+      <li>The element updates and the count stays where it was.</li>
+    </ol>
+  </Showcase>
+
+  <Showcase title="Inspect the page">
+    <p slot="explain">
+      Click the Lit logo in the toolbar at the bottom of the page. The first
+      time, the window asks for the code the terminal printed. The{' '}
+      <strong>Components</strong> tab lists every Lit element with its
+      properties, state and hydration; the <strong>Timeline</strong> tab
+      records each update and what caused it.
+    </p>
+    <tick-clock id="clock"></tick-clock>
+    <ul slot="try">
+      <li>
+        Select <code>&lt;edit-me&gt;</code> and change its <code>note</code> in
+        the panel: the page follows.
+      </li>
+      <li>
+        In <strong>Timeline</strong>, press Record: the clock's update arrives
+        every second.
+      </li>
+      <li>Turn on <strong>Flash</strong> to see each update outlined in the page.</li>
+    </ul>
+  </Showcase>
+
+  <Showcase title="Jump to the source">
+    <p slot="explain">
+      This site turns on the source overlay. Press <kbd>Ctrl</kbd>+<kbd
+        >Shift</kbd
+      >+<kbd>S</kbd> (<kbd>⌘⇧S</kbd> on a Mac) and point at an element: the
+      overlay names its file and the line that renders it. Hold{' '}
+      <kbd>Ctrl</kbd> or <kbd>⌘</kbd> and click to open it in your editor.
+    </p>
+  </Showcase>
+
+  <script>
+    import '../components/edit-me.ts';
+    import '../components/tick-clock.ts';
+  </script>
+</Demo>
+
+<style>
+  kbd {
+    padding: 0.05em 0.4em;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface-container);
+    font: var(--weight-semibold) 0.85em var(--font-mono);
+  }
+</style>

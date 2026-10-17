@@ -46,7 +46,7 @@ import {ClientRouter} from 'astro:transitions';
     code={`<visit-counter transition:persist></visit-counter>`}
   >
     <p slot="explain">
-      The counter at the bottom of the nav is marked
+      The counter at the bottom of the nav is marked{' '}
       <code>transition:persist</code>. Astro moves that one element into each
       page it swaps in, so its state carries on; only a full reload starts it
       over.

@@ -20,7 +20,7 @@ integrations: [preact({include: ['**/*.tsx']}), lit()]
 <IslandProbe client:only="lit" label='client:only="lit"' />`}
   >
     <p slot="explain">
-      Each renderer hydrates its own islands. The Lit renderer is named
+      Each renderer hydrates its own islands. The Lit renderer is named{' '}
       <code>lit</code>, which is the hint <code>client:only</code> takes: with
       two renderers in the project, <code>client:only="lit"</code> is how Astro
       knows which one renders the island.

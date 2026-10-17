@@ -197,3 +197,29 @@ test('a page swapped in by a view transition hydrates its server HTML', async ()
     .toBe('This page came from a full load');
   expect(errors).toEqual([]);
 });
+
+test('the DevTools page: an edit keeps the element and its state', async () => {
+  const {page} = fixture;
+  const errors = await visit('/devtools/');
+  const clock = () => shadowText('#clock', 'time');
+  const first = await clock();
+  await expect.poll(clock, {timeout: 3000}).not.toBe(first);
+
+  await expect
+    .poll(() => shadowText('#edit', 'button'))
+    .toBe('Clicked 0 times');
+  await page.locator('#edit button').click();
+  await page.locator('#edit button').click();
+  await page.evaluate(`window.__edit = document.querySelector('#edit')`);
+  await fixture.edit('src/components/edit-me.ts', (code) =>
+    code.replace('<h3>Edit me</h3>', '<h3>Edited</h3>')
+  );
+  await expect
+    .poll(() => shadowText('#edit', 'h3'), {timeout: 10_000})
+    .toBe('Edited');
+  expect(await shadowText('#edit', 'button')).toBe('Clicked 2 times');
+  expect(
+    await page.evaluate(`window.__edit === document.querySelector('#edit')`)
+  ).toBe(true);
+  expect(errors).toEqual([]);
+});
