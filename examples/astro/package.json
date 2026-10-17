@@ -7,7 +7,10 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "dev:server": "astro dev --config astro.server.config.mjs",
+    "build:server": "astro build --config astro.server.config.mjs",
+    "start:server": "node dist/server/entry.mjs"
   },
   "dependencies": {
     "@lit-labs/ssr": "^4.1.0",
@@ -16,6 +19,7 @@
     "lit": "^3.3.3"
   },
   "devDependencies": {
-    "@oddsquad/vite-plugin-lit": "*"
+    "@oddsquad/vite-plugin-lit": "*",
+    "@astrojs/node": "^11.1.8"
   }
 }
