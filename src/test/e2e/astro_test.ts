@@ -273,3 +273,34 @@ test('the link printed with the code opens the panel, connected', async () => {
     await page.context().close();
   }
 });
+
+test('the Timeline records the updates of an Astro page', async () => {
+  const panel = await freshPage();
+  try {
+    await panel.goto(
+      `${fixture.origin}/__lit/#tab=timeline&devframe_otp=${getTempAuthCode()}`
+    );
+    await panel.waitForSelector('timeline-view');
+    // The list reads simpler than the tracks the Timeline opens in.
+    await panel.evaluate(() =>
+      localStorage.setItem('lit-devtools-timeline-mode', 'list')
+    );
+    await panel.reload();
+    await panel.waitForSelector('timeline-event-list');
+    await open();
+    await panel.getByRole('button', {name: /Record/}).click();
+    await fixture.page.locator('ssr-counter #increment').click();
+    await expect
+      .poll(
+        () =>
+          panel
+            .locator('timeline-event-list .row')
+            .filter({hasText: 'ssr-counter'})
+            .count(),
+        {timeout: 15_000}
+      )
+      .toBeGreaterThan(0);
+  } finally {
+    await panel.context().close();
+  }
+});
