@@ -1,13 +1,7 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
+import {navigation} from '../navigation.ts';
 import ui from './ui.css?css-sheet';
-
-/** When the current page arrived: the load, or the last view transition. */
-let pageStart = 0;
-// The module loads on the server too, which has no document.
-globalThis.document?.addEventListener('astro:after-swap', () => {
-  pageStart = performance.now();
-});
 
 /**
  * Says when it came alive. The server renders it saying it is still server
@@ -40,7 +34,7 @@ export class IslandProbe extends LitElement {
   #fromServer = this.shadowRoot !== null;
 
   override firstUpdated() {
-    this.after = Math.round(performance.now() - pageStart);
+    this.after = Math.round(performance.now() - navigation.arrivedAt);
   }
 
   #status() {

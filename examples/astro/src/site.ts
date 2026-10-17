@@ -26,4 +26,9 @@ export const pages = [
     title: 'Nested elements',
     blurb: 'Lit elements rendering Lit elements, server-rendered as one.',
   },
+  {
+    href: '/transitions/',
+    title: 'View transitions',
+    blurb: 'Swapped pages that still hydrate, and an element that persists.',
+  },
 ] as const;

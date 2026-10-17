@@ -169,3 +169,31 @@ test('nested items hydrate inside their list and report to it', async () => {
   await expect.poll(() => items('island')).toEqual(unticked);
   expect(errors).toEqual([]);
 });
+
+test('a page swapped in by a view transition hydrates its server HTML', async () => {
+  const {page} = fixture;
+  const errors = await visit('/islands/');
+  await page.locator('nav a[href="/transitions/"]').click();
+  await page.waitForURL(`${fixture.origin}/transitions/`);
+  const badge = (id: string) => shadowText(id, '.badge');
+  await expect
+    .poll(() => badge('#arrival'))
+    .toBe('This page was swapped in by a view transition');
+  await expect.poll(() => badge('#plain')).toMatch(/^Hydrated/);
+  await expect.poll(() => badge('#island')).toMatch(/^Hydrated/);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        `[...document.querySelector('#tags').shadowRoot.querySelectorAll('li')].map((li) => li.textContent)`
+      )
+    )
+    .toEqual(['swapped', 'still', 'hydrated']);
+  // Persisted across the swap, so it counted it; a reload starts over.
+  expect(await shadowText('visit-counter', 'strong')).toBe('2');
+  await page.reload();
+  await expect.poll(() => shadowText('visit-counter', 'strong')).toBe('1');
+  await expect
+    .poll(() => badge('#arrival'))
+    .toBe('This page came from a full load');
+  expect(errors).toEqual([]);
+});
