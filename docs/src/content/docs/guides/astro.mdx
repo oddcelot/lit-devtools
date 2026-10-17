@@ -106,6 +106,14 @@ export default defineConfig({
 });
 ```
 
+A Lit element inside another framework's component is that framework's to
+render. On the server it becomes a plain tag, without a shadow root, and Lit
+renders it in the browser once its class is defined, so import the class in
+the component. Preact's hydration leaves properties as the server's HTML had
+them, so an array or object prop reaches the element when the component's
+state next changes; give the island `client:only="preact"` if it must be
+there from the start.
+
 ## Render on demand
 
 Prebuilt pages and on-demand rendering work alike. With `output: 'server'`
