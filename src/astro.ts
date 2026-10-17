@@ -104,9 +104,11 @@ export interface LitAstroIntegration {
   };
 }
 
+// Astro writes it into an `import()` Vite resolves, and Vite wants forward
+// slashes in a Windows path, as `resolveRuntimeModule` gives it the page's.
 const TOOLBAR_ENTRY = fileURLToPath(
   new URL('./lib/astro/toolbar-app.js', import.meta.url)
-);
+).replaceAll('\\', '/');
 
 /**
  * The renderer's name, which is also the hint `client:only` takes: Astro
