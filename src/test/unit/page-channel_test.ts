@@ -1,11 +1,13 @@
 import {describe, expect, test, vi} from 'vite-plus/test';
 
 // The module keeps its channel on `globalThis`, so each test loads a fresh copy
-// (after dropping that slot) to get a channel with no listeners or carrier.
+// (after dropping that slot, and the runtime registry `useViteHot` joins) to
+// get a channel with no listeners or carrier.
 const freshChannel = async () => {
   vi.resetModules();
   const g = globalThis as unknown as Record<symbol, unknown>;
   delete g[Symbol.for('@oddsquad/vite-plugin-lit#page-channel')];
+  delete g[Symbol.for('@oddsquad/vite-plugin-lit#runtimes')];
   return import('../../lib/runtime/page-channel.js');
 };
 
@@ -48,20 +50,57 @@ describe('pageChannel', () => {
     expect(carrier.sent).toEqual([['b', 2]]);
   });
 
-  test('moves listeners to a replacement carrier and unbinds the old one', async () => {
+  test('serves every attached carrier: sends to each, hears each', async () => {
     const {pageChannel} = await freshChannel();
     const seen: unknown[] = [];
+    // The extension's relay and the dev server's socket on one page.
     const first = fakeCarrier();
     pageChannel.attach(first);
     pageChannel.on('a', (d) => seen.push(d));
     const second = fakeCarrier();
     pageChannel.attach(second);
-    first.deliver('a', 'stale');
-    second.deliver('a', 'live');
-    expect(seen).toEqual(['live']);
+    first.deliver('a', 'from first');
+    second.deliver('a', 'from second');
+    expect(seen).toEqual(['from first', 'from second']);
     pageChannel.send('b');
-    expect(first.sent).toEqual([]);
+    expect(first.sent).toEqual([['b', undefined]]);
     expect(second.sent).toEqual([['b', undefined]]);
+    expect(pageChannel.carriers).toEqual([first, second]);
+  });
+
+  test('attaching a carrier again announces without binding twice', async () => {
+    const {pageChannel} = await freshChannel();
+    const seen: unknown[] = [];
+    const announced: string[] = [];
+    pageChannel.on('a', (d) => seen.push(d));
+    pageChannel.onAttach(() => announced.push('ready'));
+    const relay = fakeCarrier();
+    pageChannel.attach(relay);
+    // The extension's relay reconnecting re-attaches the same transport.
+    pageChannel.attach(relay);
+    relay.deliver('a', 1);
+    pageChannel.send('b');
+    expect(seen).toEqual([1]);
+    expect(relay.sent).toEqual([['b', undefined]]);
+    expect(announced).toEqual(['ready', 'ready']);
+  });
+
+  test('detach unbinds a carrier and leaves the others', async () => {
+    const {pageChannel} = await freshChannel();
+    const seen: unknown[] = [];
+    const kept = fakeCarrier();
+    const dropped = fakeCarrier();
+    pageChannel.attach(kept);
+    pageChannel.attach(dropped);
+    pageChannel.on('a', (d) => seen.push(d));
+    pageChannel.detach(dropped);
+    dropped.deliver('a', 'stale');
+    kept.deliver('a', 'live');
+    pageChannel.send('b');
+    expect(seen).toEqual(['live']);
+    expect(dropped.sent).toEqual([]);
+    expect(dropped.handlers.get('a')?.size).toBe(0);
+    expect(pageChannel.carriers).toEqual([kept]);
   });
 
   test('a removed listener stays removed across a carrier swap', async () => {
@@ -88,18 +127,32 @@ describe('pageChannel', () => {
     expect(calls).toEqual(['second']);
   });
 
-  test('useViteHot yields to a carrier that is already attached', async () => {
+  test('useViteHot joins beside a carrier that is already attached', async () => {
     const {pageChannel} = await freshChannel();
-    const carrier = fakeCarrier();
-    pageChannel.attach(carrier);
+    const relay = fakeCarrier();
+    pageChannel.attach(relay);
     const hotSent: string[] = [];
     pageChannel.useViteHot({
       send: (event) => void hotSent.push(event),
       on: () => {},
     });
     pageChannel.send('a');
-    expect(hotSent).toEqual([]);
-    expect(carrier.sent).toEqual([['a', undefined]]);
+    expect(hotSent).toEqual(['a']);
+    expect(relay.sent).toEqual([['a', undefined]]);
+  });
+
+  test("useViteHot adds one carrier however many modules' hot it gets", async () => {
+    const {pageChannel} = await freshChannel();
+    const sent: string[] = [];
+    // Each module has its own `import.meta.hot`, all on one socket.
+    for (let i = 0; i < 3; i++) {
+      pageChannel.useViteHot({
+        send: (event) => void sent.push(`${i}:${event}`),
+        on: () => {},
+      });
+    }
+    pageChannel.send('a');
+    expect(sent).toEqual(['0:a']);
   });
 
   test('useViteHot wraps the HMR client as the default carrier', async () => {

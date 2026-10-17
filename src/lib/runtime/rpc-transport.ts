@@ -79,7 +79,7 @@ export interface ConnectOptions {
  * and timeline traffic that used to go to this page's own Vite server goes to
  * `url` instead (the runtime announces itself again so the server can replay
  * recording state). Returns a function that disconnects and hands the channel
- * back to the carrier it replaced.
+ * back to the carriers it replaced.
  *
  * The page's origin must be allowed to reach `url`; this does not set up
  * cross-origin access.
@@ -98,11 +98,14 @@ export const connectToDevServer = async (
   });
   await client.ensureTrusted();
 
-  const previous = pageChannel.transport;
-  pageChannel.attach(createRpcTransport(client.scope(LIT_DEVFRAME_ID).rpc));
+  const replaced = pageChannel.carriers;
+  for (const previous of replaced) pageChannel.detach(previous);
+  const carrier = createRpcTransport(client.scope(LIT_DEVFRAME_ID).rpc);
+  pageChannel.attach(carrier);
 
   return () => {
     client.close?.();
-    if (previous !== undefined) pageChannel.attach(previous);
+    pageChannel.detach(carrier);
+    for (const previous of replaced) pageChannel.attach(previous);
   };
 };
