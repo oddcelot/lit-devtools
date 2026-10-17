@@ -58,11 +58,6 @@ the renderer from `getContainerRenderer()`.
 
 ## Next to Preact
 
-```sh
-pnpm build:multi
-pnpm preview:multi
-```
-
-`astro.multi.config.mjs` puts a Preact island next to Lit's, on the pages in
-`multi/`. Preact's integration is limited to `.tsx` files, so it leaves Lit's
-decorated `.ts` to Lit.
+`astro.config.mjs` adds Preact's integration, limited to `.tsx` files so it
+leaves Lit's decorated `.ts` to Lit. `/frameworks/` puts Preact islands next
+to Lit's, and Lit elements inside a Preact component.

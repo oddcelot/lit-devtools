@@ -30,7 +30,6 @@ const EXAMPLE_DIR = fileURLToPath(
 export type AstroConfig =
   | 'astro.config.mjs'
   | 'astro.server.config.mjs'
-  | 'astro.multi.config.mjs'
   | `${string}.config.mjs`;
 
 export interface AstroFixture {
@@ -87,11 +86,9 @@ const loadAstro = async (): Promise<AstroApi> => {
 const COPIED = [
   'astro.config.mjs',
   'astro.server.config.mjs',
-  'astro.multi.config.mjs',
   'tsconfig.json',
   'public',
   'src',
-  'multi',
 ];
 
 export const startAstroFixture = async ({

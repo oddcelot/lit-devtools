@@ -9,7 +9,6 @@ sidebar:
 ---
 
 import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
-import config from '../../../../../examples/astro/astro.config.mjs?raw';
 import containerTest from '../../../../../examples/astro/test/container.test.ts?raw';
 import vitestConfig from '../../../../../examples/astro/vitest.config.ts?raw';
 import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
@@ -35,7 +34,14 @@ Add `lit()` from `@oddsquad/vite-plugin-lit/astro`. It takes the plugin's
 the panel needs it, and has [three of its
 own](/vite-plugin-lit/reference/options/#astro-options).
 
-<Code code={config} lang="js" title="astro.config.mjs" mark={[5]} />
+```js title="astro.config.mjs" {5}
+import {defineConfig} from 'astro/config';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [lit()],
+});
+```
 
 Import each component in the page's frontmatter, so Astro renders it, and in
 a page script, so the browser defines it. The integration loads Lit's hydrate

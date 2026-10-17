@@ -31,4 +31,9 @@ export const pages = [
     title: 'View transitions',
     blurb: 'Swapped pages that still hydrate, and an element that persists.',
   },
+  {
+    href: '/frameworks/',
+    title: 'Next to Preact',
+    blurb: 'Lit and Preact islands on one page, and Lit inside Preact.',
+  },
 ] as const;

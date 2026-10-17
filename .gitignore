@@ -19,7 +19,6 @@
 docs/dist/
 docs/.astro/
 examples/astro/.astro/
-examples/astro/dist-multi/
 
 # Dependencies
 node_modules/
