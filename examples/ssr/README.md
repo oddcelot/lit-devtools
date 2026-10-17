@@ -22,7 +22,9 @@ the elements hydrate in place instead of rendering again.
   _Server-rendered_ until it hydrates, then _Hydrated_. The count works from
   there.
 - `<ssr-deferred>` is rendered with `defer-hydration`, so it stays inert server
-  HTML until **Hydrate the deferred one** removes the attribute.
+  HTML until **Water the plant** removes the attribute. Its plant hangs
+  wilted until then; once hydration has run it sets `hydrated`, and a
+  `:host([hydrated])` rule waters it and lets it straighten up and bloom.
 
 The Vite DevTools dock and its Lit panel work here too. Because Vite has no
 HTTP server of its own in middleware mode, the dock opens a socket on
