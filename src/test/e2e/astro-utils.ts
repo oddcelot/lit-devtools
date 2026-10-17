@@ -17,6 +17,7 @@ import {createServer} from 'node:net';
 import * as path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {chromium, type Browser, type Page} from 'playwright-core';
+import type {ViteDevServer} from 'vite';
 
 const EXAMPLE_DIR = fileURLToPath(
   new URL('../../../examples/astro', import.meta.url)
@@ -30,6 +31,8 @@ export type AstroConfig =
 
 export interface AstroFixture {
   browser: Browser;
+  /** Astro's Vite server, in dev: its `hot` channel reaches the page. */
+  vite?: ViteDevServer;
   page: Page;
   root: string;
   origin: string;
@@ -112,6 +115,7 @@ export const startAstroFixture = async ({
   delete process.env['VITEST'];
   process.env['NODE_ENV'] = build ? 'production' : 'development';
   const astro = await loadAstro();
+  let devServer: ViteDevServer | undefined;
   const inline = {
     root,
     // Relative: Astro joins it to `root`.
@@ -121,6 +125,17 @@ export const startAstroFixture = async ({
     // Its own optimizer cache, as `startSsrFixture` keeps: the example's is
     // shared with `pnpm dev`, under other configs.
     vite: {cacheDir: path.join(root, '.vite'), ...vite},
+    // Added to the config file's integrations, to hand the test Vite.
+    integrations: [
+      {
+        name: 'e2e-vite',
+        hooks: {
+          'astro:server:setup': ({server}: {server: ViteDevServer}) => {
+            devServer = server;
+          },
+        },
+      },
+    ],
   };
   let server: Stoppable;
   if (build) {
@@ -150,6 +165,7 @@ export const startAstroFixture = async ({
 
   return {
     browser,
+    ...(devServer ? {vite: devServer} : {}),
     page,
     root,
     origin,
