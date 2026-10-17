@@ -29,6 +29,12 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   content, which Astro hands over with the attribute taken off.
 - **`lib/astro/boot.ts` and `release.ts`**, the page script: releases the
   elements the renderer deferred, again after a view transition.
+- **`lib/astro/node-builds.ts`**, a Vite plugin for server environments
+  that don't resolve the `node` condition (Cloudflare's `workerd`): sends
+  `lit-html` and `@lit/reactive-element` to their node builds, which render
+  through the DOM shim, instead of the browser's, which read `document` on
+  load. Tried with `@astrojs/cloudflare` 14.4 on Astro 7.4; Vercel and
+  Netlify trace `node_modules` and need nothing.
 - **`lib/astro/shadow-roots.ts`**, also the page script's: attaches the
   incoming page's declarative shadow roots on `astro:before-swap`. Astro's
   router attaches them only after the swap, once each Lit element has made

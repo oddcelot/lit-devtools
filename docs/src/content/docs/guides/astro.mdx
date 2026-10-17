@@ -118,9 +118,11 @@ there from the start.
 
 Prebuilt pages and on-demand rendering work alike. With `output: 'server'`
 and an adapter, the renderer runs for each request, and the browser hydrates
-the result as it does a prebuilt page. `@lit-labs/ssr` and `lit` stay
-external to the server build, so the server loads them from your
-`node_modules`, one copy of each.
+the result as it does a prebuilt page. With `@astrojs/node`, `@astrojs/vercel`
+and `@astrojs/netlify`, `@lit-labs/ssr` and `lit` stay external to the server
+build, so the server loads them from your `node_modules`, one copy of each.
+`@astrojs/cloudflare` bundles them for the Workers runtime, where the
+integration picks Lit's server builds, as Node would.
 
 ## Test with the container API
 
