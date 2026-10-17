@@ -1,6 +1,6 @@
 ---
 title: Options
-description: Every option litPlugin() accepts, with its type, default, environment variable, and the page that explains it.
+description: Every option litPlugin() and the Astro integration accept, with its type, default, environment variable, and the page that explains it.
 sidebar:
   order: 1
 ---
@@ -493,6 +493,80 @@ requests from the network on to Vite.
 **Type:** `boolean | string` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_DEVTOOLS_WORKSPACE`
 
+## Astro options
+
+`lit()` from `@oddsquad/vite-plugin-lit/astro` takes every option above, with
+`timeline` on by default, since the panel in the dev toolbar needs it, and
+three of its own. They mirror the JSDoc of `LitAstroOptions` in `src/astro.ts`
+and have no environment variables. `litDevtools()` takes the same options
+except `render` and `shadowRootPolyfill`.
+
+| Option               | Type      | Default |
+| -------------------- | --------- | ------- |
+| `render`             | `boolean` | `true`  |
+| `shadowRootPolyfill` | `boolean` | `false` |
+| `toolbar`            | `boolean` | `true`  |
+
+### render
+
+Registers the integration as Astro's renderer for Lit, which renders Lit
+components on the server and hydrates them. It needs `@lit-labs/ssr` and
+`@lit-labs/ssr-client`; if one is missing, the dev server and the build stop
+and say what to install.
+
+```js title="astro.config.mjs" {5}
+import {defineConfig} from 'astro/config';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [lit({render: false})],
+});
+```
+
+`false` keeps the plugin's HMR and the panel and leaves rendering to another
+Lit renderer, such as `@awesome.me/astro-lit`. `litDevtools()` is `lit()`
+with `render: false`.
+
+**Type:** `boolean` · **Default:** `true`
+
+### shadowRootPolyfill
+
+Loads a polyfill for declarative shadow DOM in browsers that can't parse it,
+from `@webcomponents/template-shadowroot`, which you install yourself. Every
+current browser parses it natively, and the polyfill loads only where one
+doesn't.
+
+```js title="astro.config.mjs" {5}
+import {defineConfig} from 'astro/config';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [lit({shadowRootPolyfill: true})],
+});
+```
+
+**Type:** `boolean` · **Default:** `false`
+
+### toolbar
+
+Puts the Lit panel in Astro's dev toolbar, in place of the Vite DevTools dock.
+The panel needs the timeline, so with `timeline: false` there is no toolbar
+app either.
+
+```js title="astro.config.mjs" {5}
+import {defineConfig} from 'astro/config';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [lit({toolbar: false})],
+});
+```
+
+`false` leaves the panel at `/__lit/` on the dev server, the address
+`astro dev` prints at startup.
+
+**Type:** `boolean` · **Default:** `true`
+
 ## Related
 
 <CardGrid>
@@ -505,5 +579,10 @@ requests from the network on to Vite.
     title="Limitations"
     description="What onIncompatible reacts to."
     href="/vite-plugin-lit/reference/limitations/"
+  />
+  <LinkCard
+    title="Use Lit in Astro"
+    description="Where lit() and its options fit."
+    href="/vite-plugin-lit/guides/astro/"
   />
 </CardGrid>
