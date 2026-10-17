@@ -222,7 +222,9 @@ async function serveWithoutHub(
  */
 async function registerInstance(
   ctx: DevToolsHubContext,
-  name: string
+  name: string,
+  /** The port the HTTP server is listening on, when it reports one. */
+  listeningPort: number | undefined
 ): Promise<{unregister: () => void} | {reason: string}> {
   // Both imports are dynamic and optional: `@vitejs/devtools-kit` is an
   // optional peer this package must never hard-resolve, and `devframe`'s
@@ -235,8 +237,13 @@ async function registerInstance(
   if (!internal) return {reason: 'devframe/internal not resolvable'};
 
   const basePath = constants.DEVTOOLS_MOUNT_PATH;
-  const origin = ctx.host?.resolveOrigin?.();
-  if (!origin) return {reason: 'host origin unavailable'};
+  const resolved = ctx.host?.resolveOrigin?.();
+  if (!resolved) return {reason: 'host origin unavailable'};
+  // The host falls back to `server.port` when Vite has no resolved URLs, as
+  // in middleware mode with an HTTP server handed in, where that is 5173
+  // and someone else's server, or no one's. The port actually listening
+  // wins.
+  const origin = withPort(resolved, listeningPort);
 
   const probed = await internal.probeDevframeOrigin(origin, basePath);
   if (!probed) {
@@ -274,6 +281,14 @@ async function registerInstance(
   return {unregister};
 }
 
+/** `origin` with its port swapped for `port`, when there is one. */
+function withPort(origin: string, port: number | undefined): string {
+  if (port === undefined) return origin;
+  const url = new URL(origin);
+  url.port = String(port);
+  return url.origin;
+}
+
 /**
  * Register once the dev server is actually accepting connections. The
  * DevTools `setup()` hook runs during server construction, well before
@@ -292,7 +307,12 @@ function registerInstanceWhenListening(
   }
 
   const run = (): void => {
-    registerInstance(ctx, name)
+    const address = httpServer.address();
+    const port =
+      typeof address === 'object' && address !== null
+        ? address.port
+        : undefined;
+    registerInstance(ctx, name, port)
       .then((result) => {
         if ('unregister' in result) {
           httpServer.once('close', result.unregister);
