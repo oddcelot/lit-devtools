@@ -108,6 +108,13 @@ const TOOLBAR_ENTRY = fileURLToPath(
   new URL('./lib/astro/toolbar-app.js', import.meta.url)
 );
 
+/**
+ * The renderer's name, which is also the hint `client:only` takes: Astro
+ * finds the renderer for `client:only="lit"` by this name once a project has
+ * more than one.
+ */
+const RENDERER_NAME = 'lit';
+
 /** Lit's hydrate support, which must load before LitElement does. */
 const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 
@@ -161,7 +168,7 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
           // found on the first page load, which reloads the page.
           updateConfig({vite: {optimizeDeps: {include: [HYDRATE_SUPPORT]}}});
           addRenderer({
-            name: '@oddsquad/vite-plugin-lit',
+            name: RENDERER_NAME,
             serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
             clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
           });
@@ -214,7 +221,7 @@ export const getContainerRenderer = (): {
   name: string;
   serverEntrypoint: string;
 } => ({
-  name: '@oddsquad/vite-plugin-lit',
+  name: RENDERER_NAME,
   serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
 });
 

@@ -79,9 +79,26 @@ renderer leaves your `defer-hydration` alone.
 
 An imported class used as a component is an island, so Astro's directives
 apply: `client:load`, `client:idle`, `client:visible` and `client:media`
-hydrate the server's HTML, and `client:only` renders in the browser only.
-With more than one renderer in the project, name this one for `client:only`:
-`client:only="@oddsquad/vite-plugin-lit"`.
+hydrate the server's HTML, and `client:only="lit"` renders in the browser
+only. The renderer is named `lit`, so that hint finds it in a project with
+other renderers too.
+
+## Next to other frameworks
+
+Lit shares a page with React, Preact, Solid or Vue islands. Restrict a JSX
+framework's integration to its own files with `include`. By default
+`@astrojs/preact` and `@astrojs/react` run Babel over every `.ts` file, and
+Babel can't parse Lit's decorators:
+
+```js title="astro.config.mjs"
+import {defineConfig} from 'astro/config';
+import preact from '@astrojs/preact';
+import lit from '@oddsquad/vite-plugin-lit/astro';
+
+export default defineConfig({
+  integrations: [preact({include: ['**/*.tsx']}), lit()],
+});
+```
 
 ## Render on demand
 

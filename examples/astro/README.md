@@ -55,3 +55,14 @@ pnpm test
 
 `test/container.test.ts` renders the page with Astro's container API and
 the renderer from `getContainerRenderer()`.
+
+## Next to Preact
+
+```sh
+pnpm build:multi
+pnpm preview:multi
+```
+
+`astro.multi.config.mjs` puts a Preact island next to Lit's, on the pages in
+`multi/`. Preact's integration is limited to `.tsx` files, so it leaves Lit's
+decorated `.ts` to Lit.

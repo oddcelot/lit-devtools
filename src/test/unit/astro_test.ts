@@ -31,7 +31,7 @@ describe('lit()', () => {
     const args = setup('build');
     lit().hooks['astro:config:setup'](args);
     expect(args.addRenderer).toHaveBeenCalledWith({
-      name: '@oddsquad/vite-plugin-lit',
+      name: 'lit',
       serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
       clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
     });

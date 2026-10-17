@@ -21,7 +21,10 @@
     // Served by bench/run.mjs.
     "bench/index.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
-    "docs/src/routeData.ts"
+    "docs/src/routeData.ts",
+    // examples/astro/astro.multi.config.mjs sets `srcDir: './multi'`, which
+    // fallow's Astro plugin doesn't read.
+    "examples/astro/multi/pages/**/*.astro"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
