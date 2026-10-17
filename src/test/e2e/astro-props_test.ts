@@ -1,8 +1,9 @@
 /**
  * Props of the types Astro serializes for islands (Date, Map, Set, URL,
- * BigInt, RegExp, typed arrays, Infinity, undefined), through the renderer.
- * The server renders with the values as given; the browser must end up
- * with the same ones, or hydration renders something else.
+ * BigInt, RegExp, typed arrays, Infinity, undefined), through the renderer,
+ * to an island and to a plain tag, which carries them in its marker with
+ * Astro's tags. The server renders with the values as given; the browser
+ * must end up with the same ones, or hydration renders something else.
  */
 
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
@@ -70,6 +71,10 @@ const props = {
   </head>
   <body>
     <PropTypes id="island" client:load {...props} />
+    <prop-types id="plain" {...props} />
+    <script>
+      import '../props/prop-types.ts';
+    </script>
   </body>
 </html>
 `;
@@ -134,5 +139,18 @@ test('an island hydrates with the props Astro serialized, of every type it carri
   expect(await served('island')).toEqual(EXPECTED);
   await page.goto(`${fixture.origin}/props`);
   await expect.poll(() => rerendered('island')).toEqual(EXPECTED);
+  expect(errors).toEqual([]);
+});
+
+test('a plain tag hydrates with the same types, carried in its marker', async () => {
+  const {page} = fixture;
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => {
+    if (m.type() === 'error') errors.push(m.text());
+  });
+  expect(await served('plain')).toEqual(EXPECTED);
+  await page.goto(`${fixture.origin}/props`);
+  await expect.poll(() => rerendered('plain')).toEqual(EXPECTED);
   expect(errors).toEqual([]);
 });

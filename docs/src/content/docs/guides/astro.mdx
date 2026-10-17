@@ -62,11 +62,11 @@ properties and holds the element back until the browser has them too.
   mark={[31]}
 />
 
-On a plain tag, the values travel as JSON in a `data-lit-props` attribute. In
-an island, Astro hands them over itself, with its own serialization, which
-also carries `Date`, `Map`, `Set`, `URL`, `BigInt`, `RegExp` (its source,
-without flags), `Uint8Array`, `Uint16Array`, `Uint32Array`, `Infinity` and
-`undefined`, nested or not.
+Beyond JSON, both carry `Date`, `Map`, `Set`, `URL`, `BigInt`, `RegExp` (its
+source, without flags), `Uint8Array`, `Uint16Array`, `Uint32Array`,
+`Infinity` and `undefined`, nested or not. In an island, Astro hands the values
+over itself. On a plain tag, they travel in a `data-lit-props` attribute: as
+plain JSON when that's enough, otherwise in the form Astro uses for islands.
 
 <Aside type="note" title="Functions stay on the server">
   No prop can carry a function to the browser, and a class instance arrives as a
