@@ -23,11 +23,15 @@ const EXAMPLE_DIR = fileURLToPath(
   new URL('../../../examples/astro', import.meta.url)
 );
 
-/** The configs in `examples/astro`, one per setup. */
+/**
+ * The configs in `examples/astro`, one per setup, or one a test writes
+ * into the copy with `files`.
+ */
 export type AstroConfig =
   | 'astro.config.mjs'
   | 'astro.server.config.mjs'
-  | 'astro.multi.config.mjs';
+  | 'astro.multi.config.mjs'
+  | `${string}.config.mjs`;
 
 export interface AstroFixture {
   browser: Browser;
