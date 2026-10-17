@@ -1,11 +1,12 @@
 {
   "name": "vite-plugin-lit-ssr-example",
-  "description": "Lit components server-rendered with @lit-labs/ssr by a Vite dev server and hydrated in the page, with @oddsquad/vite-plugin-lit hot-patching them.",
+  "description": "Lit components server-rendered with @lit-labs/ssr by a Vite dev server and hydrated in the page, with @oddsquad/vite-plugin-lit hot-patching them. Opens on StackBlitz straight from the repo URL.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node server.mjs"
+    "dev": "node server.mjs",
+    "stackblitz": "node stackblitz.mjs"
   },
   "dependencies": {
     "@lit-labs/ssr": "^4.1.0",
@@ -16,5 +17,9 @@
     "@oddsquad/vite-plugin-lit": "*",
     "@vitejs/devtools": "^0.7.6",
     "vite": "^8.3.2"
+  },
+  "stackblitz": {
+    "installDependencies": true,
+    "startCommand": "npm run stackblitz"
   }
 }
