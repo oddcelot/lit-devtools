@@ -1,5 +1,6 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
+import ui from './ui.css?css-sheet';
 
 /**
  * Takes its tags as an array property, which no attribute can carry, and a
@@ -8,25 +9,26 @@ import {customElement, property} from 'lit/decorators.js';
  */
 @customElement('tag-list')
 export class TagList extends LitElement {
-  static override styles = css`
-    :host {
-      display: block;
-      padding: 1rem;
-      border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
-      border-radius: 0.5rem;
-    }
-    ul {
-      display: flex;
-      gap: 0.5rem;
-      padding: 0;
-      list-style: none;
-    }
-    li {
-      padding: 0.1rem 0.5rem;
-      border-radius: 1rem;
-      background: color-mix(in oklch, currentColor 10%, transparent);
-    }
-  `;
+  static override styles = [
+    ui,
+    css`
+      ul {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-4);
+        margin: 0 0 var(--space-6);
+        padding: 0;
+        list-style: none;
+      }
+      li {
+        padding: var(--space-1) var(--space-5);
+        border-radius: var(--radius-pill);
+        background: var(--accent-soft);
+        color: var(--text-strong);
+        font: var(--weight-semibold) var(--text-sm) var(--font-mono);
+      }
+    `,
+  ];
 
   @property({attribute: false}) tags: string[] = [];
 

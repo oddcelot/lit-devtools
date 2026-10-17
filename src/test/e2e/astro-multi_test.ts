@@ -62,7 +62,7 @@ afterAll(async () => {
 
 test('both renderers hydrate their islands, and client:only="lit" finds Lit', async () => {
   const {page} = fixture;
-  const errors = await open(fixture);
+  const errors = await open(fixture, '/');
   await counterHydrates(page);
   await page.locator('#preact').click();
   await expect

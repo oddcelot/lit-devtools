@@ -22,7 +22,7 @@ afterAll(async () => {
 });
 
 test('each request renders the page, which hydrates', async () => {
-  const html = await (await fetch(`${fixture.origin}/`)).text();
+  const html = await (await fetch(`${fixture.origin}/basics/`)).text();
   expect(html).toMatch(
     /<ssr-counter start="3"><template shadowrootmode="open">/
   );

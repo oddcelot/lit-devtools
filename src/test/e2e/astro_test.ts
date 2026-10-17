@@ -23,7 +23,9 @@ afterAll(async () => {
 
 /** The page as a browser asks for it, so the page runtime goes in. */
 const pageHtml = async () =>
-  (await fetch(`${fixture.origin}/`, {headers: {accept: 'text/html'}})).text();
+  (
+    await fetch(`${fixture.origin}/basics/`, {headers: {accept: 'text/html'}})
+  ).text();
 
 const shadow = (selector: string, inner: string, page = fixture.page) =>
   page.evaluate(
@@ -48,7 +50,7 @@ const open = async (page = fixture.page) => {
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto(`${fixture.origin}/`);
+  await page.goto(`${fixture.origin}/basics/`);
   await expect.poll(hydrated(page)).toBe(true);
   return errors;
 };

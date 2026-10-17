@@ -1,0 +1,111 @@
+---
+// Server imports: the renderer renders these to HTML with declarative shadow
+// roots.
+import '../components/ssr-counter.ts';
+import '../components/ssr-deferred.ts';
+import '../components/ssr-themed.ts';
+import {TagList} from '../components/tag-list.ts';
+import Showcase from '../components/Showcase.astro';
+import Demo from '../layouts/Demo.astro';
+---
+
+<Demo
+  title="Server rendering"
+  lede="Lit components arrive as HTML with their shadow roots, then hydrate in place: no second render, no flash."
+>
+  <Showcase
+    title="Hydrate in place"
+    code={`<ssr-counter start="3"></ssr-counter>`}
+  >
+    <p slot="explain">
+      A Lit element written as a tag is rendered by <code>@lit-labs/ssr</code>
+      into a declarative shadow root. Once its class loads in the browser it
+      hydrates the HTML it was sent: the badge turns from <em>Server-rendered</em>
+      to <em>Hydrated</em>, and the count carries on from the server's.
+    </p>
+    <ssr-counter start="3"></ssr-counter>
+    <ul slot="try">
+      <li>View the page source: the counter's markup is there, shadow root and all.</li>
+      <li>In the Lit panel, the Components tab marks it <code>SSR</code>.</li>
+    </ul>
+  </Showcase>
+
+  <Showcase
+    title="Hold an element back"
+    code={`<ssr-deferred defer-hydration></ssr-deferred>
+<button id="wake">Water the plant</button>
+<script>
+  document.querySelector('#wake')?.addEventListener('click', () => {
+    document.querySelector('ssr-deferred')?.removeAttribute('defer-hydration');
+  });
+</script>`}
+  >
+    <p slot="explain">
+      Written with <code>defer-hydration</code>, an element keeps the server's
+      HTML until something removes the attribute. The renderer leaves a
+      <code>defer-hydration</code> you wrote alone: this plant stays wilted
+      until you water it.
+    </p>
+    <ssr-deferred defer-hydration></ssr-deferred>
+    <button id="wake">Water the plant (hydrate the deferred one)</button>
+  </Showcase>
+
+  <Showcase
+    title="Shared stylesheets"
+    code={`import sheet from './theme.css?css-sheet';
+static override styles = [sheet];`}
+    lang="ts"
+  >
+    <p slot="explain">
+      A <code>?css-sheet</code> import is one constructable stylesheet in the
+      browser. On the server the plugin writes its css into the shadow root,
+      so the styles arrive with the HTML. Every card on these pages adopts one
+      shared sheet this way.
+    </p>
+    <ssr-themed></ssr-themed>
+  </Showcase>
+
+  <Showcase
+    title="Arrays and objects"
+    code={`<tag-list id="plain" tags={['lit', 'astro']}>
+  <h2 slot="title">Tags</h2>
+</tag-list>
+<TagList id="island" client:visible tags={['island', 'visible']} />
+<TagList id="only" client:only="lit" tags={['client', 'only']} />`}
+  >
+    <p slot="explain">
+      An array can't ride in an attribute. On a plain tag the renderer carries
+      it in the HTML and sets it before the element hydrates; an island gets
+      it from Astro; <code>client:only</code> renders in the browser alone.
+    </p>
+    <!-- A plain tag: its array rides along in the HTML. -->
+    <tag-list id="plain" tags={['lit', 'astro']}>
+      <h2 slot="title">Tags</h2>
+    </tag-list>
+    <!-- An island: Astro hands it its props when it scrolls into view. -->
+    <TagList id="island" client:visible tags={['island', 'visible']}>
+      <h2 slot="title">Island tags</h2>
+    </TagList>
+    <!-- Rendered in the browser only: no server HTML to hydrate. -->
+    <TagList id="only" client:only="lit" tags={['client', 'only']}>
+      <h2 slot="title">Client-only tags</h2>
+    </TagList>
+    <p slot="try">Add a tag to each list: all three are live.</p>
+  </Showcase>
+
+  <script>
+    import '../components/ssr-counter.ts';
+    import '../components/ssr-deferred.ts';
+    import '../components/ssr-themed.ts';
+    import '../components/tag-list.ts';
+
+    // Again after each view transition: the button is new each time.
+    document.addEventListener('astro:page-load', () => {
+      document.querySelector('#wake')?.addEventListener('click', () => {
+        document
+          .querySelector('ssr-deferred')
+          ?.removeAttribute('defer-hydration');
+      });
+    });
+  </script>
+</Demo>

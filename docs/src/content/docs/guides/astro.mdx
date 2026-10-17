@@ -12,7 +12,6 @@ import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import config from '../../../../../examples/astro/astro.config.mjs?raw';
 import containerTest from '../../../../../examples/astro/test/container.test.ts?raw';
 import vitestConfig from '../../../../../examples/astro/vitest.config.ts?raw';
-import page from '../../../../../examples/astro/src/pages/index.astro?raw';
 import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
 import {stripHeader} from '../../../lib/fixture';
 
@@ -43,12 +42,28 @@ a page script, so the browser defines it. The integration loads Lit's hydrate
 support ahead of your scripts, so the server's HTML hydrates instead of
 rendering again.
 
-<Code
-  code={page}
-  lang="astro"
-  title="src/pages/index.astro"
-  mark={[4, 5, 6, 7, 49, 50, 51, 52]}
-/>
+```astro title="src/pages/index.astro" {3-4,13-14}
+---
+// The server renders each element to HTML, its shadow root included.
+import '../components/ssr-counter.ts';
+import {TagList} from '../components/tag-list.ts';
+---
+
+<html lang="en">
+  <body>
+    <ssr-counter start="3"></ssr-counter>
+    <TagList client:visible tags={['island', 'visible']} />
+    <script>
+      // The browser defines them, and they hydrate.
+      import '../components/ssr-counter.ts';
+      import '../components/tag-list.ts';
+    </script>
+  </body>
+</html>
+```
+
+`examples/astro` in the repository is a demo site with a page for each thing
+this guide covers, all of it running live.
 
 ## Pass props
 

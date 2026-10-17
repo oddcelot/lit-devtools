@@ -14,7 +14,7 @@ export const shadow = (page: Page, selector: string, inner: string) =>
   ) as Promise<string[]>;
 
 /** Loads the page, collecting its errors but the browser's own favicon. */
-export const open = async (fixture: AstroFixture) => {
+export const open = async (fixture: AstroFixture, path = '/basics/') => {
   const {page} = fixture;
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
@@ -24,7 +24,7 @@ export const open = async (fixture: AstroFixture) => {
       errors.push(`${m.text()} ${url}`);
     }
   });
-  await page.goto(`${fixture.origin}/`);
+  await page.goto(`${fixture.origin}${path}`);
   return errors;
 };
 

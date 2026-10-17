@@ -1,0 +1,153 @@
+---
+// Every page's frame: the nav, the page title and lede, and Astro's
+// ClientRouter, so moving between pages is itself a view transition.
+import {ClientRouter} from 'astro:transitions';
+import '@fontsource-variable/manrope';
+import '@fontsource/roboto-mono';
+import '../styles/tokens.css';
+import '../styles/site.css';
+import '../components/visit-counter.ts';
+import {pages} from '../site.ts';
+
+interface Props {
+  title: string;
+  lede?: string;
+}
+
+const {title, lede} = Astro.props;
+const here = Astro.url.pathname;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title} · Lit in Astro</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <div class="frame">
+      <aside class="rail">
+        <a class="brand" href="/">
+          <img src="/favicon.svg" alt="" width="20" height="25" />
+          Lit in Astro
+        </a>
+        <nav aria-label="Demos">
+          {
+            pages.map((page) => (
+              <a
+                href={page.href}
+                aria-current={here === page.href ? 'page' : undefined}
+              >
+                {page.title}
+              </a>
+            ))
+          }
+        </nav>
+        <!-- Kept across view transitions: its count survives each swap. -->
+        <visit-counter transition:persist></visit-counter>
+      </aside>
+      <main>
+        <header class="page">
+          <h1>{title}</h1>
+          {lede && <p class="lede">{lede}</p>}
+        </header>
+        <slot />
+        <footer>
+          Open <strong>Lit DevTools</strong> in Astro's dev toolbar to inspect
+          what this page rendered.
+        </footer>
+      </main>
+    </div>
+    <script>
+      import '../components/visit-counter.ts';
+    </script>
+  </body>
+</html>
+
+<style>
+  .frame {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    min-height: 100vh;
+  }
+  .rail {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    padding: var(--space-8) var(--space-6);
+    border-right: 1px solid var(--border-subtle);
+    background: var(--surface-low);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    color: var(--text-strong);
+    font-weight: var(--weight-extrabold);
+    text-decoration: none;
+  }
+  nav {
+    display: grid;
+    gap: var(--space-1);
+  }
+  nav a {
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: var(--text-md);
+    font-weight: var(--weight-semibold);
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease-standard);
+  }
+  nav a:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+  }
+  nav a[aria-current='page'] {
+    background: var(--accent-soft);
+    color: var(--text-strong);
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  visit-counter {
+    margin-top: auto;
+  }
+  main {
+    max-width: 52rem;
+    padding: var(--space-10) var(--space-10) var(--space-12);
+  }
+  .page h1 {
+    margin: 0;
+    font-size: var(--text-4xl);
+    font-weight: var(--weight-extrabold);
+  }
+  .lede {
+    margin: var(--space-5) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-lg);
+  }
+  footer {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+  @media (max-width: 760px) {
+    .frame {
+      grid-template-columns: 1fr;
+    }
+    .rail {
+      position: static;
+      height: auto;
+    }
+    main {
+      padding: var(--space-8) var(--space-6);
+    }
+  }
+</style>

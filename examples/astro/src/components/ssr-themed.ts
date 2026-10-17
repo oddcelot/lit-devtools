@@ -1,6 +1,7 @@
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
 import sheet from './theme.css?css-sheet';
+import ui from './ui.css?css-sheet';
 
 /**
  * Adopts a shared `?css-sheet`. On the server the sheet's css is written into
@@ -8,7 +9,7 @@ import sheet from './theme.css?css-sheet';
  */
 @customElement('ssr-themed')
 export class SsrThemed extends LitElement {
-  static override styles = [sheet];
+  static override styles = [ui, sheet];
 
   override render() {
     return html`<p class="note">Styled by a shared sheet</p>`;

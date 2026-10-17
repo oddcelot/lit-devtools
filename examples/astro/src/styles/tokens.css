@@ -1,0 +1,103 @@
+/*
+ * The Lit design tokens, dark DevTools theme: the flame palette, an ink
+ * scale, and the semantic aliases everything is styled with. Custom
+ * properties inherit into shadow roots, so the components read them too.
+ */
+
+:root {
+  --lit-blue: #324fff;
+  --lit-blue-bright: #4d63ff;
+  --lit-indigo: #2a2c9d;
+  --lit-cyan: #00ffff;
+  --lit-dark-cyan: #00e8ff;
+
+  --ink-0: hsl(0 0% 1%);
+  --ink-1: hsl(0 0% 5%);
+  --ink-2: hsl(0 0% 7%);
+  --ink-3: hsl(0 0% 11%);
+  --ink-4: hsl(0 0% 13%);
+  --ink-5: hsl(0 0% 16%);
+  --ink-6: hsl(0 0% 21%);
+  --ink-7: hsl(0 0% 28%);
+  --ink-8: hsl(0 0% 38%);
+  --ink-9: hsl(0 0% 57%);
+  --ink-10: hsl(0 0% 63%);
+  --ink-11: hsl(0 0% 78%);
+  --ink-12: hsl(0 0% 89%);
+  --ink-13: hsl(0 0% 100%);
+
+  --accent: var(--lit-blue-bright);
+  --accent-hover: #6478ff;
+  --accent-pressed: #3d54f0;
+  --accent-soft: hsl(232 100% 65% / 0.16);
+  --accent-ring: hsl(232 100% 65% / 0.45);
+  --on-accent: #fff;
+  --accent-cyan: var(--lit-dark-cyan);
+
+  --bg: var(--ink-0);
+  --surface: var(--ink-2);
+  --surface-low: var(--ink-1);
+  --surface-container: var(--ink-4);
+  --surface-container-high: var(--ink-5);
+  --surface-hover: hsl(0 0% 100% / 0.04);
+
+  --text: var(--ink-12);
+  --text-strong: var(--ink-13);
+  --text-secondary: var(--ink-10);
+  --text-muted: var(--ink-8);
+  --text-link: var(--lit-blue-bright);
+
+  --border: var(--ink-6);
+  --border-strong: var(--ink-7);
+  --border-subtle: hsl(0 0% 100% / 0.06);
+
+  --success: hsl(158 74% 53%);
+  --success-soft: hsl(158 74% 53% / 0.15);
+  --warning: #f4bf4f;
+  --warning-soft: hsl(43 88% 63% / 0.15);
+  --error: #ff6b6b;
+  --info: var(--lit-dark-cyan);
+  --info-soft: hsl(187 100% 47% / 0.15);
+
+  --font-sans: 'Manrope Variable', system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', ui-monospace, Menlo, monospace;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-4xl: 48px;
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+  --tracking-tight: -0.02em;
+  --tracking-caps: 0.06em;
+
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+  --space-12: 64px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+  --ring: 0 0 0 2px var(--accent-ring);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --dur-fast: 140ms;
+  --dur-normal: 220ms;
+
+  color-scheme: dark;
+}
