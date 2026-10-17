@@ -1,0 +1,42 @@
+---
+// Server imports: astro-lit renders these to HTML with declarative shadow
+// roots.
+import '../components/ssr-counter.ts';
+import {SsrDeferred} from '../components/ssr-deferred.ts';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lit in Astro</title>
+    <style is:global>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        margin: 0 auto;
+        max-width: 40rem;
+        padding: 2rem;
+        display: grid;
+        gap: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Lit in Astro</h1>
+    <ssr-counter start="3"></ssr-counter>
+    <!-- An island: Astro holds it back until #wake is clicked. -->
+    <SsrDeferred client:on="#wake" />
+    <button id="wake">Water the plant (hydrate the deferred one)</button>
+    <script>
+      // Before any component, so the server's HTML hydrates instead of
+      // rendering again.
+      import '@awesome.me/astro-lit/dsd-polyfill.js';
+      import '@awesome.me/astro-lit/hydration-support.js';
+      import '../components/ssr-counter.ts';
+    </script>
+  </body>
+</html>

@@ -17,6 +17,7 @@
 /.fallow/
 docs/dist/
 docs/.astro/
+examples/astro/.astro/
 
 # Dependencies
 node_modules/

@@ -21,7 +21,10 @@
     // Served by bench/run.mjs.
     "bench/index.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
-    "docs/src/routeData.ts"
+    "docs/src/routeData.ts",
+    // examples/astro/astro.config.mjs hands Astro its path as a client
+    // directive.
+    "examples/astro/directives/on.js"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
@@ -60,7 +63,10 @@
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
     "@phosphor-icons/core",
-    "sugar-high"
+    "sugar-high",
+    // examples/astro: @awesome.me/astro-lit asks Vite to pre-bundle it, which
+    // resolves from the example's root, not from astro-lit's own install.
+    "@lit-labs/ssr-client"
   ],
   "ignoreExports": [
     // Stand-ins for src/panel modules, loaded with
