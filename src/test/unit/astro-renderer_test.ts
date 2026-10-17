@@ -1,5 +1,9 @@
 import {describe, expect, test} from 'vite-plus/test';
-import {encodeProperties, splitProps} from '../../lib/astro/props.js';
+import {
+  decodeProperties,
+  encodeProperties,
+  splitProps,
+} from '../../lib/astro/props.js';
 import {missingPeers, missingPeersMessage} from '../../lib/astro/peers.js';
 import {assignSlot} from '../../lib/astro/slots.js';
 
@@ -56,14 +60,80 @@ describe('splitProps', () => {
 });
 
 describe('encodeProperties', () => {
-  test('keeps plain data and names what JSON cannot carry', () => {
+  test('writes plain data as plain JSON', () => {
     const {json, dropped} = encodeProperties({
       tags: ['a', {b: [1, null]}],
-      onClick: () => {},
-      when: new Date(0),
+      count: 2,
     });
-    expect(JSON.parse(json)).toEqual({tags: ['a', {b: [1, null]}]});
-    expect(dropped).toEqual(['onClick', 'when']);
+    expect(json).toBe('{"tags":["a",{"b":[1,null]}],"count":2}');
+    expect(dropped).toEqual([]);
+  });
+
+  test('tags what JSON alone loses, as Astro tags island props', () => {
+    const {json} = encodeProperties({tags: ['a'], when: new Date(0)});
+    expect(JSON.parse(json)).toEqual([
+      0,
+      {
+        tags: [1, [[0, 'a']]],
+        when: [3, '1970-01-01T00:00:00.000Z'],
+      },
+    ]);
+  });
+
+  test('leaves out and names functions, symbols, class instances and cycles', () => {
+    const cycle: Record<string, unknown> = {};
+    cycle['self'] = cycle;
+    const {json, dropped} = encodeProperties({
+      keep: 1,
+      onClick: () => {},
+      key: Symbol('k'),
+      point: new (class Point {})(),
+      nested: [{deep: () => {}}],
+      cycle,
+    });
+    expect(JSON.parse(json)).toEqual({keep: 1});
+    expect(dropped).toEqual(['onClick', 'key', 'point', 'nested', 'cycle']);
+  });
+});
+
+describe('decodeProperties', () => {
+  const roundTrip = (properties: Record<string, unknown>) =>
+    decodeProperties(encodeProperties(properties).json);
+
+  test('brings back every type an island carries', () => {
+    const properties = {
+      when: new Date(0),
+      map: new Map<unknown, unknown>([
+        ['a', new Date(0)],
+        [1, {b: new Set([1n])}],
+      ]),
+      url: new URL('https://lit.dev/'),
+      big: 10n,
+      bytes: new Uint8Array([1, 2]),
+      words: new Uint16Array([3]),
+      longs: new Uint32Array([4]),
+      far: [Infinity, -Infinity],
+      missing: undefined,
+      plain: {list: [null, 'x', true]},
+    };
+    expect(roundTrip(properties)).toEqual(properties);
+  });
+
+  test('keeps the source of a RegExp, not its flags, as Astro does', () => {
+    expect(roundTrip({pattern: /a+b/gi})).toEqual({pattern: /a+b/});
+  });
+
+  test("reads plain JSON as it is, and an island's empty marker as nothing", () => {
+    expect(decodeProperties('{"tags":["a"]}')).toEqual({tags: ['a']});
+    expect(decodeProperties('')).toEqual({});
+  });
+
+  test('makes own keys of what would be prototype keys', () => {
+    const decoded = decodeProperties(
+      '[0,{"data":[0,{"__proto__":[0,{"polluted":[0,true]}]}]}]'
+    );
+    expect(({} as {polluted?: boolean}).polluted).toBeUndefined();
+    expect(Object.keys(decoded['data'] as object)).toEqual(['__proto__']);
   });
 });
 

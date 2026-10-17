@@ -5,7 +5,7 @@
  * hand is left for its author to remove.
  */
 
-import {PROPS_ATTRIBUTE} from './props.js';
+import {PROPS_ATTRIBUTE, decodeProperties} from './props.js';
 
 export const release = (
   element: HTMLElement,
@@ -30,10 +30,7 @@ export const releaseMarked = (root: ParentNode = document): void => {
     void customElements.whenDefined(element.localName).then(() => {
       // Released already, by an earlier pass over the same page.
       if (!element.hasAttribute(PROPS_ATTRIBUTE)) return;
-      release(
-        element,
-        json === '' ? {} : (JSON.parse(json) as Record<string, unknown>)
-      );
+      release(element, decodeProperties(json));
     });
   }
 };

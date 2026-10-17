@@ -128,11 +128,19 @@ describe('renderToStaticMarkup', () => {
     expect(markup).toMatch(/^<rendered-card defer-hydration data-lit-props=""/);
   });
 
-  test('warns about the properties JSON drops on a plain tag', async () => {
+  test("carries what JSON alone loses with Astro's tags", async () => {
+    const markup = await render('rendered-card', {tags: [new Date(0)]});
+    const host = markup.slice(0, markup.indexOf('>') + 1);
+    expect(host).toContain(
+      ' data-lit-props="[0,{&quot;tags&quot;:[1,[[3,&quot;1970-01-01T00:00:00.000Z&quot;]]]}]"'
+    );
+  });
+
+  test('warns about the properties a plain tag cannot carry', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await render('rendered-card', {tags: [], when: new Date(0)});
+    await render('rendered-card', {tags: [], onPick: () => {}});
     expect(warn).toHaveBeenCalledOnce();
-    expect(warn.mock.calls[0]![0]).toContain('<rendered-card> got `when`');
+    expect(warn.mock.calls[0]![0]).toContain('<rendered-card> got `onPick`');
   });
 
   test('puts the default slot in as is and assigns the named ones', async () => {

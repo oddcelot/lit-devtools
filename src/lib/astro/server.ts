@@ -74,14 +74,15 @@ const instanceOf = (tag: string, {attributes, properties}: SplitProps) => {
   return element;
 };
 
-/** The properties as JSON for the browser, warning about what it drops. */
+/** The properties for the browser, warning about what they leave out. */
 const carried = (tag: string, properties: Record<string, unknown>): string => {
   const {json, dropped} = encodeProperties(properties);
   if (dropped.length > 0) {
     console.warn(
       `[lit-plugin] <${tag}> got ${dropped.map((d) => `\`${d}\``).join(', ')} ` +
-        `as properties JSON can't carry, so the browser won't have them. ` +
-        `Make it an island (client:load) to pass them through Astro.`
+        `as a function, symbol or class instance, which the HTML can't ` +
+        `carry, so the browser won't have it. Set it from a page script ` +
+        `once the element is defined.`
     );
   }
   return json;

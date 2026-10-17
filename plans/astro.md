@@ -23,7 +23,8 @@ another one such as `@awesome.me/astro-lit`. Experimental.
   `<astro-island>`. Sets the properties the HTML couldn't carry and releases
   the element; for `client:only`, creates it by tag.
 - **`lib/astro/props.ts`**, shared by both halves: which props are
-  attributes and which are properties, and what JSON carries.
+  attributes and which are properties, and how a plain tag carries its
+  properties: plain JSON, or Astro's island tags when JSON loses a value.
 - **`lib/astro/slots.ts`**, shared: puts `slot="name"` back on named-slot
   content, which Astro hands over with the attribute taken off.
 - **`lib/astro/boot.ts` and `release.ts`**, the page script: releases the
@@ -73,7 +74,7 @@ another one such as `@awesome.me/astro-lit`. Experimental.
 | Render an imported class (`<MyEl client:load />`) | patches `define`              | `customElements.getName()`, no patch                       |
 | Attributes vs properties                          | by name                       | by name, and a property's name maps to its attribute       |
 | Object props on an island                         | yes                           | yes                                                        |
-| Object props on a plain tag                       | lost                          | carried as JSON in `data-lit-props`                        |
+| Object props on a plain tag                       | lost                          | carried in `data-lit-props`, with Astro's island types     |
 | `defer-hydration` written by hand                 | released at once              | respected                                                  |
 | Named slots                                       | `parse5`                      | top-level scanner, also wraps loose text                   |
 | `client:only`                                     | yes                           | yes, by tag                                                |
