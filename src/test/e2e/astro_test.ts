@@ -155,6 +155,34 @@ test('an edit patches components in place, in and outside islands, keeping state
   expect(errors).toEqual([]);
 });
 
+test('after an edit, the next page load is rendered with the new code', async () => {
+  const {page} = fixture;
+  await open();
+  await fixture.edit('src/components/ssr-counter.ts', (code) =>
+    code.replace(/<h2>\w+<\/h2>/, '<h2>Edited on the server</h2>')
+  );
+  // The open page takes the patch first, so the reload below finds the
+  // new client code in place.
+  await expect
+    .poll(() => shadow('ssr-counter', 'h2'), {timeout: 10_000})
+    .toEqual(['Edited on the server']);
+  // No restart: the renderer's registry takes the new definition.
+  await expect
+    .poll(async () =>
+      (await pageHtml()).includes('<h2>Edited on the server</h2>')
+    )
+    .toBe(true);
+
+  // Server and client agree, so it hydrates without a mismatch.
+  const errors = await open();
+  expect(await shadow('ssr-counter', 'h2')).toEqual(['Edited on the server']);
+  await page.locator('ssr-counter #increment').click();
+  await expect
+    .poll(() => shadow('ssr-counter', 'button'))
+    .toEqual(['Count: 4']);
+  expect(errors).toEqual([]);
+});
+
 const PANEL_FRAME = 'iframe[title="Lit DevTools"]';
 
 /** Whether the panel in the toolbar's frame lists `<ssr-counter>`. */
