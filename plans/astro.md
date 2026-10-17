@@ -1,0 +1,93 @@
+# Astro
+
+`@oddsquad/vite-plugin-lit/astro` makes the plugin a complete Lit integration
+for Astro: Astro's renderer for Lit (server rendering and hydration), the
+plugin's HMR, and the Lit panel in Astro's dev toolbar. `lit()` is all of it;
+`litDevtools()` is the same without the renderer, for a site that keeps
+another one such as `@awesome.me/astro-lit`. Experimental.
+
+## Parts
+
+- **`src/astro.ts`**, the integration. Adds `litPlugin()` to Astro's Vite
+  config with the timeline on, registers the renderer by package export
+  (`./astro/server`, `./astro/client`), injects the page script, registers
+  the toolbar app, and in dev runs the plugin's `transformIndexHtml` hooks
+  on each HTML page (`lib/astro/page-tags.ts`), since Astro never calls
+  them. Imports nothing from `astro`: hook arguments are declared as the
+  slices it uses.
+- **`lib/astro/server.ts`**, the renderer's server half. `check()` takes a
+  tag string or a class and asks the registry (`get`, `getName`);
+  `renderToStaticMarkup()` renders the element with `@lit-labs/ssr`'s
+  `LitElementRenderer` into a declarative shadow root, then the slots.
+- **`lib/astro/client.ts`**, the renderer's client half, called by an
+  `<astro-island>`. Sets the properties the HTML couldn't carry and releases
+  the element; for `client:only`, creates it by tag.
+- **`lib/astro/props.ts`**, shared by both halves: which props are
+  attributes and which are properties, and what JSON carries.
+- **`lib/astro/slots.ts`**, shared: puts `slot="name"` back on named-slot
+  content, which Astro hands over with the attribute taken off.
+- **`lib/astro/boot.ts` and `release.ts`**, the page script: releases the
+  elements the renderer deferred, again after a view transition.
+- **`lib/astro/toolbar-app.ts`**, the dev toolbar window around `/__lit/`,
+  and its auth code handling.
+
+## Invariants
+
+- **Only release what the renderer deferred.** An element that gets
+  properties is rendered with `defer-hydration` and `data-lit-props`. The
+  page script and the client renderer remove `defer-hydration` only from
+  elements carrying the marker, so one written by hand waits for its author.
+- **Hydrate support loads before Lit, from the project.** The injected
+  script imports `@lit-labs/ssr-client/lit-element-hydrate-support.js` by
+  bare name, so it resolves as the project's `lit` does, and is in
+  `optimizeDeps.include`. Imported from the plugin's directory it can pull a
+  second Lit into the page. It is injected at both `page` and
+  `before-hydration`: a page without islands loads only the first, and an
+  island may hydrate before it.
+- **Tags, not constructors, in the browser.** In dev an island can import a
+  later version of a class than the registered one (the module evaluated
+  again), which can't be constructed. The client renderer creates elements
+  with `document.createElement(customElements.getName(Class))`, and the HMR
+  runtime's `getName()` also answers for later versions (`runtime/patch.ts`).
+- **The page script is dev and production alike.** Nothing it does depends
+  on the dev server, so a build hydrates as dev does.
+
+## Parity with @awesome.me/astro-lit
+
+| Feature                                           | astro-lit 5.0.4               | here                                                 |
+| ------------------------------------------------- | ----------------------------- | ---------------------------------------------------- |
+| Render a tag in a page (`<my-el>`)                | yes                           | yes                                                  |
+| Render an imported class (`<MyEl client:load />`) | patches `define`              | `customElements.getName()`, no patch                 |
+| Attributes vs properties                          | by name                       | by name, and a property's name maps to its attribute |
+| Object props on an island                         | yes                           | yes                                                  |
+| Object props on a plain tag                       | lost                          | carried as JSON in `data-lit-props`                  |
+| `defer-hydration` written by hand                 | released at once              | respected                                            |
+| Named slots                                       | `parse5`                      | top-level scanner, also wraps loose text             |
+| `client:only`                                     | yes                           | yes, by tag                                          |
+| Client bootstrap                                  | two imports by hand, in order | injected                                             |
+| Declarative shadow DOM polyfill                   | import by hand                | `shadowRootPolyfill: true`                           |
+| Container API (`getContainerRenderer`)            | yes                           | yes, not yet exercised                               |
+| Server DOM shim swap                              | replaces `HTMLElement`        | not needed on Astro 7                                |
+| HMR, `?css-sheet` on the server, panel            | no                            | yes                                                  |
+
+## Decisions
+
+- **One integration, not two packages.** The renderer needs the plugin's
+  server-side handling (`?css-sheet`, dev re-definition), and the panel needs
+  the renderer's hydration states to mean something; shipping them apart
+  would mean keeping two release flows in step.
+- **`@lit-labs/ssr` and `@lit-labs/ssr-client` are optional peers.** Only the
+  renderer needs them; a Vite-only user installs nothing new.
+- **`LitElementRenderer` directly, not `render()` of a template.** Rendering
+  the element through a template would leave `lit-part` markers around it in
+  the page.
+- **No `parse5`.** It would be a dependency for every user of the Vite
+  plugin, for one job a small scanner does.
+
+## Open questions
+
+- Is the server DOM shim swap astro-lit does needed on any Astro version we
+  support? Not on 7.3.
+- `supportsAstroStaticSlot`: left off until it is clear what it changes for
+  a web component's light DOM.
+- An e2e suite on `examples/astro` (bead `vpl-u4x3`).

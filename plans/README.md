@@ -15,6 +15,8 @@ kept here.
   shared by the panel and runtime elements.
 - [css-sheet-inline-build.md](./css-sheet-inline-build.md): `?css-sheet` build
   modes and library builds.
+- [astro.md](./astro.md): the Astro integration, its renderer for Lit, and
+  parity with `@awesome.me/astro-lit`.
 - [docs-site.md](./docs-site.md): the Astro and Starlight documentation site.
 - [release-tooling.md](./release-tooling.md): tag-driven releases, changelog
   drafting, and rejected alternatives.
