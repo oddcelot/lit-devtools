@@ -58,6 +58,31 @@ describe('lit()', () => {
   });
 });
 
+describe('pre-bundling', () => {
+  const includes = (args: ReturnType<typeof setup>) =>
+    args.updateConfig.mock.calls.flatMap(
+      ([config]) => config.vite.optimizeDeps?.include ?? []
+    );
+
+  test("pre-bundles the page runtime's dependency in dev", () => {
+    const dev = setup('dev');
+    lit().hooks['astro:config:setup'](dev);
+    expect(includes(dev)).toContain(
+      '@oddsquad/vite-plugin-lit > devframe/in-page-channel'
+    );
+    const build = setup('build');
+    lit().hooks['astro:config:setup'](build);
+    expect(includes(build)).not.toContain(
+      '@oddsquad/vite-plugin-lit > devframe/in-page-channel'
+    );
+    const quiet = setup('dev');
+    lit({timeline: false}).hooks['astro:config:setup'](quiet);
+    expect(includes(quiet)).not.toContain(
+      '@oddsquad/vite-plugin-lit > devframe/in-page-channel'
+    );
+  });
+});
+
 describe('litDevtools()', () => {
   test('adds the plugin with the timeline on, and the toolbar app in dev', () => {
     const args = setup('dev');
