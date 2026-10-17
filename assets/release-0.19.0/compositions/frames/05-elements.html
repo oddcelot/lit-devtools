@@ -1,0 +1,973 @@
+<template>
+  <style>
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 500;
+      src: url('assets/manrope-medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 600;
+      src: url('assets/manrope-semibold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 700;
+      src: url('assets/manrope-bold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 800;
+      src: url('assets/manrope-extrabold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto Mono';
+      font-weight: 400;
+      src: url('assets/RobotoMono-Latin-400.woff2') format('woff2');
+    }
+
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      font-family: 'Manrope', sans-serif;
+      color: #e3e3e3;
+    }
+    #root * {
+      box-sizing: border-box;
+    }
+
+    .f05-el-ground {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(
+          circle 1000px at 1344px 430px,
+          rgba(42, 44, 157, 0.35),
+          rgba(42, 44, 157, 0) 100%
+        ),
+        #030308;
+    }
+    .f05-el-stage {
+      position: absolute;
+      inset: 0;
+    }
+
+    .f05-el-eyebrow {
+      position: absolute;
+      left: 115px;
+      top: 230px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #4d63ff;
+    }
+    .f05-el-hl {
+      position: absolute;
+      left: 115px;
+      top: 273px;
+      width: 576px;
+      font-weight: 800;
+      font-size: 69px;
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    .f05-el-line {
+      display: block;
+      white-space: nowrap;
+      opacity: 0;
+    }
+    .f05-el-cy {
+      color: #00e8ff;
+    }
+    .f05-el-sub {
+      position: absolute;
+      left: 115px;
+      top: 442px;
+      width: 556px;
+      font-weight: 500;
+      font-size: 24px;
+      line-height: 1.4;
+      color: #a1a1a1;
+      opacity: 0;
+    }
+
+    /* Chrome DevTools window (dark Chrome theme) at the Stage spec geometry */
+    .f05-el-win {
+      position: absolute;
+      left: 768px;
+      top: 86px;
+      width: 1056px;
+      height: 912px;
+      background: #202124;
+      border: 1px solid #3c4043;
+      border-radius: 15px;
+      box-shadow: 0 38px 96px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+    .f05-el-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 44px;
+      background: #292a2d;
+      border-bottom: 1px solid #3c4043;
+    }
+    .f05-el-ico {
+      position: absolute;
+      top: 12px;
+      width: 20px;
+      height: 20px;
+    }
+    .f05-el-sep {
+      position: absolute;
+      left: 84px;
+      top: 10px;
+      width: 1px;
+      height: 24px;
+      background: #3c4043;
+    }
+    .f05-el-ptabs {
+      position: absolute;
+      left: 100px;
+      top: 0;
+      height: 43px;
+      display: flex;
+      gap: 30px;
+    }
+    .f05-el-ptab {
+      position: relative;
+      line-height: 43px;
+      font-weight: 500;
+      font-size: 16px;
+      color: #9aa0a6;
+      white-space: nowrap;
+    }
+    .f05-el-ptab-on {
+      color: #8ab4f8;
+    }
+    .f05-el-ptab-on::after {
+      content: '';
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      bottom: -1px;
+      height: 2px;
+      background: #8ab4f8;
+    }
+
+    .f05-el-dom {
+      position: absolute;
+      left: 0;
+      top: 44px;
+      width: 600px;
+      bottom: 0;
+      border-right: 1px solid #3c4043;
+      padding-top: 14px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 16px;
+      color: #9aa0a6;
+    }
+    .f05-el-drow {
+      position: relative;
+      height: 32px;
+      line-height: 32px;
+      white-space: nowrap;
+    }
+    .f05-el-dsel {
+      background: rgba(138, 180, 248, 0.2);
+    }
+    .f05-el-tw {
+      display: inline-block;
+      width: 16px;
+      color: #9aa0a6;
+      font-size: 11px;
+    }
+    .f05-el-t {
+      color: #5db0d7;
+    }
+    .f05-el-an {
+      color: #9bbbdc;
+    }
+    .f05-el-av {
+      color: #f29766;
+    }
+    .f05-el-sr {
+      color: #9aa0a6;
+    }
+    .f05-el-eq {
+      color: #9aa0a6;
+      margin-left: 10px;
+    }
+    .f05-el-crumbs {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 36px;
+      border-top: 1px solid #3c4043;
+      background: #292a2d;
+      padding-left: 14px;
+      line-height: 35px;
+      font-size: 14px;
+      color: #9aa0a6;
+      white-space: nowrap;
+    }
+    .f05-el-crumbs b {
+      font-weight: 400;
+      color: #8ab4f8;
+    }
+
+    .f05-el-side {
+      position: absolute;
+      left: 600px;
+      top: 44px;
+      right: 0;
+      bottom: 0;
+    }
+    .f05-el-stabs {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 40px;
+      background: #292a2d;
+      border-bottom: 1px solid #3c4043;
+    }
+    .f05-el-stabrow {
+      position: absolute;
+      left: 18px;
+      top: 0;
+      height: 39px;
+      display: flex;
+      gap: 26px;
+    }
+    .f05-el-stab {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      line-height: 39px;
+      font-weight: 500;
+      font-size: 16px;
+      color: #9aa0a6;
+      white-space: nowrap;
+    }
+    .f05-el-sflame {
+      height: 15px;
+      width: auto;
+    }
+    .f05-el-under {
+      position: absolute;
+      left: 0;
+      top: 37px;
+      width: 0;
+      height: 2px;
+      background: #8ab4f8;
+    }
+    .f05-el-ptr {
+      position: absolute;
+      left: 30px;
+      top: 22px;
+      width: 24px;
+      height: 24px;
+      opacity: 0;
+      z-index: 5;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+    }
+    .f05-el-ripple {
+      position: absolute;
+      left: 30px;
+      top: 22px;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      border: 2px solid #00e8ff;
+      opacity: 0;
+      z-index: 4;
+    }
+
+    .f05-el-styles {
+      position: absolute;
+      left: 0;
+      top: 40px;
+      right: 0;
+      bottom: 0;
+      padding: 18px 20px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 15px;
+      line-height: 26px;
+      color: #9aa0a6;
+    }
+    .f05-el-rule {
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #3c4043;
+      white-space: nowrap;
+    }
+    .f05-el-sel {
+      color: #e8eaed;
+    }
+    .f05-el-pn {
+      color: #5db0d7;
+      padding-left: 20px;
+    }
+    .f05-el-pv {
+      color: #e8eaed;
+    }
+
+    .f05-el-lit {
+      position: absolute;
+      left: 0;
+      top: 40px;
+      right: 0;
+      bottom: 0;
+      padding: 22px 26px;
+      background: #121212;
+      opacity: 0;
+    }
+    .f05-el-lit > div {
+      opacity: 0;
+    }
+    .f05-el-dh {
+      font-family: 'Roboto Mono', monospace;
+      font-size: 22px;
+      line-height: 32px;
+      color: #89ddff;
+      white-space: nowrap;
+    }
+    .f05-el-sec {
+      margin-top: 12px;
+      padding-top: 13px;
+      padding-bottom: 6px;
+      border-top: 1px solid #363636;
+      font-weight: 700;
+      font-size: 14px;
+      line-height: 20px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #616161;
+    }
+    .f05-el-row {
+      display: flex;
+      gap: 18px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 17px;
+      line-height: 34px;
+      color: #b2ccd6;
+      white-space: nowrap;
+    }
+    .f05-el-s {
+      color: #c3e88d;
+    }
+    .f05-el-n {
+      color: #f78c6c;
+    }
+    .f05-el-k {
+      color: #c792ea;
+    }
+    .f05-el-d {
+      font-family: 'Manrope', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: #a1a1a1;
+    }
+    .f05-el-src {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #363636;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 15px;
+      line-height: 22px;
+      color: #82aaff;
+      white-space: nowrap;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-fjsr"
+    id="root"
+    data-composition-id="05-elements"
+    data-width="1920"
+    data-height="1080"
+    data-duration="5.33"
+  >
+    <div
+      data-hf-id="hf-jx7b"
+      id="f05-el-ground"
+      class="f05-el-ground clip"
+      data-start="0"
+      data-duration="5.33"
+      data-track-index="0"
+    ></div>
+
+    <div
+      data-hf-id="hf-evvq"
+      id="f05-el-stage"
+      class="f05-el-stage clip"
+      data-start="0"
+      data-duration="5.33"
+      data-track-index="1"
+    >
+      <div data-hf-id="hf-ilug" class="f05-el-eyebrow" id="f05-el-eyebrow">
+        Added
+      </div>
+      <div data-hf-id="hf-kpug" class="f05-el-hl">
+        <span data-hf-id="hf-ens8" class="f05-el-line" id="f05-el-l1"
+          >A Lit tab in</span
+        >
+        <span data-hf-id="hf-hguy" class="f05-el-line" id="f05-el-l2"
+          ><span data-hf-id="hf-7gr2" class="f05-el-cy">Elements.</span></span
+        >
+      </div>
+      <div data-hf-id="hf-upjo" class="f05-el-sub" id="f05-el-sub">
+        Lit Inspector adds it beside Styles and Computed, for the element you
+        select there.
+      </div>
+
+      <div data-hf-id="hf-fptu" class="f05-el-win" id="f05-el-win">
+        <div data-hf-id="hf-w8tv" class="f05-el-bar">
+          <svg
+            data-hf-id="hf-ic01"
+            class="f05-el-ico"
+            style="left: 18px"
+            viewBox="0 0 20 20"
+          >
+            <rect
+              data-hf-id="hf-ic02"
+              x="2.5"
+              y="2.5"
+              width="11"
+              height="11"
+              rx="1"
+              fill="none"
+              stroke="#9aa0a6"
+              stroke-width="1.5"
+              stroke-dasharray="2.5 2"
+            />
+            <path
+              data-hf-id="hf-ic03"
+              d="M9 9 L9 18 L11.5 15.5 L14 19 L15.5 18 L13 14.5 L16.5 14.5 Z"
+              fill="#9aa0a6"
+            />
+          </svg>
+          <svg
+            data-hf-id="hf-ic04"
+            class="f05-el-ico"
+            style="left: 50px"
+            viewBox="0 0 20 20"
+          >
+            <rect
+              data-hf-id="hf-ic05"
+              x="2"
+              y="4"
+              width="11"
+              height="12"
+              rx="1.5"
+              fill="none"
+              stroke="#9aa0a6"
+              stroke-width="1.5"
+            />
+            <rect
+              data-hf-id="hf-ic06"
+              x="13.5"
+              y="7"
+              width="5"
+              height="9"
+              rx="1"
+              fill="none"
+              stroke="#9aa0a6"
+              stroke-width="1.5"
+            />
+          </svg>
+          <div data-hf-id="hf-sp01" class="f05-el-sep"></div>
+          <div data-hf-id="hf-avre" class="f05-el-ptabs">
+            <span data-hf-id="hf-sopr" class="f05-el-ptab f05-el-ptab-on"
+              >Elements</span
+            >
+            <span data-hf-id="hf-ok12" class="f05-el-ptab">Console</span>
+            <span data-hf-id="hf-sucj" class="f05-el-ptab">Sources</span>
+            <span data-hf-id="hf-rfnx" class="f05-el-ptab">Network</span>
+            <span data-hf-id="hf-pt05" class="f05-el-ptab">Lit</span>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-ebxw" class="f05-el-dom">
+          <div
+            data-hf-id="hf-dr01"
+            class="f05-el-drow"
+            style="padding-left: 14px"
+          >
+            <span data-hf-id="hf-dr02" class="f05-el-tw"></span>&lt;!DOCTYPE
+            html&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr03"
+            class="f05-el-drow"
+            style="padding-left: 14px"
+          >
+            <span data-hf-id="hf-dr04" class="f05-el-tw">▼</span>&lt;<span
+              data-hf-id="hf-dr05"
+              class="f05-el-t"
+              >html</span
+            >
+            <span data-hf-id="hf-dr06" class="f05-el-an">lang</span>="<span
+              data-hf-id="hf-dr07"
+              class="f05-el-av"
+              >en</span
+            >"&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr08"
+            class="f05-el-drow"
+            style="padding-left: 32px"
+          >
+            <span data-hf-id="hf-dr09" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr10"
+              class="f05-el-t"
+              >head</span
+            >&gt;…&lt;/<span data-hf-id="hf-dr11" class="f05-el-t">head</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr12"
+            class="f05-el-drow"
+            style="padding-left: 32px"
+          >
+            <span data-hf-id="hf-dr13" class="f05-el-tw">▼</span>&lt;<span
+              data-hf-id="hf-dr14"
+              class="f05-el-t"
+              >body</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr15"
+            class="f05-el-drow"
+            style="padding-left: 50px"
+          >
+            <span data-hf-id="hf-dr16" class="f05-el-tw">▼</span>&lt;<span
+              data-hf-id="hf-dr17"
+              class="f05-el-t"
+              >fh-app</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr18"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr19" class="f05-el-tw">▶</span
+            ><span data-hf-id="hf-dr20" class="f05-el-sr"
+              >#shadow-root (open)</span
+            >
+          </div>
+          <div
+            data-hf-id="hf-dr21"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr22" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr23"
+              class="f05-el-t"
+              >fh-header</span
+            >&gt;…&lt;/<span data-hf-id="hf-dr24" class="f05-el-t"
+              >fh-header</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr25"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr26" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr27"
+              class="f05-el-t"
+              >fh-search</span
+            >&gt;…&lt;/<span data-hf-id="hf-dr28" class="f05-el-t"
+              >fh-search</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr29"
+            class="f05-el-drow f05-el-dsel"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr30" class="f05-el-tw">▼</span>&lt;<span
+              data-hf-id="hf-dr31"
+              class="f05-el-t"
+              >fh-product-card</span
+            >
+            <span data-hf-id="hf-dr32" class="f05-el-an">name</span>="<span
+              data-hf-id="hf-dr33"
+              class="f05-el-av"
+              >Monstera</span
+            >"&gt;<span data-hf-id="hf-dr34" class="f05-el-eq">== $0</span>
+          </div>
+          <div
+            data-hf-id="hf-dr35"
+            class="f05-el-drow"
+            style="padding-left: 86px"
+          >
+            <span data-hf-id="hf-dr36" class="f05-el-tw">▶</span
+            ><span data-hf-id="hf-dr37" class="f05-el-sr"
+              >#shadow-root (open)</span
+            >
+          </div>
+          <div
+            data-hf-id="hf-dr38"
+            class="f05-el-drow"
+            style="padding-left: 86px"
+          >
+            <span data-hf-id="hf-dr39" class="f05-el-tw"></span>&lt;<span
+              data-hf-id="hf-dr40"
+              class="f05-el-t"
+              >img</span
+            >
+            <span data-hf-id="hf-dr41" class="f05-el-an">src</span>="<span
+              data-hf-id="hf-dr42"
+              class="f05-el-av"
+              >monstera.jpg</span
+            >"&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr43"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr44" class="f05-el-tw"></span>&lt;/<span
+              data-hf-id="hf-dr45"
+              class="f05-el-t"
+              >fh-product-card</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr46"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr47" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr48"
+              class="f05-el-t"
+              >fh-product-card</span
+            >
+            <span data-hf-id="hf-dr49" class="f05-el-an">name</span>="<span
+              data-hf-id="hf-dr50"
+              class="f05-el-av"
+              >Calathea</span
+            >"&gt;…
+          </div>
+          <div
+            data-hf-id="hf-dr51"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr52" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr53"
+              class="f05-el-t"
+              >fh-cart-button</span
+            >&gt;…&lt;/<span data-hf-id="hf-dr54" class="f05-el-t"
+              >fh-cart-button</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr55"
+            class="f05-el-drow"
+            style="padding-left: 68px"
+          >
+            <span data-hf-id="hf-dr56" class="f05-el-tw">▶</span>&lt;<span
+              data-hf-id="hf-dr57"
+              class="f05-el-t"
+              >fh-toast</span
+            >&gt;…&lt;/<span data-hf-id="hf-dr58" class="f05-el-t"
+              >fh-toast</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr59"
+            class="f05-el-drow"
+            style="padding-left: 50px"
+          >
+            <span data-hf-id="hf-dr60" class="f05-el-tw"></span>&lt;/<span
+              data-hf-id="hf-dr61"
+              class="f05-el-t"
+              >fh-app</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr62"
+            class="f05-el-drow"
+            style="padding-left: 32px"
+          >
+            <span data-hf-id="hf-dr63" class="f05-el-tw"></span>&lt;/<span
+              data-hf-id="hf-dr64"
+              class="f05-el-t"
+              >body</span
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-dr65"
+            class="f05-el-drow"
+            style="padding-left: 14px"
+          >
+            <span data-hf-id="hf-dr66" class="f05-el-tw"></span>&lt;/<span
+              data-hf-id="hf-dr67"
+              class="f05-el-t"
+              >html</span
+            >&gt;
+          </div>
+          <div data-hf-id="hf-cr01" class="f05-el-crumbs">
+            html &nbsp; body &nbsp; fh-app &nbsp;
+            <b data-hf-id="hf-cr02">fh-product-card</b>
+          </div>
+        </div>
+
+        <div data-hf-id="hf-iedn" class="f05-el-side">
+          <div data-hf-id="hf-st01" class="f05-el-stabs">
+            <div data-hf-id="hf-st02" class="f05-el-stabrow">
+              <span data-hf-id="hf-st03" class="f05-el-stab" id="f05-el-t1"
+                >Styles</span
+              >
+              <span data-hf-id="hf-st04" class="f05-el-stab">Computed</span>
+              <span data-hf-id="hf-st05" class="f05-el-stab">Layout</span>
+              <span data-hf-id="hf-st06" class="f05-el-stab" id="f05-el-t2"
+                >Lit
+                <span
+                  data-hf-id="hf-40k7"
+                  class="f05-el-ripple"
+                  id="f05-el-ripple"
+                ></span>
+                <svg
+                  data-hf-id="hf-hus6"
+                  class="f05-el-ptr"
+                  id="f05-el-ptr"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    data-hf-id="hf-2f4j"
+                    d="M3 2 L3 20 L8 15.5 L11.5 22.5 L14.5 21 L11 14.5 L18 14.5 Z"
+                    fill="#ffffff"
+                    stroke="#0a0a0a"
+                    stroke-width="1.2"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </span>
+              <div
+                data-hf-id="hf-z24i"
+                class="f05-el-under"
+                id="f05-el-under"
+              ></div>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-qihg" class="f05-el-styles" id="f05-el-styles">
+            <div data-hf-id="hf-sy01" class="f05-el-rule">
+              <div data-hf-id="hf-sy03">
+                <span data-hf-id="hf-sy02" class="f05-el-sel"
+                  >element.style</span
+                >
+                {
+              </div>
+              }
+            </div>
+            <div data-hf-id="hf-sy04" class="f05-el-rule">
+              <span data-hf-id="hf-sy05" class="f05-el-sel">:host</span> {
+              <div data-hf-id="hf-sy06">
+                <span data-hf-id="hf-sy07" class="f05-el-pn">display</span>:
+                <span data-hf-id="hf-sy08" class="f05-el-pv">block</span>;
+              </div>
+              <div data-hf-id="hf-sy09">
+                <span data-hf-id="hf-sy10" class="f05-el-pn">border-radius</span
+                >: <span data-hf-id="hf-sy11" class="f05-el-pv">10px</span>;
+              </div>
+              <div data-hf-id="hf-sy12">
+                <span data-hf-id="hf-sy13" class="f05-el-pn">background</span>:
+                <span data-hf-id="hf-sy14" class="f05-el-pv">#fff</span>;
+              </div>
+              }
+            </div>
+            <div data-hf-id="hf-sy15" class="f05-el-rule">
+              <span data-hf-id="hf-sy16" class="f05-el-sel"
+                >fh-product-card</span
+              >
+              {
+              <div data-hf-id="hf-sy17">
+                <span data-hf-id="hf-sy18" class="f05-el-pn">min-width</span>:
+                <span data-hf-id="hf-sy19" class="f05-el-pv">0</span>;
+              </div>
+              }
+            </div>
+          </div>
+
+          <div data-hf-id="hf-w4t6" class="f05-el-lit" id="f05-el-lit">
+            <div data-hf-id="hf-lt01" class="f05-el-dh" id="f05-el-b0">
+              &lt;fh-product-card&gt;
+            </div>
+            <div data-hf-id="hf-lt02" id="f05-el-b1">
+              <div data-hf-id="hf-lt03" class="f05-el-sec">Properties</div>
+              <div data-hf-id="hf-lt04" class="f05-el-row">
+                <span data-hf-id="hf-lt05">name</span
+                ><span data-hf-id="hf-lt06" class="f05-el-s">"Monstera"</span>
+              </div>
+              <div data-hf-id="hf-lt07" class="f05-el-row">
+                <span data-hf-id="hf-lt08">price</span
+                ><span data-hf-id="hf-lt09" class="f05-el-n">24</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-lt10" id="f05-el-b2">
+              <div data-hf-id="hf-lt11" class="f05-el-sec">State</div>
+              <div data-hf-id="hf-lt12" class="f05-el-row">
+                <span data-hf-id="hf-lt13">inCart</span
+                ><span data-hf-id="hf-lt14" class="f05-el-k">false</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-lt15" id="f05-el-b3">
+              <div data-hf-id="hf-lt16" class="f05-el-sec">Slots</div>
+              <div data-hf-id="hf-lt17" class="f05-el-row">
+                <span data-hf-id="hf-lt18">default</span
+                ><span data-hf-id="hf-lt19" class="f05-el-d">· 1 node</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-lt20" id="f05-el-b4">
+              <div data-hf-id="hf-lt21" class="f05-el-sec">Parts</div>
+              <div data-hf-id="hf-lt22" class="f05-el-row">
+                <span data-hf-id="hf-lt23">media</span>
+              </div>
+              <div data-hf-id="hf-lt24" class="f05-el-row">
+                <span data-hf-id="hf-lt25">cta</span>
+              </div>
+            </div>
+            <div data-hf-id="hf-lt26" class="f05-el-src" id="f05-el-b5">
+              src/components/product-card.ts:4
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      var $ = function (id) {
+        return document.getElementById('f05-el-' + id);
+      };
+      var tl = gsap.timeline({paused: true});
+      var F = 1 / 60;
+      var Q = 0.13635; // quarter-beat on the 0.5454s grid
+
+      function arrive(el, at, dy, dur) {
+        tl.set(el, {opacity: 1, y: dy}, at);
+        tl.to(el, {y: 0, duration: dur, ease: 'power4.out'}, at);
+      }
+
+      // Sidebar underline sits under Styles, then slides to Lit.
+      var t1 = $('t1'),
+        t2 = $('t2');
+      tl.set($('under'), {x: t1.offsetLeft, width: t1.offsetWidth}, 0);
+      tl.set(t1, {color: '#8ab4f8'}, 0);
+
+      // 0: window and headline land on the drop.
+      tl.fromTo(
+        $('win'),
+        {y: 40, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.5, ease: 'power3.out'},
+        0
+      );
+      tl.fromTo(
+        $('eyebrow'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.4, ease: 'power2.out'},
+        0.05
+      );
+      arrive($('l1'), 0.1, 80, 0.2);
+      arrive($('l2'), 0.3 - F, 70, 0.18);
+
+      // 0.55: the pointer glides to the Lit sidebar tab; 1.09: the click.
+      tl.fromTo(
+        $('ptr'),
+        {x: -360, y: 420, opacity: 0},
+        {x: 0, y: 0, opacity: 1, duration: 0.5, ease: 'power3.inOut'},
+        0.55
+      );
+      tl.to($('ptr'), {scale: 0.85, duration: 0.06, ease: 'power2.in'}, 1.07);
+      tl.to($('ptr'), {scale: 1, duration: 0.18, ease: 'back.out(3)'}, 1.13);
+      tl.fromTo(
+        $('ripple'),
+        {width: 0, height: 0, x: 0, y: 0, opacity: 0.9},
+        {
+          width: 64,
+          height: 64,
+          x: -32,
+          y: -32,
+          opacity: 0,
+          duration: 0.45,
+          ease: 'power2.out',
+          immediateRender: false,
+        },
+        1.09
+      );
+      arrive($('sub'), 1.09, 30, 0.2);
+
+      // 1.09: underline slides to Lit and turns accent; content swaps to Lit's.
+      tl.to(
+        $('under'),
+        {
+          x: t2.offsetLeft,
+          width: t2.offsetWidth,
+          backgroundColor: '#4d63ff',
+          duration: 0.3,
+          ease: 'power3.inOut',
+        },
+        1.09
+      );
+      tl.to(t1, {color: '#9aa0a6', duration: 0.2}, 1.09);
+      tl.to(t2, {color: '#e3e3e3', duration: 0.2}, 1.09);
+      tl.to($('styles'), {opacity: 0, duration: 0.2, ease: 'power2.out'}, 1.09);
+      tl.fromTo(
+        $('lit'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.2, ease: 'power2.out'},
+        1.09
+      );
+      tl.fromTo(
+        $('b0'),
+        {opacity: 0, y: 14},
+        {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+        1.09
+      );
+
+      // 1.2: sections land one per quarter-beat.
+      ['b1', 'b2', 'b3', 'b4', 'b5'].forEach(function (id, i) {
+        tl.fromTo(
+          $(id),
+          {opacity: 0, y: 18},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          1.2 + i * Q
+        );
+      });
+
+      // The pointer eases off the tab and fades before the hold.
+      tl.to(
+        $('ptr'),
+        {x: 60, y: 90, opacity: 0, duration: 0.4, ease: 'power3.inOut'},
+        1.64
+      );
+
+      // 2.73 → end: held read.
+      tl.set({}, {}, 5.454);
+
+      window.__timelines = window.__timelines || {};
+      tl.paused(false).timeScale(
+        1.117715
+      ); /* re-timed to the Groche Énergique beat grid */
+      var tlOuter = gsap.timeline({paused: true}).add(tl, 0);
+      window.__timelines['05-elements'] = tlOuter;
+    })();
+  </script>
+</template>

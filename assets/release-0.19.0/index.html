@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+      integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #030308;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      data-hf-id="hf-r0ci"
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="45.999"
+      data-width="1920"
+      data-height="1080"
+    >
+      <div
+        data-hf-id="hf-iruo"
+        id="el-01-title"
+        class="scene"
+        data-composition-id="01-title"
+        data-composition-src="compositions/frames/01-title.html"
+        data-start="0"
+        data-duration="4.618"
+        data-track-index="0"
+      ></div>
+
+      <div
+        data-hf-id="hf-lq5f"
+        id="el-02-ssr"
+        class="scene"
+        data-composition-id="02-ssr"
+        data-composition-src="compositions/frames/02-ssr.html"
+        data-start="4.118"
+        data-duration="6.206"
+        data-track-index="1"
+      ></div>
+
+      <div
+        data-hf-id="hf-fcda"
+        id="el-03-hydration"
+        class="scene"
+        data-composition-id="03-hydration"
+        data-composition-src="compositions/frames/03-hydration.html"
+        data-start="9.974"
+        data-duration="6.206"
+        data-track-index="0"
+      ></div>
+
+      <div
+        data-hf-id="hf-m267"
+        id="el-04-production"
+        class="scene"
+        data-composition-id="04-production"
+        data-composition-src="compositions/frames/04-production.html"
+        data-start="15.83"
+        data-duration="6.305"
+        data-track-index="1"
+      ></div>
+
+      <div
+        data-hf-id="hf-bkub"
+        id="el-05-elements"
+        class="scene"
+        data-composition-id="05-elements"
+        data-composition-src="compositions/frames/05-elements.html"
+        data-start="21.685000000000002"
+        data-duration="5.33"
+        data-track-index="0"
+      ></div>
+
+      <div
+        data-hf-id="hf-d56o"
+        id="el-06-double"
+        class="scene"
+        data-composition-id="06-double"
+        data-composition-src="compositions/frames/06-double.html"
+        data-start="26.565"
+        data-duration="7.281"
+        data-track-index="1"
+      ></div>
+
+      <div
+        data-hf-id="hf-pn2l"
+        id="el-07-manifests"
+        class="scene"
+        data-composition-id="07-manifests"
+        data-composition-src="compositions/frames/07-manifests.html"
+        data-start="33.396"
+        data-duration="4.354"
+        data-track-index="0"
+      ></div>
+
+      <div
+        data-hf-id="hf-cr5b"
+        id="el-08-fixes"
+        class="scene"
+        data-composition-id="08-fixes"
+        data-composition-src="compositions/frames/08-fixes.html"
+        data-start="37.3"
+        data-duration="4.404"
+        data-track-index="1"
+      ></div>
+
+      <div
+        data-hf-id="hf-fj57"
+        id="el-09-lockup"
+        class="scene"
+        data-composition-id="09-lockup"
+        data-composition-src="compositions/frames/09-lockup.html"
+        data-start="41.20399999999999"
+        data-duration="4.795"
+        data-track-index="0"
+      ></div>
+
+      <!-- BGM -->
+      <audio
+        data-hf-id="hf-6fyl"
+        id="el-bgm"
+        src="assets/bgm/groche-energique.m4a"
+        data-start="0"
+        data-duration="45.999"
+        data-track-index="11"
+        data-volume="0.9"
+      ></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines['main'] = gsap.timeline({paused: true});
+      // ── frame transitions (injected by transitions.mjs) ──
+      (function () {
+        var tl = window.__timelines['main'];
+        tl.to(
+          '#el-01-title',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'power2.inOut',
+          },
+          4.118
+        );
+        tl.fromTo(
+          '#el-02-ssr',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.inOut',
+          },
+          4.118
+        );
+        tl.to(
+          '#el-02-ssr',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          9.974
+        );
+        tl.fromTo(
+          '#el-03-hydration',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          9.974
+        );
+        tl.to(
+          '#el-03-hydration',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          15.83
+        );
+        tl.fromTo(
+          '#el-04-production',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          15.83
+        );
+        tl.to(
+          '#el-04-production',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          21.685
+        );
+        tl.fromTo(
+          '#el-05-elements',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          21.685
+        );
+        tl.to(
+          '#el-05-elements',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          26.565
+        );
+        tl.fromTo(
+          '#el-06-double',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          26.565
+        );
+        tl.to(
+          '#el-06-double',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          33.396
+        );
+        tl.fromTo(
+          '#el-07-manifests',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          33.396
+        );
+        tl.to(
+          '#el-07-manifests',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          37.3
+        );
+        tl.fromTo(
+          '#el-08-fixes',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.45,
+            ease: 'power2.inOut',
+          },
+          37.3
+        );
+        tl.to(
+          '#el-08-fixes',
+          {
+            filter: 'blur(10px)',
+            scale: 1.03,
+            opacity: 0,
+            duration: 0.5,
+            ease: 'power2.inOut',
+          },
+          41.204
+        );
+        tl.fromTo(
+          '#el-09-lockup',
+          {filter: 'blur(10px)', scale: 0.97, opacity: 0},
+          {
+            filter: 'blur(0px)',
+            scale: 1,
+            opacity: 1,
+            duration: 0.5,
+            ease: 'power2.inOut',
+          },
+          41.204
+        );
+        tl.to({}, {duration: 45.999}, 0); // full-span anchor — main.duration() == composition total (Studio master duration)
+      })();
+    </script>
+  </body>
+</html>
