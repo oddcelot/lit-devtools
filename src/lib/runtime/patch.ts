@@ -93,9 +93,9 @@ interface PatchState {
   /** Pairs re-created child elements with the ones they replace. */
   childState?: ChildState;
   /**
-   * The tag of each later version of a class, which the registry never
-   * sees: the canonical class stands in for it once patched. Read by
-   * `customElements.getName()`.
+   * The tag of each class defined since install, every later version
+   * included, which the registry never sees: the canonical class stands in
+   * for it once patched. Read by `customElements.getName()`.
    */
   tagOfVersion: WeakMap<CustomElementConstructor, string>;
 }
@@ -853,6 +853,7 @@ export const install = (options: PatchOptions = {}): void => {
         generation: 0,
       };
       state.records.set(name, record);
+      state.tagOfVersion.set(ctor, name);
       instrument(state, ctor.prototype, record);
       return nativeDefine.call(this, name, ctor, defineOptions);
     }
@@ -868,16 +869,18 @@ export const install = (options: PatchOptions = {}): void => {
   // the registry never holds, so `getName()` would not know it. Code that
   // maps a class to its tag (Astro's client renderer, given the class an
   // island imports) asks with that version, and the tag is still right.
+  // Where the browser has no `getName()` (Safari before 17), this one is
+  // all there is, and knows the classes defined since install.
   // oxlint-disable-next-line typescript/unbound-method
-  const nativeGetName = customElements.getName;
-  if (typeof nativeGetName === 'function') {
-    customElements.getName = function (
-      this: CustomElementRegistry,
-      ctor: CustomElementConstructor
-    ) {
-      return (
-        nativeGetName.call(this, ctor) ?? state.tagOfVersion.get(ctor) ?? null
-      );
-    };
-  }
+  const nativeGetName = customElements.getName as
+    | CustomElementRegistry['getName']
+    | undefined;
+  customElements.getName = function (
+    this: CustomElementRegistry,
+    ctor: CustomElementConstructor
+  ) {
+    return (
+      nativeGetName?.call(this, ctor) ?? state.tagOfVersion.get(ctor) ?? null
+    );
+  };
 };

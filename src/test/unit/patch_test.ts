@@ -282,6 +282,18 @@ describe('install / define interceptor', () => {
     expect(getName(class extends FakeElement {})).toBeNull();
   });
 
+  test('getName() stands in where the registry has none', () => {
+    class XO1 extends FakeElement {}
+    class XO2 extends FakeElement {}
+    define('x-o', XO1);
+    define('x-o', XO2);
+    const getName = (ctor: ElementCtor) =>
+      customElements.getName(ctor as unknown as CustomElementConstructor);
+    expect(getName(XO1)).toBe('x-o');
+    expect(getName(XO2)).toBe('x-o');
+    expect(getName(class extends FakeElement {})).toBeNull();
+  });
+
   test('a second install() does not re-wrap customElements.define', () => {
     const before = Object.getOwnPropertyDescriptor(customElements, 'define')
       ?.value as unknown;
