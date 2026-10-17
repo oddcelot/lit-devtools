@@ -10,6 +10,8 @@ sidebar:
 
 import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import config from '../../../../../examples/astro/astro.config.mjs?raw';
+import containerTest from '../../../../../examples/astro/test/container.test.ts?raw';
+import vitestConfig from '../../../../../examples/astro/vitest.config.ts?raw';
 import page from '../../../../../examples/astro/src/pages/index.astro?raw';
 import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
 import {stripHeader} from '../../../lib/fixture';
@@ -88,6 +90,24 @@ and an adapter, the renderer runs for each request, and the browser hydrates
 the result as it does a prebuilt page. `@lit-labs/ssr` and `lit` stay
 external to the server build, so the server loads them from your
 `node_modules`, one copy of each.
+
+## Test with the container API
+
+Astro's container API renders a component to a string in Vitest. Load the
+renderer with `getContainerRenderer()` from the same entry as `lit()`.
+
+<Code
+  code={containerTest}
+  lang="ts"
+  title="test/container.test.ts"
+  mark={[3, 8]}
+/>
+
+Build the Vitest config with Astro's `getViteConfig()`, so the integration
+and the plugin's transforms apply, and set `css: true`. Vitest empties css it
+doesn't process, and a `?css-sheet` import then renders an empty `<style>`.
+
+<Code code={vitestConfig} lang="ts" title="vitest.config.ts" mark={[9]} />
 
 ## Open the panel
 

@@ -66,7 +66,7 @@ another one such as `@awesome.me/astro-lit`. Experimental.
 | `client:only`                                     | yes                           | yes, by tag                                          |
 | Client bootstrap                                  | two imports by hand, in order | injected                                             |
 | Declarative shadow DOM polyfill                   | import by hand                | `shadowRootPolyfill: true`                           |
-| Container API (`getContainerRenderer`)            | yes                           | yes, not yet exercised                               |
+| Container API (`getContainerRenderer`)            | yes                           | yes, tested (`examples/astro/test`)                  |
 | Server DOM shim swap                              | replaces `HTMLElement`        | not needed on Astro 7                                |
 | HMR, `?css-sheet` on the server, panel            | no                            | yes                                                  |
 
