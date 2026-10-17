@@ -19,6 +19,7 @@ import type {
 } from 'devframe/client';
 import type {SettingsForNamespace} from 'devframe';
 import {LIT_DEVFRAME_ID} from '../lib/devframe/protocol.js';
+import {STANDALONE_PANEL_BASE} from '../lib/devframe/standalone-panel.js';
 import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
 import {createSettingsGate} from './settings-sync.js';
 
@@ -56,6 +57,33 @@ export const useLocalClient = (
   connecting = Promise.resolve(client.scope(LIT_DEVFRAME_ID));
 };
 
+/** Long enough to type a code from the terminal into the frame's host. */
+const AUTH_TIMEOUT_MS = 10 * 60_000;
+
+/**
+ * The panel the plugin serves at `/__lit/`, in a frame: Astro's dev toolbar
+ * embeds it. A hub-mounted panel lives under the hub's path, and the hub
+ * handles trust for it.
+ */
+const framedWithoutHub = (): boolean =>
+  window.self !== window.top &&
+  new URL(document.baseURI).pathname === STANDALONE_PANEL_BASE;
+
+/**
+ * devframe asks for its one-time code with `prompt()` only in a top-level
+ * page, and a framed panel never gets as far as the terminal printing one.
+ * So once a stored token has had a moment to be accepted, ask the server to
+ * print a code: the frame's host asks for it and hands it back in the URL
+ * fragment (see `lib/astro/toolbar-app.ts`). A code entered in a top-level
+ * panel tab trusts this one too, over devframe's channel between tabs.
+ */
+const requestCodeIfUntrusted = async (
+  client: Pick<DevframeRpcClient, 'ensureTrusted' | 'requestAuthCode'>
+): Promise<void> => {
+  const trusted = await client.ensureTrusted(1_500).catch(() => false);
+  if (!trusted) await client.requestAuthCode().catch(() => {});
+};
+
 /**
  * The shared, `lit:`-scoped RPC client. Connects on first call; every later
  * call awaits the same connection.
@@ -67,9 +95,10 @@ export const useLocalClient = (
 export const litRpc = (): Promise<LitClient> =>
   (connecting ??= (async () => {
     const client = await connectDevframe();
+    if (framedWithoutHub()) await requestCodeIfUntrusted(client);
     // The host mints a token per browser; until it does, calls would fail
     // with an auth error rather than waiting.
-    await client.ensureTrusted();
+    await client.ensureTrusted(AUTH_TIMEOUT_MS);
     return client.scope(LIT_DEVFRAME_ID);
   })());
 
