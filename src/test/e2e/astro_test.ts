@@ -13,8 +13,33 @@ import {type AstroFixture, startAstroFixture} from './astro-utils.js';
 
 let fixture: AstroFixture;
 
+/**
+ * An island with only attributes, whose class a page script also defines:
+ * the directive, not the class, says when it hydrates.
+ */
+const DIRECTIVE_PAGE = `---
+import {SsrCounter} from '../components/ssr-counter.ts';
+---
+
+<html lang="en">
+  <head>
+    <title>Directive</title>
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <div style="height: 200vh"></div>
+    <SsrCounter id="later" client:visible start={2} />
+    <script>
+      import '../components/ssr-counter.ts';
+    </script>
+  </body>
+</html>
+`;
+
 beforeAll(async () => {
-  fixture = await startAstroFixture();
+  fixture = await startAstroFixture({
+    files: {'src/pages/directive.astro': DIRECTIVE_PAGE},
+  });
 });
 
 afterAll(async () => {
@@ -107,6 +132,20 @@ test('a client:visible island hydrates once it scrolls into view', async () => {
   } finally {
     await page.setViewportSize({width: 1280, height: 720});
   }
+});
+
+test('an island waits for its directive though its class is defined', async () => {
+  const {page} = fixture;
+  const later = () =>
+    page.evaluate(
+      `document.querySelector('#later').hasAttribute('hydrated')`
+    ) as Promise<boolean>;
+  await page.goto(`${fixture.origin}/directive`);
+  await page.waitForFunction(`customElements.get('ssr-counter') !== undefined`);
+  await page.waitForTimeout(500);
+  expect(await later()).toBe(false);
+  await page.locator('#later').scrollIntoViewIfNeeded();
+  await expect.poll(later).toBe(true);
 });
 
 test('a client:only island renders in the browser, its named slot assigned', async () => {
