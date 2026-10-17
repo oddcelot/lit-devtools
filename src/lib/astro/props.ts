@@ -104,7 +104,9 @@ const isField = (ctor: PropertyDeclarations, name: string): boolean =>
   ctor.prototype !== undefined && name in ctor.prototype;
 
 /** An attribute's text, as Lit's converters read it back; none for off. */
-const attributeText = (value: unknown): string | undefined =>
+const attributeText = (
+  value: string | number | boolean | null | undefined
+): string | undefined =>
   value === false || value == null
     ? undefined
     : value === true

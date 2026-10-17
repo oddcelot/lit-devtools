@@ -1,5 +1,6 @@
 import {describe, expect, test} from 'vite-plus/test';
 import {encodeProperties, splitProps} from '../../lib/astro/props.js';
+import {missingPeers, missingPeersMessage} from '../../lib/astro/peers.js';
 import {assignSlot} from '../../lib/astro/slots.js';
 
 /**
@@ -92,6 +93,31 @@ describe('assignSlot', () => {
       )
     ).toBe(
       '<img slot="s" src="a>b"><br slot="s"/><script slot="s">if (a<b) x("<p>")</script><i slot="s">z</i>'
+    );
+  });
+});
+
+describe('missingPeers', () => {
+  const installed =
+    (...paths: string[]) =>
+    (path: string) =>
+      paths.includes(path);
+
+  test('finds a peer in the root or a directory above it', () => {
+    const exists = installed(
+      '/repo/site/node_modules/@lit-labs/ssr/package.json',
+      '/repo/node_modules/@lit-labs/ssr-client/package.json'
+    );
+    expect(missingPeers('/repo/site', exists)).toEqual([]);
+  });
+
+  test('names each peer it cannot find', () => {
+    const exists = installed('/node_modules/@lit-labs/ssr/package.json');
+    expect(missingPeers('/repo/site', exists)).toEqual([
+      '@lit-labs/ssr-client',
+    ]);
+    expect(missingPeersMessage(['@lit-labs/ssr-client'])).toContain(
+      'npm install @lit-labs/ssr-client'
     );
   });
 });
