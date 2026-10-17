@@ -92,6 +92,12 @@ interface PatchState {
   hot?: HotChannel;
   /** Pairs re-created child elements with the ones they replace. */
   childState?: ChildState;
+  /**
+   * The tag of each later version of a class, which the registry never
+   * sees: the canonical class stands in for it once patched. Read by
+   * `customElements.getName()`.
+   */
+  tagOfVersion: WeakMap<CustomElementConstructor, string>;
 }
 
 type LifecycleName = 'connectedCallback' | 'disconnectedCallback';
@@ -801,6 +807,7 @@ export const install = (options: PatchOptions = {}): void => {
       childState: options.childState ?? 'transfer',
     },
     hot: hot === undefined ? undefined : pageChannel,
+    tagOfVersion: new WeakMap(),
   };
   state.childState = createChildState({
     mode: () => state.options.childState,
@@ -853,6 +860,24 @@ export const install = (options: PatchOptions = {}): void => {
       // Same class object re-defined; nothing to patch.
       return;
     }
+    state.tagOfVersion.set(ctor, name);
     hotPatch(state, record, ctor as ReactiveCtorLike);
   };
+
+  // A module evaluated again exports a later version of its class, which
+  // the registry never holds, so `getName()` would not know it. Code that
+  // maps a class to its tag (Astro's client renderer, given the class an
+  // island imports) asks with that version, and the tag is still right.
+  // oxlint-disable-next-line typescript/unbound-method
+  const nativeGetName = customElements.getName;
+  if (typeof nativeGetName === 'function') {
+    customElements.getName = function (
+      this: CustomElementRegistry,
+      ctor: CustomElementConstructor
+    ) {
+      return (
+        nativeGetName.call(this, ctor) ?? state.tagOfVersion.get(ctor) ?? null
+      );
+    };
+  }
 };
