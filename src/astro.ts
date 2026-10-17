@@ -33,6 +33,7 @@ import {
   type AstroToolbarAuth,
 } from './lib/astro/toolbar-protocol.js';
 import {pageTagsMiddleware} from './lib/astro/page-tags.js';
+import {litNodeBuilds} from './lib/astro/node-builds.js';
 import {missingPeers, missingPeersMessage} from './lib/astro/peers.js';
 import {type LitPluginOptions, litPlugin} from './lib/plugin.js';
 
@@ -166,9 +167,15 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
         if (render) {
           const missing = missingPeers(fileURLToPath(config.root));
           if (missing.length > 0) throw new Error(missingPeersMessage(missing));
-          // Pre-bundled with the project's Lit from the start, rather than
-          // found on the first page load, which reloads the page.
-          updateConfig({vite: {optimizeDeps: {include: [HYDRATE_SUPPORT]}}});
+          updateConfig({
+            vite: {
+              // Lit's server builds on a server that isn't Node.
+              plugins: [litNodeBuilds()],
+              // Pre-bundled with the project's Lit from the start, rather
+              // than found on the first page load, which reloads the page.
+              optimizeDeps: {include: [HYDRATE_SUPPORT]},
+            },
+          });
           addRenderer({
             name: RENDERER_NAME,
             serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
