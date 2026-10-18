@@ -13,8 +13,15 @@
  * the event-page background, MAIN-world registration from it, the relay, and
  * the panel booting from the storage change.
  *
+ * Then it opens DevTools on the page and the Lit tab in it, where the panel
+ * runs with `chrome.devtools` and without some APIs a tab has (Firefox gives
+ * DevTools pages no `chrome.permissions`), and checks it boots there too.
+ * DevTools panels aren't browsing contexts BiDi can reach, so a small script
+ * added to the copied `panel.html` logs how the panel got on, and Firefox
+ * prints that console line to stdout.
+ *
  * Not covered: the toolbar popup's click (the permission comes with the
- * manifest here) and the DevTools APIs, which need a person at DevTools.
+ * manifest here) and what the DevTools APIs do once called.
  *
  * Needs Firefox 140+ (`FIREFOX=/path/to/firefox`; defaults to the macOS
  * Firefox Developer Edition, then Firefox). Opening extension pages isn't
@@ -86,6 +93,32 @@ const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
 manifest.host_permissions = [`${site}/*`];
 await writeFile(manifestPath, JSON.stringify(manifest));
 
+// Reports the DevTools panel's progress, see the header. A classic script
+// ahead of the panel's module, so it is listening before that runs.
+const TAP = '[lit-smoke]';
+await writeFile(
+  path.join(extension, 'smoke-tap.js'),
+  `if (chrome.devtools) {
+  const say = (what) => console.log(${JSON.stringify(TAP)}, what);
+  addEventListener('error', (e) => say('error ' + e.message));
+  const poll = setInterval(() => {
+    if (document.querySelector('lit-devtools-panel')) say('booted');
+    else if (document.getElementById('setup')?.hidden === false) say('setup');
+    else return;
+    clearInterval(poll);
+  }, 100);
+}
+`
+);
+const panelHtml = path.join(extension, 'panel.html');
+await writeFile(
+  panelHtml,
+  (await readFile(panelHtml, 'utf8')).replace(
+    '<head>',
+    '<head><script src="./smoke-tap.js"></script>'
+  )
+);
+
 const profile = path.join(work, 'profile');
 await mkdir(profile);
 await writeFile(
@@ -98,6 +131,8 @@ await writeFile(
     `user_pref("remote.experimental.enabled", true);`,
     `user_pref("browser.shell.checkDefaultBrowser", false);`,
     `user_pref("datareporting.policy.dataSubmissionEnabled", false);`,
+    // Console lines on stdout, where the DevTools panel's tap is read.
+    `user_pref("devtools.console.stdout.content", true);`,
   ].join('\n')
 );
 
@@ -113,13 +148,15 @@ const firefox = spawn(
     '--no-remote',
   ],
   {
-    stdio: ['ignore', 'ignore', 'pipe'],
+    stdio: ['ignore', 'pipe', 'pipe'],
     // Newer Firefox ignores the flag above and reads this instead.
     env: {...process.env, MOZ_REMOTE_ALLOW_SYSTEM_ACCESS: '1'},
   }
 );
 let stderr = '';
 firefox.stderr.on('data', (chunk) => (stderr += chunk));
+let stdout = '';
+firefox.stdout.on('data', (chunk) => (stdout += chunk));
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const failures = [];
@@ -270,6 +307,38 @@ try {
     );
   }
   check("the Lit tab lists the page's components", rows > 0, `${rows} rows`);
+
+  // The same panel, in DevTools on the page's tab.
+  await send('browsingContext.activate', {context: page});
+  await evaluate(
+    win.context,
+    `(async () => {
+      const {require} = ChromeUtils.importESModule(
+        'resource://devtools/shared/loader/Loader.sys.mjs'
+      );
+      const {gDevTools} = require('devtools/client/framework/devtools');
+      const toolbox = await gDevTools.showToolboxForTab(gBrowser.selectedTab);
+      for (let i = 0; i < 50; i++) {
+        const lit = [...toolbox.additionalToolDefinitions.keys()].find((id) =>
+          id.startsWith('webext-devtools-panel-')
+        );
+        if (lit) return void (await toolbox.selectTool(lit));
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+      throw new Error('no Lit tab in the toolbox');
+    })()`
+  );
+  // Firefox prints each argument quoted: console.log: "[lit-smoke]" "booted"
+  const tapped = () =>
+    [...stdout.matchAll(/"\[lit-smoke\]" "((?:[^"\\]|\\.)*)"/g)].map(
+      (m) => m[1]
+    );
+  for (let i = 0; i < 50 && tapped().length === 0; i++) await sleep(200);
+  check(
+    'the Lit tab boots in DevTools',
+    tapped()[0] === 'booted',
+    tapped().join('; ') || 'no word from the panel'
+  );
 
   await registry(panel, 'lit:disable');
 } catch (error) {
