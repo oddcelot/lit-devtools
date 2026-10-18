@@ -236,16 +236,17 @@ const definedAsChip = (n: {
       >`
     : nothing;
 
+/** One drop for every state: empty until the element hydrates, then filled. */
 const HYDRATION_PILLS = {
   deferred: {
     text: 'deferred',
-    icon: 'drop-slash-fill',
+    icon: 'drop-simple',
     variant: 'warning',
     tip: 'Rendered on the server and held back by defer-hydration; it hydrates when the attribute is removed',
   },
   pending: {
     text: 'not hydrated',
-    icon: 'drop-half-fill',
+    icon: 'drop-simple',
     variant: 'warning',
     tip: 'Rendered on the server; the first update, which hydrates it, has not run yet',
   },
