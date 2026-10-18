@@ -1,0 +1,126 @@
+<template>
+  <style>
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-500.woff2') format('woff2'); font-weight: 500; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-700.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-700.woff2') format('woff2'); font-weight: 700; }
+
+    #s07-lockup-root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    #s07-lockup-root .clip { position: absolute; inset: 0; }
+
+    .sx-col { position: absolute; left: 120px; top: 220px; width: 620px; display: flex; flex-direction: column; }
+    .sx-eyebrow { font: 700 20px/1 'Space Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .sx-headline { margin-top: 22px; font: 700 76px/1.03 'Space Grotesk', sans-serif; letter-spacing: -0.03em; color: #f7f4ff; }
+    .sx-headline em { font-style: normal; color: #F041FF; }
+    .sx-w { display: inline-block; opacity: 0; }
+    .sx-sub { margin-top: 28px; width: 600px; font: 400 28px/1.4 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .sx-sub code, .sx-code-inline { font-family: 'Space Mono', monospace; font-size: 0.86em; color: #e9e6f2; white-space: nowrap; }
+    .sx-card { position: absolute; background: #0b0c11; border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px #343841; overflow: hidden; }
+    .sx-bar { height: 52px; background: #1c1f28; border-bottom: 1px solid #343841; display: flex; align-items: center; padding: 0 22px; gap: 10px; }
+    .sx-dot { width: 12px; height: 12px; border-radius: 50%; background: #343841; }
+    .sx-file { margin-left: 14px; font: 400 18px/1 'Space Mono', monospace; color: #a7a9b8; }
+    .sx-codebody { padding: 34px 40px; font: 400 26px/1.6 'Space Mono', monospace; color: #e9e6f2; white-space: pre; }
+    .k { color: #c792ea; } .s { color: #c3e88d; } .n { color: #f78c6c; } .t { color: #89ddff; } .c { color: #82aaff; } .p { color: #b2ccd6; } .cm { color: #8a8d9c; }
+    .sx-pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; font: 400 18px/1 'Space Mono', monospace; white-space: nowrap; }
+    .sx-pill svg { width: 16px; height: 16px; }
+    .sx-pill.warn { color: #f5b54a; border: 1.5px solid rgba(245,181,74,0.7); background: rgba(245,181,74,0.08); }
+    .sx-pill.hyd { color: #c9d0ff; border: 1.5px solid #4d63ff; background: rgba(77,99,255,0.2); }
+    .sx-swap { position: relative; display: inline-grid; }
+    .sx-swap > .sx-pill { grid-area: 1 / 1; transform-origin: 50% 50%; }
+    .sx-swap > .sx-pill.hyd { opacity: 0; }
+    .sx-tag { font: 400 24px/1 'Space Mono', monospace; color: #89ddff; white-space: nowrap; }
+    .sx-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 34px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); z-index: 20; opacity: 0; }
+    .sx-ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2.5px solid #F041FF; opacity: 0; pointer-events: none; z-index: 19; }
+    .sx-browser-url { margin-left: 18px; flex: 1; height: 32px; border-radius: 8px; background: #13151a; border: 1px solid #343841; display: flex; align-items: center; padding: 0 14px; font: 400 17px/1 'Space Mono', monospace; color: #a7a9b8; }
+
+
+    .f07-glow { position: absolute; left: 460px; top: -60px; width: 1000px; height: 1000px; border-radius: 50%; opacity: 0;
+      background: radial-gradient(circle, rgba(240,65,255,0.45) 0%, rgba(141,70,231,0.22) 40%, rgba(141,70,231,0) 68%); }
+    .f07-marks { position: absolute; left: 0; right: 0; top: 230px; display: flex; justify-content: center; align-items: center; gap: 56px; }
+    .f07-a { width: 112px; height: 141px; opacity: 0; }
+    .f07-l { width: 112px; height: 140px; filter: drop-shadow(0 0 26px rgba(77,99,255,0.55)); opacity: 0; }
+    .f07-x { font: 400 44px/1 'Space Mono', monospace; color: #a7a9b8; opacity: 0; }
+    .f07-title { position: absolute; left: 0; right: 0; top: 450px; text-align: center; font: 700 104px/1 'Space Grotesk', sans-serif; letter-spacing: -0.035em; color: #f7f4ff; }
+    .f07-title em { font-style: normal; color: #F041FF; }
+    .f07-cmd { position: absolute; left: 0; right: 0; margin: 0 auto; width: fit-content; top: 620px; height: 76px; padding: 0 34px; border-radius: 999px; background: #15171e;
+      border: 1px solid #343841; display: flex; align-items: center; font: 400 28px/1 'Space Mono', monospace; color: #e9e6f2; white-space: nowrap; opacity: 0; }
+    .f07-note { position: absolute; left: 0; right: 0; top: 730px; text-align: center; font: 400 24px/1 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .f07-fade { position: absolute; inset: 0; background: #0d0f14; opacity: 0; }
+
+  </style>
+  <div id="s07-lockup-root" data-composition-id="s07-lockup" data-width="1920" data-height="1080" data-duration="4.92">
+    <div id="s07-lockup-stage" class="clip" data-start="0" data-duration="4.92" data-track-index="0">
+      <div class="f07-glow"></div>
+      <div class="f07-marks">
+        <img class="f07-a" src="assets/astro-icon.svg" alt="" />
+        <div class="f07-x">×</div>
+        <img class="f07-l" src="assets/flame.svg" alt="" />
+      </div>
+      <div class="f07-title"><span class="sx-w">vite-plugin-lit</span> <span class="sx-w"><em>0.20</em></span></div>
+      <div class="f07-cmd"><span class="k">import</span>&nbsp;lit&nbsp;<span class="k">from</span>&nbsp;<span class="s">'@oddsquad/vite-plugin-lit/astro'</span></div>
+      <div class="f07-note">For Astro 7.3 and later</div>
+      <div class="f07-fade"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ID = 's07-lockup';
+      var DUR = 4.7276; // local seconds; the timeline plays at K, so it spans the frame's 4.92s
+      var BEAT = 0.46875;
+      var BAR = 1.875;
+      var tl = gsap.timeline({ paused: true });
+
+      var R = document.getElementById(ID + '-root');
+      function q(s) { return R.querySelector(s); }
+      function qa(s) { return Array.prototype.slice.call(R.querySelectorAll(s)); }
+      // Headline column: eyebrow, then the words as a waterfall entry, then the sub.
+      function colIn(t) {
+        var eb = q('.sx-eyebrow');
+        if (!eb) return t;
+        tl.set(eb, { opacity: 1, y: 30 }, t);
+        tl.to(eb, { y: 0, duration: 0.16, ease: 'power4.out' }, t);
+        var tt = t + 0.12;
+        qa('.sx-w').forEach(function (w, i, all) {
+          var heavy = i === all.length - 1;
+          tl.set(w, { opacity: 1, y: heavy ? 76 : 50 }, tt);
+          tl.to(w, { y: 0, duration: heavy ? 0.2 : 0.15, ease: 'power4.out' }, tt);
+          tt += 0.12;
+        });
+        var sb = q('.sx-sub');
+        tl.set(sb, { opacity: 1, y: 28 }, tt + 0.08);
+        tl.to(sb, { y: 0, duration: 0.45, ease: 'power3.out' }, tt + 0.08);
+        return tt;
+      }
+      // Pill swap: not hydrated / deferred → hydrated (scale-swap-transition).
+      function hydrate(swap, t) {
+        var from = swap.querySelector('.warn'), to = swap.querySelector('.hyd');
+        tl.to(from, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'power2.in' }, t);
+        tl.fromTo(to, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' }, t + 0.18);
+      }
+
+
+      // The final hit: both marks bloom from zero together with the glow (logo-assemble-lockup, spring bloom).
+      tl.fromTo(q('.f07-glow'), { opacity: 0, scale: 0.6 }, { opacity: 0.6, scale: 1, duration: 0.9, ease: 'power2.out' }, 0);
+      tl.fromTo(q('.f07-a'), { opacity: 0, scale: 0, x: 120 }, { opacity: 1, scale: 1, x: 0, duration: 0.6, ease: 'power3.out' }, 0);
+      tl.fromTo(q('.f07-l'), { opacity: 0, scale: 0, x: -120 }, { opacity: 1, scale: 1, x: 0, duration: 0.6, ease: 'power3.out' }, 0);
+      tl.fromTo(q('.f07-x'), { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'power3.out' }, 0.25);
+      var tt = 0.47;
+      qa('.sx-w').forEach(function (w, i) {
+        tl.set(w, { opacity: 1, y: i ? 90 : 70 }, tt);
+        tl.to(w, { y: 0, duration: i ? 0.22 : 0.18, ease: 'power4.out' }, tt);
+        tt += 0.16;
+      });
+      tl.fromTo(q('.f07-cmd'), { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' }, 0.94);
+      tl.fromTo(q('.f07-note'), { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 1.41);
+      // The film fades with the music over the last half bar.
+      tl.to(q('.f07-fade'), { opacity: 1, duration: 0.86, ease: 'power1.in' }, 3.6);
+
+      tl.set({}, {}, DUR);
+      // Re-timed to "Groche Énergique" (space remix, 123 BPM): cues are written on the 128 BPM placeholder grid.
+      var K = 0.9609;
+      tl.paused(false).timeScale(K);
+      window.__timelines[ID] = gsap.timeline({ paused: true }).add(tl, 0);
+    })();
+  </script>
+</template>

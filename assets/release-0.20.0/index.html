@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1920px; height: 1080px; overflow: hidden; background: #0d0f14; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      .scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="43.6" data-width="1920" data-height="1080">
+      <div id="el-space" class="scene" data-composition-id="space" data-composition-src="compositions/space.html"
+        data-start="0" data-duration="43.6" data-track-index="0"></div>
+      <div id="el-s01-liftoff" class="scene" data-composition-id="s01-liftoff" data-composition-src="compositions/frames/01-liftoff.html"
+        data-start="0.0" data-duration="5.851" data-track-index="1"></div>
+      <div id="el-s02-docking" class="scene" data-composition-id="s02-docking" data-composition-src="compositions/frames/02-docking.html"
+        data-start="5.851" data-duration="5.805" data-track-index="2"></div>
+      <div id="el-s03-reentry" class="scene" data-composition-id="s03-reentry" data-composition-src="compositions/frames/03-reentry.html"
+        data-start="11.656" data-duration="5.805" data-track-index="1"></div>
+      <div id="el-s04-hotpatch" class="scene" data-composition-id="s04-hotpatch" data-composition-src="compositions/frames/04-hotpatch.html"
+        data-start="17.461" data-duration="7.733" data-track-index="2"></div>
+      <div id="el-s05-toolbar" class="scene" data-composition-id="s05-toolbar" data-composition-src="compositions/frames/05-toolbar.html"
+        data-start="25.194" data-duration="5.712" data-track-index="1"></div>
+      <div id="el-s06-warp" class="scene" data-composition-id="s06-warp" data-composition-src="compositions/frames/06-warp.html"
+        data-start="30.906" data-duration="7.774" data-track-index="2"></div>
+      <div id="el-s07-lockup" class="scene" data-composition-id="s07-lockup" data-composition-src="compositions/frames/07-lockup.html"
+        data-start="38.68" data-duration="4.92" data-track-index="1"></div>
+      <audio id="bgm" src="assets/bgm/groche-energique-space.m4a" data-start="0" data-duration="43.6" data-track-index="9" data-volume="1"></audio>
+    </div>
+    <script>
+      window.__timelines['main'] = gsap.timeline({ paused: true });
+    </script>
+  </body>
+</html>

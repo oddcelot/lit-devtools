@@ -1,0 +1,138 @@
+<template>
+  <style>
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-500.woff2') format('woff2'); font-weight: 500; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-700.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-700.woff2') format('woff2'); font-weight: 700; }
+
+    #s01-liftoff-root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    #s01-liftoff-root .clip { position: absolute; inset: 0; }
+
+    .sx-col { position: absolute; left: 120px; top: 220px; width: 620px; display: flex; flex-direction: column; }
+    .sx-eyebrow { font: 700 20px/1 'Space Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .sx-headline { margin-top: 22px; font: 700 76px/1.03 'Space Grotesk', sans-serif; letter-spacing: -0.03em; color: #f7f4ff; }
+    .sx-headline em { font-style: normal; color: #F041FF; }
+    .sx-w { display: inline-block; opacity: 0; }
+    .sx-sub { margin-top: 28px; width: 600px; font: 400 28px/1.4 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .sx-sub code, .sx-code-inline { font-family: 'Space Mono', monospace; font-size: 0.86em; color: #e9e6f2; white-space: nowrap; }
+    .sx-card { position: absolute; background: #0b0c11; border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px #343841; overflow: hidden; }
+    .sx-bar { height: 52px; background: #1c1f28; border-bottom: 1px solid #343841; display: flex; align-items: center; padding: 0 22px; gap: 10px; }
+    .sx-dot { width: 12px; height: 12px; border-radius: 50%; background: #343841; }
+    .sx-file { margin-left: 14px; font: 400 18px/1 'Space Mono', monospace; color: #a7a9b8; }
+    .sx-codebody { padding: 34px 40px; font: 400 26px/1.6 'Space Mono', monospace; color: #e9e6f2; white-space: pre; }
+    .k { color: #c792ea; } .s { color: #c3e88d; } .n { color: #f78c6c; } .t { color: #89ddff; } .c { color: #82aaff; } .p { color: #b2ccd6; } .cm { color: #8a8d9c; }
+    .sx-pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; font: 400 18px/1 'Space Mono', monospace; white-space: nowrap; }
+    .sx-pill svg { width: 16px; height: 16px; }
+    .sx-pill.warn { color: #f5b54a; border: 1.5px solid rgba(245,181,74,0.7); background: rgba(245,181,74,0.08); }
+    .sx-pill.hyd { color: #c9d0ff; border: 1.5px solid #4d63ff; background: rgba(77,99,255,0.2); }
+    .sx-swap { position: relative; display: inline-grid; }
+    .sx-swap > .sx-pill { grid-area: 1 / 1; transform-origin: 50% 50%; }
+    .sx-swap > .sx-pill.hyd { opacity: 0; }
+    .sx-tag { font: 400 24px/1 'Space Mono', monospace; color: #89ddff; white-space: nowrap; }
+    .sx-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 34px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); z-index: 20; opacity: 0; }
+    .sx-ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2.5px solid #F041FF; opacity: 0; pointer-events: none; z-index: 19; }
+    .sx-browser-url { margin-left: 18px; flex: 1; height: 32px; border-radius: 8px; background: #13151a; border: 1px solid #343841; display: flex; align-items: center; padding: 0 14px; font: 400 17px/1 'Space Mono', monospace; color: #a7a9b8; }
+
+
+    .f01-glow { position: absolute; left: 460px; top: 0; width: 1000px; height: 1000px; border-radius: 50%; opacity: 0;
+      background: radial-gradient(circle, rgba(240,65,255,0.5) 0%, rgba(141,70,231,0.26) 38%, rgba(141,70,231,0) 68%); }
+    .f01-orbit { position: absolute; left: 510px; top: 290px; width: 900px; height: 280px; border-radius: 50%; border: 2px solid rgba(240,65,255,0.4); opacity: 0; }
+    .f01-orbit2 { position: absolute; left: 410px; top: 250px; width: 1100px; height: 360px; border-radius: 50%; border: 1.5px dashed rgba(167,169,184,0.25); opacity: 0; }
+    .f01-marks { position: absolute; left: 0; right: 0; top: 330px; display: flex; justify-content: center; align-items: center; gap: 70px; }
+    .f01-astro { width: 150px; height: 189px; opacity: 0; }
+    .f01-x { font: 400 56px/1 'Space Mono', monospace; color: #a7a9b8; opacity: 0; }
+    .f01-flame { width: 152px; height: 190px; filter: drop-shadow(0 0 30px rgba(77,99,255,0.55)); opacity: 0; }
+    .f01-eyebrow { position: absolute; left: 0; right: 0; top: 640px; text-align: center; font: 700 22px/1 'Space Mono', monospace;
+      letter-spacing: 0.2em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .f01-hero { position: absolute; left: 0; right: 0; top: 688px; text-align: center; font: 700 112px/1 'Space Grotesk', sans-serif; letter-spacing: -0.035em; color: #f7f4ff; }
+    .f01-hero em { font-style: normal; color: #F041FF; }
+
+  </style>
+  <div id="s01-liftoff-root" data-composition-id="s01-liftoff" data-width="1920" data-height="1080" data-duration="5.851">
+    <div id="s01-liftoff-stage" class="clip" data-start="0" data-duration="5.851" data-track-index="0">
+      <div class="f01-glow"></div>
+      <div class="f01-orbit2"></div>
+      <div class="f01-orbit"></div>
+      <div class="f01-marks">
+        <img class="f01-astro" src="assets/astro-icon.svg" alt="" />
+        <div class="f01-x">×</div>
+        <img class="f01-flame" src="assets/flame.svg" alt="" />
+      </div>
+      <div class="f01-eyebrow">vite-plugin-lit 0.20</div>
+      <div class="f01-hero"><span class="sx-w">Lit,</span> <span class="sx-w">now</span> <span class="sx-w">landing</span> <span class="sx-w">in</span> <span class="sx-w"><em>Astro</em>.</span></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ID = 's01-liftoff';
+      var DUR = 3.7505; // local seconds; the timeline plays at K, so it spans the frame's 5.851s
+      var BEAT = 0.46875;
+      var BAR = 1.875;
+      var tl = gsap.timeline({ paused: true });
+
+      var R = document.getElementById(ID + '-root');
+      function q(s) { return R.querySelector(s); }
+      function qa(s) { return Array.prototype.slice.call(R.querySelectorAll(s)); }
+      // Headline column: eyebrow, then the words as a waterfall entry, then the sub.
+      function colIn(t) {
+        var eb = q('.sx-eyebrow');
+        if (!eb) return t;
+        tl.set(eb, { opacity: 1, y: 30 }, t);
+        tl.to(eb, { y: 0, duration: 0.16, ease: 'power4.out' }, t);
+        var tt = t + 0.12;
+        qa('.sx-w').forEach(function (w, i, all) {
+          var heavy = i === all.length - 1;
+          tl.set(w, { opacity: 1, y: heavy ? 76 : 50 }, tt);
+          tl.to(w, { y: 0, duration: heavy ? 0.2 : 0.15, ease: 'power4.out' }, tt);
+          tt += 0.12;
+        });
+        var sb = q('.sx-sub');
+        tl.set(sb, { opacity: 1, y: 28 }, tt + 0.08);
+        tl.to(sb, { y: 0, duration: 0.45, ease: 'power3.out' }, tt + 0.08);
+        return tt;
+      }
+      // Pill swap: not hydrated / deferred → hydrated (scale-swap-transition).
+      function hydrate(swap, t) {
+        var from = swap.querySelector('.warn'), to = swap.querySelector('.hyd');
+        tl.to(from, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'power2.in' }, t);
+        tl.fromTo(to, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' }, t + 0.18);
+      }
+
+
+      // Scene 1 — ignite: the nebula glow blooms and the orbit rings open (ambient-glow-bloom).
+      tl.fromTo(q('.f01-glow'), { opacity: 0, scale: 0.7 }, { opacity: 0.5, scale: 1, duration: 1.6, ease: 'power2.out' }, 0);
+      tl.fromTo(q('.f01-orbit2'), { opacity: 0, scale: 0.55, rotation: -14 }, { opacity: 1, scale: 1, rotation: -8, duration: 1.6, ease: 'power3.out' }, 0.1);
+      tl.fromTo(q('.f01-orbit'), { opacity: 0, scale: 0.4, rotation: -2 }, { opacity: 1, scale: 1, rotation: -8, duration: 1.4, ease: 'power3.out' }, 0.25);
+      tl.to([q('.f01-orbit'), q('.f01-orbit2')], { rotation: -5, duration: 2, ease: 'sine.inOut' }, 1.75);
+      // Scene 2 — assemble: the Astro mark rises; the Lit flame swings in along the orbit and docks on beat 5.
+      tl.fromTo(q('.f01-astro'), { opacity: 0, y: 220 }, { opacity: 1, y: 0, duration: 1.5, ease: 'power3.out' }, 0.375);
+      var flame = q('.f01-flame');
+      var orbit = { a: 0 };
+      tl.set(flame, { opacity: 1 }, 0.47);
+      tl.fromTo(orbit, { a: 0 }, { a: 1, duration: 1.4, ease: 'power3.inOut', onUpdate: function () {
+        // Swings in from the orbit's far right edge on an arc that rises, then settles beside the Astro mark.
+        var a = orbit.a;
+        gsap.set(flame, { x: 380 * (1 - a), y: -150 * Math.sin(Math.PI * (1 - a)) * (1 - a), scale: 0.45 + 0.55 * a, rotation: 25 * (1 - a) });
+      } }, 0.47);
+      tl.fromTo(q('.f01-x'), { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out' }, 1.875);
+      // Scene 3 — resolve: the eyebrow and the hook land on beat 6.
+      var eb = q('.f01-eyebrow');
+      tl.set(eb, { opacity: 1, y: 24 }, 2.11);
+      tl.to(eb, { y: 0, duration: 0.18, ease: 'power4.out' }, 2.11);
+      var tt = 2.344;
+      qa('.sx-w').forEach(function (w, i, all) {
+        var heavy = i === all.length - 1;
+        tl.set(w, { opacity: 1, y: heavy ? 90 : 60 }, tt);
+        tl.to(w, { y: 0, duration: heavy ? 0.22 : 0.16, ease: 'power4.out' }, tt);
+        tt += 0.11;
+      });
+
+      tl.set({}, {}, DUR);
+      // Re-timed to "Groche Énergique" (space remix, 123 BPM): cues are written on the 128 BPM placeholder grid.
+      var K = 0.641;
+      tl.paused(false).timeScale(K);
+      window.__timelines[ID] = gsap.timeline({ paused: true }).add(tl, 0);
+    })();
+  </script>
+</template>

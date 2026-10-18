@@ -1,0 +1,178 @@
+<template>
+  <style>
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-500.woff2') format('woff2'); font-weight: 500; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-700.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-700.woff2') format('woff2'); font-weight: 700; }
+
+    #s05-toolbar-root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    #s05-toolbar-root .clip { position: absolute; inset: 0; }
+
+    .sx-col { position: absolute; left: 120px; top: 220px; width: 620px; display: flex; flex-direction: column; }
+    .sx-eyebrow { font: 700 20px/1 'Space Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .sx-headline { margin-top: 22px; font: 700 76px/1.03 'Space Grotesk', sans-serif; letter-spacing: -0.03em; color: #f7f4ff; }
+    .sx-headline em { font-style: normal; color: #F041FF; }
+    .sx-w { display: inline-block; opacity: 0; }
+    .sx-sub { margin-top: 28px; width: 600px; font: 400 28px/1.4 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .sx-sub code, .sx-code-inline { font-family: 'Space Mono', monospace; font-size: 0.86em; color: #e9e6f2; white-space: nowrap; }
+    .sx-card { position: absolute; background: #0b0c11; border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px #343841; overflow: hidden; }
+    .sx-bar { height: 52px; background: #1c1f28; border-bottom: 1px solid #343841; display: flex; align-items: center; padding: 0 22px; gap: 10px; }
+    .sx-dot { width: 12px; height: 12px; border-radius: 50%; background: #343841; }
+    .sx-file { margin-left: 14px; font: 400 18px/1 'Space Mono', monospace; color: #a7a9b8; }
+    .sx-codebody { padding: 34px 40px; font: 400 26px/1.6 'Space Mono', monospace; color: #e9e6f2; white-space: pre; }
+    .k { color: #c792ea; } .s { color: #c3e88d; } .n { color: #f78c6c; } .t { color: #89ddff; } .c { color: #82aaff; } .p { color: #b2ccd6; } .cm { color: #8a8d9c; }
+    .sx-pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; font: 400 18px/1 'Space Mono', monospace; white-space: nowrap; }
+    .sx-pill svg { width: 16px; height: 16px; }
+    .sx-pill.warn { color: #f5b54a; border: 1.5px solid rgba(245,181,74,0.7); background: rgba(245,181,74,0.08); }
+    .sx-pill.hyd { color: #c9d0ff; border: 1.5px solid #4d63ff; background: rgba(77,99,255,0.2); }
+    .sx-swap { position: relative; display: inline-grid; }
+    .sx-swap > .sx-pill { grid-area: 1 / 1; transform-origin: 50% 50%; }
+    .sx-swap > .sx-pill.hyd { opacity: 0; }
+    .sx-tag { font: 400 24px/1 'Space Mono', monospace; color: #89ddff; white-space: nowrap; }
+    .sx-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 34px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); z-index: 20; opacity: 0; }
+    .sx-ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2.5px solid #F041FF; opacity: 0; pointer-events: none; z-index: 19; }
+    .sx-browser-url { margin-left: 18px; flex: 1; height: 32px; border-radius: 8px; background: #13151a; border: 1px solid #343841; display: flex; align-items: center; padding: 0 14px; font: 400 17px/1 'Space Mono', monospace; color: #a7a9b8; }
+
+
+    .f05-browser { left: 820px; top: 130px; width: 980px; height: 820px; background: #0f1117; opacity: 0; }
+    .f05-ph { position: absolute; border-radius: 8px; background: #1c1f28; }
+    .f05-win { position: absolute; left: 70px; top: 150px; width: 840px; height: 530px; border-radius: 12px; background: #13151a;
+      border: 1px solid #343841; box-shadow: 0 30px 70px rgba(0,0,0,0.6); overflow: hidden; transform-origin: 420px 530px; opacity: 0; }
+    .f05-ghost { position: absolute; left: 200px; top: 330px; width: 580px; height: 350px; border-radius: 12px; border: 2px dashed rgba(240,65,255,0.55); opacity: 0; }
+    .f05-whead { height: 52px; display: flex; align-items: center; gap: 12px; padding: 0 22px 0 44px; border-bottom: 1px solid #343841; font: 700 19px/1 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    .f05-whead svg { width: 18px; height: 22px; }
+    .f05-tabs { display: flex; gap: 28px; margin-left: 30px; font: 500 17px/1 'Space Grotesk', sans-serif; color: #a7a9b8; }
+    .f05-tabs b { color: #8f9bff; font-weight: 700; }
+    .f05-tree { padding: 18px 26px; font: 400 19px/44px 'Space Mono', monospace; color: #a7a9b8; }
+    .f05-tree div { display: flex; align-items: center; gap: 14px; }
+    .f05-tree .sel { color: #f7f4ff; background: rgba(77,99,255,0.16); box-shadow: inset 4px 0 0 #4d63ff; margin: 0 -26px; padding: 0 26px; }
+    .f05-tree .sx-pill { height: 30px; font-size: 16px; }
+    .f05-grip { position: absolute; left: 8px; top: 8px; width: 20px; height: 20px; background: repeating-linear-gradient(135deg, #a7a9b8 0 2px, transparent 2px 6px); border-radius: 3px; }
+    .f05-tb { position: absolute; left: 325px; top: 718px; width: 330px; height: 58px; border-radius: 999px; background: #13151a;
+      border: 1px solid #343841; display: flex; align-items: center; justify-content: space-around; padding: 0 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.6); }
+    .f05-ic { width: 26px; height: 26px; border-radius: 6px; border: 2px solid #6d7080; }
+    .f05-ic.round { border-radius: 50%; }
+    .f05-tb img { height: 30px; }
+    .f05-lit { position: relative; display: flex; }
+    .f05-lit svg { height: 30px; width: 24px; }
+    .f05-lit i { position: absolute; left: 50%; bottom: -10px; width: 6px; height: 6px; margin-left: -3px; border-radius: 50%; background: #F041FF; box-shadow: 0 0 8px #F041FF; opacity: 0; }
+
+  </style>
+  <div id="s05-toolbar-root" data-composition-id="s05-toolbar" data-width="1920" data-height="1080" data-duration="5.712">
+    <div id="s05-toolbar-stage" class="clip" data-start="0" data-duration="5.712" data-track-index="0">
+      <div class="sx-col">
+        <div class="sx-eyebrow">Dev toolbar</div>
+        <div class="sx-headline"><span class="sx-w">The</span> <span class="sx-w">Lit</span> <span class="sx-w">panel,</span> <span class="sx-w">in</span> <span class="sx-w">Astro’s</span> <span class="sx-w">dev</span> <span class="sx-w"><em>toolbar</em>.</span></div>
+        <div class="sx-sub">Resize it by the grip. It lines up with wherever you dock the toolbar.</div>
+      </div>
+      <div class="sx-card f05-browser">
+        <div class="sx-bar"><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-browser-url">localhost:4321/missions</span></div>
+        <div class="f05-ph" style="left:70px;top:96px;width:420px;height:34px"></div>
+        <div class="f05-ph" style="left:70px;top:150px;width:840px;height:220px;opacity:.55"></div>
+        <div class="f05-ph" style="left:70px;top:396px;width:400px;height:200px;opacity:.4"></div>
+        <div class="f05-ph" style="left:510px;top:396px;width:400px;height:200px;opacity:.4"></div>
+        <div class="f05-win">
+          <div class="f05-grip"></div>
+          <div class="f05-whead"><svg viewBox="0 0 160 200"><path fill="#00e8ff" d="M40 120l20-60l90 90l-30 50l-40-40h-20"/><path fill="#283198" d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"/><path fill="#324fff" d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"/><path fill="#0ff" d="M40 200v-80l40 40"/></svg>Lit DevTools<div class="f05-tabs"><b>Components</b><span>Updates</span><span>Timeline</span></div></div>
+          <div class="f05-tree">
+            <div>astro-island</div>
+            <div class="sel">&nbsp;&nbsp;tag-list <span class="sx-pill hyd"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2"><path d="M12 2.5C12 2.5 5 10.2 5 14.8a7 7 0 0 0 14 0C19 10.2 12 2.5 12 2.5z"/></svg>hydrated</span></div>
+            <div>ssr-counter <span class="sx-pill hyd"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2"><path d="M12 2.5C12 2.5 5 10.2 5 14.8a7 7 0 0 0 14 0C19 10.2 12 2.5 12 2.5z"/></svg>hydrated</span></div>
+            <div>launch-timer <span class="sx-pill warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.5C12 2.5 5 10.2 5 14.8a7 7 0 0 0 14 0C19 10.2 12 2.5 12 2.5z"/></svg>deferred</span></div>
+            <div>mission-map</div>
+          </div>
+        </div>
+        <div class="f05-ghost"></div>
+        <div class="f05-tb">
+          <img src="assets/astro-icon.svg" alt="" />
+          <span class="f05-ic round"></span>
+          <span class="f05-ic"></span>
+          <span class="f05-lit"><svg viewBox="0 0 160 200"><path fill="#00e8ff" d="M40 120l20-60l90 90l-30 50l-40-40h-20"/><path fill="#283198" d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"/><path fill="#324fff" d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"/><path fill="#0ff" d="M40 200v-80l40 40"/></svg><i></i></span>
+          <span class="f05-ic round"></span>
+        </div>
+      </div>
+      <div class="sx-ripple"></div>
+      <svg class="sx-cursor" viewBox="0 0 26 34"><path d="M2 2 L2 28 L9 21.5 L13.5 32 L18 30 L13.6 19.8 L23 19.8 Z" fill="#f7f4ff" stroke="#0d0f14" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ID = 's05-toolbar';
+      var DUR = 5.4887; // local seconds; the timeline plays at K, so it spans the frame's 5.712s
+      var BEAT = 0.46875;
+      var BAR = 1.875;
+      var tl = gsap.timeline({ paused: true });
+
+      var R = document.getElementById(ID + '-root');
+      function q(s) { return R.querySelector(s); }
+      function qa(s) { return Array.prototype.slice.call(R.querySelectorAll(s)); }
+      // Headline column: eyebrow, then the words as a waterfall entry, then the sub.
+      function colIn(t) {
+        var eb = q('.sx-eyebrow');
+        if (!eb) return t;
+        tl.set(eb, { opacity: 1, y: 30 }, t);
+        tl.to(eb, { y: 0, duration: 0.16, ease: 'power4.out' }, t);
+        var tt = t + 0.12;
+        qa('.sx-w').forEach(function (w, i, all) {
+          var heavy = i === all.length - 1;
+          tl.set(w, { opacity: 1, y: heavy ? 76 : 50 }, tt);
+          tl.to(w, { y: 0, duration: heavy ? 0.2 : 0.15, ease: 'power4.out' }, tt);
+          tt += 0.12;
+        });
+        var sb = q('.sx-sub');
+        tl.set(sb, { opacity: 1, y: 28 }, tt + 0.08);
+        tl.to(sb, { y: 0, duration: 0.45, ease: 'power3.out' }, tt + 0.08);
+        return tt;
+      }
+      // Pill swap: not hydrated / deferred → hydrated (scale-swap-transition).
+      function hydrate(swap, t) {
+        var from = swap.querySelector('.warn'), to = swap.querySelector('.hyd');
+        tl.to(from, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'power2.in' }, t);
+        tl.fromTo(to, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' }, t + 0.18);
+      }
+
+
+      colIn(0.1);
+      tl.fromTo(q('.f05-browser'), { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.1);
+      var win = q('.f05-win'), cursor = q('.sx-cursor'), ripple = q('.sx-ripple'), tb = q('.f05-tb'), ghost = q('.f05-ghost');
+      // Browser origin on the canvas, and the window's bottom-centre anchor.
+      var BXo = 820, BYo = 130, AX = 70 + 420, AY = 150 + 530;
+      var SMALL = 580 / 840;
+      // Click the Lit button in Astro's toolbar on beat 3 (cursor-click-ripple).
+      var LX = BXo + 325 + 222, LY = BYo + 718 + 29;
+      tl.set(cursor, { opacity: 1 }, 0.2);
+      tl.fromTo(cursor, { x: 1700, y: 1010 }, { x: LX - 4, y: LY - 4, duration: 0.6, ease: 'power3.inOut', immediateRender: false }, 0.2);
+      tl.to(cursor, { scale: 0.88, duration: 0.09, ease: 'power2.in', yoyo: true, repeat: 1 }, 0.9375);
+      tl.set(ripple, { left: LX, top: LY, opacity: 1, scale: 0 }, 0.9375);
+      tl.to(ripple, { scale: 1.8, opacity: 0, duration: 0.55, ease: 'power2.out' }, 0.9375);
+      tl.fromTo(q('.f05-lit i'), { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'power3.out' }, 0.98);
+      // The window opens at its saved size, bottom-anchored above the toolbar.
+      tl.fromTo(win, { opacity: 0, scale: SMALL * 0.9, y: 20 }, { opacity: 1, scale: SMALL, y: 0, duration: 0.55, ease: 'power3.out' }, 1.0);
+      // Grab the grip (top-left corner of the scaled window) and drag it out: matched tweens, cursor locked to the corner (cursor-drag, corner-handle resize).
+      function gripAt(s) { return { x: BXo + AX + (70 + 18 - AX) * s, y: BYo + AY + (150 + 18 - AY) * s }; }
+      var g0 = gripAt(SMALL);
+      tl.to(cursor, { x: g0.x - 6, y: g0.y - 6, duration: 0.85, ease: 'power3.inOut' }, 1.6);
+      tl.to(cursor, { scale: 0.88, duration: 0.1, ease: 'power1.in' }, 2.62);
+      tl.set(ghost, { opacity: 1 }, 2.8125);
+      var size = { s: SMALL };
+      tl.fromTo(size, { s: SMALL }, { s: 1, duration: 1.2, ease: 'power2.inOut', immediateRender: false, onUpdate: function () {
+        gsap.set(win, { scale: size.s });
+        var g = gripAt(size.s);
+        gsap.set(cursor, { x: g.x - 6, y: g.y - 6 });
+      } }, 2.8125);
+      tl.to(cursor, { scale: 1, duration: 0.2, ease: 'back.out(2)' }, 4.02);
+      tl.to(cursor, { x: 1760, y: 1000, opacity: 0, duration: 0.6, ease: 'power3.in' }, 4.1);
+      // Re-dock: the toolbar moves bottom-right on beat 10 and the window follows its dock.
+      tl.to(ghost, { opacity: 0, duration: 0.3 }, 4.45);
+      tl.to(tb, { x: 300, duration: 0.6, ease: 'power3.inOut' }, 4.6875);
+      tl.to(win, { x: 46, duration: 0.6, ease: 'power3.inOut' }, 4.76);
+
+      tl.set({}, {}, DUR);
+      // Re-timed to "Groche Énergique" (space remix, 123 BPM): cues are written on the 128 BPM placeholder grid.
+      var K = 0.9609;
+      tl.paused(false).timeScale(K);
+      window.__timelines[ID] = gsap.timeline({ paused: true }).add(tl, 0);
+    })();
+  </script>
+</template>

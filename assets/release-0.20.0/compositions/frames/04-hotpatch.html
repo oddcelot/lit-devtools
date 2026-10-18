@@ -1,0 +1,174 @@
+<template>
+  <style>
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-500.woff2') format('woff2'); font-weight: 500; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-700.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-700.woff2') format('woff2'); font-weight: 700; }
+
+    #s04-hotpatch-root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    #s04-hotpatch-root .clip { position: absolute; inset: 0; }
+
+    .sx-col { position: absolute; left: 120px; top: 220px; width: 620px; display: flex; flex-direction: column; }
+    .sx-eyebrow { font: 700 20px/1 'Space Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .sx-headline { margin-top: 22px; font: 700 76px/1.03 'Space Grotesk', sans-serif; letter-spacing: -0.03em; color: #f7f4ff; }
+    .sx-headline em { font-style: normal; color: #F041FF; }
+    .sx-w { display: inline-block; opacity: 0; }
+    .sx-sub { margin-top: 28px; width: 600px; font: 400 28px/1.4 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .sx-sub code, .sx-code-inline { font-family: 'Space Mono', monospace; font-size: 0.86em; color: #e9e6f2; white-space: nowrap; }
+    .sx-card { position: absolute; background: #0b0c11; border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px #343841; overflow: hidden; }
+    .sx-bar { height: 52px; background: #1c1f28; border-bottom: 1px solid #343841; display: flex; align-items: center; padding: 0 22px; gap: 10px; }
+    .sx-dot { width: 12px; height: 12px; border-radius: 50%; background: #343841; }
+    .sx-file { margin-left: 14px; font: 400 18px/1 'Space Mono', monospace; color: #a7a9b8; }
+    .sx-codebody { padding: 34px 40px; font: 400 26px/1.6 'Space Mono', monospace; color: #e9e6f2; white-space: pre; }
+    .k { color: #c792ea; } .s { color: #c3e88d; } .n { color: #f78c6c; } .t { color: #89ddff; } .c { color: #82aaff; } .p { color: #b2ccd6; } .cm { color: #8a8d9c; }
+    .sx-pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; font: 400 18px/1 'Space Mono', monospace; white-space: nowrap; }
+    .sx-pill svg { width: 16px; height: 16px; }
+    .sx-pill.warn { color: #f5b54a; border: 1.5px solid rgba(245,181,74,0.7); background: rgba(245,181,74,0.08); }
+    .sx-pill.hyd { color: #c9d0ff; border: 1.5px solid #4d63ff; background: rgba(77,99,255,0.2); }
+    .sx-swap { position: relative; display: inline-grid; }
+    .sx-swap > .sx-pill { grid-area: 1 / 1; transform-origin: 50% 50%; }
+    .sx-swap > .sx-pill.hyd { opacity: 0; }
+    .sx-tag { font: 400 24px/1 'Space Mono', monospace; color: #89ddff; white-space: nowrap; }
+    .sx-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 34px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); z-index: 20; opacity: 0; }
+    .sx-ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2.5px solid #F041FF; opacity: 0; pointer-events: none; z-index: 19; }
+    .sx-browser-url { margin-left: 18px; flex: 1; height: 32px; border-radius: 8px; background: #13151a; border: 1px solid #343841; display: flex; align-items: center; padding: 0 14px; font: 400 17px/1 'Space Mono', monospace; color: #a7a9b8; }
+
+
+    .f04-editor { left: 820px; top: 210px; width: 560px; height: 420px; opacity: 0; }
+    .f04-editor .sx-codebody { font-size: 23px; padding: 30px 30px; }
+    .f04-line { display: block; position: relative; margin: 0 -30px; padding: 0 30px; }
+    .f04-hl { position: absolute; inset: 0; background: rgba(52,224,161,0.12); box-shadow: inset 4px 0 0 #34e0a1; opacity: 0; }
+    .f04-caret { display: inline-block; width: 3px; height: 1.1em; margin-left: 2px; vertical-align: -0.15em; background: #f7f4ff; opacity: 0; }
+    .f04-page { left: 1410px; top: 210px; width: 390px; height: 530px; background: #15171e; opacity: 0; }
+    .f04-isl { position: relative; margin: 28px 26px 0; padding: 22px; border-radius: 14px; background: #0b0c11; border: 1px solid #343841; }
+    .f04-isl .sx-tag { font-size: 18px; }
+    .f04-isl .sx-pill { margin-top: 14px; }
+    .f04-row { margin-top: 20px; display: flex; align-items: center; gap: 14px; font: 500 24px/1 'Space Grotesk', sans-serif; }
+    .f04-count { font-variant-numeric: tabular-nums; min-width: 20px; }
+    .f04-btn { position: relative; height: 54px; padding: 0 22px; border-radius: 10px; background: linear-gradient(110deg, #D83333, #F041FF); color: #fff;
+      display: inline-flex; align-items: center; font: 700 24px/1 'Space Grotesk', sans-serif; transform-origin: 50% 50%; }
+    .f04-ring { position: absolute; inset: -9px; border-radius: 15px; border: 2.5px solid #00e8ff; box-shadow: 0 0 24px rgba(0,232,255,0.7); opacity: 0; }
+    .f04-patched { margin-left: auto; font: 400 16px/1 'Space Mono', monospace; color: #00e8ff; opacity: 0; }
+
+  </style>
+  <div id="s04-hotpatch-root" data-composition-id="s04-hotpatch" data-width="1920" data-height="1080" data-duration="7.733">
+    <div id="s04-hotpatch-stage" class="clip" data-start="0" data-duration="7.733" data-track-index="0">
+      <div class="sx-col">
+        <div class="sx-eyebrow">Hot patch</div>
+        <div class="sx-headline"><span class="sx-w">Edit</span> <span class="sx-w">it.</span> <span class="sx-w">It</span> <span class="sx-w">patches</span> <span class="sx-w">in</span> <span class="sx-w"><em>place</em>.</span></div>
+        <div class="sx-sub">Hydrated or not, each element keeps its state through the patch.</div>
+      </div>
+      <div class="sx-card f04-editor">
+        <div class="sx-bar"><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-file">launch-card.ts</span></div>
+        <div class="sx-codebody"><span class="c">render</span>() {
+  <span class="k">return</span> <span class="c">html</span>`
+    <span class="t">&lt;button</span> <span class="p">@click</span>=${<span class="k">this</span>.inc}<span class="t">&gt;</span>
+<span class="f04-line"><span class="f04-hl"></span>      <span class="f04-text">Launch</span><span class="f04-caret"></span></span>    <span class="t">&lt;/button&gt;</span>
+    <span class="t">&lt;span&gt;</span>${<span class="k">this</span>.count}<span class="t">&lt;/span&gt;</span>`;
+}</div>
+      </div>
+      <div class="sx-card f04-page">
+        <div class="sx-bar"><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-dot"></span></div>
+        <div class="f04-isl">
+          <div class="sx-tag">&lt;launch-card&gt;</div>
+          <span class="sx-pill hyd"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2"><path d="M12 2.5C12 2.5 5 10.2 5 14.8a7 7 0 0 0 14 0C19 10.2 12 2.5 12 2.5z"/></svg>hydrated</span>
+          <div class="f04-row"><span class="f04-btn"><span class="f04-ring"></span><span class="f04-label">Launch</span></span> <span class="f04-count">3</span> <span class="f04-patched">patched</span></div>
+        </div>
+        <div class="f04-isl">
+          <div class="sx-tag">&lt;launch-card&gt;</div>
+          <span class="sx-pill warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2.5C12 2.5 5 10.2 5 14.8a7 7 0 0 0 14 0C19 10.2 12 2.5 12 2.5z"/></svg>not hydrated</span>
+          <div class="f04-row"><span class="f04-btn"><span class="f04-ring"></span><span class="f04-label">Launch</span></span> <span class="f04-count">0</span> <span class="f04-patched">patched</span></div>
+        </div>
+      </div>
+      <div class="sx-ripple"></div>
+      <svg class="sx-cursor" viewBox="0 0 26 34"><path d="M2 2 L2 28 L9 21.5 L13.5 32 L18 30 L13.6 19.8 L23 19.8 Z" fill="#f7f4ff" stroke="#0d0f14" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ID = 's04-hotpatch';
+      var DUR = 7.4306; // local seconds; the timeline plays at K, so it spans the frame's 7.733s
+      var BEAT = 0.46875;
+      var BAR = 1.875;
+      var tl = gsap.timeline({ paused: true });
+
+      var R = document.getElementById(ID + '-root');
+      function q(s) { return R.querySelector(s); }
+      function qa(s) { return Array.prototype.slice.call(R.querySelectorAll(s)); }
+      // Headline column: eyebrow, then the words as a waterfall entry, then the sub.
+      function colIn(t) {
+        var eb = q('.sx-eyebrow');
+        if (!eb) return t;
+        tl.set(eb, { opacity: 1, y: 30 }, t);
+        tl.to(eb, { y: 0, duration: 0.16, ease: 'power4.out' }, t);
+        var tt = t + 0.12;
+        qa('.sx-w').forEach(function (w, i, all) {
+          var heavy = i === all.length - 1;
+          tl.set(w, { opacity: 1, y: heavy ? 76 : 50 }, tt);
+          tl.to(w, { y: 0, duration: heavy ? 0.2 : 0.15, ease: 'power4.out' }, tt);
+          tt += 0.12;
+        });
+        var sb = q('.sx-sub');
+        tl.set(sb, { opacity: 1, y: 28 }, tt + 0.08);
+        tl.to(sb, { y: 0, duration: 0.45, ease: 'power3.out' }, tt + 0.08);
+        return tt;
+      }
+      // Pill swap: not hydrated / deferred → hydrated (scale-swap-transition).
+      function hydrate(swap, t) {
+        var from = swap.querySelector('.warn'), to = swap.querySelector('.hyd');
+        tl.to(from, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'power2.in' }, t);
+        tl.fromTo(to, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' }, t + 0.18);
+      }
+
+
+      colIn(0.1);
+      tl.fromTo(q('.f04-editor'), { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.15);
+      tl.fromTo(q('.f04-page'), { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.3);
+      // The edit and the patch share one beat (control-target-sync, discrete couple): one state array drives both sides.
+      var text = q('.f04-text'), caret = q('.f04-caret'), labels = qa('.f04-label');
+      var STEPS = [
+        { t: 0, src: 'Launch', page: 'Launch' },
+        { t: 0.10, src: 'Launc', page: 'Launch' }, { t: 0.16, src: 'Laun', page: 'Launch' }, { t: 0.22, src: 'Lau', page: 'Launch' },
+        { t: 0.28, src: 'La', page: 'Launch' }, { t: 0.34, src: 'L', page: 'Launch' },
+        { t: 0.44, src: 'Li', page: 'Launch' }, { t: 0.50, src: 'Lif', page: 'Launch' }, { t: 0.56, src: 'Lift', page: 'Launch' },
+        { t: 0.62, src: 'Lifto', page: 'Launch' }, { t: 0.68, src: 'Liftof', page: 'Launch' },
+        { t: 0.75, src: 'Liftoff', page: 'Liftoff' }
+      ];
+      var drv = { t: 0 }, last = null;
+      function stepAt(x) { for (var i = STEPS.length - 1; i >= 0; i--) if (x >= STEPS[i].t) return STEPS[i]; return STEPS[0]; }
+      tl.set(caret, { opacity: 1 }, 1.0);
+      tl.fromTo(drv, { t: 0 }, { t: 0.75, duration: 0.75, ease: 'none', onUpdate: function () {
+        var s = stepAt(drv.t);
+        if (s !== last) { text.textContent = s.src; labels.forEach(function (l) { l.textContent = s.page; }); last = s; }
+      } }, 1.125);
+      tl.set(caret, { opacity: 0 }, 1.95);
+      tl.fromTo(q('.f04-hl'), { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' }, 1.875);
+      // The patch: a cyan ring flashes on both islands, hydrated or not, and "patched" pops.
+      qa('.f04-ring').forEach(function (r, i) {
+        tl.fromTo(r, { opacity: 0, scale: 1.25 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power3.out' }, 1.875 + i * 0.06);
+        tl.to(r, { opacity: 0, duration: 0.6, ease: 'power2.in' }, 3.2);
+      });
+      qa('.f04-patched').forEach(function (p, i) {
+        tl.fromTo(p, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: 0.35, ease: 'power3.out' }, 2.0 + i * 0.06);
+      });
+      // Proof the state survived: click the hydrated button on bar 3, the count goes 3 → 4 (cursor-click-ripple).
+      var cursor = q('.sx-cursor'), btn = qa('.f04-btn')[0], count = qa('.f04-count')[0], ripple = q('.sx-ripple');
+      var BX = 1519, BY = 426; // the hydrated button's centre on the canvas
+      tl.set(cursor, { opacity: 1 }, 2.9);
+      tl.fromTo(cursor, { x: 1700, y: 760 }, { x: BX - 4, y: BY - 6, duration: 0.8, ease: 'power3.inOut', immediateRender: false }, 2.9);
+      tl.to([cursor, btn], { scale: 0.9, duration: 0.1, ease: 'power2.in', yoyo: true, repeat: 1 }, 3.75);
+      tl.set(ripple, { left: BX, top: BY, opacity: 1, scale: 0 }, 3.75);
+      tl.to(ripple, { scale: 2.2, opacity: 0, duration: 0.6, ease: 'power2.out' }, 3.75);
+      var c = { v: 3 };
+      tl.to(c, { v: 4, duration: 0.01, onUpdate: function () { count.textContent = String(Math.round(c.v)); } }, 3.8);
+      tl.to(cursor, { x: 1760, y: 820, opacity: 0, duration: 0.8, ease: 'power3.in' }, 5.2);
+
+      tl.set({}, {}, DUR);
+      // Re-timed to "Groche Énergique" (space remix, 123 BPM): cues are written on the 128 BPM placeholder grid.
+      var K = 0.9609;
+      tl.paused(false).timeScale(K);
+      window.__timelines[ID] = gsap.timeline({ paused: true }).add(tl, 0);
+    })();
+  </script>
+</template>

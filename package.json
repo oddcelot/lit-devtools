@@ -11,7 +11,9 @@
     "lit",
     "hmr",
     "web-components",
-    "devtools"
+    "devtools",
+    "withastro",
+    "renderer"
   ],
   "type": "module",
   "main": "index.js",
