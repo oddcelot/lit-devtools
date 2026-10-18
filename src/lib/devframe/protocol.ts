@@ -48,6 +48,16 @@ export const TIMELINE_STREAM_NAME = 'timeline';
 export const TIMELINE_STREAM_ID = 'live';
 
 /**
+ * Streaming channel every panel that commands the page subscribes to, and
+ * the id of its one stream. Nothing is ever written to it: it is there for
+ * its sink's abort, which devframe fires once the last subscriber's
+ * connection is gone, also when a panel tab closes before its own teardown
+ * gets out. The node then sends the page a `release`.
+ */
+export const PRESENCE_STREAM_NAME = 'presence';
+export const PRESENCE_STREAM_ID = 'panels';
+
+/**
  * Cap on the node-side recent-events ring buffer. It is also the history a
  * (re)connecting panel is seeded with (see {@link RPC_TIMELINE_HISTORY}).
  */

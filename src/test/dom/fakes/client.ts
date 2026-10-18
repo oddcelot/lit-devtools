@@ -17,6 +17,9 @@ export const calls: Array<{name: string; args: unknown[]}> = [];
 /** Replies for `rpc.call`, by name; a function gets the call's args. */
 export const answers = new Map<string, unknown>();
 
+/** Every `rpc.streaming.subscribe(channel, id)`, in order. */
+export const subscriptions: Array<{channel: string; id: string}> = [];
+
 /** Handlers the panel registered with `rpc.register`, by name. */
 export const registered = new Map<string, (...args: unknown[]) => unknown>();
 
@@ -68,6 +71,11 @@ const client = {
         : answer;
     },
     sharedState: async (key: string) => sharedStateOf(key),
+    streaming: {
+      subscribe(channel: string, id: string) {
+        subscriptions.push({channel, id});
+      },
+    },
     register(fn: {name: string; handler: (...args: unknown[]) => unknown}) {
       registered.set(fn.name, fn.handler);
     },
@@ -134,6 +142,7 @@ export const describeError = (error: unknown): string => String(error);
 /** Test control: forget calls, answers, states and meta. */
 export const resetClient = (): void => {
   calls.length = 0;
+  subscriptions.length = 0;
   answers.clear();
   registered.clear();
   states.clear();
