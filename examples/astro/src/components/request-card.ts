@@ -43,6 +43,11 @@ export class RequestCard extends LitElement {
     }
   }
 
+  override firstUpdated() {
+    // Right after hydration, rather than a second later on the first tick.
+    this.now = Date.now();
+  }
+
   override disconnectedCallback() {
     super.disconnectedCallback();
     clearInterval(this.#tick);
