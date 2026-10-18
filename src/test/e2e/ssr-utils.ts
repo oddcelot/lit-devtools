@@ -11,6 +11,7 @@
 import {randomUUID} from 'node:crypto';
 import {cp, readFile, rm, writeFile} from 'node:fs/promises';
 import {createServer as createHttpServer, type Server} from 'node:http';
+import {createServer as createNetServer} from 'node:net';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import type {InlineConfig, ViteDevServer} from 'vite';
@@ -37,6 +38,17 @@ interface SsrServer {
   origin: string;
   close(): Promise<void>;
 }
+
+/** A port nothing listens on right now, from the OS. */
+const freePort = (): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const probe = createNetServer();
+    probe.once('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const {port} = probe.address() as {port: number};
+      probe.close(() => resolve(port));
+    });
+  });
 
 export const startSsrFixture = async (
   plugin: LitPluginOptions = {timeline: true},
@@ -71,7 +83,13 @@ export const startSsrFixture = async (
           onePort: (http: Server) => InlineConfig;
         }
       ).onePort(http)
-    : {};
+    : {
+        // In middleware mode Vite's HMR socket listens on 24678 unless told
+        // otherwise. Any other dev server holding that port, or a second
+        // fixture running alongside, left this one with no socket: edits
+        // never reached the page, nor the next server render.
+        server: {...vite.server, hmr: {port: await freePort()}},
+      };
   const server = await startSsrServer({
     http,
     root,
