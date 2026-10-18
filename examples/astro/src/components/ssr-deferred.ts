@@ -7,8 +7,8 @@ import ui from './ui.css?css-sheet';
  * attribute is removed: the button in the page does that. Until then its
  * plant hangs wilted next to a full glass; the `hydrated` attribute, set
  * once hydration has run, tips the glass out over the soil and the plant
- * straightens up. All of it in CSS, so the server's HTML already shows the
- * wilted plant and nothing renders twice.
+ * straightens up, the Lit flame on top. All of it in CSS, so the server's
+ * HTML already shows the wilted plant and nothing renders twice.
  */
 @customElement('ssr-deferred')
 export class SsrDeferred extends LitElement {
@@ -45,16 +45,15 @@ export class SsrDeferred extends LitElement {
         transform-origin: 60px 70px;
         transform: rotate(40deg);
       }
+      /* The Lit flame, small and faded on the drooping stem. */
       .bloom {
-        transform-origin: 60px 34px;
-        transform: scale(0.35);
+        transform-origin: 60px 38px;
+        transform: scale(0.45);
+        filter: grayscale(1) sepia(0.6) brightness(0.8);
       }
       .green {
         fill: #a8955f;
         stroke: #a8955f;
-      }
-      .petal {
-        fill: #b9a586;
       }
       .glass {
         transform-origin: 40px 0;
@@ -86,10 +85,10 @@ export class SsrDeferred extends LitElement {
       .leaf-l,
       .leaf-r,
       .bloom,
-      .green,
-      .petal {
+      .green {
         transition:
           transform var(--grow),
+          filter var(--grow),
           fill var(--grow),
           stroke var(--grow);
       }
@@ -102,8 +101,8 @@ export class SsrDeferred extends LitElement {
         fill: #3f9d4a;
         stroke: #3f9d4a;
       }
-      :host([hydrated]) .petal {
-        fill: #e2557a;
+      :host([hydrated]) .bloom {
+        filter: none;
       }
       /* Poured: the glass tips over the pot, empties, and stands back up. */
       :host([hydrated]) .glass {
@@ -222,19 +221,21 @@ export class SsrDeferred extends LitElement {
               stroke-linecap="round"
             />
             <g class="bloom">
-              ${[0, 72, 144, 216, 288].map(
-                (angle) => html`
-                  <ellipse
-                    class="petal"
-                    cx="60"
-                    cy="24"
-                    rx="6"
-                    ry="10"
-                    transform="rotate(${angle} 60 34)"
-                  />
-                `
-              )}
-              <circle cx="60" cy="34" r="5" fill="#f2b632" />
+              <g transform="translate(47.2 6) scale(0.1)">
+                <path
+                  fill="#00e8ff"
+                  d="m64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"
+                />
+                <path
+                  fill="#283198"
+                  d="M128 256V128l64-64v128zM0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"
+                />
+                <path
+                  fill="#324fff"
+                  d="M64 192V64l64-64v128zm128 128V192l64-64v128zM0 256V128l64 64z"
+                />
+                <path fill="#0ff" d="M64 320V192l64 64z" />
+              </g>
             </g>
           </g>
         </g>
