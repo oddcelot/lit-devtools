@@ -1900,6 +1900,50 @@ test('marks an element that was never upgraded, in its row and details', async (
   );
 });
 
+test('an element that never upgraded gets no hydration pill, server HTML or not', async () => {
+  const {el, root, rows} = await mount(true, [
+    {
+      id: 1,
+      tagName: 'wa-icon',
+      notUpgraded: true,
+      ssr: 'pending',
+      children: [],
+    },
+    {id: 2, tagName: 'x-plain', notUpgraded: true, children: []},
+  ]);
+  const [served, plain] = rows();
+  expect(served!.querySelector('wa-badge.ssr')).toBeNull();
+  // Never hydrating is covered by the one chip, which says why.
+  const chip = served!.querySelector('.status.not-upgraded')!;
+  expect(chip.getAttribute('data-tip')).toContain(
+    'still shows the HTML the server sent'
+  );
+  expect(
+    plain!.querySelector('.status.not-upgraded')!.getAttribute('data-tip')
+  ).not.toContain('server');
+
+  push('inspector-message', {type: 'pick', id: 1});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      id: 1,
+      tagName: 'wa-icon',
+      notUpgraded: true,
+      ssr: 'pending',
+      properties: [],
+      flags: {hasUpdated: false, isUpdatePending: false, hasShadowRoot: true},
+    },
+  });
+  await flush(el);
+  const head = root.querySelector('.details .head')!;
+  expect(head.querySelector('wa-badge.ssr')).toBeNull();
+  expect(head.querySelector('.status.not-upgraded')).not.toBeNull();
+  expect(root.querySelector('.not-defined-note')?.textContent).toContain(
+    'will not hydrate'
+  );
+});
+
 test('marks server-rendered elements by where hydration stands', async () => {
   const {el, root, rows} = await mount(true, [
     {id: 1, tagName: 'x-app', ssr: 'deferred', children: []},

@@ -211,20 +211,30 @@ const warnedChip = (
   >`;
 };
 
-const notUpgradedChip = html`<span
-  class="status not-upgraded"
-  data-tip="The tag is defined, but this element never became an instance of its class"
-  >not upgraded</span
->`;
+const NOT_UPGRADED_TIP =
+  'The tag is defined, but this element never became an instance of its class';
 
 /**
  * The chip saying a defined tag gave this element no Lit state, if one does.
  * One another library defined carries none: the tree leaves it unmarked.
+ * One the server rendered says it still shows that HTML: it never hydrates
+ * either, which the chip covers instead of a hydration pill.
  */
 const definedAsChip = (n: {
   notUpgraded?: true;
+  ssr?: string;
 }): TemplateResult | typeof nothing =>
-  n.notUpgraded === true ? notUpgradedChip : nothing;
+  n.notUpgraded === true
+    ? html`<span
+        class="status not-upgraded"
+        data-tip=${
+          n.ssr === undefined
+            ? NOT_UPGRADED_TIP
+            : `${NOT_UPGRADED_TIP}, so it still shows the HTML the server sent`
+        }
+        >not upgraded</span
+      >`
+    : nothing;
 
 const HYDRATION_PILLS = {
   deferred: {
@@ -247,11 +257,16 @@ const HYDRATION_PILLS = {
   },
 } as const;
 
-/** Where a server-rendered element stands, as a pill; nothing for others. */
+/**
+ * Where a server-rendered element stands, as a pill; nothing for others,
+ * and nothing for one that never upgraded: with no class behind it, it will
+ * never hydrate, and its "not upgraded" chip says so.
+ */
 const hydrationPill = (n: {
   ssr?: keyof typeof HYDRATION_PILLS;
+  notUpgraded?: true;
 }): TemplateResult | typeof nothing => {
-  if (n.ssr === undefined) return nothing;
+  if (n.ssr === undefined || n.notUpgraded === true) return nothing;
   const {text, icon, variant, tip} = HYDRATION_PILLS[n.ssr];
   return html`<wa-badge
     class="ssr ${n.ssr}"
@@ -288,7 +303,12 @@ const noStateNote = (d: InspectorDetails): TemplateResult | typeof nothing => {
       <code>${d.tagName}</code> is defined, but this element was never upgraded
       to its class, so it has no state yet. Its constructor may have thrown
       (check the console), or it was created before the tag was defined and not
-      connected since.
+      connected
+      since.${
+        d.ssr === undefined
+          ? nothing
+          : ' It still shows the HTML the server sent, and will not hydrate.'
+      }
     </p>`;
   }
   return nothing;
