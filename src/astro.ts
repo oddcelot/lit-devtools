@@ -22,7 +22,8 @@
  */
 import {fileURLToPath} from 'node:url';
 import type {AddressInfo} from 'node:net';
-import type {Plugin, ViteDevServer} from 'vite';
+import {loadEnv, type Plugin, type ViteDevServer} from 'vite';
+import {ENV_PREFIX, envBool} from './lib/env.js';
 import {LIT_LOGO_SVG} from './lib/devframe/icon.js';
 import {
   STANDALONE_PANEL_BASE,
@@ -152,9 +153,10 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
     toolbar = true,
     ...pluginOptions
   } = options;
-  const timeline = pluginOptions.timeline ?? true;
-  const withToolbar = toolbar && timeline;
-  const plugins = litPlugin({...pluginOptions, timeline});
+  // Settled in `astro:config:setup`, which knows the root the env is in.
+  let timeline = true;
+  let withToolbar = toolbar;
+  let plugins: Plugin[] = [];
   return {
     name: '@oddsquad/vite-plugin-lit/astro',
     hooks: {
@@ -166,6 +168,23 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
         injectScript,
         addDevToolbarApp,
       }) => {
+        // Option, then `LIT_PLUGIN_TIMELINE`, then on: the panel is the
+        // point here. Set by the env, the option stays unset so the plugin
+        // reads it there too, and its Settings say where it came from.
+        const env = envBool(
+          loadEnv(
+            command === 'dev' ? 'development' : 'production',
+            fileURLToPath(config.root),
+            ENV_PREFIX
+          )[`${ENV_PREFIX}_TIMELINE`]
+        );
+        timeline = pluginOptions.timeline ?? env ?? true;
+        withToolbar = toolbar && timeline;
+        plugins = litPlugin({
+          ...pluginOptions,
+          timeline:
+            pluginOptions.timeline ?? (env === undefined ? true : undefined),
+        });
         updateConfig({vite: {plugins}});
         if (command === 'dev' && timeline) {
           // The page runtime's own dependency, pre-bundled from the start.

@@ -496,8 +496,8 @@ requests from the network on to Vite.
 ## Astro options
 
 `lit()` from `@oddsquad/vite-plugin-lit/astro` takes every option above, with
-`timeline` on by default, since the panel in the dev toolbar needs it, and
-three of its own. They mirror the JSDoc of `LitAstroOptions` in `src/astro.ts`
+`timeline` on by default, since the panel in the dev toolbar needs it
+(`LIT_PLUGIN_TIMELINE=false` still turns it off), and three of its own. They mirror the JSDoc of `LitAstroOptions` in `src/astro.ts`
 and have no environment variables. `litDevtools()` takes the same options
 except `render` and `shadowRootPolyfill`.
 

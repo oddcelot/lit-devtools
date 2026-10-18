@@ -122,6 +122,21 @@ describe('litDevtools()', () => {
       expect(args.addDevToolbarApp).not.toHaveBeenCalled();
     }
   });
+
+  test('reads LIT_PLUGIN_TIMELINE when the option is unset', () => {
+    vi.stubEnv('LIT_PLUGIN_TIMELINE', 'false');
+    try {
+      const off = setup('dev');
+      litDevtools().hooks['astro:config:setup'](off);
+      expect(off.addDevToolbarApp).not.toHaveBeenCalled();
+      // The option still wins over the env.
+      const on = setup('dev');
+      litDevtools({timeline: true}).hooks['astro:config:setup'](on);
+      expect(on.addDevToolbarApp).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });
 
 describe('page tags', () => {
