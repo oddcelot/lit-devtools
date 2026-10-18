@@ -1,4 +1,4 @@
-import {LitElement, css, html} from 'lit';
+import {LitElement, css, html, svg} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
 import ui from './ui.css?css-sheet';
 
@@ -7,9 +7,26 @@ import ui from './ui.css?css-sheet';
  * attribute is removed: the button in the page does that. Until then its
  * plant hangs wilted next to a full glass; the `hydrated` attribute, set
  * once hydration has run, tips the glass out over the soil and the plant
- * straightens up, the Lit flame on top. All of it in CSS, so the server's
- * HTML already shows the wilted plant and nothing renders twice.
+ * straightens up into a flower of Lit flames. All of it in CSS, so the
+ * server's HTML already shows the wilted plant and nothing renders twice.
  */
+/** The Lit logo, drawn 256 wide and 320 tall, its point at the top. */
+const FLAME = svg`
+  <path
+    fill="#00e8ff"
+    d="m64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"
+  />
+  <path
+    fill="#283198"
+    d="M128 256V128l64-64v128zM0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"
+  />
+  <path
+    fill="#324fff"
+    d="M64 192V64l64-64v128zm128 128V192l64-64v128zM0 256V128l64 64z"
+  />
+  <path fill="#0ff" d="M64 320V192l64 64z" />
+`;
+
 @customElement('ssr-deferred')
 export class SsrDeferred extends LitElement {
   static override styles = [
@@ -45,7 +62,7 @@ export class SsrDeferred extends LitElement {
         transform-origin: 60px 70px;
         transform: rotate(40deg);
       }
-      /* The Lit flame, small and faded on the drooping stem. */
+      /* The flower of Lit flames, small and faded on the drooping stem. */
       .bloom {
         transform-origin: 60px 38px;
         transform: scale(0.45);
@@ -221,21 +238,16 @@ export class SsrDeferred extends LitElement {
               stroke-linecap="round"
             />
             <g class="bloom">
-              <g transform="translate(47.2 6) scale(0.1)">
-                <path
-                  fill="#00e8ff"
-                  d="m64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"
-                />
-                <path
-                  fill="#283198"
-                  d="M128 256V128l64-64v128zM0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"
-                />
-                <path
-                  fill="#324fff"
-                  d="M64 192V64l64-64v128zm128 128V192l64-64v128zM0 256V128l64 64z"
-                />
-                <path fill="#0ff" d="M64 320V192l64 64z" />
-              </g>
+              ${[0, 72, 144, 216, 288].map(
+                (angle) => svg`
+                  <g
+                    transform="rotate(${angle} 60 30) translate(51.04 1.6) scale(0.07)"
+                  >
+                    ${FLAME}
+                  </g>
+                `
+              )}
+              <circle cx="60" cy="30" r="7" fill="#f2b632" />
             </g>
           </g>
         </g>
