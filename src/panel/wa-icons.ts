@@ -30,9 +30,8 @@ import caretRight from '@phosphor-icons/core/assets/regular/caret-right.svg?raw'
 import caretUp from '@phosphor-icons/core/assets/regular/caret-up.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
 import clock from '@phosphor-icons/core/assets/regular/clock.svg?raw';
-import dropHalfFill from '@phosphor-icons/core/assets/fill/drop-half-fill.svg?raw';
+import dropSimple from '@phosphor-icons/core/assets/regular/drop-simple.svg?raw';
 import dropSimpleFill from '@phosphor-icons/core/assets/fill/drop-simple-fill.svg?raw';
-import dropSlashFill from '@phosphor-icons/core/assets/fill/drop-slash-fill.svg?raw';
 import crosshair from '@phosphor-icons/core/assets/regular/crosshair.svg?raw';
 import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
 import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
@@ -75,9 +74,8 @@ const ICONS = {
   crosshair,
   cube,
   'cursor-click': cursorClick,
-  'drop-half-fill': dropHalfFill,
+  'drop-simple': dropSimple,
   'drop-simple-fill': dropSimpleFill,
-  'drop-slash-fill': dropSlashFill,
   equals,
   export: exportIcon,
   eye,
