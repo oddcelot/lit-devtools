@@ -30,8 +30,13 @@ export const litSourceOverlay = (ctx: OptionsContext): Plugin => ({
   },
   transform(code, id, transformOptions) {
     if (!ctx.get().sourceOverlay) return null;
-    if (!ctx.shouldTransform(id, transformOptions)) return null;
-    const hasElements = code.includes('customElement');
+    // The server's copy of a module gets the call-site stamps too: they are
+    // part of the template strings, whose digest the client checks when it
+    // hydrates what the server rendered, so a stamp on one side only is a
+    // mismatch. Source meta is code beside the templates, client-only.
+    const ssr = transformOptions?.ssr === true;
+    if (!ctx.shouldTransform(id, ssr ? {} : transformOptions)) return null;
+    const hasElements = !ssr && code.includes('customElement');
     const hasTemplates = code.includes('html`') || code.includes('svg`');
     if (!hasElements && !hasTemplates) return null;
     const ms = new MagicString(code);

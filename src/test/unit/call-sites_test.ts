@@ -182,7 +182,11 @@ describe('injectCallSites', () => {
 });
 
 describe('source-overlay transform', () => {
-  const transform = (code: string, id = '/app/src/only-templates.ts') => {
+  const transform = (
+    code: string,
+    id = '/app/src/only-templates.ts',
+    opts: {ssr?: boolean} = {}
+  ) => {
     const ctx = createOptionsContext({sourceOverlay: true});
     const plugin = litSourceOverlay(ctx);
     const hook = plugin.transform as unknown as (
@@ -190,7 +194,7 @@ describe('source-overlay transform', () => {
       id: string,
       opts?: {ssr?: boolean}
     ) => {code: string} | null;
-    return hook.call({}, code, id, {});
+    return hook.call({}, code, id, opts);
   };
 
   test('stamps a file that has templates but no customElement', () => {
@@ -206,6 +210,15 @@ describe('source-overlay transform', () => {
     );
     expect(result?.code).toContain('data-lit-source=');
     expect(result?.code).toContain('XY[');
+  });
+
+  test('stamps the server copy the same, without source meta', () => {
+    const code = `@customElement('x-y') class XY extends HTMLElement { r = html\`<a-b></a-b>\`; }`;
+    const client = transform(code)!.code;
+    const server = transform(code, undefined, {ssr: true})!.code;
+    const stamp = /data-lit-source="[^"]*"/;
+    expect(server.match(stamp)?.[0]).toBe(client.match(stamp)?.[0]);
+    expect(server).not.toContain('XY[');
   });
 
   test('returns null when nothing changes', () => {

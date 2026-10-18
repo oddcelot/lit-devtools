@@ -127,7 +127,7 @@ test("the server renders a nested element in its host's shadow root, deferred", 
   const html = await (await fetch(`${fixture.origin}/nested`)).text();
   const plain = html.slice(html.indexOf('<outer-card id="plain"'));
   expect(plain).toMatch(
-    /^<outer-card id="plain" start="2"[^>]*><template shadowrootmode="open">(<!--[^]*?-->)*<inner-count\s+defer-hydration[^>]*><template [^>]*shadowrootmode="open">/
+    /^<outer-card id="plain" start="2"[^>]*><template shadowrootmode="open">(<!--[^]*?-->)*<inner-count\s[^>]*\bdefer-hydration[^>]*><template [^>]*shadowrootmode="open">/
   );
   // With its host's bindings applied: rendered, not left empty.
   const host = plain.slice(0, plain.indexOf('</outer-card>'));
@@ -141,7 +141,13 @@ test('each nested element hydrates once, after its host, with its bindings', asy
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
-    if (m.type() === 'error') errors.push(m.text());
+    // A mismatch the runtime recovers from by rendering in the browser is
+    // only a warning, but it means the element did not hydrate. The example
+    // runs with `sourceOverlay`, whose call-site stamps have to be in the
+    // server's templates too.
+    if (m.type() === 'error' || m.text().includes('instead of hydrating')) {
+      errors.push(m.text());
+    }
   });
   await page.goto(`${fixture.origin}/nested`);
 
