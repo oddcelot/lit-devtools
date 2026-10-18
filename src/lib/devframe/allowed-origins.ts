@@ -61,3 +61,16 @@ export const resolveAllowedOrigins = (
       (origin !== undefined && patterns.some((re) => re.test(origin))),
   };
 };
+
+/**
+ * The origins to admit when the server runs in a WebContainer (StackBlitz),
+ * where the page and the panel come from `*.webcontainer-api.io` rather
+ * than loopback: `undefined` anywhere else. Only that host can reach a
+ * WebContainer's ports, and the one-time code still gates the RPC.
+ */
+export const webContainerOrigins = (
+  versions: Readonly<Record<string, string | undefined>> = process.versions
+): readonly string[] | WsOriginRegistry | undefined =>
+  'webcontainer' in versions
+    ? resolveAllowedOrigins(['https://*.webcontainer-api.io'])
+    : undefined;
