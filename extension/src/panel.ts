@@ -118,6 +118,10 @@ const manifestNudgeLater = $<HTMLButtonElement>('manifest-nudge-later');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
+// Absent in Firefox's DevTools pages, which get no `permissions` API at all:
+// another site's manifest then stays unreadable, as Firefox can't grant it
+// from here anyway.
+const permissions = chrome.permissions as typeof chrome.permissions | undefined;
 /**
  * Opened as the Lit tab in the Elements sidebar (`devtools.ts`): only the
  * Components details, for the Lit element at or around `$0`, and no bar.
@@ -589,7 +593,7 @@ const refreshAccess = async (): Promise<void> => {
   );
   const next = new Set<string>();
   for (const other of others) {
-    if (await chrome.permissions.contains({origins: [accessPattern(other)]})) {
+    if (await permissions?.contains({origins: [accessPattern(other)]})) {
       next.add(other);
     }
   }
@@ -633,8 +637,8 @@ const releaseAccess = async (
   ];
   if (Array.isArray(enabled) && enabled.includes(site(`${other}/`))) return;
   // A host granted at install rather than on request can't be given back.
-  await chrome.permissions
-    .remove({origins: [accessPattern(other)]})
+  await permissions
+    ?.remove({origins: [accessPattern(other)]})
     .catch(() => false);
 };
 
@@ -836,8 +840,8 @@ reloadButton.addEventListener('click', reloadPage);
 
 // Access to another site's manifest, granted or taken back here or in the
 // browser's extension settings.
-chrome.permissions.onAdded.addListener(() => void refreshAccess());
-chrome.permissions.onRemoved.addListener(() => void refreshAccess());
+permissions?.onAdded.addListener(() => void refreshAccess());
+permissions?.onRemoved.addListener(() => void refreshAccess());
 
 // The site may be enabled or disabled from somewhere else: the Firefox
 // popup, or another DevTools window on the same site.
