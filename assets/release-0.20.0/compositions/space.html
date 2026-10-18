@@ -1,0 +1,159 @@
+<template>
+  <style>
+    #space-root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    #space-root .clip {
+      position: absolute;
+      inset: 0;
+    }
+    #space-void {
+      background: #0d0f14;
+    }
+    .space-nebula {
+      position: absolute;
+      border-radius: 50%;
+    }
+    #space-nebula-a {
+      left: 600px;
+      top: -640px;
+      width: 1800px;
+      height: 1800px;
+      background: radial-gradient(
+        circle,
+        rgba(141, 70, 231, 0.28) 0%,
+        rgba(141, 70, 231, 0.1) 40%,
+        rgba(141, 70, 231, 0) 68%
+      );
+    }
+    #space-nebula-b {
+      left: -400px;
+      top: 200px;
+      width: 1400px;
+      height: 1400px;
+      background: radial-gradient(
+        circle,
+        rgba(240, 65, 255, 0.14) 0%,
+        rgba(216, 51, 51, 0.06) 42%,
+        rgba(216, 51, 51, 0) 68%
+      );
+    }
+    #space-stars {
+      position: absolute;
+      inset: 0;
+    }
+    #space-stars .space-star {
+      position: absolute;
+      left: 0;
+      top: 0;
+      border-radius: 1px;
+      transform-origin: 0 50%;
+    }
+    #space-planet {
+      position: absolute;
+      left: -340px;
+      top: 880px;
+      width: 2600px;
+      height: 2600px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 8%, #1a1530 0%, #10121a 30%, #0d0f14 60%);
+      box-shadow:
+        0 -2px 0 0 rgba(240, 65, 255, 0.85),
+        0 -10px 40px 0 rgba(141, 70, 231, 0.45),
+        0 -40px 140px 0 rgba(240, 65, 255, 0.18);
+    }
+  </style>
+  <div data-hf-id="hf-0u6f" id="space-root" data-composition-id="space" data-width="1920" data-height="1080" data-duration="43.6">
+    <div data-hf-id="hf-570g" id="space-void" class="clip" data-start="0" data-duration="43.6" data-track-index="0">
+      <div data-hf-id="hf-oz9c" class="space-nebula" id="space-nebula-a"></div>
+      <div data-hf-id="hf-zuqz" class="space-nebula" id="space-nebula-b"></div>
+      <div data-hf-id="hf-kli1" id="space-stars"></div>
+      <div data-hf-id="hf-ikxx" id="space-planet" data-layout-allow-overflow></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var DUR = 43.6;
+      var W = 1920;
+      var H = 1080;
+      var CX = 960;
+      var CY = 540;
+      var COUNT = 260;
+      // Deterministic per-index hash (no Math.random), as in the registry starfield block.
+      function rnd(n) {
+        var x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+        return x - Math.floor(x);
+      }
+      var field = document.getElementById('space-stars');
+      var stars = [];
+      for (var i = 0; i < COUNT; i++) {
+        var r = rnd(i + 7000);
+        var tier = r < 0.68 ? 0 : r < 0.94 ? 1 : 2;
+        var size = [1.2, 2, 3][tier];
+        var el = document.createElement('div');
+        el.className = 'space-star';
+        el.style.width = size + 'px';
+        el.style.height = size + 'px';
+        var tint = rnd(i + 900);
+        el.style.background = tint < 0.12 ? '#f7c6ff' : tint < 0.22 ? '#c9d0ff' : '#f2f0fa';
+        if (tier === 2) el.style.boxShadow = '0 0 6px 1px rgba(247,244,255,0.7)';
+        field.appendChild(el);
+        stars.push({
+          el: el,
+          x: rnd(i + 5000) * W,
+          y: rnd(i + 6000) * H,
+          speed: [4, 9, 16][tier], // px per second, leftward parallax
+          base: 0.45 + rnd(i + 2000) * 0.5,
+          tw: 0.6 + rnd(i + 3000) * 1.4,
+          ph: rnd(i + 1000) * 6.283,
+        });
+      }
+      // warp: 0 → 1 → 0 across the frame-06 jump (30.906s → peak 32.85s → 34.8s), on the track's breakdown
+      var state = {t: 0, warp: 0};
+      function render() {
+        var t = state.t;
+        var w = state.warp;
+        for (var s = 0; s < stars.length; s++) {
+          var st = stars[s];
+          var x = (((st.x - st.speed * t) % W) + W) % W;
+          var y = st.y;
+          var dx = x - CX;
+          var dy = y - CY;
+          var dist = Math.sqrt(dx * dx + dy * dy) || 1;
+          var push = 1 + w * 0.35;
+          var px = CX + dx * push;
+          var py = CY + dy * push;
+          var len = 1 + w * (dist / 6);
+          var ang = Math.atan2(dy, dx);
+          st.el.style.transform =
+            'translate3d(' +
+            px.toFixed(2) +
+            'px,' +
+            py.toFixed(2) +
+            'px,0) rotate(' +
+            ang.toFixed(4) +
+            'rad) scaleX(' +
+            len.toFixed(2) +
+            ')';
+          st.el.style.opacity = Math.min(
+            1,
+            st.base * (0.8 + 0.2 * Math.sin(st.tw * t + st.ph)) + w * 0.4
+          ).toFixed(3);
+        }
+      }
+      var tl = gsap.timeline({paused: true});
+      tl.to(state, {t: DUR, duration: DUR, ease: 'none', onUpdate: render}, 0);
+      tl.to(state, {warp: 1, duration: 1.944, ease: 'power3.in', onUpdate: render}, 30.906);
+      tl.to(state, {warp: 0, duration: 1.95, ease: 'power3.out', onUpdate: render}, 32.85);
+      tl.to('#space-nebula-a', {x: -120, y: 40, duration: DUR, ease: 'sine.inOut'}, 0);
+      tl.to('#space-nebula-b', {x: 90, y: -30, duration: DUR, ease: 'sine.inOut'}, 0);
+      tl.to('#space-planet', {rotation: 6, duration: DUR, ease: 'none'}, 0);
+      render();
+      window.__timelines['space'] = tl;
+    })();
+  </script>
+</template>

@@ -1,0 +1,148 @@
+<template>
+  <style>
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-500.woff2') format('woff2'); font-weight: 500; }
+    @font-face { font-family: 'Space Grotesk'; src: url('assets/space-grotesk-700.woff2') format('woff2'); font-weight: 700; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-400.woff2') format('woff2'); font-weight: 400; }
+    @font-face { font-family: 'Space Mono'; src: url('assets/space-mono-700.woff2') format('woff2'); font-weight: 700; }
+
+    #s02-docking-root { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Space Grotesk', sans-serif; color: #e9e6f2; }
+    #s02-docking-root .clip { position: absolute; inset: 0; }
+
+    .sx-col { position: absolute; left: 120px; top: 220px; width: 620px; display: flex; flex-direction: column; }
+    .sx-eyebrow { font: 700 20px/1 'Space Mono', monospace; letter-spacing: 0.16em; text-transform: uppercase; color: #F041FF; opacity: 0; }
+    .sx-headline { margin-top: 22px; font: 700 76px/1.03 'Space Grotesk', sans-serif; letter-spacing: -0.03em; color: #f7f4ff; }
+    .sx-headline em { font-style: normal; color: #F041FF; }
+    .sx-w { display: inline-block; opacity: 0; }
+    .sx-sub { margin-top: 28px; width: 600px; font: 400 28px/1.4 'Space Grotesk', sans-serif; color: #a7a9b8; opacity: 0; }
+    .sx-sub code, .sx-code-inline { font-family: 'Space Mono', monospace; font-size: 0.86em; color: #e9e6f2; white-space: nowrap; }
+    .sx-card { position: absolute; background: #0b0c11; border-radius: 16px; box-shadow: 0 40px 100px rgba(0,0,0,0.65), 0 0 0 1px #343841; overflow: hidden; }
+    .sx-bar { height: 52px; background: #1c1f28; border-bottom: 1px solid #343841; display: flex; align-items: center; padding: 0 22px; gap: 10px; }
+    .sx-dot { width: 12px; height: 12px; border-radius: 50%; background: #343841; }
+    .sx-file { margin-left: 14px; font: 400 18px/1 'Space Mono', monospace; color: #a7a9b8; }
+    .sx-codebody { padding: 34px 40px; font: 400 26px/1.6 'Space Mono', monospace; color: #e9e6f2; white-space: pre; }
+    .k { color: #c792ea; } .s { color: #c3e88d; } .n { color: #f78c6c; } .t { color: #89ddff; } .c { color: #82aaff; } .p { color: #b2ccd6; } .cm { color: #8a8d9c; }
+    .sx-pill { display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 999px; font: 400 18px/1 'Space Mono', monospace; white-space: nowrap; }
+    .sx-pill svg { width: 16px; height: 16px; }
+    .sx-pill.warn { color: #f5b54a; border: 1.5px solid rgba(245,181,74,0.7); background: rgba(245,181,74,0.08); }
+    .sx-pill.hyd { color: #c9d0ff; border: 1.5px solid #4d63ff; background: rgba(77,99,255,0.2); }
+    .sx-swap { position: relative; display: inline-grid; }
+    .sx-swap > .sx-pill { grid-area: 1 / 1; transform-origin: 50% 50%; }
+    .sx-swap > .sx-pill.hyd { opacity: 0; }
+    .sx-tag { font: 400 24px/1 'Space Mono', monospace; color: #89ddff; white-space: nowrap; }
+    .sx-cursor { position: absolute; left: 0; top: 0; width: 26px; height: 34px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6)); z-index: 20; opacity: 0; }
+    .sx-ripple { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2.5px solid #F041FF; opacity: 0; pointer-events: none; z-index: 19; }
+    .sx-browser-url { margin-left: 18px; flex: 1; height: 32px; border-radius: 8px; background: #13151a; border: 1px solid #343841; display: flex; align-items: center; padding: 0 14px; font: 400 17px/1 'Space Mono', monospace; color: #a7a9b8; }
+
+
+    .f02-card { left: 820px; top: 200px; width: 980px; height: 380px; opacity: 0; }
+    .f02-mod { display: inline-block; position: relative; padding: 2px 18px; margin: -6px 0; border-radius: 14px; color: #f7f4ff; opacity: 0;
+      background: linear-gradient(#15171e, #15171e) padding-box, linear-gradient(110deg, #D83333, #F041FF) border-box;
+      border: 2.5px solid transparent; box-shadow: 0 0 48px rgba(240,65,255,0.45); transform-origin: 50% 50%; }
+    .f02-burst { position: absolute; left: 50%; top: 50%; width: 160px; height: 160px; margin: -80px 0 0 -80px; border-radius: 50%; opacity: 0;
+      background: radial-gradient(circle, rgba(240,65,255,0.55), rgba(216,51,51,0) 65%); pointer-events: none; }
+    .f02-labels { position: absolute; left: 820px; top: 614px; width: 980px; display: flex; gap: 16px; }
+    .f02-label { flex: 1 1 auto; white-space: nowrap; height: 64px; border-radius: 12px; background: #15171e; border: 1px solid #343841; display: flex; align-items: center;
+      gap: 12px; padding: 0 20px; font: 500 22px/1.2 'Space Grotesk', sans-serif; color: #e9e6f2; opacity: 0; }
+    .f02-label i { width: 10px; height: 10px; border-radius: 50%; background: #F041FF; box-shadow: 0 0 12px #F041FF; flex: none; }
+    .f02-sat { position: absolute; left: 820px; top: 712px; width: 980px; height: 88px; border-radius: 14px; border: 1.5px dashed #343841; opacity: 0;
+      display: flex; align-items: center; gap: 18px; padding: 0 28px; font: 400 23px/1.3 'Space Grotesk', sans-serif; color: #a7a9b8; }
+    .f02-sat code { font: 700 23px/1 'Space Mono', monospace; color: #f7f4ff; padding: 8px 14px; border-radius: 10px; background: #1c1f28; border: 1px solid #343841; }
+
+  </style>
+  <div id="s02-docking-root" data-composition-id="s02-docking" data-width="1920" data-height="1080" data-duration="5.805">
+    <div id="s02-docking-stage" class="clip" data-start="0" data-duration="5.805" data-track-index="0">
+      <div class="sx-col">
+        <div class="sx-eyebrow">Setup</div>
+        <div class="sx-headline"><span class="sx-w">One</span> <span class="sx-w">integration.</span> <span class="sx-w">Nothing</span> <span class="sx-w">else</span> <span class="sx-w">to</span> <span class="sx-w"><em>wire</em>.</span></div>
+        <div class="sx-sub">Add <code>lit()</code> to your Astro config. That is the whole setup.</div>
+      </div>
+      <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+        <filter id="s02-streak" x="-100%" y="-50%" width="300%" height="200%"><feGaussianBlur id="s02-streak-blur" in="SourceGraphic" stdDeviation="0 0" /></filter>
+      </svg>
+      <div class="sx-card f02-card">
+        <div class="sx-bar"><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-dot"></span><span class="sx-file">astro.config.mjs</span></div>
+        <div class="sx-codebody"><span class="k">import</span> {defineConfig} <span class="k">from</span> <span class="s">'astro/config'</span>;
+<span class="k">import</span> lit <span class="k">from</span> <span class="s">'@oddsquad/vite-plugin-lit/astro'</span>;
+
+<span class="k">export default</span> <span class="c">defineConfig</span>({
+  <span class="p">integrations</span>: [<span class="f02-mod" style="filter: url(#s02-streak)"><span class="f02-burst"></span><span class="c">lit</span>()</span>],
+});</div>
+      </div>
+      <div class="f02-labels">
+        <div class="f02-label"><i></i>Server rendering + hydration</div>
+        <div class="f02-label"><i></i>Hot patching</div>
+        <div class="f02-label"><i></i>The Lit panel</div>
+      </div>
+      <div class="f02-sat">Keeping another Lit renderer? <code>litDevtools()</code> HMR and the panel only.</div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var ID = 's02-docking';
+      var DUR = 5.578; // local seconds; the timeline plays at K, so it spans the frame's 5.805s
+      var BEAT = 0.46875;
+      var BAR = 1.875;
+      var tl = gsap.timeline({ paused: true });
+
+      var R = document.getElementById(ID + '-root');
+      function q(s) { return R.querySelector(s); }
+      function qa(s) { return Array.prototype.slice.call(R.querySelectorAll(s)); }
+      // Headline column: eyebrow, then the words as a waterfall entry, then the sub.
+      function colIn(t) {
+        var eb = q('.sx-eyebrow');
+        if (!eb) return t;
+        tl.set(eb, { opacity: 1, y: 30 }, t);
+        tl.to(eb, { y: 0, duration: 0.16, ease: 'power4.out' }, t);
+        var tt = t + 0.12;
+        qa('.sx-w').forEach(function (w, i, all) {
+          var heavy = i === all.length - 1;
+          tl.set(w, { opacity: 1, y: heavy ? 76 : 50 }, tt);
+          tl.to(w, { y: 0, duration: heavy ? 0.2 : 0.15, ease: 'power4.out' }, tt);
+          tt += 0.12;
+        });
+        var sb = q('.sx-sub');
+        tl.set(sb, { opacity: 1, y: 28 }, tt + 0.08);
+        tl.to(sb, { y: 0, duration: 0.45, ease: 'power3.out' }, tt + 0.08);
+        return tt;
+      }
+      // Pill swap: not hydrated / deferred → hydrated (scale-swap-transition).
+      function hydrate(swap, t) {
+        var from = swap.querySelector('.warn'), to = swap.querySelector('.hyd');
+        tl.to(from, { scale: 0.7, opacity: 0, duration: 0.3, ease: 'power2.in' }, t);
+        tl.fromTo(to, { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(1.6)' }, t + 0.18);
+      }
+
+
+      colIn(0.1);
+      tl.fromTo(q('.f02-card'), { opacity: 0, x: 80 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out' }, 0.15);
+      // lit() streaks in from the right edge and docks on bar 2's downbeat (motion-blur-streak, path A).
+      var mod = q('.f02-mod');
+      var blurNode = R.querySelector('#s02-streak-blur');
+      var blur = { v: 0 };
+      function writeBlur() { blurNode.setAttribute('stdDeviation', blur.v.toFixed(2) + ' 0'); }
+      writeBlur();
+      tl.set(mod, { opacity: 1 }, 0.975);
+      tl.fromTo(mod, { x: 900 }, { x: 0, duration: 0.9, ease: 'power3.out', immediateRender: false }, 0.975);
+      tl.fromTo(blur, { v: 28 }, { v: 0, duration: 0.9, ease: 'power3.out', onUpdate: writeBlur, immediateRender: false }, 0.975);
+      // Dock: press and spring release, with a burst behind it (press-release-spring).
+      tl.to(mod, { scale: 0.9, duration: 0.12, ease: 'power1.in' }, 1.875);
+      tl.to(mod, { scale: 1, duration: 0.6, ease: 'back.out(2)' }, 1.995);
+      var burst = q('.f02-burst');
+      tl.fromTo(burst, { scale: 1, opacity: 0 }, { scale: 4, opacity: 0.8, duration: 0.45, ease: 'power2.out' }, 1.995);
+      tl.to(burst, { opacity: 0, duration: 0.5, ease: 'power2.in' }, 2.45);
+      // The three capabilities, one per beat (spring-pop-entrance).
+      qa('.f02-label').forEach(function (el, i) {
+        tl.fromTo(el, { opacity: 0, scale: 0.6, y: 20 }, { opacity: 1, scale: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 2.344 + i * BEAT);
+      });
+      // The litDevtools() satellite on bar 3.
+      tl.fromTo(q('.f02-sat'), { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }, 3.75);
+
+      tl.set({}, {}, DUR);
+      // Re-timed to "Groche Énergique" (space remix, 123 BPM): cues are written on the 128 BPM placeholder grid.
+      var K = 0.9609;
+      tl.paused(false).timeScale(K);
+      window.__timelines[ID] = gsap.timeline({ paused: true }).add(tl, 0);
+    })();
+  </script>
+</template>
