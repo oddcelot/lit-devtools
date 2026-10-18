@@ -9,5 +9,5 @@ export const page = () => html`
   <ssr-counter start="3"></ssr-counter>
   <ssr-deferred defer-hydration></ssr-deferred>
   <ssr-themed></ssr-themed>
-  <button id="wake">Water the plant (hydrate the deferred one)</button>
+  <button id="wake">Hydrate 💦</button>
 `;
