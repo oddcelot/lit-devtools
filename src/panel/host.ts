@@ -12,7 +12,12 @@
  */
 
 import type {InspectorCommand} from '../types/inspector.js';
-import type {LitCapabilities} from '../lib/devframe/protocol.js';
+import {
+  LIT_DEVFRAME_ID,
+  PRESENCE_STREAM_ID,
+  PRESENCE_STREAM_NAME,
+  type LitCapabilities,
+} from '../lib/devframe/protocol.js';
 import {getMeta, isSnapshot, litRpc, type LitClient} from './client.js';
 import {inPageChannel, inPageConnected} from './in-page.js';
 
@@ -41,6 +46,22 @@ const UNKNOWN: Omit<HostInfo, 'snapshot'> = {
 let info: Promise<HostInfo> | undefined;
 /** The connection once it is up, so commands go out without a wait. */
 let connected: LitClient | undefined;
+/** Whether this panel holds the node's presence stream yet. */
+let present = false;
+
+/**
+ * Hold the node's presence stream from the first command on, so the node
+ * releases the page if this panel goes without saying so (see
+ * {@link PRESENCE_STREAM_NAME}).
+ */
+const holdPresence = (client: LitClient): void => {
+  if (present) return;
+  present = true;
+  client.rpc.streaming.subscribe(
+    `${LIT_DEVFRAME_ID}:${PRESENCE_STREAM_NAME}`,
+    PRESENCE_STREAM_ID
+  );
+};
 
 /**
  * The host's capabilities. Read once: they describe the host, which does
@@ -67,6 +88,7 @@ export const hostInfo = (): Promise<HostInfo> =>
 export const resetHostInfo = (): void => {
   info = undefined;
   connected = undefined;
+  present = false;
 };
 
 /**
@@ -103,10 +125,12 @@ export const sendToPage = (command: InspectorCommand): void => {
     inPageChannel().emit('anatomyFocus', command.focus);
     return;
   }
-  const send = (client: LitClient) =>
-    client.rpc.call('inspect', command).catch((err: unknown) => {
+  const send = (client: LitClient) => {
+    holdPresence(client);
+    return client.rpc.call('inspect', command).catch((err: unknown) => {
       console.warn('[lit-devtools] inspector call failed', err);
     });
+  };
   if (connected !== undefined) {
     void send(connected);
     return;

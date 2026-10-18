@@ -1,5 +1,11 @@
 import {afterEach, expect, test, vi} from 'vite-plus/test';
-import {calls, meta, resetClient, setSnapshot} from './fakes/client.js';
+import {
+  calls,
+  meta,
+  resetClient,
+  setSnapshot,
+  subscriptions,
+} from './fakes/client.js';
 
 vi.mock('../../panel/client.js', () => import('./fakes/client.js'));
 
@@ -84,4 +90,19 @@ test('highlight and reveal take the direct page channel when it is up', async ()
   page.connected = false;
   sendToPage({type: 'highlight', id: null});
   expect(inspects()).toContainEqual({type: 'highlight', id: null});
+});
+
+test('holds the presence stream from the first command over RPC', async () => {
+  sendToPage({type: 'tree'});
+  await settle();
+  sendToPage({type: 'details', id: 1});
+  await settle();
+  expect(subscriptions).toEqual([{channel: 'lit:presence', id: 'panels'}]);
+});
+
+test('holds no presence stream in a snapshot', async () => {
+  setSnapshot(true);
+  sendToPage({type: 'tree'});
+  await settle();
+  expect(subscriptions).toEqual([]);
 });

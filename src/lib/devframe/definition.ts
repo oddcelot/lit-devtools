@@ -59,6 +59,8 @@ import {
   RPC_TOGGLE_LAYER,
   RPC_RANGE_SUMMARY,
   RPC_UPDATE_SUMMARY,
+  PRESENCE_STREAM_ID,
+  PRESENCE_STREAM_NAME,
   SESSION_STATE_KEY,
   TIMELINE_STREAM_ID,
   TIMELINE_STREAM_NAME,
@@ -360,6 +362,26 @@ export function createLitDevframe(
           channel.start({id: TIMELINE_STREAM_ID});
 
         writeEvents = (stamped) => ensureStream().write(stamped);
+
+        // The page hears an in-page panel leave, but a panel in its own tab
+        // reaches it only through here, and the RPCs it fires on `pagehide`
+        // may not get out before the tab is gone. Once the last panel holding
+        // the presence stream disconnects, release the page for it; the page
+        // ignores that while an in-page panel is still connected. Started
+        // eagerly for the same reason as the timeline, and again after each
+        // abort, once devframe has freed the old one.
+        const presence = my.rpc.streaming.create<never>(PRESENCE_STREAM_NAME);
+        const holdPresence = (): void => {
+          presence.start({id: PRESENCE_STREAM_ID}).signal.addEventListener(
+            'abort',
+            () => {
+              source.sendInspector({type: 'release'});
+              queueMicrotask(holdPresence);
+            },
+            {once: true}
+          );
+        };
+        holdPresence();
 
         // A regenerated manifest, or another one picked: the panel asks
         // again for the docs it shows.
