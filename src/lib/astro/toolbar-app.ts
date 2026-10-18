@@ -21,6 +21,9 @@ import {
 /** The slice of Astro's `ToolbarAppEventTarget` the app uses. */
 interface ToolbarApp {
   onToggled(callback: (options: {state: boolean}) => void): void;
+  onToolbarPlacementUpdated(
+    callback: (options: {placement: string}) => void
+  ): void;
 }
 
 /** The slice of Astro's toolbar `serverHelpers` the app uses. */
@@ -92,6 +95,15 @@ const STYLES = `
   }
 `;
 
+/**
+ * Where the toolbar is docked, from the root its canvases sit in. Astro's own
+ * apps read it from its settings module, which an app can't import.
+ */
+const toolbarPlacement = (canvas: ShadowRoot): string | undefined =>
+  (canvas.host.getRootNode() as ParentNode).querySelector<HTMLElement>(
+    '#dev-toolbar-root'
+  )?.dataset['placement'];
+
 const hasToken = (): boolean => {
   try {
     return localStorage.getItem(TOKEN_KEY) !== null;
@@ -120,6 +132,13 @@ export default {
       </header>
     `;
     canvas.append(style, panel);
+    // The window sits at the default, centred, unless told where the
+    // toolbar is.
+    const placement = toolbarPlacement(canvas);
+    if (placement !== undefined) panel.setAttribute('placement', placement);
+    app.onToolbarPlacementUpdated(({placement}) => {
+      panel.setAttribute('placement', placement);
+    });
     const form = panel.querySelector('form')!;
     const input = form.querySelector('input')!;
     // For a token the server no longer accepts, after a restart that

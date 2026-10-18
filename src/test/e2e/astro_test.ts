@@ -257,6 +257,39 @@ test('the toolbar app asks for the code, then its panel lists the components', a
   }
 });
 
+test('the toolbar window sits where the toolbar is docked, and follows it', async () => {
+  const page = await freshPage();
+  try {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'astro:dev-toolbar:settings',
+        JSON.stringify({placement: 'bottom-right'})
+      );
+    });
+    await open(page);
+    await page.locator('#dev-bar [data-app-id="lit-devtools"]').click();
+    const box = () =>
+      page
+        .locator(
+          'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] astro-dev-toolbar-window'
+        )
+        .boundingBox();
+    const width = page.viewportSize()!.width;
+    await expect
+      .poll(
+        async () =>
+          width - ((await box())?.x ?? 0) - ((await box())?.width ?? 0)
+      )
+      .toBe(16);
+    await page.evaluate(`
+      document.querySelector('astro-dev-toolbar').setToolbarPlacement('bottom-left')
+    `);
+    await expect.poll(async () => (await box())?.x).toBe(16);
+  } finally {
+    await page.context().close();
+  }
+});
+
 test('the link printed with the code opens the panel, connected', async () => {
   // What devframe prints, through either door.
   const printed: string[] = [];
