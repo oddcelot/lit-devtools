@@ -59,7 +59,7 @@ Lit doesn't render it. Plain HTML elements are still left out.
 A component Lit rendered on the server carries a pill that says where its
 hydration stands: an amber `deferred` with a struck-through drop while
 `defer-hydration` holds it back, an amber `not hydrated` with a half drop
-until its first update hydrates it, and a muted `hydrated` with a full drop
+until its first update hydrates it, and a blue `hydrated` with a full drop
 once it has. Both the row and the details pane switch as soon as the element hydrates.
 The same state is the `ssr` field
 that `lit_list-components` and `lit_component-details` return to agents.
@@ -67,7 +67,10 @@ that `lit_list-components` and `lit_component-details` return to agents.
 An element whose tag is defined but that never became an instance of its class
 gets an amber `not upgraded` chip instead. That happens when the class's
 constructor threw while the browser upgraded the element, so check the console
-for the error. Like a tag nothing defined, it has no properties to show.
+for the error. Like a tag nothing defined, it has no properties to show. One
+the server rendered keeps showing that HTML and will never hydrate, so it gets
+this chip alone, without a hydration pill; its `ssr` field still says it came
+from the server.
 
 A component Lit's development build has warned about carries an amber
 `n warnings` chip on its row, and the **Components** tab shows an amber count
