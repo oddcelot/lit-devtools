@@ -386,8 +386,9 @@ const recoverFromMismatch = (el: ReactiveElementLike): void => {
         if (!isHydrationMismatch(error) || root == null) throw error;
         console.warn(
           `[lit-plugin] <${this.localName}>: the page's server-rendered HTML ` +
-            `is older than the component's code (an edit landed while it ` +
-            `loaded), so it renders in the browser instead of hydrating.`
+            `doesn't match the component's template (most often an edit ` +
+            `that landed while the page loaded), so it renders in the ` +
+            `browser instead of hydrating.`
         );
         root.replaceChildren();
         // Hydration may have bound its root part before it threw.
