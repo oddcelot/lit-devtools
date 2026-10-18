@@ -37,6 +37,8 @@ jobs:
       - run: pnpm exec vp check
       - run: pnpm run fallow:check
       - run: pnpm run test:unit
+      # The Astro renderer through Astro's container API, on the build above.
+      - run: pnpm --filter ./examples/astro run test
       # Catches a jsr.json that no longer matches the build before a tag does.
       # The dry run resolves imports from node_modules, so an import JSR can't
       # map through package.json only shows up as an "Ignoring failed to

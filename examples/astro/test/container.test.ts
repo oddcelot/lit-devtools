@@ -5,7 +5,16 @@ import {expect, test} from 'vitest';
 import Page from '../src/pages/basics.astro';
 
 test('renders the page with the Lit renderer through the container API', async () => {
-  const renderers = await loadRenderers([getContainerRenderer()]);
+  // Resolved from here: Astro imports the entry from its own folder, where
+  // this repo's root package, linked rather than installed, isn't found.
+  const renderers = await loadRenderers([
+    {
+      ...getContainerRenderer(),
+      serverEntrypoint: import.meta.resolve(
+        getContainerRenderer().serverEntrypoint
+      ),
+    },
+  ]);
   const container = await AstroContainer.create({renderers});
   const html = await container.renderToString(Page);
 
