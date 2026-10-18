@@ -43,8 +43,11 @@ export class IslandProbe extends LitElement {
         >Server HTML, not hydrated yet</span
       >`;
     }
-    const how = this.#fromServer ? 'Hydrated' : 'Rendered in the browser';
-    return html`<span class="badge hydrated"
+    // Only server HTML hydrates; a client:only element gets no drop.
+    const [how, kind] = this.#fromServer
+      ? ['Hydrated', 'hydrated']
+      : ['Rendered in the browser', 'browser'];
+    return html`<span class="badge ${kind}"
       >${how} ${this.after} ms after the page arrived</span
     >`;
   }
