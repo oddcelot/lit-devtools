@@ -257,6 +257,9 @@ test('the toolbar app asks for the code, then its panel lists the components', a
   }
 });
 
+const TOOLBAR_WINDOW =
+  'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] astro-dev-toolbar-window';
+
 test('the toolbar window sits where the toolbar is docked, and follows it', async () => {
   const page = await freshPage();
   try {
@@ -268,12 +271,7 @@ test('the toolbar window sits where the toolbar is docked, and follows it', asyn
     });
     await open(page);
     await page.locator('#dev-bar [data-app-id="lit-devtools"]').click();
-    const box = () =>
-      page
-        .locator(
-          'astro-dev-toolbar-app-canvas[data-app-id="lit-devtools"] astro-dev-toolbar-window'
-        )
-        .boundingBox();
+    const box = () => page.locator(TOOLBAR_WINDOW).boundingBox();
     const width = page.viewportSize()!.width;
     await expect
       .poll(
@@ -285,6 +283,41 @@ test('the toolbar window sits where the toolbar is docked, and follows it', asyn
       document.querySelector('astro-dev-toolbar').setToolbarPlacement('bottom-left')
     `);
     await expect.poll(async () => (await box())?.x).toBe(16);
+  } finally {
+    await page.context().close();
+  }
+});
+
+test('the toolbar window resizes from its grip, and keeps the size', async () => {
+  const page = await freshPage();
+  try {
+    await open(page);
+    const toggle = page.locator('#dev-bar [data-app-id="lit-devtools"]');
+    await toggle.click();
+    const panel = page.locator(TOOLBAR_WINDOW);
+    await expect.poll(() => panel.isVisible()).toBe(true);
+    const before = (await panel.boundingBox())!;
+    const grip = (await panel.locator('.grip').boundingBox())!;
+    // Centred, the window grows on both sides of the grip's move.
+    await page.mouse.move(grip.x + 7, grip.y + 7);
+    await page.mouse.down();
+    await page.mouse.move(grip.x - 93, grip.y + 47, {steps: 5});
+    await page.mouse.up();
+    const after = (await panel.boundingBox())!;
+    expect(after.width).toBe(before.width - 200);
+    expect(after.height).toBe(before.height - 40);
+
+    await page.reload();
+    await expect.poll(hydrated(page)).toBe(true);
+    await toggle.click();
+    await expect
+      .poll(async () => (await panel.boundingBox())?.width)
+      .toBe(after.width);
+
+    await panel.locator('.grip').dblclick();
+    await expect
+      .poll(async () => (await panel.boundingBox())?.width)
+      .toBe(before.width);
   } finally {
     await page.context().close();
   }

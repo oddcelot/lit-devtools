@@ -37,11 +37,17 @@ const OTP_PARAM = 'devframe_otp';
 /** Where devframe's client keeps the token a code was exchanged for. */
 const TOKEN_KEY = '__DEVFRAME_CONNECTION_AUTH_TOKEN__';
 
+/** Where the window's size, once dragged, is kept. */
+const SIZE_KEY = 'lit-devtools:astro-toolbar-size';
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 200;
+
 const STYLES = `
   astro-dev-toolbar-window {
     width: min(72rem, calc(100vw - 2rem));
     height: min(44rem, calc(100vh - 7rem));
-    max-height: none;
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100vh - 7rem);
     padding: 0;
     overflow: hidden;
     display: flex;
@@ -51,7 +57,8 @@ const STYLES = `
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
+    /* Clear of the resize grip in either top corner. */
+    padding: 0.5rem 1.25rem;
     border-bottom: 1px solid rgba(52, 56, 65, 1);
     font-size: 0.8125rem;
   }
@@ -93,6 +100,32 @@ const STYLES = `
     border: 0;
     background: #fff;
   }
+  [data-resizing] iframe {
+    pointer-events: none;
+  }
+  .grip {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 14px;
+    height: 14px;
+    cursor: nesw-resize;
+    touch-action: none;
+    background: linear-gradient(
+      45deg,
+      transparent 40%,
+      rgba(191, 193, 201, 0.6) 40% 50%,
+      transparent 50% 60%,
+      rgba(191, 193, 201, 0.6) 60% 70%,
+      transparent 70%
+    );
+  }
+  [placement='bottom-right'] .grip {
+    right: auto;
+    left: 3px;
+    cursor: nwse-resize;
+    transform: scaleX(-1);
+  }
 `;
 
 /**
@@ -103,6 +136,77 @@ const toolbarPlacement = (canvas: ShadowRoot): string | undefined =>
   (canvas.host.getRootNode() as ParentNode).querySelector<HTMLElement>(
     '#dev-toolbar-root'
   )?.dataset['placement'];
+
+const savedSize = (): {width: number; height: number} | undefined => {
+  try {
+    const size = JSON.parse(localStorage.getItem(SIZE_KEY) ?? 'null');
+    return typeof size?.width === 'number' && typeof size?.height === 'number'
+      ? size
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Lets the window be resized from a grip on its top corner away from the
+ * dock: it is anchored at the bottom and on the docked side, so that is the
+ * corner that moves. Centred, it grows on both sides. A double click on the
+ * grip goes back to the default size.
+ */
+const makeResizable = (panel: HTMLElement) => {
+  const size = savedSize();
+  if (size !== undefined) {
+    panel.style.width = `${size.width}px`;
+    panel.style.height = `${size.height}px`;
+  }
+  const grip = document.createElement('div');
+  grip.className = 'grip';
+  grip.title = 'Drag to resize, double-click to reset';
+  panel.append(grip);
+
+  grip.addEventListener('pointerdown', (down) => {
+    down.preventDefault();
+    grip.setPointerCapture(down.pointerId);
+    const start = panel.getBoundingClientRect();
+    const placement = panel.getAttribute('placement') ?? 'bottom-center';
+    const widthPerPx =
+      placement === 'bottom-right' ? -1 : placement === 'bottom-left' ? 1 : 2;
+    // The frame would take the pointer from the grip while dragging.
+    panel.toggleAttribute('data-resizing', true);
+    const move = (event: PointerEvent) => {
+      const width = start.width + (event.clientX - down.clientX) * widthPerPx;
+      const height = start.height - (event.clientY - down.clientY);
+      panel.style.width = `${Math.max(MIN_WIDTH, width)}px`;
+      panel.style.height = `${Math.max(MIN_HEIGHT, height)}px`;
+    };
+    const end = () => {
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+      panel.toggleAttribute('data-resizing', false);
+      const {width, height} = panel.getBoundingClientRect();
+      try {
+        localStorage.setItem(SIZE_KEY, JSON.stringify({width, height}));
+      } catch {
+        // Storage off: the size lasts until the page reloads.
+      }
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  });
+
+  grip.addEventListener('dblclick', () => {
+    panel.style.width = '';
+    panel.style.height = '';
+    try {
+      localStorage.removeItem(SIZE_KEY);
+    } catch {
+      // Nothing was kept.
+    }
+  });
+};
 
 const hasToken = (): boolean => {
   try {
@@ -139,6 +243,7 @@ export default {
     app.onToolbarPlacementUpdated(({placement}) => {
       panel.setAttribute('placement', placement);
     });
+    makeResizable(panel);
     const form = panel.querySelector('form')!;
     const input = form.querySelector('input')!;
     // For a token the server no longer accepts, after a restart that
