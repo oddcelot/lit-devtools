@@ -1,7 +1,11 @@
 import type {Plugin, ViteDevServer} from 'vite';
 import {describe, expect, test, vi} from 'vite-plus/test';
 import {lit, litDevtools} from '../../astro.js';
-import {collectPageTags, injectPageTags} from '../../lib/astro/page-tags.js';
+import {
+  collectPageTags,
+  injectPageTags,
+  stampIslandUrls,
+} from '../../lib/astro/page-tags.js';
 
 /**
  * The Astro integration: what it registers in each command, and the page
@@ -170,5 +174,37 @@ describe('page tags', () => {
       server: {} as ViteDevServer,
     });
     expect(tags.map((t) => t.tag)).toEqual(['a', 'b']);
+  });
+});
+
+describe('island URLs', () => {
+  const island = (url: string, client = 'load') =>
+    `<astro-island uid="1" component-url="${url}" component-export="X" renderer-url="/r.js" client="${client}"></astro-island>`;
+  const updated: Record<string, number> = {'/src/x.ts': 42, '/src/q.ts?a=1': 7};
+  const lastUpdate = async (url: string) => updated[url];
+
+  test('carry the timestamp of a module that was hot-updated', async () => {
+    const out = await stampIslandUrls(
+      island('/src/x.ts') + island('/src/x.ts', 'only') + island('/src/y.ts'),
+      lastUpdate
+    );
+    expect(out).toBe(
+      island('/src/x.ts?t=42') +
+        island('/src/x.ts?t=42', 'only') +
+        island('/src/y.ts')
+    );
+  });
+
+  test('put the timestamp first in a query, as Vite does', async () => {
+    expect(await stampIslandUrls(island('/src/q.ts?a=1'), lastUpdate)).toBe(
+      island('/src/q.ts?t=7&a=1')
+    );
+  });
+
+  test('stay plain when the graph does not know the module', async () => {
+    const html = island('/src/x.ts');
+    expect(
+      await stampIslandUrls(html, () => Promise.reject(new Error('gone')))
+    ).toBe(html);
   });
 });

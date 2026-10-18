@@ -224,6 +224,28 @@ test('after an edit, the next page load is rendered with the new code', async ()
   expect(errors).toEqual([]);
 });
 
+test('after an edit, a page loads an island component once', async () => {
+  const {page} = fixture;
+  await open();
+  // The page script imports tag-list.ts, and two islands import it by
+  // component-url; after an edit Vite stamps the script's import.
+  await fixture.edit(
+    'src/components/tag-list.ts',
+    (code) => `${code}\n// edited\n`
+  );
+  await page.waitForTimeout(500);
+  const errors = await open();
+  await expect
+    .poll(() => shadow('#plain', 'li'), {timeout: 10_000})
+    .not.toEqual([]);
+  const loaded = (await page.evaluate(
+    `performance.getEntriesByType('resource').map((e) => e.name).filter((n) => n.includes('/tag-list.ts'))`
+  )) as string[];
+  expect(new Set(loaded).size).toBe(1);
+  expect(loaded[0]).toMatch(/\?t=\d+$/);
+  expect(errors).toEqual([]);
+});
+
 const PANEL_FRAME = 'iframe[title="Lit DevTools"]';
 
 /** Whether the panel in the toolbar's frame lists `<ssr-counter>`. */
