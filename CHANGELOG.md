@@ -3,6 +3,71 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.20.0 — 2026-10-18
+
+The plugin now runs in Astro. `lit()` server-renders and hydrates Lit
+components with no other renderer, and `litDevtools()` brings hot patching and
+the Lit panel, opened from Astro's dev toolbar. The Components tab reads
+hydration as a state and stops labelling other libraries' elements. The
+DevTools now warn when the Lit Inspector extension and the plugin share a page,
+and both work there. Nothing needs action to upgrade.
+
+[![Watch the 0.20.0 release video, 44 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.20.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.20.0/vite-plugin-lit-0.20.0.mp4)
+
+### Added
+
+- **The plugin runs in Astro, with the Lit panel in the dev toolbar.** Add
+  `litDevtools()` from `@oddsquad/vite-plugin-lit/astro` to your integrations:
+  Lit components hot-patch in place, hydrated or not, and the Lit logo in
+  Astro's dev toolbar opens the panel on the page you are on.
+  `LIT_PLUGIN_TIMELINE=false` turns the panel off, and the `timeline` option
+  wins over it.
+- **Lit components render and hydrate in Astro with no other renderer.**
+  `lit()` from `@oddsquad/vite-plugin-lit/astro` server-renders Lit
+  components, hydrates them with their array and object props, keeps a
+  `defer-hydration` you wrote until you remove it, and needs no hydrate imports
+  in your pages. Components nested in another's shadow root hydrate after a
+  view transition too.
+- **Resize the Lit window in Astro's dev toolbar.** Drag the grip in its top
+  corner to make it bigger or smaller; the size sticks across page loads, and a
+  double click on the grip resets it. The window lines up with where the
+  toolbar is docked.
+- **The DevTools warn when two runtimes share a page.** With the Lit Inspector
+  extension enabled on a dev server that already runs the plugin, the console
+  and the Components tab now say that two runtimes are loaded and that the
+  extension should be off for that site, instead of the picker silently doing
+  nothing.
+
+### Changed
+
+- **Hydration state reads as a state.** A server-rendered component that has
+  hydrated is now marked _hydrated_ instead of _SSR_, and _deferred_, _not
+  hydrated_ and _hydrated_ show as pills in the Components tree and details,
+  with a drop icon that is empty until the element hydrates and filled once it
+  has.
+- **Custom elements from other libraries sit in the tree unmarked.** The muted
+  _not Lit_ chip is gone from their rows and the details head, so wrappers like
+  Astro's islands no longer crowd the tree with labels; the details pane still
+  says why they have no properties.
+- **A component that never upgraded shows one chip, not two.** One the server
+  rendered was marked both _not upgraded_ and _not hydrated_, as if hydration
+  were still coming; it now carries only _not upgraded_, whose tooltip says it
+  still shows the HTML the server sent.
+
+### Fixed
+
+- **The Lit Inspector extension works on a dev server that runs the plugin.**
+  Enabled for such a site, Pick did nothing and threw in the console, and Vite
+  DevTools lost the page. The extension's runtime now serves the page and the
+  plugin's shares it, so both panels show the tree and Pick works from either.
+- **The link printed with the DevTools code opens the Lit panel.** Without the
+  Vite DevTools hub, the `#devframe_otp` link in the terminal opened your app
+  instead of the panel at `/__lit/`, so you had to type the code; it now opens
+  the panel, approved.
+- **The Lit panel connects on StackBlitz without Vite DevTools.** In a
+  WebContainer the panel the plugin serves at `/__lit/` used to be refused by
+  its own socket and never show the page; it now admits StackBlitz's origins.
+
 ## 0.19.0 — 2026-10-17
 
 Lit rendered on the server with `@lit-labs/ssr` now works with the plugin:
