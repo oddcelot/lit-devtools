@@ -1,6 +1,8 @@
 /**
  * One Open Graph card per docs page, rendered at build time: satori lays the
- * card out as SVG, sharp rasterises it to PNG. Each card carries the Lit flame
+ * card out as SVG, sharp rasterises it to PNG. The changelog gets one card for
+ * its version list and one per release without a video poster; which page
+ * shows which image is `src/lib/og.ts`'s call. Each card carries the Lit flame
  * and the site name, the page's section, its title and its description, on a
  * deep Lit-blue gradient with a cyan rule along the bottom edge.
  *
@@ -14,17 +16,82 @@ import {experimental_getFontFileURL, fontData} from 'astro:assets';
 import {getCollection, type CollectionEntry} from 'astro:content';
 import satori from 'satori';
 import sharp from 'sharp';
-import {OG_HEIGHT, OG_WIDTH, ogImageSlug} from '../../lib/og';
+import {
+  CHANGELOG_BASE,
+  OG_HEIGHT,
+  OG_WIDTH,
+  changelogVersion,
+  ogImageSlug,
+  releasePoster,
+} from '../../lib/og';
 
 type Entry = CollectionEntry<'docs'>;
 
+/** What a card says: the eyebrow, the headline and the line under it. */
+interface Card {
+  section?: string;
+  title: string;
+  description?: string;
+}
+
 export const getStaticPaths = (async () => {
-  const entries = await getCollection('docs');
-  return entries.map((entry) => ({
+  const docs = (await getCollection('docs')).map((entry) => ({
     params: {slug: ogImageSlug(entry.id)},
-    props: {entry},
+    props: {card: docsCard(entry)},
   }));
+  const changelog = {
+    params: {slug: `${CHANGELOG_BASE}.png`},
+    props: {
+      card: {
+        section: 'Changelog',
+        title: 'What changed, release by release',
+        description:
+          'Every vite-plugin-lit release since 0.3.0, newest first, with the fixes and features in each.',
+      },
+    },
+  };
+  // Releases with a video use its poster instead (src/lib/og.ts).
+  const releases = (await getCollection('changelogs')).flatMap((entry) => {
+    const version = changelogVersion(entry.id);
+    if (version === undefined || releasePoster(version)) return [];
+    return [
+      {
+        params: {slug: `${entry.id}.png`},
+        props: {
+          card: {
+            section: 'Changelog',
+            title: `Release ${version}`,
+            description: releaseIntro(entry.body ?? ''),
+          },
+        },
+      },
+    ];
+  });
+  return [...docs, changelog, ...releases];
 }) satisfies GetStaticPaths;
+
+/** Longest card description, in characters: three lines at the card's 32px. */
+const DESCRIPTION_MAX = 170;
+
+/**
+ * A release section's intro for its card: the first sentence of its first
+ * paragraph, as plain text, cut at a word if it would run past three lines.
+ */
+function releaseIntro(body: string): string | undefined {
+  const intro = body
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .find((block) => block && !/^(#|\[!\[|[-*] )/.test(block))
+    ?.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[`*_]/g, '')
+    .replace(/\s+/g, ' ');
+  const sentence = intro?.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? intro;
+  if (sentence === undefined || sentence.length <= DESCRIPTION_MAX) {
+    return sentence;
+  }
+  const cut = sentence.slice(0, DESCRIPTION_MAX);
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:]$/, '')}…`;
+}
 
 /** Sidebar group labels, by the top-level directory an entry lives in. */
 const SECTIONS: Record<string, string> = {
@@ -76,6 +143,14 @@ function h(
   return {type, props: {style, children: kept.length === 1 ? kept[0] : kept}};
 }
 
+function docsCard(entry: Entry): Card {
+  return {
+    section: SECTIONS[entry.id.split('/')[0]],
+    title: headline(entry),
+    description: entry.data.description,
+  };
+}
+
 /** The home page's title is the site name, so its card leads with the tagline's opening instead. */
 function headline(entry: Entry): string {
   const tagline = entry.data.hero?.tagline;
@@ -87,8 +162,12 @@ function headline(entry: Entry): string {
     .join(' ');
 }
 
-export const GET: APIRoute<{entry: Entry}> = async ({props: {entry}, url}) => {
-  const section = SECTIONS[entry.id.split('/')[0]];
+export const GET: APIRoute<{card: Card}> = async ({
+  props: {
+    card: {section, title, description},
+  },
+  url,
+}) => {
   const card = h(
     'div',
     {
@@ -125,12 +204,8 @@ export const GET: APIRoute<{entry: Entry}> = async ({props: {entry}, url}) => {
             section
           )
         : null,
-      h(
-        'div',
-        {fontSize: 68, fontWeight: 800, lineHeight: 1.12},
-        headline(entry)
-      ),
-      entry.data.description
+      h('div', {fontSize: 68, fontWeight: 800, lineHeight: 1.12}, title),
+      description
         ? h(
             'div',
             {
@@ -140,7 +215,7 @@ export const GET: APIRoute<{entry: Entry}> = async ({props: {entry}, url}) => {
               color: '#c4ccff',
               lineClamp: 3,
             },
-            entry.data.description
+            description
           )
         : null
     )
