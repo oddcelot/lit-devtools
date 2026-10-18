@@ -31,6 +31,7 @@ import {fromViteHot} from '../runtime/page-transport.js';
 import {TimelineChannelCodec} from './page-codec.js';
 import {PANEL_DIST_DIR} from './paths.js';
 import {LIT_DEVFRAME_ID} from './protocol.js';
+import {webContainerOrigins} from './allowed-origins.js';
 import {STANDALONE_PANEL_BASE, clientAuthDisabled} from './standalone-panel.js';
 
 /**
@@ -128,8 +129,12 @@ async function serveWithoutHub(
     const root = server.config.root;
     const origin = () =>
       server.resolvedUrls?.local[0]?.replace(/\/$/, '') ?? '';
+    // On StackBlitz the panel's origin is a WebContainer's, not loopback,
+    // so devframe's default gate would turn its socket away.
+    const allowedOrigins = webContainerOrigins();
     const instance = initDevframe(definition, {
       base: STANDALONE_PANEL_BASE,
+      ...(allowedOrigins === undefined ? {} : {allowedOrigins}),
       ...(server.httpServer
         ? {server: server.httpServer as Server}
         : {ws: {sidecar: true}}),

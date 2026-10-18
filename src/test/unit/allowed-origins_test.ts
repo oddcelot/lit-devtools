@@ -1,5 +1,8 @@
 import {describe, expect, test} from 'vite-plus/test';
-import {resolveAllowedOrigins} from '../../lib/devframe/allowed-origins.js';
+import {
+  resolveAllowedOrigins,
+  webContainerOrigins,
+} from '../../lib/devframe/allowed-origins.js';
 import type {WsOriginRegistry} from 'devframe/rpc/transports/ws-server';
 
 const registry = (entries: string[]) =>
@@ -73,5 +76,27 @@ describe('resolveAllowedOrigins', () => {
     'https://*.example.test/path',
   ])('refuses the over-broad or malformed %s', (entry) => {
     expect(() => resolveAllowedOrigins([entry])).toThrow(/--allow-origin/);
+  });
+});
+
+describe('webContainerOrigins', () => {
+  test('admits nothing extra outside a WebContainer', () => {
+    expect(webContainerOrigins({node: '24.0.0'})).toBeUndefined();
+  });
+
+  test("admits a WebContainer port's origin, and loopback still", () => {
+    const {isAllowed} = webContainerOrigins({
+      node: '24.0.0',
+      webcontainer: '1',
+    }) as WsOriginRegistry;
+    expect(
+      isAllowed(
+        'https://abc--4321--1a2b.local-credentialless.webcontainer-api.io'
+      )
+    ).toBe(true);
+    expect(isAllowed('http://localhost:4321')).toBe(true);
+    expect(isAllowed(undefined)).toBe(true);
+    expect(isAllowed('https://evil.example.com')).toBe(false);
+    expect(isAllowed('https://webcontainer-api.io.evil.com')).toBe(false);
   });
 });
