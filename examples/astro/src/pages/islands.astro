@@ -62,7 +62,7 @@ import Demo from '../layouts/Demo.astro';
       <code>client:visible</code> hydrates when the element enters the
       viewport. Scroll down to it and watch the badge.
     </p>
-    <div class="spacer">Keep scrolling</div>
+    <div class="spacer"><span>Keep scrolling</span></div>
     <IslandProbe id="visible" label="client:visible" client:visible />
   </Showcase>
 
@@ -73,11 +73,21 @@ import Demo from '../layouts/Demo.astro';
 
 <style>
   .spacer {
-    display: grid;
-    place-items: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     height: 120vh;
+    padding-block: var(--space-9);
     border: 1px dashed var(--border);
     border-radius: var(--radius-lg);
     color: var(--text-muted);
+  }
+  /* Held in view while the spacer is: below the window's top edge as it
+     scrolls past, above the bottom edge as it comes in. */
+  .spacer span {
+    position: sticky;
+    top: var(--space-12);
+    bottom: var(--space-12);
   }
 </style>
