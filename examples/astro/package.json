@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-lit-astro-example",
-  "description": "Lit components server-rendered by Astro through @oddsquad/vite-plugin-lit's renderer and hydrated in the page, hot-patched in dev, with the Lit panel in Astro's dev toolbar.",
+  "description": "Lit components server-rendered by Astro through @oddsquad/vite-plugin-lit's renderer and hydrated in the page, hot-patched in dev, with the Lit panel in Astro's dev toolbar. Opens on StackBlitz straight from the repo URL.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -25,5 +25,9 @@
     "@oddsquad/vite-plugin-lit": "*",
     "preact": "^11.0.1",
     "vitest": "^5.0.5"
+  },
+  "stackblitz": {
+    "installDependencies": true,
+    "startCommand": "npm run dev"
   }
 }
