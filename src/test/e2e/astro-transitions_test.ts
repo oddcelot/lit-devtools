@@ -10,7 +10,10 @@
  * shadow roots as templates, and attaches them only once the new body is
  * in the page, after each defined element has made a shadow root of its
  * own. The page script attaches them before the swap, so the elements
- * hydrate the server's HTML rather than render it anew.
+ * hydrate the server's HTML rather than render it anew. And it attaches them
+ * with the page's custom element registry: the parsed document has none,
+ * and where a browser scopes registries the elements inside a shadow root
+ * attached there would never upgrade.
  */
 
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
@@ -28,6 +31,7 @@ import {TagList} from '../components/tag-list.ts';
 import '../components/ssr-counter.ts';
 import '../components/tag-list.ts';
 import '../components/ssr-deferred.ts';
+import '@awesome.me/webawesome/dist/components/rating/rating.js';
 ---
 
 <html lang="en">
@@ -42,6 +46,7 @@ import '../components/ssr-deferred.ts';
       import '../components/ssr-counter.ts';
       import '../components/tag-list.ts';
       import '../components/ssr-deferred.ts';
+      import '@awesome.me/webawesome/dist/components/rating/rating.js';
     </script>
   </body>
 </html>
@@ -59,6 +64,7 @@ const SECOND = page(
     <tag-list id="plain" tags={['after', 'swap']}></tag-list>
     <TagList id="island" client:load tags={['island']} />
     <ssr-deferred defer-hydration></ssr-deferred>
+    <wa-rating value="3"></wa-rating>
     <a id="back" href="/first">First</a>`
 );
 
@@ -119,6 +125,15 @@ test('after a swap, deferred elements are released and islands hydrate', async (
     )
   ).toBe(0);
   await expect.poll(() => shadow('#island', 'li')).toEqual(['island']);
+  // Elements inside a swapped-in shadow root upgrade: the rating's stars
+  // are its icon class, not plain elements left as the server sent them.
+  await expect
+    .poll(() =>
+      evaluate<boolean[]>(
+        `[...document.querySelector('wa-rating').shadowRoot.querySelectorAll('wa-icon')].map((icon) => icon instanceof customElements.get('wa-icon'))`
+      )
+    )
+    .toEqual([true, true, true, true, true]);
   await expect.poll(hydrated).toBe(true);
   await page.locator('ssr-counter #increment').click();
   await expect
@@ -162,5 +177,6 @@ test("the page runtime reports the swapped-in page's components", async () => {
       'ssr-counter hydrated',
       'ssr-deferred deferred',
       'tag-list hydrated',
+      'wa-rating hydrated',
     ]);
 });
