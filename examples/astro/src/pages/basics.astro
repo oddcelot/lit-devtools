@@ -33,7 +33,7 @@ import Demo from '../layouts/Demo.astro';
   <Showcase
     title="Hold an element back"
     code={`<ssr-deferred defer-hydration></ssr-deferred>
-<button id="wake">Water the plant</button>
+<button id="wake">Hydrate 💦</button>
 <script>
   document.querySelector('#wake')?.addEventListener('click', () => {
     document.querySelector('ssr-deferred')?.removeAttribute('defer-hydration');
@@ -44,10 +44,10 @@ import Demo from '../layouts/Demo.astro';
       Written with <code>defer-hydration</code>, an element keeps the server's
       HTML until something removes the attribute. The renderer leaves a{' '}
       <code>defer-hydration</code> you wrote alone: this plant stays wilted
-      until you water it.
+      until you hydrate it.
     </p>
     <ssr-deferred defer-hydration></ssr-deferred>
-    <button id="wake">Water the plant (hydrate the deferred one)</button>
+    <button id="wake">Hydrate 💦</button>
   </Showcase>
 
   <Showcase

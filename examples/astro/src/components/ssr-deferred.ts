@@ -5,9 +5,10 @@ import ui from './ui.css?css-sheet';
 /**
  * Rendered with `defer-hydration`, so it stays server HTML until the
  * attribute is removed: the button in the page does that. Until then its
- * plant hangs wilted; the `hydrated` attribute, set once hydration has run,
- * waters it and the plant straightens up. All of it in CSS, so the server's
- * HTML already shows the wilted plant and nothing renders twice.
+ * plant hangs wilted next to a full glass; the `hydrated` attribute, set
+ * once hydration has run, tips the glass out over the soil and the plant
+ * straightens up. All of it in CSS, so the server's HTML already shows the
+ * wilted plant and nothing renders twice.
  */
 @customElement('ssr-deferred')
 export class SsrDeferred extends LitElement {
@@ -18,10 +19,11 @@ export class SsrDeferred extends LitElement {
         display: flex;
         align-items: center;
         gap: var(--space-8);
-        --grow: 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.45s;
+        /* Once the water reaches the soil. */
+        --grow: 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 1s;
       }
       svg {
-        width: 7.5rem;
+        width: 8.5rem;
         flex: none;
         overflow: visible;
       }
@@ -54,6 +56,27 @@ export class SsrDeferred extends LitElement {
       .petal {
         fill: #b9a586;
       }
+      .glass {
+        transform-origin: 40px 0;
+      }
+      .glass-body {
+        fill: rgb(255 255 255 / 0.08);
+        stroke: rgb(255 255 255 / 0.55);
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+      }
+      .water {
+        fill: #5aa9e6;
+        transform-origin: 29px 30px;
+      }
+      /* Drawn down from the rim and pulled after it: hidden either side. */
+      .stream {
+        stroke: #5aa9e6;
+        stroke-width: 3;
+        stroke-linecap: round;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+      }
       .drop {
         fill: #5aa9e6;
         opacity: 0;
@@ -82,23 +105,55 @@ export class SsrDeferred extends LitElement {
       :host([hydrated]) .petal {
         fill: #e2557a;
       }
+      /* Poured: the glass tips over the pot, empties, and stands back up. */
+      :host([hydrated]) .glass {
+        animation: pour 2s ease-in-out both;
+      }
+      :host([hydrated]) .water {
+        transform: scaleY(0);
+        animation: drain 0.9s linear 0.4s both;
+      }
+      :host([hydrated]) .stream {
+        animation: stream 1.1s linear 0.35s both;
+      }
       :host([hydrated]) .drop {
-        animation: fall 0.5s ease-in both;
+        /* forwards, not both: hidden until the stream lands. */
+        animation: splash 0.5s ease-out 0.7s forwards;
       }
       :host([hydrated]) .drop:nth-of-type(2) {
-        animation-delay: 0.12s;
+        animation-delay: 0.85s;
       }
       :host([hydrated]) .drop:nth-of-type(3) {
-        animation-delay: 0.24s;
+        animation-delay: 1s;
       }
-      @keyframes fall {
+      @keyframes pour {
+        20%,
+        75% {
+          transform: rotate(115deg);
+        }
+      }
+      @keyframes drain {
+        from {
+          transform: scaleY(1);
+        }
+      }
+      @keyframes stream {
+        30%,
+        75% {
+          stroke-dashoffset: 0;
+        }
+        to {
+          stroke-dashoffset: -100;
+        }
+      }
+      @keyframes splash {
         from {
           opacity: 1;
-          transform: translateY(-24px);
+          transform: none;
         }
         to {
           opacity: 0;
-          transform: translateY(40px);
+          transform: translate(var(--dx), -12px);
         }
       }
       @media (prefers-reduced-motion: reduce) {
@@ -119,11 +174,28 @@ export class SsrDeferred extends LitElement {
 
   override render() {
     return html`
-      <svg viewBox="0 0 120 140" aria-hidden="true">
+      <svg viewBox="0 -24 120 164" aria-hidden="true">
+        <path class="stream" d="M42 2 V98" pathLength="100" />
         <g class="drops">
-          <path class="drop" d="M48 30 q-4 6 0 8 q4 -2 0 -8z" />
-          <path class="drop" d="M62 22 q-4 6 0 8 q4 -2 0 -8z" />
-          <path class="drop" d="M74 32 q-4 6 0 8 q4 -2 0 -8z" />
+          <path
+            class="drop"
+            style="--dx: -6px"
+            d="M38 92 q-3 5 0 6 q3 -1 0 -6z"
+          />
+          <path
+            class="drop"
+            style="--dx: 0px"
+            d="M42 90 q-3 5 0 6 q3 -1 0 -6z"
+          />
+          <path
+            class="drop"
+            style="--dx: 6px"
+            d="M46 92 q-3 5 0 6 q3 -1 0 -6z"
+          />
+        </g>
+        <g class="glass">
+          <path class="water" d="M18.4 5 H39.6 L37 30 H21z" />
+          <path class="glass-body" d="M18 0 H40 L37 30 H21z" />
         </g>
         <g class="stem">
           <path
