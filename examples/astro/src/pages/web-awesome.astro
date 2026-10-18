@@ -108,6 +108,11 @@ import Demo from '../layouts/Demo.astro';
     display: grid;
     gap: var(--wa-space-m);
   }
+  /* The rating reads a hover as a fraction of its own width, so a grid
+     cell stretching it past its stars would light them too far left. */
+  .fields wa-rating {
+    justify-self: start;
+  }
   .footer {
     display: flex;
     align-items: center;
