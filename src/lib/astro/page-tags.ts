@@ -111,10 +111,48 @@ export const injectPageTags = (
   return out;
 };
 
+/** When the module a URL names was last hot-updated, if it ever was. */
+type LastUpdate = (url: string) => Promise<number | undefined>;
+
+/** Adds `t=` first in the query, as Vite's `injectQuery` does. */
+const withTimestamp = (url: string, t: number): string => {
+  const at = url.indexOf('?');
+  return at === -1
+    ? `${url}?t=${t}`
+    : `${url.slice(0, at)}?t=${t}&${url.slice(at + 1)}`;
+};
+
+const COMPONENT_URL = /(<astro-island\b[^>]*?\scomponent-url=")([^"]+)"/g;
+
+/**
+ * Stamps each island's `component-url` the way Vite stamps every other
+ * import of a module once it has been hot-updated: `?t=<timestamp>`.
+ * Astro writes the URL plain, so on a page that also imports the component
+ * in a script, which a custom element needs to be defined, the browser
+ * loaded the module twice after an edit: two classes for one tag, the
+ * second `define` taken for a hot patch on a plain load, and module state
+ * split in two.
+ */
+export const stampIslandUrls = async (
+  html: string,
+  lastUpdate: LastUpdate
+): Promise<string> => {
+  const urls = new Set([...html.matchAll(COMPONENT_URL)].map((m) => m[2]!));
+  const stamped = new Map<string, string>();
+  for (const url of urls) {
+    const t = await lastUpdate(url).catch(() => undefined);
+    if (t !== undefined && t > 0) stamped.set(url, withTimestamp(url, t));
+  }
+  if (stamped.size === 0) return html;
+  return html.replaceAll(COMPONENT_URL, (match, start: string, url: string) =>
+    stamped.has(url) ? `${start}${stamped.get(url)}"` : match
+  );
+};
+
 /**
  * A middleware that holds each HTML response back until it is complete, then
- * sends it with the plugins' tags in. Dev only, where streaming a page
- * matters less than the panel seeing it.
+ * sends it with the plugins' tags in and its islands' URLs stamped. Dev
+ * only, where streaming a page matters less than the panel seeing it.
  */
 export const pageTagsMiddleware =
   (plugins: readonly Plugin[], server: ViteDevServer) =>
@@ -142,6 +180,20 @@ export const pageTagsMiddleware =
       );
     };
 
+    const addPageTags = (html: string, url: string): Promise<string> =>
+      collectPageTags(plugins, html, {
+        path: url,
+        filename: url,
+        server,
+      })
+        .then((tags) => injectPageTags(html, tags))
+        .catch((error: unknown) => {
+          server.config.logger.warn(
+            `[lit-plugin] could not add the page runtime to ${url}: ${String(error)}`
+          );
+          return html;
+        });
+
     res.write = ((chunk: unknown, encoding?: unknown, callback?: unknown) => {
       if (!isHtml())
         return write(chunk as never, encoding as never, callback as never);
@@ -157,20 +209,15 @@ export const pageTagsMiddleware =
       if (chunk !== undefined && typeof chunk !== 'function') {
         chunks.push(toBuffer(chunk, encoding));
       }
-      const html = Buffer.concat(chunks).toString('utf8');
+      const sent = Buffer.concat(chunks).toString('utf8');
       const url = req.url ?? '/';
-      void collectPageTags(plugins, html, {
-        path: url,
-        filename: url,
-        server,
-      })
-        .then((tags) => injectPageTags(html, tags))
-        .catch((error: unknown) => {
-          server.config.logger.warn(
-            `[lit-plugin] could not add the page runtime to ${url}: ${String(error)}`
-          );
-          return html;
-        })
+      const graph = server.environments.client.moduleGraph;
+      void stampIslandUrls(
+        sent,
+        async (moduleUrl) =>
+          (await graph.getModuleByUrl(moduleUrl))?.lastHMRTimestamp
+      )
+        .then((html) => addPageTags(html, url))
         .then((out) => {
           if (!res.headersSent) {
             res.removeHeader('content-length');
