@@ -22,6 +22,7 @@ import {sourceOpenerFor} from './source-opener.js';
 import {
   fullSourceTip,
   sourceText,
+  SourceTextController,
   sourceTextStyles,
   sourceTip,
 } from './source-text.js';
@@ -38,6 +39,9 @@ import {
  */
 @customElement('updates-view')
 export class UpdatesView extends LitElement {
+  // Prints locations again once the project's root is known.
+  protected readonly _sourceText = new SourceTextController(this);
+
   static override styles = [
     tokens,
     sourceTextStyles,

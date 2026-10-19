@@ -53,6 +53,7 @@ import {useLocalClient} from '../../src/panel/client.js';
 import {useElementRevealer} from '../../src/panel/element-revealer.js';
 import {useBreakpoints, type Breakpoints} from '../../src/panel/breakpoints.js';
 import {useSourceOpener} from '../../src/panel/source-opener.js';
+import {useRootFinder} from '../../src/panel/source-label.js';
 import {
   BREAKPOINTS_KEY,
   ELEMENT_BY_ID_KEY,
@@ -521,6 +522,15 @@ const boot = async (): Promise<void> => {
     typeof panels?.openResource === 'function'
       ? (location: ElementSource) => openInSources(panels, location)
       : undefined;
+  // Where the project is, so the panel prints the absolute paths Astro marks
+  // its markup with relative to it: the page's Vite dev server can tell.
+  useRootFinder(async (file) => {
+    const url = await inspectedUrl();
+    if (url === undefined || origin === undefined || site(url) !== origin) {
+      return undefined;
+    }
+    return devServerEditor.rootFor(new URL(url).origin, file);
+  });
   useSourceOpener(async (location) => {
     if (await openInEditor(location)) return;
     await sources?.(location);

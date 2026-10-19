@@ -17,6 +17,7 @@ import {ifDefined} from 'lit/directives/if-defined.js';
 import {
   fullSourceTip,
   sourceText,
+  SourceTextController,
   sourceTextStyles,
   sourceTip,
 } from './source-text.js';
@@ -56,6 +57,9 @@ const savedHeight = (): number => {
  */
 @customElement('timeline-span-detail')
 export class TimelineSpanDetail extends LitElement {
+  // Prints locations again once the project's root is known.
+  protected readonly _sourceText = new SourceTextController(this);
+
   static override styles = [
     tokens,
     sourceTextStyles,

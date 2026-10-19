@@ -3,7 +3,8 @@
  * package and version for a file under `node_modules` (see
  * `source-label.ts`), then the path, split at each `/` so a long one wraps at
  * a directory rather than mid-name. Views add {@link sourceTextStyles} to
- * their own.
+ * their own, and a {@link SourceTextController} to print again when the
+ * project's root becomes known.
  *
  * A class defined in a package is usually defined in a bundler's chunk
  * (`dist/chunks/chunk.7VGCIHDG.js`), which says nothing about the class. When
@@ -14,9 +15,20 @@
  * them.
  */
 
-import {css, html, nothing, type TemplateResult} from 'lit';
+import {
+  css,
+  html,
+  nothing,
+  type ReactiveController,
+  type ReactiveControllerHost,
+  type TemplateResult,
+} from 'lit';
 import type {ComponentDocs} from '../types/component-docs.js';
-import {sourceLabel} from './source-label.js';
+import {
+  askProjectRoot,
+  onProjectRootChange,
+  sourceLabel,
+} from './source-label.js';
 
 /** Where a package's manifest says one of its classes is declared. */
 export interface ManifestModule {
@@ -64,6 +76,7 @@ export const sourceText = (
   line: number,
   module?: ManifestModule
 ): TemplateResult => {
+  askProjectRoot(file);
   const {pkg, path} = sourceLabel(file);
   const segments =
     pkg !== undefined && module?.package === pkg.name
@@ -97,6 +110,27 @@ export const sourceTip = (tip: string, file: string, line: number): string => {
   const full = fullSourceTip(file, line);
   return full === undefined ? tip : `${tip}: ${full}`;
 };
+
+/**
+ * Updates its host when the project's root changes, as when the extension
+ * has worked it out after the host printed a location in full.
+ */
+export class SourceTextController implements ReactiveController {
+  #off: (() => void) | undefined;
+
+  constructor(private readonly host: ReactiveControllerHost) {
+    host.addController(this);
+  }
+
+  hostConnected(): void {
+    this.#off = onProjectRootChange(() => this.host.requestUpdate());
+  }
+
+  hostDisconnected(): void {
+    this.#off?.();
+    this.#off = undefined;
+  }
+}
 
 export const sourceTextStyles = css`
   .seg {

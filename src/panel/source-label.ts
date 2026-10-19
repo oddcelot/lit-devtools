@@ -31,16 +31,58 @@ export interface SourceLabel {
 }
 
 let projectRoot: string | undefined;
+let findRoot: ((file: string) => Promise<string | undefined>) | undefined;
+const asked = new Set<string>();
+const listeners = new Set<() => void>();
 
 /**
- * Sets the root absolute paths are printed relative to; the panel's host
- * client calls it with what `get-meta` reports. `undefined` forgets it.
+ * Sets the root absolute paths are printed relative to: what `get-meta`
+ * reports, or what a {@link useRootFinder} found. `undefined` forgets it.
  */
 export const useProjectRoot = (root: string | undefined): void => {
   projectRoot =
     root === undefined
       ? undefined
       : root.replace(/\\/g, '/').replace(/\/$/, '');
+  asked.clear();
+  for (const listener of listeners) listener();
+};
+
+/**
+ * For a host that can't say where the project is (the extension): a way to
+ * work the root out from an absolute path the panel was asked to print.
+ * {@link askProjectRoot} asks it once per path.
+ */
+export const useRootFinder = (
+  find: ((file: string) => Promise<string | undefined>) | undefined
+): void => {
+  findRoot = find;
+  asked.clear();
+};
+
+/** Calls `listener` whenever the root changes; returns the unsubscribe. */
+export const onProjectRootChange = (listener: () => void): (() => void) => {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+};
+
+/**
+ * Asks the {@link useRootFinder} for the root `file` lies in, when `file` is
+ * an absolute path outside any root known so far. A root it finds is used
+ * from then on.
+ */
+export const askProjectRoot = (file: string): void => {
+  const path = file.replace(/\\/g, '/');
+  if (findRoot === undefined || !/^(?:\/|[A-Za-z]:\/)/.test(path)) return;
+  if (projectRoot !== undefined && path.startsWith(`${projectRoot}/`)) return;
+  if (packageOfPath(path) !== undefined || asked.has(path)) return;
+  asked.add(path);
+  void findRoot(path).then(
+    (root) => {
+      if (root !== undefined) useProjectRoot(root);
+    },
+    () => undefined
+  );
 };
 
 /**

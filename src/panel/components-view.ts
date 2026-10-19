@@ -83,6 +83,7 @@ import {
   fullSourceTip,
   manifestModuleOf,
   sourceText,
+  SourceTextController,
   sourceTextStyles,
   sourceTip,
   type ManifestModule,
@@ -688,6 +689,9 @@ const describeRoot = (d: InspectorDetails): string | undefined => {
  */
 @customElement('components-view')
 export class ComponentsView extends LitElement {
+  // Prints locations again once the project's root is known.
+  protected readonly _sourceText = new SourceTextController(this);
+
   static override styles = [
     tokens,
     sourceTextStyles,

@@ -1,8 +1,17 @@
 import {afterEach, describe, expect, test} from 'vite-plus/test';
-import {sourceLabel, useProjectRoot} from '../../panel/source-label.js';
+import {
+  askProjectRoot,
+  onProjectRootChange,
+  sourceLabel,
+  useProjectRoot,
+  useRootFinder,
+} from '../../panel/source-label.js';
 
 describe('sourceLabel', () => {
-  afterEach(() => useProjectRoot(undefined));
+  afterEach(() => {
+    useRootFinder(undefined);
+    useProjectRoot(undefined);
+  });
 
   test('a project file keeps its path', () => {
     expect(sourceLabel('src/my-el.ts')).toEqual({path: 'src/my-el.ts'});
@@ -72,5 +81,37 @@ describe('sourceLabel', () => {
   test('a Windows root matches with either slash', () => {
     useProjectRoot('C:\\app');
     expect(sourceLabel('C:/app/src/a.ts')).toEqual({path: 'src/a.ts'});
+  });
+
+  test('a finder works the root out once, and the label follows it', async () => {
+    const asked: string[] = [];
+    useRootFinder((file) => {
+      asked.push(file);
+      return Promise.resolve('/home/me/app');
+    });
+    let changes = 0;
+    const off = onProjectRootChange(() => changes++);
+    askProjectRoot('/home/me/app/src/pages/a.astro');
+    askProjectRoot('/home/me/app/src/pages/a.astro');
+    await Promise.resolve();
+    expect(changes).toBe(1);
+    // Inside the root it found: nothing more to ask.
+    askProjectRoot('/home/me/app/src/pages/b.astro');
+    expect(asked).toEqual(['/home/me/app/src/pages/a.astro']);
+    expect(sourceLabel('/home/me/app/src/pages/b.astro').path).toBe(
+      'src/pages/b.astro'
+    );
+    off();
+  });
+
+  test('a relative path or a package asks nothing', () => {
+    const asked: string[] = [];
+    useRootFinder((file) => {
+      asked.push(file);
+      return Promise.resolve(undefined);
+    });
+    askProjectRoot('src/a.ts');
+    askProjectRoot('/home/me/app/node_modules/lit/index.js');
+    expect(asked).toEqual([]);
   });
 });

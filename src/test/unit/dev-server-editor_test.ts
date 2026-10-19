@@ -80,3 +80,55 @@ describe('createDevServerEditor', () => {
     expect(calls).toEqual([`${ORIGIN}/__open-in-editor`]);
   });
 });
+
+describe('rootFor', () => {
+  const ROOT = '/home/me/app';
+  /** Vite with `files` under its root, every request recorded. */
+  const viteServing = (files: string[], calls: string[]) => (url: string) => {
+    calls.push(url);
+    const {pathname, search} = new URL(url);
+    if (pathname === '/__open-in-editor' && search === '') {
+      return Promise.resolve(
+        new Response('launch-editor-middleware: required query param', {
+          status: 500,
+        })
+      );
+    }
+    return Promise.resolve(
+      search === '?import' && files.includes(decodeURI(pathname))
+        ? new Response('export {}', {
+            headers: {'content-type': 'text/javascript'},
+          })
+        : new Response('not found', {status: 404})
+    );
+  };
+
+  test('the shortest tail Vite serves is the root-relative path', async () => {
+    const calls: string[] = [];
+    const editor = createDevServerEditor({
+      fetch: viteServing(['/src/pages/a.astro'], calls),
+    });
+    expect(await editor.rootFor(ORIGIN, `${ROOT}/src/pages/a.astro`)).toBe(
+      ROOT
+    );
+    expect(calls.slice(1)).toEqual([
+      `${ORIGIN}/a.astro?import`,
+      `${ORIGIN}/pages/a.astro?import`,
+      `${ORIGIN}/src/pages/a.astro?import`,
+    ]);
+  });
+
+  test('a file directly in the root counts', async () => {
+    const editor = createDevServerEditor({
+      fetch: viteServing(['/index.astro'], []),
+    });
+    expect(await editor.rootFor(ORIGIN, `${ROOT}/index.astro`)).toBe(ROOT);
+  });
+
+  test('a file the server does not serve has no root', async () => {
+    const editor = createDevServerEditor({fetch: viteServing([], [])});
+    expect(
+      await editor.rootFor(ORIGIN, `${ROOT}/src/pages/a.astro`)
+    ).toBeUndefined();
+  });
+});

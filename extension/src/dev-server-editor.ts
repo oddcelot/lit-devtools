@@ -14,6 +14,13 @@
  * The endpoint answers 200 whether or not the file exists, so a miss can't be
  * told from a hit; what can be told is whether the site is a Vite dev server
  * at all: asked with no `file`, it answers 500 with the middleware's name.
+ *
+ * The same server tells where its root is, which the panel prints absolute
+ * paths relative to (Astro marks its markup with absolute ones): Vite serves
+ * a file in its root at the root-relative path, as a module with `?import`,
+ * and answers 404 to any other tail of that file's absolute path. So the
+ * shortest tail it serves is the root-relative path, and what comes before
+ * it is the root.
  */
 
 import type {ElementSource} from '../../src/types/inspector.js';
@@ -57,7 +64,15 @@ export interface DevServerEditorOptions {
 export interface DevServerEditor {
   /** Opens `location` through `origin`'s dev server; false if it can't. */
   open(origin: string, location: ElementSource): Promise<boolean>;
+  /**
+   * The root of `origin`'s dev server, worked out from `file`, an absolute
+   * path in it; `undefined` when the server isn't Vite or doesn't serve it.
+   */
+  rootFor(origin: string, file: string): Promise<string | undefined>;
 }
+
+/** Tails of an absolute path tried at most, shortest first. */
+const MAX_TAILS = 8;
 
 export const createDevServerEditor = ({
   fetch,
@@ -85,7 +100,30 @@ export const createDevServerEditor = ({
     return known;
   };
 
+  /** Whether `origin` serves `path` as a module, so it is in the root. */
+  const serves = async (origin: string, path: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`${origin}${encodeURI(path)}?import`);
+      return (
+        response.ok &&
+        /javascript/.test(response.headers.get('content-type') ?? '')
+      );
+    } catch {
+      return false;
+    }
+  };
+
   return {
+    async rootFor(origin, file) {
+      if (!(await hasEndpoint(origin))) return undefined;
+      const slashes = [...file.matchAll(/\//g)].map((m) => m.index);
+      // The last slash starts the file name alone; the first, the whole path.
+      for (const at of slashes.reverse().slice(0, MAX_TAILS)) {
+        if (at === 0) break;
+        if (await serves(origin, file.slice(at))) return file.slice(0, at);
+      }
+      return undefined;
+    },
     async open(origin, location) {
       const file = editorFileFor(location, origin);
       if (file === undefined || !(await hasEndpoint(origin))) return false;
