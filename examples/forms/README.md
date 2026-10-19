@@ -20,8 +20,11 @@ The files in `src/`:
 - **`<fm-text-field>`**, **`<fm-switch>`**, **`<fm-rating>`** and
   **`<fm-tags>`** are the controls. Their values are a string, a boolean, a
   number and a `Set`.
-- **`<fm-feedback>`** is the page: the form, and a table of every control's
-  states.
+- **`<fm-feedback>`** is the page: the form and what it submitted. It
+  renders on a submit, a reset or the fieldset checkbox, and not while
+  someone types.
+- **`<fm-state-table>`** lists every control's states. It listens to the
+  form named by its `for` attribute and redraws only itself.
 
 ## Try it
 

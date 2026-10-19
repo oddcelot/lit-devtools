@@ -1,22 +1,12 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, query, state} from 'lit/decorators.js';
 import {FeedbackSchema} from './feedback-schema';
-import {FormControl} from './form-control';
 import {FormSchema} from './form-schema';
 import './fm-text-field';
 import './fm-switch';
 import './fm-rating';
 import './fm-tags';
-
-const STATES = [
-  'touched',
-  'dirty',
-  'user-invalid',
-  'empty',
-  'checked',
-  'rated',
-  'full',
-];
+import './fm-state-table';
 
 /**
  * The page: a plain `<form>` holding the controls, with native submit
@@ -29,7 +19,8 @@ const STATES = [
  *
  * The rules are a valibot schema in `feedback-schema.ts`, which `FormSchema`
  * checks after every change. The markup holds none of them.
- * The table under the form asks each control `matches(':state(…)')`.
+ * The table under the form is `<fm-state-table>`, which redraws itself, so
+ * this page renders only on a submit, a reset or the fieldset checkbox.
  */
 @customElement('fm-feedback')
 export class FmFeedback extends LitElement {
@@ -132,25 +123,9 @@ export class FmFeedback extends LitElement {
       align-self: center;
       font-size: 0.875em;
     }
-    table {
-      width: 100%;
+    fm-state-table {
+      display: block;
       margin-top: 24px;
-      border-collapse: collapse;
-      font-size: 0.8125em;
-    }
-    th,
-    td {
-      padding: 4px 6px;
-      border-bottom: 1px solid #dedbe9;
-      text-align: center;
-    }
-    th:first-child,
-    td:first-child {
-      text-align: left;
-    }
-    td.on {
-      color: var(--fm-accent);
-      font-weight: 700;
     }
     pre {
       padding: 12px;
@@ -165,8 +140,6 @@ export class FmFeedback extends LitElement {
 
   @state() private disabled = false;
   @state() private submitted?: [string, string][];
-  // Bumped after anything that can move a state, to redraw the table.
-  @state() private tick = 0;
 
   constructor() {
     super();
@@ -184,14 +157,7 @@ export class FmFeedback extends LitElement {
         valibot asks for more. The table shows each control's
         <code>:state()</code>.
       </p>
-      <form
-        @submit=${this.#onSubmit}
-        @input=${this.#refresh}
-        @change=${this.#refresh}
-        @focusout=${this.#refresh}
-        @reset=${this.#onReset}
-        @invalid=${{handleEvent: () => this.#refresh(), capture: true}}
-      >
+      <form id="feedback" @submit=${this.#onSubmit} @reset=${this.#onReset}>
         <fieldset ?disabled=${this.disabled}>
           <p class="summary">Some answers need another look.</p>
           <fm-text-field
@@ -246,7 +212,7 @@ export class FmFeedback extends LitElement {
           </label>
         </div>
       </form>
-      ${this.#statesTable()}
+      <fm-state-table for="feedback"></fm-state-table>
       ${
         this.submitted
           ? html`<p>Submitted <code>FormData</code>:</p>
@@ -255,45 +221,6 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
           : ''
       }
     `;
-  }
-
-  #statesTable() {
-    void this.tick;
-    const controls = this.#controls();
-    return html`
-      <table>
-        <tr>
-          <th>name</th>
-          ${STATES.map((s) => html`<th>${s}</th>`)}
-          <th>:invalid</th>
-        </tr>
-        ${controls.map(
-          (control) => html`
-            <tr>
-              <td><code>${control.name}</code></td>
-              ${STATES.map((s) => this.#cell(control.matches(`:state(${s})`)))}
-              ${this.#cell(control.matches(':invalid'))}
-            </tr>
-          `
-        )}
-      </table>
-    `;
-  }
-
-  #controls() {
-    return [...(this.form?.elements ?? [])].filter(
-      (el): el is FormControl<unknown> => el instanceof FormControl
-    );
-  }
-
-  #cell(on: boolean) {
-    return html`<td class=${on ? 'on' : ''}>${on ? '●' : '·'}</td>`;
-  }
-
-  // The controls set their states when they update, a microtask after the
-  // event. Read them a frame later.
-  #refresh() {
-    requestAnimationFrame(() => this.tick++);
   }
 
   #onSubmit(event: SubmitEvent) {
@@ -308,11 +235,6 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
   #onReset() {
     this.disabled = false;
     this.submitted = undefined;
-    this.#refresh();
-  }
-
-  override firstUpdated() {
-    this.#refresh();
   }
 }
 
