@@ -3,6 +3,57 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.21.0 — 2026-10-19
+
+Lit Inspector now opens sources in your editor: on a page a Vite dev server
+serves, even without the plugin, a component's **defined** and **rendered**
+links open the file. Locations read shorter everywhere, by package and
+version or relative to the project, and a library's component names the
+module its manifest gives. The panel also follows sites that swap in a new
+page body, such as webawesome.com. Nothing needs action to upgrade.
+
+### Added
+
+- **The extension opens sources in your editor on a Vite dev server.** On a
+  page Vite serves, with or without the plugin, the **defined** and
+  **rendered** links open the file in your editor instead of only in Chrome's
+  Sources panel, and work in Firefox too. They use the plugin's endpoint when
+  it serves one, else Vite's own `/__open-in-editor`, under the page's `base`.
+  When the extension can't tell where the project is on disk, the bottom of
+  the **Lit** tab says so and offers **Set project folder…** for the site.
+
+### Changed
+
+- **Locations in dependencies name the package.** A component from a
+  package reads as its name, version and path inside it, such as
+  `@awesome.me/webawesome 3.14.0 › dist/chunks/chunk.js:11`, instead of five
+  lines of pnpm store path; the full path is in the tooltip.
+- **A package's component names its module.** When the package ships a Custom
+  Elements Manifest, **defined** reads as the module and class it names, such
+  as `components/card/card.js (WaCard)`, instead of a bundler chunk. That
+  holds in the Vite panel and, for a manifest read from the site, in the
+  extension.
+- **Project files read relative to the project.** A location given as an
+  absolute path, such as Astro's for an element in `.astro` markup, reads
+  `src/pages/basics.astro:26`, in the Vite panel and in the extension on a
+  Vite dev server; the full path is in the tooltip.
+
+### Fixed
+
+- **The panel follows sites that swap in a new page body.** On a site that
+  navigates with Turbo Drive, such as webawesome.com, the Components tree
+  updates as you follow links, and the hover outline, update flashes and
+  element picker keep working.
+- **Lit components with a closed shadow root show their children.** The
+  Components tree lists what such a component renders, and Live follows
+  changes inside it, as the anatomy view already did.
+- **Elements written in `.astro` markup show where they are rendered.** The
+  **rendered** link, the source overlay and timeline events now point at the
+  `.astro` file and line, where before those elements had no location at all.
+- **The extension finds a decorated component on a Vite dev server.** On a
+  page Vite serves without the plugin, **defined** pointed at the compiler's
+  `decorate` helper instead of the file that declares the class.
+
 ## 0.20.1 — 2026-10-19
 
 A patch of fixes: the Lit tab in Firefox DevTools works again after opening
