@@ -15,7 +15,7 @@ import {
   isUndefinedElement,
   isUnupgradedElement,
 } from './listed.js';
-import {collectAnatomy} from './anatomy.js';
+import {collectAnatomy, shadowOf} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
 import {serialize, typeTag} from './serialize.js';
 import {
@@ -192,7 +192,8 @@ const descend = (
   sink: InspectorTreeNode[],
   onUndefined?: (tag: string) => void
 ): void => {
-  const shadow = el.shadowRoot;
+  // A closed root too: Lit keeps the root it renders into on the element.
+  const shadow = shadowOf(el);
   if (shadow !== null) {
     for (const child of shadow.children) visit(child, sink, onUndefined);
   }
@@ -428,7 +429,7 @@ export const collectDetails = (el: Element): InspectorDetails => {
     flags: {
       hasUpdated: re.hasUpdated === true,
       isUpdatePending: re.isUpdatePending === true,
-      hasShadowRoot: el.shadowRoot !== null,
+      hasShadowRoot: shadowOf(el) !== null,
     },
     ...insightsOf(el),
   };

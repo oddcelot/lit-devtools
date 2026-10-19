@@ -14,6 +14,7 @@
 
 import {CALL_SITE_ATTR} from '../source-meta.js';
 import type {ElementKey} from '../../../types/inspector.js';
+import {shadowOf} from './anatomy.js';
 
 export type {ElementKey};
 
@@ -42,11 +43,15 @@ const pathOf = (el: Element): string => {
   return steps.reverse().join('/');
 };
 
-/** Every element in document order, each shadow tree right after its host. */
+/**
+ * Every element in document order, each shadow tree right after its host:
+ * a closed one too, where Lit keeps it on the element, as the tree does.
+ */
 export function* deepElements(root: ParentNode): Generator<Element> {
   for (const child of root.children) {
     yield child;
-    if (child.shadowRoot !== null) yield* deepElements(child.shadowRoot);
+    const shadow = shadowOf(child);
+    if (shadow !== null) yield* deepElements(shadow);
     yield* deepElements(child);
   }
 }
