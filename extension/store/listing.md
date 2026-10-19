@@ -42,13 +42,13 @@ How to use it
 The extension asks for no site access at install and does nothing on a site until you enable it there.
 
 On production builds
-Lit's production build is supported: the component tree, the inspector and the lifecycle timeline work. Some features need Lit's development build or a dev server and are not available from the extension: render events (Lit emits them only in development), source locations and open-in-editor, HMR history, and exporting a snapshot. For those, use the Vite plugin @oddsquad/vite-plugin-lit in development.
+Lit's production build is supported: the component tree, the inspector and the lifecycle timeline work. Some features need Lit's development build or the Vite plugin and are not available from the extension: render events (Lit emits them only in development), HMR history, and exporting a snapshot. Where a component is defined and rendered comes from the page's sourcemaps, and on a Vite dev server a click opens it in your editor. For those, use the Vite plugin @oddsquad/vite-plugin-lit in development.
 
 Limits
 Top-level frames only (components inside iframes are not shown), http and https pages only, Chrome 114 or later.
 
 Privacy
-Lit Inspector collects no data. Its only network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://oddcelot.github.io/vite-plugin-lit/reference/extension-privacy/
+Lit Inspector collects no data. Its network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. On a site served by a Vite dev server, it also asks that server, and only that server, to open the files you click in your editor. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://oddcelot.github.io/vite-plugin-lit/reference/extension-privacy/
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with, endorsed by, or produced by Google or the Lit project.
 
@@ -109,7 +109,11 @@ page the user has enabled: their tree, properties, state and update timings.
   at install. Requested for one origin at a time, when the user clicks "Enable
   on this site" in the Lit tab, and used to register the content scripts on
   the origins the user enabled and to fetch those sites' own scripts,
-  sourcemaps and Custom Elements Manifests. It is also requested for one other
+  sourcemaps and Custom Elements Manifests. On a site served by a Vite dev
+  server, the same grant is used to ask that server which editor endpoints it
+  has, to request a few of its files to find the project folder, and to ask
+  it to open a file in the user's editor when they click a source link. It is
+  also requested for one other
   origin when the user adds a Custom Elements Manifest hosted there (a CDN,
   for example) or allows one a page links there; that grant is used only to
   fetch the manifest, registers no scripts, and is given back when the user

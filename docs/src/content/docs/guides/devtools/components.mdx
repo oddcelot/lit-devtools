@@ -93,6 +93,16 @@ dev build has warned about the component. Under the tag, three short
 lines say where the class is **defined**, where this instance is **rendered**,
 and its **root**: `shadow` with its mode and `delegatesFocus`, or `light DOM`.
 
+A location reads as short as it can and keeps the full path in its tooltip.
+A file in your project reads relative to the project, such as
+`src/pages/basics.astro:26`. A file in a dependency reads as the package, its
+version when the path carries one, and the path inside the package:
+`@awesome.me/webawesome 3.14.0 › dist/chunks/chunk.7VGCIHDG.js:11`. When that
+package's Custom Elements Manifest names the module declaring the class, the
+**defined** row shows that module and the class instead of the bundler chunk:
+`@awesome.me/webawesome 3.14.0 › components/card/card.js (WaCard)`. A click
+still opens the chunk at its line, because that is the code the page runs.
+
 Below those come the sections, each shown only when it has rows. **Properties** lists the public reactive
 properties, with a badge naming the attribute a property reflects to. A
 property declared with options beyond Lit's defaults gets one more badge per
@@ -392,6 +402,22 @@ Toggle Live off to pause the tree, for example to click through a list that
 keeps re-rendering, or to keep the observer's work out of a timeline recording
 on a heavy page. Pausing takes one last snapshot of the tree; turning Live back
 on brings it up to date. The choice is remembered per browser.
+
+Live follows any change to the page, whatever makes it. A client-side router,
+htmx, or Turbo Drive swapping in a whole new `<body>`, as webawesome.com does,
+all update the tree a moment after the page changes. With Live off, the tree
+refreshes itself twice after a client-side navigation, at 150 ms and 1 s. A
+route that renders later than that stays out until you refresh or turn Live on.
+
+The observer itself is cheap: it reports added and removed elements, never
+text or attribute changes. The cost is the tree rebuild after a change. The
+runtime waits 100 ms after the last change, rebuilds once, and sends the tree
+only when it differs. A page that keeps inserting components, such as a large
+virtualised list, rebuilds about every 100 ms while it does.
+
+The tree can't see inside a shadow root attached with `mode: 'closed'`, so
+elements rendered there are missing from it. Lit attaches open roots unless a
+component asks otherwise.
 
 Closing the panel stops the page observer, and reopening it with Live on
 starts it again. That holds for a panel opened as its own tab too: closing the
