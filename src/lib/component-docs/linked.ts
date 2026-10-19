@@ -15,6 +15,7 @@ import type {
   ComponentDocsArgs,
   ComponentDocsResult,
 } from '../devframe/protocol.js';
+import {packageOfPath} from '../package-path.js';
 import {docsFromManifest} from './manifest.js';
 
 /** The `rel` a page names its manifests with. */
@@ -35,10 +36,26 @@ export interface LinkedDocsSource {
   reset(): void;
 }
 
+/**
+ * The package a manifest at `url` ships with, when the URL shows it: a dev
+ * server serves dependencies under `node_modules/` or `/@fs/…/node_modules/`.
+ */
+const packageAt = (url: string): string | undefined => {
+  try {
+    return packageOfPath(decodeURIComponent(new URL(url).pathname))?.name;
+  } catch {
+    return undefined;
+  }
+};
+
 const parse = (text: string | undefined, url: string): ComponentDocs[] => {
   if (text === undefined) return [];
   try {
-    return docsFromManifest(JSON.parse(text), {manifest: url});
+    const pkg = packageAt(url);
+    return docsFromManifest(
+      JSON.parse(text),
+      pkg === undefined ? {manifest: url} : {manifest: url, package: pkg}
+    );
   } catch {
     return [];
   }

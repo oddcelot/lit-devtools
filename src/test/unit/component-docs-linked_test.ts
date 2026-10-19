@@ -90,3 +90,22 @@ test('answers no docs when the page cannot be asked or a fetch throws', async ()
   });
   expect((await throwing.componentDocs({tagName: 'x-a'})).docs).toBeNull();
 });
+
+test('names the package a manifest under node_modules ships with', async () => {
+  const inStore = `${site}/@fs/home/me/app/node_modules/.pnpm/@awesome.me+webawesome@3.14.0/node_modules/@awesome.me/webawesome/dist/custom-elements.json`;
+  const {source} = setup({
+    [inStore]: manifest('wa-card'),
+    [`${site}/custom-elements.json`]: manifest('x-own'),
+  });
+  expect(
+    (await source.componentDocs({tagName: 'wa-card'})).docs?.origin
+  ).toEqual({
+    manifest: inStore,
+    package: '@awesome.me/webawesome',
+    module: 'x.js',
+  });
+  // The site's own manifest belongs to no package.
+  expect((await source.componentDocs({tagName: 'x-own'})).docs?.origin).toEqual(
+    {manifest: `${site}/custom-elements.json`, module: 'x.js'}
+  );
+});
