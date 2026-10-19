@@ -1,20 +1,20 @@
 import {css, html, type PropertyValues} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import {FormControl} from './form-control';
+import {FormControl, type FormValue} from './form-control';
 
 /**
- * An on/off switch. Like a checkbox, it submits `value` when on and nothing
- * when off, and `required` means it has to be on.
+ * An on/off switch. Its `value` is a boolean. Like a checkbox, it submits
+ * `on` when on and nothing when off, and `required` means it has to be on.
  *
  * There is no `<input>` inside. The host is the control: `ElementInternals`
  * gives it the `switch` role and `aria-checked` without sprouting attributes,
  * so an outside `<label for>` names it and clicking the label toggles it.
  *
- * `checked` is not reflected to an attribute. The page sees it as
+ * Whether it is on is not reflected to an attribute. The page sees it as
  * `:state(checked)`, which is what the track below styles on.
  */
 @customElement('fm-switch')
-export class FmSwitch extends FormControl {
+export class FmSwitch extends FormControl<boolean> {
   static override styles = css`
     :host {
       display: inline-block;
@@ -59,8 +59,8 @@ export class FmSwitch extends FormControl {
     }
   `;
 
-  @property({type: Boolean}) checked = false;
-  @property() value = 'on';
+  /** On at first; the `checked` attribute, as on a checkbox. */
+  @property({type: Boolean, attribute: 'checked'}) defaultValue = false;
 
   constructor() {
     super();
@@ -79,34 +79,22 @@ export class FmSwitch extends FormControl {
   }
 
   #toggle() {
-    if (this.isDisabled) {
-      return;
+    if (!this.isDisabled) {
+      this.commit(!this.value);
     }
-    this.checked = !this.checked;
-    this.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
-    this.dispatchEvent(new Event('change', {bubbles: true}));
   }
 
-  protected formValue() {
-    return this.checked ? this.value : null;
+  protected toFormValue(on: boolean) {
+    return on ? 'on' : null;
   }
 
-  protected restore(value: string | null) {
-    this.checked = value !== null;
-  }
-
-  protected override validate() {
-    return this.required && !this.checked
-      ? {flags: {valueMissing: true}, message: 'Switch this on to continue.'}
-      : {};
+  protected fromFormValue(value: FormValue) {
+    return value !== null;
   }
 
   override updated(changed: PropertyValues<this>) {
-    this.internals.ariaChecked = String(this.checked);
-    this.internals.ariaRequired = String(this.required);
-    this.internals.ariaDisabled = String(this.isDisabled);
-    this.tabIndex = this.isDisabled ? -1 : 0;
-    this.toggleState('checked', this.checked);
+    this.internals.ariaChecked = String(this.value);
+    this.toggleState('checked', this.value);
     super.updated(changed);
   }
 }

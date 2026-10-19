@@ -5,12 +5,12 @@ import {LitElement, type PropertyValues} from 'lit';
 import {property, state} from 'lit/decorators.js';
 
 /**
- * What a control submits: one value, several under its `name` (as a
- * `<select multiple>` does), or nothing.
+ * What a control puts in the form: one string, several under its `name` (as
+ * a `<select multiple>` does), or nothing.
  */
 export type FormValue = string | readonly string[] | null;
 
-/** What a control reports to `setValidity()`. Empty means valid. */
+/** What a control reports to `setValidity()`. No message means valid. */
 export interface Validity {
   flags?: ValidityStateFlags;
   message?: string;
@@ -18,34 +18,34 @@ export interface Validity {
   anchor?: HTMLElement;
 }
 
+const isEmpty = (value: FormValue) =>
+  value === null || value === '' || value.length === 0;
+
 /**
- * The form plumbing every control here shares. A subclass says what it
- * submits (`formValue()`), how to take a value back (`restore()`) and,
- * optionally, what makes it invalid (`validate()`). This class does the rest
- * through `ElementInternals`:
+ * The form plumbing every control here shares, over `ElementInternals`. A
+ * subclass declares its `defaultValue` (usually from the `value` attribute)
+ * and how its value goes into the form and back; this class does the rest:
  *
- * - the value goes into the form's `FormData`, as one entry or, for a list,
- *   one entry per item;
- * - the validity blocks submit and shows the browser's bubble, and matches
- *   `:invalid` and `:valid` like a native control;
- * - a form reset puts the first value back, and a disabled `<fieldset>`
- *   disables the control (`:disabled` matches either way);
- * - the browser can restore the value on back/forward navigation;
- * - `setCustomValidity()` takes an error from outside, as on a native
- *   control, for rules about more than this one field.
+ * - `value` is the current value, `defaultValue` until someone changes it,
+ *   as on a native `<input>`. A form reset goes back to the default;
+ * - the value goes into the form's `FormData`, one entry per item for a list;
+ * - `required` makes an empty value invalid, and `setCustomValidity()` takes
+ *   an error from outside, such as a schema's (see `form-schema.ts`). Either
+ *   blocks submit, shows the browser's bubble and matches `:invalid`;
+ * - a disabled `<fieldset>` disables the control, and `:disabled` matches;
+ * - the browser can restore the value on back/forward navigation.
  *
- * It also sets custom states, which match `:state()` in CSS from outside the
- * control (`fm-switch:state(checked)`) and inside it
- * (`:host(:state(checked))`):
+ * It sets custom states, which match `:state()` in CSS from outside the
+ * control (`fm-switch:state(dirty)`) and inside it (`:host(:state(dirty))`):
  *
  * - `touched`: the control has lost focus, or a submit found it invalid;
- * - `dirty`: its value differs from the first one;
+ * - `dirty`: its value is not the default;
  * - `user-invalid`: touched and invalid, so errors wait until the user has
  *   been there. Native `:user-invalid` does not apply to custom elements.
  *
  * Subclasses add their own with `toggleState()`.
  */
-export abstract class FormControl extends LitElement {
+export abstract class FormControl<T> extends LitElement {
   static formAssociated = true;
 
   protected readonly internals = this.attachInternals();
@@ -54,37 +54,58 @@ export abstract class FormControl extends LitElement {
   @property({type: Boolean, reflect: true}) disabled = false;
   @property({type: Boolean, reflect: true}) required = false;
 
+  /** The value a reset goes back to. */
+  abstract defaultValue: T;
+
+  // Unset until the value changes. Kept apart from `defaultValue`, which a
+  // template sets, so a hot patch that re-creates the control carries it
+  // over: the plugin leaves template-set properties to the template.
+  @state() private current?: T;
   /** Disabled by its own attribute or by an ancestor `<fieldset>`. */
   @state() protected formDisabled = false;
   @state() private touched = false;
-  /** Set by `setCustomValidity()`; `''` when there is none. */
-  @state() protected customError = '';
-
-  // `undefined` until the first update. On a hot patch that re-creates the
-  // control, the plugin copies this field over before then, so the new
-  // instance keeps the old one's starting point instead of taking its own.
-  #initialValue?: FormValue;
+  @state() private customError = '';
 
   constructor() {
     super();
     this.addEventListener('focusout', () => (this.touched = true));
-    // A submit, `checkValidity()` or `reportValidity()` that finds the control
-    // invalid fires `invalid` at it: show the error from then on.
+    // A submit or `reportValidity()` that finds the control invalid fires
+    // `invalid` at it: show the error from then on.
     this.addEventListener('invalid', () => (this.touched = true));
   }
 
-  /** What `FormData` gets under `name`; `null` or `[]` leaves it out. */
-  protected abstract formValue(): FormValue;
+  get value(): T {
+    return this.current ?? this.defaultValue;
+  }
+  set value(value: T) {
+    this.current = value;
+  }
 
-  /** Takes back a value `formValue()` returned, on reset or restore. */
-  protected abstract restore(value: FormValue): void;
+  /** How `value` goes into the form; `null` or `[]` leaves it out. */
+  protected abstract toFormValue(value: T): FormValue;
 
+  /** How a form value comes back, when the browser restores the page. */
+  protected abstract fromFormValue(value: FormValue): T;
+
+  /** The control's own checks beyond `required`. */
   protected validate(): Validity {
     return {};
   }
 
+  /** Sets the value as the user did: fires `input` and `change`. */
+  protected commit(value: T) {
+    this.value = value;
+    this.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
+    this.dispatchEvent(new Event('change', {bubbles: true}));
+  }
+
   protected get isDisabled() {
     return this.disabled || this.formDisabled;
+  }
+
+  /** The current error, for a control that shows its own message. */
+  protected get errorMessage() {
+    return this.#validity().message ?? '';
   }
 
   protected toggleState(name: string, on: boolean) {
@@ -93,6 +114,22 @@ export abstract class FormControl extends LitElement {
     } else {
       this.internals.states.delete(name);
     }
+  }
+
+  // The control's own errors come first, then `required`, then one set from
+  // outside, as on a native control.
+  #validity(): Validity {
+    const own = this.validate();
+    if (own.message) {
+      return own;
+    }
+    if (this.required && isEmpty(this.toFormValue(this.value))) {
+      return {flags: {valueMissing: true}, message: 'Fill this in.'};
+    }
+    if (this.customError) {
+      return {flags: {customError: true}, message: this.customError};
+    }
+    return {};
   }
 
   get form() {
@@ -110,11 +147,6 @@ export abstract class FormControl extends LitElement {
   get willValidate() {
     return this.internals.willValidate;
   }
-  /**
-   * An error the control can't see for itself, such as one from a rule
-   * about several fields; `''` clears it. The control's own errors come
-   * first, as on a native control's.
-   */
   setCustomValidity(message: string) {
     this.customError = message;
   }
@@ -125,29 +157,25 @@ export abstract class FormControl extends LitElement {
     return this.internals.reportValidity();
   }
 
-  override willUpdate(changed: PropertyValues<this>) {
-    super.willUpdate(changed);
-    if (this.#initialValue === undefined) {
-      this.#initialValue = this.formValue();
-    }
-  }
-
   // After render, so `validate()` can read the shadow DOM it just drew.
   override updated(changed: PropertyValues<this>) {
     super.updated(changed);
-    const value = this.formValue();
+    const value = this.toFormValue(this.value);
     this.internals.setFormValue(this.#entries(value));
-    const {flags = {}, message = '', anchor} = this.validate();
-    // Every one of the control's own errors has a message.
-    if (message === '' && this.customError !== '') {
-      this.internals.setValidity({customError: true}, this.customError, anchor);
-    } else {
-      this.internals.setValidity(flags, message, anchor);
+    const {flags = {}, message = '', anchor} = this.#validity();
+    this.internals.setValidity(flags, message, anchor);
+    this.internals.ariaRequired = String(this.required);
+    this.internals.ariaDisabled = String(this.isDisabled);
+    // A control that is its own focus target, rather than delegating focus
+    // to something inside, needs a tab stop.
+    if (!this.shadowRoot?.delegatesFocus) {
+      this.tabIndex = this.isDisabled ? -1 : 0;
     }
+    const initial = this.toFormValue(this.defaultValue);
     this.toggleState('touched', this.touched);
     this.toggleState(
       'dirty',
-      JSON.stringify(value) !== JSON.stringify(this.#initialValue)
+      JSON.stringify(value) !== JSON.stringify(initial)
     );
     this.toggleState('user-invalid', this.touched && !this.validity.valid);
   }
@@ -166,7 +194,7 @@ export abstract class FormControl extends LitElement {
   }
 
   formResetCallback() {
-    this.restore(this.#initialValue ?? null);
+    this.current = undefined;
     this.touched = false;
   }
 
@@ -176,12 +204,12 @@ export abstract class FormControl extends LitElement {
 
   // The browser hands back what `setFormValue()` was given.
   formStateRestoreCallback(state: string | File | FormData | null) {
-    if (state instanceof FormData) {
-      this.restore(
-        state.getAll(this.name).filter((item) => typeof item === 'string')
-      );
-    } else {
-      this.restore(typeof state === 'string' ? state : null);
-    }
+    this.current = this.fromFormValue(
+      state instanceof FormData
+        ? state.getAll(this.name).filter((item) => typeof item === 'string')
+        : typeof state === 'string'
+          ? state
+          : null
+    );
   }
 }

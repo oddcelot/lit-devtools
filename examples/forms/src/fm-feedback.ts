@@ -1,7 +1,8 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, query, state} from 'lit/decorators.js';
-import {feedbackIssues} from './feedback-schema';
-import type {FormControl} from './form-control';
+import {FeedbackSchema} from './feedback-schema';
+import {FormControl} from './form-control';
+import {FormSchema} from './form-schema';
 import './fm-text-field';
 import './fm-switch';
 import './fm-rating';
@@ -18,19 +19,16 @@ const STATES = [
 ];
 
 /**
- * The page: a plain `<form>` holding the three controls, with native submit
+ * The page: a plain `<form>` holding the controls, with native submit
  * and reset buttons and a native checkbox that disables the `<fieldset>`.
  *
  * Its styles read the controls' custom states from outside with
  * `:has(:state(…))`: a dot marks an edited row, a summary appears while a
  * touched field is invalid, and Reset stays dim until something changed.
- * They also reach into the text fields' error line through `::part(error)`.
+ * They also reach into the error lines through `::part(error)`.
  *
- * Rules about more than one field (email once the newsletter is on, a
- * comment for a low rating) are a valibot schema in `feedback-schema.ts`.
- * After every change the page runs it over the form's `FormData` and hands
- * each issue to its control's `setCustomValidity()`, so those errors block
- * submit and show up like the controls' own.
+ * The rules are a valibot schema in `feedback-schema.ts`, which `FormSchema`
+ * checks after every change. The markup holds none of them.
  * The table under the form asks each control `matches(':state(…)')`.
  */
 @customElement('fm-feedback')
@@ -170,6 +168,12 @@ export class FmFeedback extends LitElement {
   // Bumped after anything that can move a state, to redraw the table.
   @state() private tick = 0;
 
+  constructor() {
+    super();
+    // Every rule of the form, checked after each change.
+    new FormSchema(this, FeedbackSchema);
+  }
+
   override render() {
     return html`
       <h1>Visit feedback</h1>
@@ -182,8 +186,8 @@ export class FmFeedback extends LitElement {
       </p>
       <form
         @submit=${this.#onSubmit}
-        @input=${this.#onChange}
-        @change=${this.#onChange}
+        @input=${this.#refresh}
+        @change=${this.#refresh}
         @focusout=${this.#refresh}
         @reset=${this.#onReset}
         @invalid=${{handleEvent: () => this.#refresh(), capture: true}}
@@ -194,8 +198,6 @@ export class FmFeedback extends LitElement {
             class="field"
             name="name"
             label="Your name"
-            required
-            minlength="2"
           ></fm-text-field>
           <fm-text-field
             class="field"
@@ -206,7 +208,7 @@ export class FmFeedback extends LitElement {
           ></fm-text-field>
           <div class="row field">
             <label for="rating">How was it?</label>
-            <fm-rating id="rating" name="rating" required></fm-rating>
+            <fm-rating id="rating" name="rating"></fm-rating>
           </div>
           <fm-tags
             class="field"
@@ -227,8 +229,7 @@ export class FmFeedback extends LitElement {
           </div>
           <p class="note">One email a month, no more.</p>
           <div class="row field">
-            <fm-switch id="terms" name="terms" value="accepted" required>
-            </fm-switch>
+            <fm-switch id="terms" name="terms"></fm-switch>
             <label for="terms">I accept the terms</label>
           </div>
         </fieldset>
@@ -280,27 +281,9 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
   }
 
   #controls() {
-    return this.form
-      ? [...this.form.elements].filter((el): el is FormControl =>
-          el.localName.startsWith('fm-')
-        )
-      : [];
-  }
-
-  // The controls put their values in the form when they update, so wait for
-  // that before reading `FormData`.
-  async #check() {
-    const controls = this.#controls();
-    await Promise.all(controls.map((control) => control.updateComplete));
-    const issues = feedbackIssues(this.form);
-    for (const control of controls) {
-      control.setCustomValidity(issues.get(control.name) ?? '');
-    }
-  }
-
-  #onChange() {
-    void this.#check();
-    this.#refresh();
+    return [...(this.form?.elements ?? [])].filter(
+      (el): el is FormControl<unknown> => el instanceof FormControl
+    );
   }
 
   #cell(on: boolean) {
@@ -325,13 +308,10 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
   #onReset() {
     this.disabled = false;
     this.submitted = undefined;
-    // The controls take their first values back after this event.
-    requestAnimationFrame(() => void this.#check());
     this.#refresh();
   }
 
   override firstUpdated() {
-    void this.#check();
     this.#refresh();
   }
 }

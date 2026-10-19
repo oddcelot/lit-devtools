@@ -1,13 +1,12 @@
 import {LitElement, css, html, type PropertyValues} from 'lit';
 import {customElement, property, query} from 'lit/decorators.js';
-import {ifDefined} from 'lit/directives/if-defined.js';
 import {live} from 'lit/directives/live.js';
-import {FormControl} from './form-control';
+import {FormControl, type FormValue} from './form-control';
 
 /**
- * A labelled text input. The `<input>` inside does the validating
- * (`required`, `type="email"`, `minlength`) and the control passes its
- * verdict on to the form, so the browser's own messages show up.
+ * A labelled text input. The `<input>` inside checks `required` and
+ * `type="email"`, and the control passes its verdict on to the form, so
+ * the browser's own messages show up.
  *
  * The label is drawn inside: an outside `<label for>` would name the host,
  * but focus lands on the inner `<input>`, which would have no name.
@@ -19,7 +18,7 @@ import {FormControl} from './form-control';
  * `fm-text-field::part(error)`. Whether it shows stays in here.
  */
 @customElement('fm-text-field')
-export class FmTextField extends FormControl {
+export class FmTextField extends FormControl<string> {
   // Clicking the host, or its outside label, focuses the inner `<input>`.
   static override shadowRootOptions = {
     ...LitElement.shadowRootOptions,
@@ -60,12 +59,11 @@ export class FmTextField extends FormControl {
   `;
 
   @property() label = '';
-  @property() value = '';
+  @property({attribute: 'value'}) defaultValue = '';
   @property() type: 'text' | 'email' = 'text';
   @property() placeholder = '';
-  @property({type: Number}) minlength?: number;
 
-  @query('input') private input!: HTMLInputElement;
+  @query('input') private input?: HTMLInputElement;
 
   override render() {
     return html`
@@ -75,15 +73,12 @@ export class FmTextField extends FormControl {
         type=${this.type}
         .value=${live(this.value)}
         placeholder=${this.placeholder}
-        minlength=${ifDefined(this.minlength)}
         ?required=${this.required}
         ?disabled=${this.isDisabled}
-        @input=${() => (this.value = this.input.value)}
+        @input=${() => (this.value = this.input!.value)}
         @change=${this.#redispatch}
       />
-      <p class="error" part="error">
-        ${this.input?.validationMessage || this.customError}
-      </p>
+      <p class="error" part="error">${this.errorMessage}</p>
     `;
   }
 
@@ -92,20 +87,23 @@ export class FmTextField extends FormControl {
     this.dispatchEvent(new Event('change', {bubbles: true}));
   }
 
-  protected formValue() {
-    return this.value;
+  protected toFormValue(value: string) {
+    return value;
   }
 
-  protected restore(value: string | null) {
-    this.value = value ?? '';
+  protected fromFormValue(value: FormValue) {
+    return typeof value === 'string' ? value : '';
   }
 
+  // The `<input>`'s own verdict, with the browser's message for it.
   protected override validate() {
-    return {
-      flags: this.input.validity,
-      message: this.input.validationMessage,
-      anchor: this.input,
-    };
+    return this.input
+      ? {
+          flags: this.input.validity,
+          message: this.input.validationMessage,
+          anchor: this.input,
+        }
+      : {};
   }
 
   override updated(changed: PropertyValues<this>) {
