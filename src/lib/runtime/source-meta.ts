@@ -1,4 +1,6 @@
 /** Runtime accessor for injected component source metadata. */
+import {astroCallSite} from './astro-sources.js';
+
 export const SOURCE_META_KEY = Symbol.for('@oddsquad/vite-plugin-lit#source');
 
 export interface LitSourceMeta {
@@ -21,12 +23,13 @@ export interface CallSite {
 }
 
 /**
- * The call site the transform stamped on `el`, if any. Parsed from the right:
- * the file part may itself hold colons (a Windows drive).
+ * The call site the transform stamped on `el`, else the one Astro wrote on
+ * it, if any. Parsed from the right: the file part may itself hold colons (a
+ * Windows drive).
  */
 export const readCallSite = (el: Element): CallSite | undefined => {
   const match = /^(.*):(\d+):(\d+)$/.exec(
-    el.getAttribute(CALL_SITE_ATTR) ?? ''
+    el.getAttribute(CALL_SITE_ATTR) ?? astroCallSite(el) ?? ''
   );
   return match === null
     ? undefined

@@ -172,6 +172,48 @@ describe('defaultResolver', () => {
     });
   });
 
+  test('carries the call site Astro wrote on a host in .astro markup', async () => {
+    const tag = define(true, 'Widget');
+    const host = document.createElement(tag);
+    host.setAttribute('data-astro-source-file', '/proj/src/pages/a.astro');
+    host.setAttribute('data-astro-source-loc', '26:6');
+    document.body.append(host);
+    expect((await defaultResolver.resolveElementInfo(host))?.callSite).toEqual({
+      filePath: '/proj/src/pages/a.astro',
+      lineNumber: 26,
+      columnNumber: 6,
+    });
+  });
+
+  test("keeps Astro's call site after its toolbar takes the attributes off", async () => {
+    const tag = define(true, 'Widget');
+    const host = document.createElement(tag);
+    host.setAttribute('data-astro-source-file', '/proj/src/pages/a.astro');
+    host.setAttribute('data-astro-source-loc', '26:6');
+    document.body.append(host);
+    host.removeAttribute('data-astro-source-file');
+    host.removeAttribute('data-astro-source-loc');
+    // Mutation records arrive in a microtask.
+    await Promise.resolve();
+    expect((await defaultResolver.resolveElementInfo(host))?.callSite).toEqual({
+      filePath: '/proj/src/pages/a.astro',
+      lineNumber: 26,
+      columnNumber: 6,
+    });
+  });
+
+  test("prefers the transform's stamp to Astro's attributes", async () => {
+    const tag = define(true, 'Widget');
+    const host = document.createElement(tag);
+    host.setAttribute('data-lit-source', 'src/list.ts:41:30');
+    host.setAttribute('data-astro-source-file', '/proj/src/pages/a.astro');
+    host.setAttribute('data-astro-source-loc', '26:6');
+    document.body.append(host);
+    expect(
+      (await defaultResolver.resolveElementInfo(host))?.callSite?.filePath
+    ).toBe('src/list.ts');
+  });
+
   test('resolves to null with no host', async () => {
     const el = document.createElement('div');
     document.body.append(el);
