@@ -5,6 +5,7 @@ packages:
   - examples/web-awesome
   - examples/fernhouse
   - examples/css
+  - examples/forms
   - examples/tailwind
   - examples/ssr
   - examples/astro
@@ -30,6 +31,7 @@ overrides:
   vite-plugin-lit-web-awesome-example>vite: ^8.3.2
   vite-plugin-lit-fernhouse-example>vite: ^8.3.2
   vite-plugin-lit-css-example>vite: ^8.3.2
+  vite-plugin-lit-forms-example>vite: ^8.3.2
   vite-plugin-lit-tailwind-example>vite: ^8.3.2
   vite-plugin-lit-ssr-example>vite: ^8.3.2
   # satori pins 0.7.3, inside GHSA-px8p-9vwx-vf98 (an infinite loop in
