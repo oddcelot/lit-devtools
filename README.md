@@ -181,9 +181,9 @@ origin (any port) may connect; for any other origin, pass it to the server with
 matches any subdomain, e.g. `--allow-origin 'https://*.webcontainer-api.io'`
 for StackBlitz, where every port gets its own origin.
 
-Outside Vite the page has no build-time transforms, so HMR patching, source
-locations and open-in-editor do not work there; the tree, inspector and timeline
-do. A page that Vite serves can instead call `connectToDevServer()` from
+Outside Vite the page has no build-time transforms, so HMR patching and
+open-in-editor do not work there; the tree, inspector and timeline do. Source
+locations come from the page's sourcemaps when it ships them. A page that Vite serves can instead call `connectToDevServer()` from
 `@oddsquad/vite-plugin-lit/connect.js`.
 
 **Production builds.** The script tag also attaches to a minified build with
@@ -196,7 +196,8 @@ Lit's production condition, checked by
   `update`, `updated`).
 - Empty: the render layers, because Lit's production build never dispatches
   `lit-debug` events.
-- Missing: source locations and open-in-editor (no build-time transform), HMR.
+- Missing: open-in-editor and HMR (no build-time transform). Source locations
+  come from the build's sourcemaps, when it ships them.
 - Blocked: a page whose Content Security Policy does not allow the dev server's
   origin in `script-src` (for example `script-src 'self'`) refuses the tag, so
   nothing attaches.
