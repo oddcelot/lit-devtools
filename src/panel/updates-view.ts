@@ -18,10 +18,11 @@ import {LocationController} from './location-controller.js';
 import {PanelLocation} from './panel-location.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
 import {ifDefined} from 'lit/directives/if-defined.js';
-import {sourceOpenerFor} from './source-opener.js';
+import {sourceOpenerFor, sourceOpenerTip} from './source-opener.js';
 import {
   fullSourceTip,
   sourceText,
+  SourceTextController,
   sourceTextStyles,
   sourceTip,
 } from './source-text.js';
@@ -38,6 +39,9 @@ import {
  */
 @customElement('updates-view')
 export class UpdatesView extends LitElement {
+  // Prints locations again once the project's root is known.
+  protected readonly _sourceText = new SourceTextController(this);
+
   static override styles = [
     tokens,
     sourceTextStyles,
@@ -544,7 +548,7 @@ export class UpdatesView extends LitElement {
                   class="link"
                   appearance="plain"
                   size="s"
-                  data-tip=${sourceTip(sourceOpener(source) ? 'Open in Sources' : 'Open this file in your editor', source.file, source.line)}
+                  data-tip=${sourceTip(sourceOpener(source) ? sourceOpenerTip() : 'Open this file in your editor', source.file, source.line)}
                   @click=${() => {
                     const opener = sourceOpener(source);
                     if (opener !== undefined) void opener(source);

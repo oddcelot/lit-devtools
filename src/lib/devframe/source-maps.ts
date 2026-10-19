@@ -13,7 +13,7 @@
  * Which frame names the component: the define call's stack starts in
  * library code (`@customElement`, a registration helper) before reaching the
  * module that declares the class. So the first mapped frame outside
- * `node_modules` wins; failing that, the first outside Lit's own packages (a
+ * `node_modules` and Vite's virtual modules wins; failing that, the first outside Lit's own packages (a
  * component library's element); failing that, the first mapped frame.
  *
  * Outside `node_modules`, a frame that lands exactly on a mapping segment
@@ -31,6 +31,7 @@
 import {
   FlattenMap,
   isIgnored,
+  LEAST_UPPER_BOUND,
   originalPositionFor,
   traceSegment,
   type TraceMap,
@@ -120,6 +121,10 @@ export const displayPath = (source: string): string => {
 };
 
 const NODE_MODULES_RE = /(?:^|\/)node_modules\//;
+// A Vite dev server serves a virtual module (`\0`-prefixed id) under
+// `/@id/__x00__`: the compiler's helpers, such as the `decorate` an
+// `@customElement` class calls, live there and are nobody's own code.
+const VIRTUAL_RE = /(?:^\0|\/@id\/__x00__)/;
 const LIT_PACKAGE_RE =
   /(?:^|\/)node_modules\/(?:lit|lit-element|lit-html|@lit|@lit-labs)\//;
 
@@ -258,7 +263,17 @@ export const createSourceMapResolver = (
     try {
       // The browser prints 1-based columns; trace-mapping wants 0-based.
       const column = Math.max(0, frame.column - 1);
-      const pos = originalPositionFor(map, {line: frame.line, column});
+      // A call the compiler emitted ahead of the line's first mapping, such
+      // as the `_decorate(` of `MyEl = _decorate([customElement('my-el')],
+      // MyEl)`, takes the mapping after it: the decorator it applies.
+      let pos = originalPositionFor(map, {line: frame.line, column});
+      if (pos.source === null) {
+        pos = originalPositionFor(map, {
+          line: frame.line,
+          column,
+          bias: LEAST_UPPER_BOUND,
+        });
+      }
       if (pos.source === null) return undefined;
       return {
         frame,
@@ -279,7 +294,10 @@ export const createSourceMapResolver = (
       const mapped = (await Promise.all(frames.map(mapFrame))).filter(
         (m): m is Mapped => m !== undefined
       );
-      const own = (m: Mapped) => !m.ignored && !NODE_MODULES_RE.test(m.source);
+      const own = (m: Mapped) =>
+        !m.ignored &&
+        !NODE_MODULES_RE.test(m.source) &&
+        !VIRTUAL_RE.test(m.source);
       const pick =
         mapped.find((m) => own(m) && m.exact) ??
         mapped.find(own) ??

@@ -60,7 +60,7 @@ import {openInEditor} from './open-in-editor.js';
 import {elementRevealer} from './element-revealer.js';
 import {breakKey, breakpoints} from './breakpoints.js';
 import {ifDefined} from 'lit/directives/if-defined.js';
-import {sourceOpenerFor} from './source-opener.js';
+import {sourceOpenerFor, sourceOpenerTip} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {watchPaneVisibility} from './pane-visibility.js';
 import {onFollowedElement} from './followed-element.js';
@@ -83,6 +83,7 @@ import {
   fullSourceTip,
   manifestModuleOf,
   sourceText,
+  SourceTextController,
   sourceTextStyles,
   sourceTip,
   type ManifestModule,
@@ -688,6 +689,9 @@ const describeRoot = (d: InspectorDetails): string | undefined => {
  */
 @customElement('components-view')
 export class ComponentsView extends LitElement {
+  // Prints locations again once the project's root is known.
+  protected readonly _sourceText = new SourceTextController(this);
+
   static override styles = [
     tokens,
     sourceTextStyles,
@@ -3651,7 +3655,7 @@ export class ComponentsView extends LitElement {
     return this._canOpen || inHost
       ? html`<button
           class="link ${cls}"
-          data-tip=${sourceTip(inHost ? 'Open in Sources' : tip, loc.file, loc.line)}
+          data-tip=${sourceTip(inHost ? sourceOpenerTip() : tip, loc.file, loc.line)}
           @click=${open}
         >
           ${text}<wa-icon name="arrow-square-out"></wa-icon>

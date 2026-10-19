@@ -34,6 +34,29 @@
         ·
         <button type="button" id="manifest-nudge-later">Not now</button>
       </span>
+      <!-- Whether a location opens in the editor, when that can't be sure
+           (src/dev-server-editor.ts), or why nothing can open one. -->
+      <span id="editor-notice" hidden>
+        <span id="editor-notice-text"></span>
+        <span id="editor-folder-offer">
+          ·
+          <button type="button" id="editor-folder-set">
+            Set project folder…
+          </button>
+        </span>
+        <form id="editor-folder-form" hidden>
+          <input
+            id="editor-folder"
+            type="text"
+            spellcheck="false"
+            placeholder="/path/to/the/project"
+            aria-label="Project folder"
+          />
+          <button type="submit">Save</button>
+        </form>
+        ·
+        <button type="button" id="editor-notice-later">Don't show again</button>
+      </span>
       <button id="reload" hidden>Reload page</button>
       <button id="disable">Disable on this site</button>
     </footer>

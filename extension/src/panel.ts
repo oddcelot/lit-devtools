@@ -53,6 +53,7 @@ import {useLocalClient} from '../../src/panel/client.js';
 import {useElementRevealer} from '../../src/panel/element-revealer.js';
 import {useBreakpoints, type Breakpoints} from '../../src/panel/breakpoints.js';
 import {useSourceOpener} from '../../src/panel/source-opener.js';
+import {useProjectRoot, useRootFinder} from '../../src/panel/source-label.js';
 import {
   BREAKPOINTS_KEY,
   ELEMENT_BY_ID_KEY,
@@ -60,6 +61,12 @@ import {
 } from '../../src/types/inspector.js';
 import type {ElementSource} from '../../src/types/inspector.js';
 import {loadedUrlFor} from './loaded-source.js';
+import {createDevServerEditor, type EditorReach} from './dev-server-editor.js';
+import {
+  normalizeFolder,
+  readProjectRoot,
+  writeProjectRoot,
+} from './project-root.js';
 import {CHANNEL_PAGE_STATUS, PANEL_PORT} from './protocol.js';
 import type {
   OriginStatus,
@@ -115,6 +122,13 @@ const manifestNudge = $('manifest-nudge');
 const manifestNudgeText = $('manifest-nudge-text');
 const manifestNudgeOpen = $<HTMLButtonElement>('manifest-nudge-open');
 const manifestNudgeLater = $<HTMLButtonElement>('manifest-nudge-later');
+const editorNotice = $('editor-notice');
+const editorNoticeText = $('editor-notice-text');
+const editorFolderOffer = $('editor-folder-offer');
+const editorFolderSet = $<HTMLButtonElement>('editor-folder-set');
+const editorFolderForm = $<HTMLFormElement>('editor-folder-form');
+const editorFolder = $<HTMLInputElement>('editor-folder');
+const editorNoticeLater = $<HTMLButtonElement>('editor-notice-later');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -230,6 +244,45 @@ const sourceMaps = createSourceMapResolver({
   fetch: (url) => fetch(url),
   allows: (url) => origin !== undefined && site(url) === origin,
 });
+
+// Opens a source in the editor through the page's own Vite dev server, from
+// here and only for the enabled site, like the sourcemaps. The plugin's
+// endpoint trusts only the page's own requests, so those go from the page.
+const devServerEditor = createDevServerEditor({
+  fetch: (url) => fetch(url),
+  // Vite serves its client under the base: `/app/@vite/client`.
+  base: async () => {
+    for (const script of await pageScripts()) {
+      const match = /^https?:\/\/[^/]+(\/.*?)@vite\/client(?:[?#]|$)/.exec(
+        script
+      );
+      if (match !== null) return match[1]!;
+    }
+    return '/';
+  },
+  fetchFromPage: async (url) => {
+    try {
+      const [result] = await chrome.scripting.executeScript({
+        target: {tabId},
+        world: 'MAIN',
+        args: [url],
+        func: async (at: string) => (await fetch(at)).status,
+      });
+      return typeof result?.result === 'number' ? result.result : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+});
+
+/** The inspected page's origin when it is on the enabled site. */
+const enabledPageOrigin = async (): Promise<string | undefined> => {
+  const url = await inspectedUrl();
+  if (url === undefined || origin === undefined || site(url) !== origin) {
+    return undefined;
+  }
+  return new URL(url).origin;
+};
 
 /**
  * Runs `func` in the inspected page for a list of strings: through
@@ -390,6 +443,15 @@ const openInSources = async (
 };
 
 /**
+ * Opens `location` in the editor through the inspected page's dev server,
+ * when the page is on the enabled site; false when nothing was sent.
+ */
+const openInEditor = async (location: ElementSource): Promise<boolean> => {
+  const at = await enabledPageOrigin();
+  return at !== undefined && devServerEditor.open(at, location);
+};
+
+/**
  * Selects the element with the runtime's id in the Elements panel, by
  * evaluating in the page: `inspect()` is a console utility, so it only exists
  * there, and the runtime's lookup (`ELEMENT_BY_ID_KEY`) is how the id becomes
@@ -480,6 +542,9 @@ const followElementsSelection = (devtools: typeof chrome.devtools): void => {
   if (sidebar) follow();
 };
 
+/** How long the panel waits at boot to learn whether an editor can open. */
+const EDITOR_PROBE_MS = 1500;
+
 const boot = async (): Promise<void> => {
   setupEl.hidden = true;
   const {port, dial} = pagePort(showPageStatus);
@@ -495,11 +560,58 @@ const boot = async (): Promise<void> => {
     },
   });
   useLocalClient(client);
-  // Outside DevTools (the e2e's plain tab) there is no Sources panel, and a
-  // browser may lack `openResource` (Firefox); locations stay as they are then.
+  // The page's dev server opens a location in the editor when it can;
+  // otherwise it opens in the Sources panel. Outside DevTools (the e2e's
+  // plain tab) there is no Sources panel, and a browser may lack
+  // `openResource` (Firefox): there a location is a link only when the
+  // dev server can open it, and plain text otherwise.
   const panels = devtools?.panels;
-  if (typeof panels?.openResource === 'function') {
-    useSourceOpener((location) => openInSources(panels, location));
+  const sources =
+    typeof panels?.openResource === 'function'
+      ? (location: ElementSource) => openInSources(panels, location)
+      : undefined;
+  hasSources = sources !== undefined;
+  const pageOrigin = await enabledPageOrigin();
+  if (pageOrigin !== undefined) {
+    const stored = await readProjectRoot(chrome.storage.local, pageOrigin);
+    if (typeof stored === 'string') {
+      await devServerEditor.useRoot(pageOrigin, stored);
+      useProjectRoot(stored);
+    }
+    editorNoticeSnoozed = stored === false;
+  }
+  editorReach =
+    pageOrigin === undefined
+      ? 'none'
+      : await Promise.race([
+          devServerEditor.reach(pageOrigin).catch((): EditorReach => 'none'),
+          new Promise<EditorReach>((resolve) =>
+            setTimeout(() => resolve('none'), EDITOR_PROBE_MS)
+          ),
+        ]);
+  const editor = editorReach !== 'none';
+  editorNoticeChanged();
+  // Where the project is, so the panel prints the absolute paths Astro marks
+  // its markup with relative to it: the page's Vite dev server can tell, and
+  // once it has, opening a file is sure.
+  useRootFinder(async (file) => {
+    const at = await enabledPageOrigin();
+    if (at === undefined) return undefined;
+    const root = await devServerEditor.rootFor(at, file);
+    if (root !== undefined) {
+      editorReach = await devServerEditor.reach(at);
+      editorNoticeChanged();
+    }
+    return root;
+  });
+  if (editor || sources !== undefined) {
+    useSourceOpener(
+      async (location) => {
+        if (editor && (await openInEditor(location))) return;
+        await sources?.(location);
+      },
+      editor ? 'Open in your editor' : 'Open in Sources'
+    );
   }
   // "Reveal in Elements" evaluates in the page and calls DevTools' `inspect()`
   // there, which Chrome and Firefox both provide; following the Elements
@@ -659,6 +771,56 @@ const manifestChanged = (): void => {
       ? 'Found a Custom Elements Manifest for this site'
       : `Found ${count} Custom Elements Manifests for this site`;
   for (const listener of manifestListeners) listener();
+  editorNoticeChanged();
+};
+
+/** How far the editor reaches from the page; set at boot. */
+let editorReach: EditorReach | undefined;
+/** DevTools' Sources panel can open a location here. */
+let hasSources = false;
+let editorNoticeSnoozed = false;
+
+/**
+ * Say so in the footer when a click on a location can't be sure to open the
+ * editor, or when nothing here can open one; the manifest nudge goes first.
+ */
+const editorNoticeChanged = (): void => {
+  const message =
+    editorReach === 'unsure'
+      ? "Can't tell where this project is on disk: files open in your editor only if Vite runs in the project folder"
+      : editorReach === 'none' && !hasSources
+        ? 'Nothing here can open a location: no dev server answered, and there is no Sources panel'
+        : undefined;
+  const show =
+    message !== undefined && !editorNoticeSnoozed && manifestNudge.hidden;
+  editorNotice.hidden = !show;
+  if (message !== undefined) editorNoticeText.textContent = message;
+  editorFolderOffer.hidden =
+    editorReach !== 'unsure' || !editorFolderForm.hidden;
+  pageEl.hidden = !manifestNudge.hidden || show;
+};
+
+/**
+ * A module the page loaded from its own server, root-relative: what a
+ * project folder must hold to be the server's root.
+ */
+const pageModule = async (at: string): Promise<string | undefined> => {
+  for (const script of await pageScripts()) {
+    const url = new URL(script);
+    if (url.origin !== at) continue;
+    const path = decodeURIComponent(url.pathname);
+    if (/^\/(?:@|node_modules\/)/.test(path) || path === '/') continue;
+    return path;
+  }
+  return undefined;
+};
+
+/** Takes `root` as the project folder: for opening and for printing. */
+const useRoot = async (at: string, root: string): Promise<void> => {
+  await devServerEditor.useRoot(at, root);
+  useProjectRoot(root);
+  editorReach = await devServerEditor.reach(at);
+  editorNoticeChanged();
 };
 
 /** The docs the panel shows may come from other manifests now. */
@@ -798,6 +960,37 @@ useManifestSetting({
 
 manifestNudgeOpen.addEventListener('click', () => {
   location.replace(`#${new URLSearchParams({tab: 'settings'})}`);
+});
+
+editorFolderSet.addEventListener('click', () => {
+  editorFolderForm.hidden = false;
+  editorNoticeChanged();
+  editorFolder.focus();
+});
+
+editorFolderForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const at = await enabledPageOrigin();
+  const root = normalizeFolder(editorFolder.value);
+  if (at === undefined || root === '') return;
+  const module = await pageModule(at);
+  if (
+    module !== undefined &&
+    !(await devServerEditor.isRoot(at, root, module))
+  ) {
+    editorNoticeText.textContent = `No ${module} in that folder, so it isn't this page's project`;
+    return;
+  }
+  await writeProjectRoot(chrome.storage.local, at, root);
+  editorFolderForm.hidden = true;
+  await useRoot(at, root);
+});
+
+editorNoticeLater.addEventListener('click', async () => {
+  editorNoticeSnoozed = true;
+  editorNoticeChanged();
+  const at = await enabledPageOrigin();
+  if (at !== undefined) await writeProjectRoot(chrome.storage.local, at, false);
 });
 
 manifestNudgeLater.addEventListener('click', () => {

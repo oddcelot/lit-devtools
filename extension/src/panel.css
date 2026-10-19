@@ -92,7 +92,8 @@ lit-devtools-panel {
   cursor: pointer;
 }
 
-#manifest-nudge {
+#manifest-nudge,
+#editor-notice {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -103,4 +104,14 @@ lit-devtools-panel {
 
 #bar button:hover {
   text-decoration: underline;
+}
+
+#editor-folder-form {
+  display: inline;
+}
+
+#editor-folder {
+  width: 24em;
+  max-width: 50vw;
+  font: inherit;
 }

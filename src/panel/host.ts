@@ -73,7 +73,8 @@ export const hostInfo = (): Promise<HostInfo> =>
     (meta): HostInfo => {
       // `get-meta` has resolved, so the connection has too.
       const snapshot = isSnapshot();
-      useProjectRoot(meta.projectRoot);
+      // A host that doesn't know leaves a root a finder found in place.
+      if (meta.projectRoot !== undefined) useProjectRoot(meta.projectRoot);
       return {
         ...meta.capabilities,
         snapshot,

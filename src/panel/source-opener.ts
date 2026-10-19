@@ -19,11 +19,23 @@ import type {ElementSource} from '../types/inspector.js';
 export type SourceOpener = (location: ElementSource) => void | Promise<void>;
 
 let current: SourceOpener | undefined;
+let currentTip = 'Open in Sources';
 
-/** Sets the host's opener; `undefined` removes it. Call before the panel mounts. */
-export const useSourceOpener = (opener: SourceOpener | undefined): void => {
+/**
+ * Sets the host's opener, and what its links say it does (`Open in
+ * Sources` unless told); `undefined` removes it. Call before the panel
+ * mounts.
+ */
+export const useSourceOpener = (
+  opener: SourceOpener | undefined,
+  tip = 'Open in Sources'
+): void => {
   current = opener;
+  currentTip = tip;
 };
+
+/** What a link that goes to the host's opener says it does. */
+export const sourceOpenerTip = (): string => currentTip;
 
 /**
  * The opener for `location`, when the host gave one. A URL always goes to it;
