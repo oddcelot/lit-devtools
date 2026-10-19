@@ -1163,7 +1163,7 @@ test("a pinned override comes back after a reload, kept out of the site's storag
   // The runtime keeps its tab id in sessionStorage regardless; what matters
   // is that no override is in either of the site's stores.
   const siteStorage = await page.evaluate(() =>
-    JSON.stringify([{...sessionStorage}, {...localStorage}])
+    JSON.stringify([sessionStorage, localStorage].map(Object.entries))
   );
   expect(siteStorage).not.toContain('kept');
   expect(siteStorage).not.toContain('lit-devtools-overrides');
