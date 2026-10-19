@@ -3,6 +3,30 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.20.1 — 2026-10-19
+
+A patch of fixes: the Lit tab in Firefox DevTools works again after opening
+blank since 0.19.0, server-rendered elements hydrate with the source overlay
+on, and closing a panel tab always clears what it drew. Nothing needs action
+to upgrade.
+
+### Fixed
+
+- **The Lit tab works in Firefox DevTools again.** Since 0.19.0 it opened
+  blank in Firefox; it now shows the site's status and the inspector once the
+  site is enabled.
+- **Server-rendered Lit elements hydrate with the source overlay on.** An
+  element whose template renders another custom element no longer re-renders
+  in the browser with a warning about an edit that never happened, in Astro or
+  any other server rendering.
+- **Closing a panel tab always clears what it drew on the page.** The anatomy
+  overlay, outline and Live mode no longer outlive a panel tab that closed too
+  fast to say so, or crashed.
+- **The panel stops filling the console with warnings.** Opening it no longer
+  prints Web Awesome's `size="small" is deprecated` warnings, and a panel in a
+  tab of its own, at `/__lit/` or in Firefox's DevTools, no longer warns that
+  the in-page channel has no handshake targets.
+
 ## 0.20.0 — 2026-10-18
 
 The plugin now runs in Astro. `lit()` server-renders and hydrates Lit
