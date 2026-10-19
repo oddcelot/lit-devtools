@@ -17,6 +17,20 @@ import {LIT_IN_PAGE_CHANNEL, type LitInPageProtocol} from '../types/in-page.js';
 
 let channel: PanelChannel<LitInPageProtocol> | undefined;
 
+/**
+ * Whether no window a page script could live in is in reach: the panel is
+ * not framed and was not opened by another window, as in a tab of its own
+ * or the Firefox extension's DevTools panel. devframe looks no further, so
+ * a channel would only buffer, and warn that it does.
+ */
+const alone = (): boolean => {
+  try {
+    return window.parent === window && window.opener == null;
+  } catch {
+    return false;
+  }
+};
+
 /** The shared channel endpoint, created on first call. */
 export const inPageChannel = (): PanelChannel<LitInPageProtocol> =>
   (channel ??= connectPanelChannel<LitInPageProtocol>({
@@ -30,4 +44,4 @@ export const inPageChannel = (): PanelChannel<LitInPageProtocol> =>
  * and must decide synchronously which transport to use.
  */
 export const inPageConnected = (): boolean =>
-  inPageChannel().status === 'connected';
+  !alone() && inPageChannel().status === 'connected';
