@@ -5,6 +5,7 @@ import type {FormControl} from './form-control';
 import './fm-text-field';
 import './fm-switch';
 import './fm-rating';
+import './fm-tags';
 
 const STATES = [
   'touched',
@@ -13,6 +14,7 @@ const STATES = [
   'empty',
   'checked',
   'rated',
+  'full',
 ];
 
 /**
@@ -90,8 +92,9 @@ export class FmFeedback extends LitElement {
     .field:not(:has(#newsletter:state(checked))) + .note {
       display: none;
     }
-    /* The text fields' error line, styled from out here through its part. */
-    fm-text-field::part(error)::before {
+    /* The error lines of the text fields and the tags, styled through their part. */
+    fm-text-field::part(error)::before,
+    fm-tags::part(error)::before {
       content: '⚠ ';
     }
     .summary {
@@ -171,7 +174,7 @@ export class FmFeedback extends LitElement {
     return html`
       <h1>Visit feedback</h1>
       <p>
-        Three form-associated custom elements in a plain
+        Four form-associated custom elements in a plain
         <code>&lt;form&gt;</code>. Submit it empty, tab through it, reset it,
         disable the fieldset. Turn the newsletter on, or give one star, and
         valibot asks for more. The table shows each control's
@@ -205,6 +208,14 @@ export class FmFeedback extends LitElement {
             <label for="rating">How was it?</label>
             <fm-rating id="rating" name="rating" required></fm-rating>
           </div>
+          <fm-tags
+            class="field"
+            name="tags"
+            label="What stood out?"
+            value="first visit"
+            max="4"
+            placeholder="Type a tag, press Enter"
+          ></fm-tags>
           <fm-text-field
             class="field"
             name="comment"
