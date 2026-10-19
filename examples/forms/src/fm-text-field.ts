@@ -81,7 +81,9 @@ export class FmTextField extends FormControl {
         @input=${() => (this.value = this.input.value)}
         @change=${this.#redispatch}
       />
-      <p class="error" part="error">${this.input?.validationMessage}</p>
+      <p class="error" part="error">
+        ${this.input?.validationMessage || this.customError}
+      </p>
     `;
   }
 

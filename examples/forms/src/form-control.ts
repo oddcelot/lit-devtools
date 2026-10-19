@@ -23,7 +23,9 @@ export interface Validity {
  *   `:invalid` and `:valid` like a native control;
  * - a form reset puts the first value back, and a disabled `<fieldset>`
  *   disables the control (`:disabled` matches either way);
- * - the browser can restore the value on back/forward navigation.
+ * - the browser can restore the value on back/forward navigation;
+ * - `setCustomValidity()` takes an error from outside, as on a native
+ *   control, for rules about more than this one field.
  *
  * It also sets custom states, which match `:state()` in CSS from outside the
  * control (`fm-switch:state(checked)`) and inside it
@@ -48,6 +50,8 @@ export abstract class FormControl extends LitElement {
   /** Disabled by its own attribute or by an ancestor `<fieldset>`. */
   @state() protected formDisabled = false;
   @state() private touched = false;
+  /** Set by `setCustomValidity()`; `''` when there is none. */
+  @state() protected customError = '';
 
   // `undefined` until the first update. On a hot patch that re-creates the
   // control, the plugin copies this field over before then, so the new
@@ -99,6 +103,14 @@ export abstract class FormControl extends LitElement {
   get willValidate() {
     return this.internals.willValidate;
   }
+  /**
+   * An error the control can't see for itself, such as one from a rule
+   * about several fields; `''` clears it. The control's own errors come
+   * first, as on a native control's.
+   */
+  setCustomValidity(message: string) {
+    this.customError = message;
+  }
   checkValidity() {
     return this.internals.checkValidity();
   }
@@ -119,7 +131,12 @@ export abstract class FormControl extends LitElement {
     const value = this.formValue();
     this.internals.setFormValue(value);
     const {flags = {}, message = '', anchor} = this.validate();
-    this.internals.setValidity(flags, message, anchor);
+    // Every one of the control's own errors has a message.
+    if (message === '' && this.customError !== '') {
+      this.internals.setValidity({customError: true}, this.customError, anchor);
+    } else {
+      this.internals.setValidity(flags, message, anchor);
+    }
     this.toggleState('touched', this.touched);
     this.toggleState('dirty', value !== this.#initialValue);
     this.toggleState('user-invalid', this.touched && !this.validity.valid);
