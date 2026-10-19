@@ -14,6 +14,9 @@ import {FormControl} from './form-control';
  *
  * States: `empty`, plus the base class's `touched`, `dirty` and
  * `user-invalid`, which shows the error line below.
+ *
+ * The error line is the `error` part, so a page can restyle it with
+ * `fm-text-field::part(error)`. Whether it shows stays in here.
  */
 @customElement('fm-text-field')
 export class FmTextField extends FormControl {
@@ -78,7 +81,7 @@ export class FmTextField extends FormControl {
         @input=${() => (this.value = this.input.value)}
         @change=${this.#redispatch}
       />
-      <p class="error">${this.input?.validationMessage}</p>
+      <p class="error" part="error">${this.input?.validationMessage}</p>
     `;
   }
 

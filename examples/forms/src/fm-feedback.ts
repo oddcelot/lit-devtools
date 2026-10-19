@@ -21,6 +21,7 @@ const STATES = [
  * Its styles read the controls' custom states from outside with
  * `:has(:state(…))`: a dot marks an edited row, a summary appears while a
  * touched field is invalid, and Reset stays dim until something changed.
+ * They also reach into the text fields' error line through `::part(error)`.
  * The table under the form asks each control `matches(':state(…)')`.
  */
 @customElement('fm-feedback')
@@ -81,6 +82,10 @@ export class FmFeedback extends LitElement {
     }
     .field:not(:has(#newsletter:state(checked))) + .note {
       display: none;
+    }
+    /* The text fields' error line, styled from out here through its part. */
+    fm-text-field::part(error)::before {
+      content: '⚠ ';
     }
     .summary {
       display: none;

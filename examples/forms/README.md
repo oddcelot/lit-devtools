@@ -139,6 +139,21 @@ native controls, so errors wait until someone has been in the field.
 `:invalid`, `:valid` and `:disabled` do work on form-associated elements
 without any help.
 
+The text field's error line is also a CSS part, `error`, so the page can
+restyle it without reaching into the shadow root. `<fm-feedback>` puts a
+warning sign in front of it:
+
+```css
+fm-text-field::part(error)::before {
+  content: '⚠ ';
+}
+```
+
+The field still decides when the line shows, from its own `user-invalid`
+state. Parts and states combine too:
+`fm-text-field:state(dirty)::part(error)` styles the error only on a field
+that has been edited.
+
 `:state()` needs Chrome 125, Safari 17.4 or Firefox 126.
 
 ## In this repository
