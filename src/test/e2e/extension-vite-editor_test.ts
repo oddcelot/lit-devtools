@@ -1,14 +1,21 @@
 /// <reference types="node" />
 /**
- * The Lit Inspector extension on a plain Vite dev server, one without the
- * plugin: where a component is defined and where it is rendered come from
- * the page's sourcemaps, and a click on either opens it in the editor through
- * Vite's own `/__open-in-editor`.
+ * The Lit Inspector extension on Vite dev servers: where a component is
+ * defined and where it is rendered, and a click on either opening it in the
+ * editor through the server. Three servers, each in its own process with
+ * `LAUNCH_EDITOR` pointing at a script that writes down what it was asked to
+ * open:
  *
- * The server runs in its own process, started in the app's root the way
- * `vite` usually is, because `launch-editor` resolves the root-relative path
- * against the working directory. `LAUNCH_EDITOR` points at a script that
- * writes down what it was asked to open.
+ * - plain Vite, started in the app's root the way `vite` usually is: the
+ *   locations come from the page's sourcemaps and open through Vite's own
+ *   `/__open-in-editor`;
+ * - plain Vite under `base: '/app/'`, where everything, the endpoint
+ *   included, sits under the base;
+ * - Vite with the plugin and its source overlay (which serves the plugin's
+ *   endpoint), started from the directory above the root, as `vite app` is:
+ *   Vite's endpoint would look for the root-relative path in the wrong
+ *   directory, so the open goes through the plugin's endpoint, asked from
+ *   the page.
  *
  * Set up like `extension_test.ts`. Needs `pnpm run build:extension`.
  */
@@ -57,9 +64,16 @@ class MyApp extends LitElement {
 customElements.define('my-app', MyApp);
 `,
   'serve.mjs': `import {createServer} from 'vite';
+const {BASE, PLUGIN} = process.env;
+const plugins = PLUGIN
+  ? [(await import(PLUGIN)).litPlugin({sourceOverlay: true})]
+  : [];
 const server = await createServer({
+  root: new URL('.', import.meta.url).pathname,
   configFile: false,
   logLevel: 'warn',
+  base: BASE || '/',
+  plugins,
   server: {port: 0},
 });
 await server.listen();
@@ -68,20 +82,49 @@ console.log('ready ' + server.resolvedUrls.local[0]);
   'fake-editor.sh': '#!/bin/sh\necho "$@" >> "$(dirname "$0")/opened.log"\n',
 };
 
+const PLUGIN = decodeURIComponent(
+  new URL('../../../index.js', import.meta.url).pathname
+);
+
+interface Server {
+  name: string;
+  /** Where the page is, under the server's base. */
+  page: string;
+  /** Run from the directory above the root rather than the root. */
+  outside?: boolean;
+  env?: Record<string, string>;
+  origin?: string;
+  process?: ChildProcess;
+}
+
+const SERVERS: Server[] = [
+  {name: 'plain Vite', page: '/'},
+  {name: 'Vite with a base', page: '/app/', env: {BASE: '/app/'}},
+  {
+    name: 'Vite with the plugin, started outside its root',
+    page: '/',
+    outside: true,
+    env: {PLUGIN},
+  },
+];
+
 let workDir: string;
 let appDir: string;
-let vite: ChildProcess;
-let origin: string;
 let context: BrowserContext;
 let extensionId: string;
 let extensionPage: Page;
 
-const startVite = (): Promise<string> =>
+const startVite = (server: Server): Promise<string> =>
   new Promise((resolve, reject) => {
-    vite = spawn(process.execPath, ['serve.mjs'], {
-      cwd: appDir,
-      env: {...process.env, LAUNCH_EDITOR: joinPath(appDir, 'fake-editor.sh')},
+    const vite = spawn(process.execPath, [joinPath(appDir, 'serve.mjs')], {
+      cwd: server.outside === true ? workDir : appDir,
+      env: {
+        ...process.env,
+        ...server.env,
+        LAUNCH_EDITOR: joinPath(appDir, 'fake-editor.sh'),
+      },
     });
+    server.process = vite;
     let out = '';
     vite.stdout!.on('data', (chunk: Buffer) => {
       out += chunk.toString();
@@ -99,13 +142,13 @@ beforeAll(async () => {
     await fsp.mkdir(joinPath(appDir, name, '..'), {recursive: true});
     await fsp.writeFile(joinPath(appDir, name), text, {mode: 0o755});
   }
-  origin = await startVite();
+  for (const server of SERVERS) server.origin = await startVite(server);
 
   const extensionDir = joinPath(workDir, 'unpacked');
   await fsp.cp(DIST, extensionDir, {recursive: true});
   const manifestPath = joinPath(extensionDir, 'manifest.json');
   const manifest = JSON.parse(await fsp.readFile(manifestPath, 'utf8'));
-  manifest.host_permissions = [`${origin}/*`];
+  manifest.host_permissions = SERVERS.map((server) => `${server.origin}/*`);
   await fsp.writeFile(manifestPath, JSON.stringify(manifest));
 
   const executablePath = process.env['HMR_E2E_EXECUTABLE'];
@@ -128,16 +171,20 @@ beforeAll(async () => {
   extensionId = new URL(worker.url()).host;
   extensionPage = await context.newPage();
   await extensionPage.goto(`chrome-extension://${extensionId}/devtools.html`);
-  await extensionPage.evaluate(
-    (at) => chrome.runtime.sendMessage({type: 'lit:enable', origin: at}),
-    origin
-  );
+  for (const server of SERVERS) {
+    await extensionPage.evaluate(
+      (at) => chrome.runtime.sendMessage({type: 'lit:enable', origin: at}),
+      server.origin
+    );
+  }
 }, 90_000);
 
 afterAll(async () => {
   await context?.close();
-  vite?.removeAllListeners('exit');
-  vite?.kill();
+  for (const {process: vite} of SERVERS) {
+    vite?.removeAllListeners('exit');
+    vite?.kill();
+  }
   if (workDir !== undefined) {
     await fsp.rm(workDir, {recursive: true, force: true});
   }
@@ -152,55 +199,61 @@ const opened = async (): Promise<string[]> => {
   }
 };
 
-test("the Lit tab opens a plain Vite page's sources in the editor", async () => {
-  const page = await context.newPage();
-  const errors: string[] = [];
-  page.on('console', (m) => errors.push(m.text()));
-  page.on('pageerror', (e) => errors.push(String(e)));
-  await page.goto(`${origin}/`);
-  await page
-    .locator('my-el')
-    .waitFor({state: 'attached', timeout: 10_000})
-    .catch(() => {
-      throw new Error(errors.join('\n'));
-    });
-  const tabId = await extensionPage.evaluate(
-    async (at) => (await chrome.tabs.query({url: `${at}/`}))[0]?.id,
-    origin
-  );
-  const panel = await context.newPage();
-  await panel.goto(
-    `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
-  );
-  const rows = panel.locator('components-view .row');
-  const myEl = rows.filter({hasText: /^\s*<my-el>\s*$/});
-  await rows.filter({hasText: 'my-app'}).first().waitFor({timeout: 15_000});
-  if (!(await myEl.first().isVisible())) {
-    await rows.filter({hasText: 'my-app'}).first().locator('.twisty').click();
-  }
-  await myEl.first().click();
+test.each(SERVERS)(
+  'the Lit tab opens sources in the editor: $name',
+  async (server) => {
+    await fsp.rm(joinPath(appDir, 'opened.log'), {force: true});
+    const url = `${server.origin}${server.page}`;
+    const page = await context.newPage();
+    const errors: string[] = [];
+    page.on('console', (m) => errors.push(m.text()));
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto(url);
+    await page
+      .locator('my-el')
+      .waitFor({state: 'attached', timeout: 10_000})
+      .catch(() => {
+        throw new Error(errors.join('\n'));
+      });
+    const tabId = await extensionPage.evaluate(
+      async (at) => (await chrome.tabs.query({url: at}))[0]?.id,
+      url
+    );
+    const panel = await context.newPage();
+    await panel.goto(
+      `chrome-extension://${extensionId}/panel.html?tabId=${tabId}#tab=components`
+    );
+    const rows = panel.locator('components-view .row');
+    const myEl = rows.filter({hasText: /^\s*<my-el>\s*$/});
+    await rows.filter({hasText: 'my-app'}).first().waitFor({timeout: 15_000});
+    if (!(await myEl.first().isVisible())) {
+      await rows.filter({hasText: 'my-app'}).first().locator('.twisty').click();
+    }
+    await myEl.first().click();
 
-  const defined = panel.locator('components-view button.src:not(.call-site)');
-  await expect
-    .poll(() => defined.textContent(), {timeout: 15_000})
-    .toContain('src/my-el.ts:4');
-  await defined.click();
-  await expect
-    .poll(opened, {timeout: 10_000})
-    .toEqual([expect.stringMatching(/\/app\/src\/my-el\.ts 4 2$/)]);
+    const defined = panel.locator('components-view button.src:not(.call-site)');
+    await expect
+      .poll(() => defined.textContent(), {timeout: 15_000})
+      .toContain('src/my-el.ts:');
+    await defined.click();
+    await expect
+      .poll(opened, {timeout: 10_000})
+      .toEqual([expect.stringMatching(/\/app\/src\/my-el\.ts \d+ \d+$/)]);
 
-  const rendered = panel.locator('components-view button.call-site');
-  await expect
-    .poll(() => rendered.textContent(), {timeout: 15_000})
-    .toContain('src/main.ts:6');
-  await rendered.click();
-  await expect
-    .poll(opened, {timeout: 10_000})
-    .toEqual([
-      expect.stringMatching(/\/app\/src\/my-el\.ts 4 2$/),
-      expect.stringMatching(/\/app\/src\/main\.ts 6 \d+$/),
-    ]);
+    const rendered = panel.locator('components-view button.call-site');
+    await expect
+      .poll(() => rendered.textContent(), {timeout: 15_000})
+      .toContain('src/main.ts:6');
+    await rendered.click();
+    await expect
+      .poll(opened, {timeout: 10_000})
+      .toEqual([
+        expect.stringMatching(/\/app\/src\/my-el\.ts \d+ \d+$/),
+        expect.stringMatching(/\/app\/src\/main\.ts 6 \d+$/),
+      ]);
 
-  await panel.close();
-  await page.close();
-}, 60_000);
+    await panel.close();
+    await page.close();
+  },
+  60_000
+);

@@ -234,8 +234,43 @@ const sourceMaps = createSourceMapResolver({
 });
 
 // Opens a source in the editor through the page's own Vite dev server, from
-// here and only for the enabled site, like the sourcemaps.
-const devServerEditor = createDevServerEditor({fetch: (url) => fetch(url)});
+// here and only for the enabled site, like the sourcemaps. The plugin's
+// endpoint trusts only the page's own requests, so those go from the page.
+const devServerEditor = createDevServerEditor({
+  fetch: (url) => fetch(url),
+  // Vite serves its client under the base: `/app/@vite/client`.
+  base: async () => {
+    for (const script of await pageScripts()) {
+      const match = /^https?:\/\/[^/]+(\/.*?)@vite\/client(?:[?#]|$)/.exec(
+        script
+      );
+      if (match !== null) return match[1]!;
+    }
+    return '/';
+  },
+  fetchFromPage: async (url) => {
+    try {
+      const [result] = await chrome.scripting.executeScript({
+        target: {tabId},
+        world: 'MAIN',
+        args: [url],
+        func: async (at: string) => (await fetch(at)).status,
+      });
+      return typeof result?.result === 'number' ? result.result : undefined;
+    } catch {
+      return undefined;
+    }
+  },
+});
+
+/** The inspected page's origin when it is on the enabled site. */
+const enabledPageOrigin = async (): Promise<string | undefined> => {
+  const url = await inspectedUrl();
+  if (url === undefined || origin === undefined || site(url) !== origin) {
+    return undefined;
+  }
+  return new URL(url).origin;
+};
 
 /**
  * Runs `func` in the inspected page for a list of strings: through
@@ -400,11 +435,8 @@ const openInSources = async (
  * when the page is on the enabled site; false when nothing was sent.
  */
 const openInEditor = async (location: ElementSource): Promise<boolean> => {
-  const url = await inspectedUrl();
-  if (url === undefined || origin === undefined || site(url) !== origin) {
-    return false;
-  }
-  return devServerEditor.open(new URL(url).origin, location);
+  const at = await enabledPageOrigin();
+  return at !== undefined && devServerEditor.open(at, location);
 };
 
 /**
@@ -525,11 +557,8 @@ const boot = async (): Promise<void> => {
   // Where the project is, so the panel prints the absolute paths Astro marks
   // its markup with relative to it: the page's Vite dev server can tell.
   useRootFinder(async (file) => {
-    const url = await inspectedUrl();
-    if (url === undefined || origin === undefined || site(url) !== origin) {
-      return undefined;
-    }
-    return devServerEditor.rootFor(new URL(url).origin, file);
+    const at = await enabledPageOrigin();
+    return at === undefined ? undefined : devServerEditor.rootFor(at, file);
   });
   useSourceOpener(async (location) => {
     if (await openInEditor(location)) return;

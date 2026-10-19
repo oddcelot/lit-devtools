@@ -1,67 +1,88 @@
 /**
  * Opening a source in the developer's editor through the page's own dev
- * server, on a page the plugin never built.
+ * server, and finding where that server's project is.
  *
- * Every Vite dev server answers `/__open-in-editor?file=path:line:column`
- * (its error overlay's link), and passes the path to `launch-editor`, which
- * resolves a relative one against the server's working directory. The
- * locations the extension resolves through Vite's sourcemaps are URLs: a file
- * inside the root is served at its root-relative path (`/src/a.ts`), one
- * outside it under `/@fs/` with its absolute path. So the root-relative path
- * opens whenever the server runs in its root, which is how `vite` is usually
- * started; an `/@fs/` path opens wherever.
+ * Two endpoints can open a file, and a site may have both:
  *
- * The endpoint answers 200 whether or not the file exists, so a miss can't be
- * told from a hit; what can be told is whether the site is a Vite dev server
- * at all: asked with no `file`, it answers 500 with the middleware's name.
+ * - The plugin's `/__lit-open-in-editor?file=&line=&column=`. It resolves a
+ *   relative path against the Vite root, whatever directory the server was
+ *   started in, and answers 404 for a file that isn't there. It only trusts
+ *   a request from the page itself, so it is asked through the page
+ *   ({@link DevServerEditorOptions.fetchFromPage}). Asked by the extension
+ *   with no `file`, it answers either 403 or, when the browser sends the
+ *   request as no site's (`Sec-Fetch-Site: none`), 400 for the missing
+ *   parameter; either is how the extension knows it is there.
+ * - Vite's own `<base>__open-in-editor?file=path:line:column`, which every
+ *   Vite dev server answers (its error overlay's link). It resolves a
+ *   relative path against the server's working directory, which is the root
+ *   only when the server was started there, so a path goes to it absolute
+ *   whenever the root is known. It answers 200 whether or not the file
+ *   exists; asked with no `file`, it answers 500 with the middleware's name,
+ *   which is how the extension knows it is there.
  *
- * The same server tells where its root is, which the panel prints absolute
- * paths relative to (Astro marks its markup with absolute ones): Vite serves
- * a file in its root at the root-relative path, as a module with `?import`,
- * and answers 404 to any other tail of that file's absolute path. So the
- * shortest tail it serves is the root-relative path, and what comes before
- * it is the root.
+ * The locations the extension resolves through Vite's sourcemaps are URLs:
+ * a file in the root is served at `<base><root-relative path>`, one outside
+ * it at `<base>@fs<absolute path>`. A plugin stamp is a path relative to the
+ * root, and Astro marks its markup with absolute paths.
+ *
+ * The same server tells where its root is: it serves a file in the root at
+ * the root-relative path, as a module with `?import`, and answers 404 to any
+ * other tail of that file's absolute path. So the shortest tail it serves is
+ * the root-relative path, and what comes before it is the root.
  */
 
 import type {ElementSource} from '../../src/types/inspector.js';
 
-const OPEN_IN_EDITOR_PATH = '/__open-in-editor';
+const VITE_OPEN_PATH = '__open-in-editor';
+const PLUGIN_OPEN_PATH = '/__lit-open-in-editor';
+
+/** Tails of an absolute path tried at most, shortest first. */
+const MAX_TAILS = 8;
+
+const isAbsolute = (path: string): boolean => /^(?:\/|[A-Za-z]:\/)/.test(path);
 
 /**
- * The `file:line:column` the endpoint at `origin` takes for `location`, or
- * `undefined` when the location isn't a file that server serves. A plugin
- * stamp (no `url`) is already relative to the Vite root.
+ * The file `location` names, as the dev server at `origin` with `base` knows
+ * it: relative to the root, or absolute. `undefined` when the location is a
+ * URL that server doesn't serve.
  */
-export const editorFileFor = (
+export const editorPathFor = (
   location: ElementSource,
-  origin: string
+  origin: string,
+  base = '/'
 ): string | undefined => {
-  const position = `:${location.line}:${location.column ?? 1}`;
-  if (location.url === undefined) return `${location.file}${position}`;
+  if (location.url === undefined) return location.file.replace(/\\/g, '/');
   let url: URL;
   try {
     url = new URL(location.url);
   } catch {
     return undefined;
   }
-  if (url.origin !== origin) return undefined;
+  if (url.origin !== origin || !url.pathname.startsWith(base)) return undefined;
   let path: string;
   try {
-    path = decodeURIComponent(url.pathname);
+    path = decodeURIComponent(url.pathname.slice(base.length));
   } catch {
     return undefined;
   }
-  const file = path.startsWith('/@fs/')
-    ? path.slice('/@fs'.length)
-    : path.replace(/^\/+/, '');
-  return file === '' ? undefined : `${file}${position}`;
+  if (path.startsWith('@fs/')) return path.slice('@fs'.length);
+  return path === '' ? undefined : path;
 };
 
 export interface DevServerEditorOptions {
   fetch: (url: string) => Promise<Response>;
+  /** The page's Vite base (`/` without one), for the server at `origin`. */
+  base: (origin: string) => Promise<string>;
+  /**
+   * Fetches `url` from the inspected page itself, so a server that trusts
+   * only its own pages answers; the status, or `undefined` when it can't.
+   */
+  fetchFromPage: (url: string) => Promise<number | undefined>;
 }
 
 export interface DevServerEditor {
+  /** Whether the dev server at `origin` can open a file in the editor. */
+  canOpen(origin: string): Promise<boolean>;
   /** Opens `location` through `origin`'s dev server; false if it can't. */
   open(origin: string, location: ElementSource): Promise<boolean>;
   /**
@@ -71,39 +92,69 @@ export interface DevServerEditor {
   rootFor(origin: string, file: string): Promise<string | undefined>;
 }
 
-/** Tails of an absolute path tried at most, shortest first. */
-const MAX_TAILS = 8;
+/** What a site's dev server offers, read once per origin. */
+interface Server {
+  base: string;
+  /** Vite's `__open-in-editor` answers. */
+  vite: boolean;
+  /** The plugin's `/__lit-open-in-editor` is there. */
+  plugin: boolean;
+  root?: string;
+}
 
 export const createDevServerEditor = ({
   fetch,
+  base: baseOf,
+  fetchFromPage,
 }: DevServerEditorOptions): DevServerEditor => {
-  const probes = new Map<string, Promise<boolean>>();
+  const servers = new Map<string, Promise<Server>>();
 
-  const probe = async (origin: string): Promise<boolean> => {
+  /** Whether `url` answers one of `expected`: a status and its text. */
+  const answers = async (
+    url: string,
+    ...expected: Array<[status: number, text: string]>
+  ): Promise<boolean> => {
     try {
-      const response = await fetch(`${origin}${OPEN_IN_EDITOR_PATH}`);
-      return (
-        response.status === 500 &&
-        (await response.text()).includes('launch-editor')
+      const response = await fetch(url);
+      const text = await response.text();
+      return expected.some(
+        ([status, part]) => response.status === status && text.includes(part)
       );
     } catch {
       return false;
     }
   };
 
-  const hasEndpoint = (origin: string): Promise<boolean> => {
-    let known = probes.get(origin);
-    if (known === undefined) {
-      known = probe(origin);
-      probes.set(origin, known);
+  const read = async (origin: string): Promise<Server> => {
+    const base = await baseOf(origin);
+    const [vite, plugin] = await Promise.all([
+      answers(`${origin}${base}${VITE_OPEN_PATH}`, [500, 'launch-editor']),
+      answers(
+        `${origin}${PLUGIN_OPEN_PATH}`,
+        [403, 'forbidden'],
+        [400, 'missing file parameter']
+      ),
+    ]);
+    return {base, vite, plugin};
+  };
+
+  const serverAt = (origin: string): Promise<Server> => {
+    let server = servers.get(origin);
+    if (server === undefined) {
+      server = read(origin);
+      servers.set(origin, server);
     }
-    return known;
+    return server;
   };
 
   /** Whether `origin` serves `path` as a module, so it is in the root. */
-  const serves = async (origin: string, path: string): Promise<boolean> => {
+  const serves = async (
+    origin: string,
+    base: string,
+    path: string
+  ): Promise<boolean> => {
     try {
-      const response = await fetch(`${origin}${encodeURI(path)}?import`);
+      const response = await fetch(`${origin}${base}${encodeURI(path)}?import`);
       return (
         response.ok &&
         /javascript/.test(response.headers.get('content-type') ?? '')
@@ -113,29 +164,74 @@ export const createDevServerEditor = ({
     }
   };
 
+  const viaPlugin = async (
+    origin: string,
+    file: string,
+    location: ElementSource
+  ): Promise<boolean> => {
+    const params = new URLSearchParams({file, line: String(location.line)});
+    if (location.column !== undefined) {
+      params.set('column', String(location.column));
+    }
+    const status = await fetchFromPage(
+      `${origin}${PLUGIN_OPEN_PATH}?${params.toString()}`
+    );
+    return status === 200;
+  };
+
+  const viaVite = async (
+    origin: string,
+    server: Server,
+    file: string,
+    location: ElementSource
+  ): Promise<boolean> => {
+    const path =
+      isAbsolute(file) || server.root === undefined
+        ? file
+        : `${server.root}/${file}`;
+    const params = new URLSearchParams({
+      file: `${path}:${location.line}:${location.column ?? 1}`,
+    });
+    try {
+      const response = await fetch(
+        `${origin}${server.base}${VITE_OPEN_PATH}?${params.toString()}`
+      );
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
   return {
+    async canOpen(origin) {
+      const server = await serverAt(origin);
+      return server.vite || server.plugin;
+    },
     async rootFor(origin, file) {
-      if (!(await hasEndpoint(origin))) return undefined;
+      const server = await serverAt(origin);
+      if (!server.vite) return undefined;
+      if (server.root !== undefined && file.startsWith(`${server.root}/`)) {
+        return server.root;
+      }
       const slashes = [...file.matchAll(/\//g)].map((m) => m.index);
       // The last slash starts the file name alone; the first, the whole path.
       for (const at of slashes.reverse().slice(0, MAX_TAILS)) {
         if (at === 0) break;
-        if (await serves(origin, file.slice(at))) return file.slice(0, at);
+        if (await serves(origin, server.base, file.slice(at + 1))) {
+          server.root = file.slice(0, at);
+          return server.root;
+        }
       }
       return undefined;
     },
     async open(origin, location) {
-      const file = editorFileFor(location, origin);
-      if (file === undefined || !(await hasEndpoint(origin))) return false;
-      try {
-        const params = new URLSearchParams({file});
-        const response = await fetch(
-          `${origin}${OPEN_IN_EDITOR_PATH}?${params.toString()}`
-        );
-        return response.ok;
-      } catch {
-        return false;
+      const server = await serverAt(origin);
+      const file = editorPathFor(location, origin, server.base);
+      if (file === undefined) return false;
+      if (server.plugin && (await viaPlugin(origin, file, location))) {
+        return true;
       }
+      return server.vite && viaVite(origin, server, file, location);
     },
   };
 };
