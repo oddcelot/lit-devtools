@@ -4,6 +4,12 @@
 import {LitElement, type PropertyValues} from 'lit';
 import {property, state} from 'lit/decorators.js';
 
+/**
+ * What a control submits: one value, several under its `name` (as a
+ * `<select multiple>` does), or nothing.
+ */
+export type FormValue = string | readonly string[] | null;
+
 /** What a control reports to `setValidity()`. Empty means valid. */
 export interface Validity {
   flags?: ValidityStateFlags;
@@ -18,7 +24,8 @@ export interface Validity {
  * optionally, what makes it invalid (`validate()`). This class does the rest
  * through `ElementInternals`:
  *
- * - the value goes into the form's `FormData`;
+ * - the value goes into the form's `FormData`, as one entry or, for a list,
+ *   one entry per item;
  * - the validity blocks submit and shows the browser's bubble, and matches
  *   `:invalid` and `:valid` like a native control;
  * - a form reset puts the first value back, and a disabled `<fieldset>`
@@ -56,7 +63,7 @@ export abstract class FormControl extends LitElement {
   // `undefined` until the first update. On a hot patch that re-creates the
   // control, the plugin copies this field over before then, so the new
   // instance keeps the old one's starting point instead of taking its own.
-  #initialValue?: string | null;
+  #initialValue?: FormValue;
 
   constructor() {
     super();
@@ -66,11 +73,11 @@ export abstract class FormControl extends LitElement {
     this.addEventListener('invalid', () => (this.touched = true));
   }
 
-  /** The value `FormData` gets under `name`; `null` leaves it out. */
-  protected abstract formValue(): string | null;
+  /** What `FormData` gets under `name`; `null` or `[]` leaves it out. */
+  protected abstract formValue(): FormValue;
 
   /** Takes back a value `formValue()` returned, on reset or restore. */
-  protected abstract restore(value: string | null): void;
+  protected abstract restore(value: FormValue): void;
 
   protected validate(): Validity {
     return {};
@@ -129,7 +136,7 @@ export abstract class FormControl extends LitElement {
   override updated(changed: PropertyValues<this>) {
     super.updated(changed);
     const value = this.formValue();
-    this.internals.setFormValue(value);
+    this.internals.setFormValue(this.#entries(value));
     const {flags = {}, message = '', anchor} = this.validate();
     // Every one of the control's own errors has a message.
     if (message === '' && this.customError !== '') {
@@ -138,8 +145,24 @@ export abstract class FormControl extends LitElement {
       this.internals.setValidity(flags, message, anchor);
     }
     this.toggleState('touched', this.touched);
-    this.toggleState('dirty', value !== this.#initialValue);
+    this.toggleState(
+      'dirty',
+      JSON.stringify(value) !== JSON.stringify(this.#initialValue)
+    );
     this.toggleState('user-invalid', this.touched && !this.validity.valid);
+  }
+
+  // A list goes in as a FormData of its own, one entry per item; the form
+  // appends those entries to its own.
+  #entries(value: FormValue) {
+    if (value === null || typeof value === 'string') {
+      return value;
+    }
+    const data = new FormData();
+    for (const item of value) {
+      data.append(this.name, item);
+    }
+    return data;
   }
 
   formResetCallback() {
@@ -151,7 +174,14 @@ export abstract class FormControl extends LitElement {
     this.formDisabled = disabled;
   }
 
+  // The browser hands back what `setFormValue()` was given.
   formStateRestoreCallback(state: string | File | FormData | null) {
-    this.restore(typeof state === 'string' ? state : null);
+    if (state instanceof FormData) {
+      this.restore(
+        state.getAll(this.name).filter((item) => typeof item === 'string')
+      );
+    } else {
+      this.restore(typeof state === 'string' ? state : null);
+    }
   }
 }
