@@ -1,3 +1,4 @@
+/* @ts-self-types="./boot.d.ts" */
 /**
  * What every page the Astro renderer serves loads before its components,
  * right after Lit's hydrate support (the integration's injected script

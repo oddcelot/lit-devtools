@@ -1,3 +1,4 @@
+/* @ts-self-types="./polyfill.d.ts" */
 /**
  * The `shadowRootPolyfill` option: declarative shadow roots for a browser
  * that can't parse them, attached by `shadow-roots.ts`. The integration's

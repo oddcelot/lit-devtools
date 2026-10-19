@@ -15,7 +15,8 @@
  *
  * @module
  */
-import type {Plugin} from 'vite';
+// A value import first: the compiler drops a type-only import along with
+// the comments before it, and the @ts-self-types line JSR reads with them.
 import {
   type CssSheetBuild,
   resolveCssSheetBuild,
@@ -24,6 +25,7 @@ import {loadPluginEnv} from './lib/env.js';
 import {litCssQueries} from './lib/plugins/css-queries.js';
 import {litCssLiterals} from './lib/plugins/css-literals.js';
 import {litTimelineVirtual} from './lib/plugins/timeline-virtual.js';
+import type {Plugin} from 'vite';
 
 export type {CssSheetBuild} from './lib/css-sheet-build.js';
 
