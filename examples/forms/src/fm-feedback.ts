@@ -1,5 +1,6 @@
 import {LitElement, css, html} from 'lit';
 import {customElement, query, state} from 'lit/decorators.js';
+import {feedbackIssues} from './feedback-schema';
 import type {FormControl} from './form-control';
 import './fm-text-field';
 import './fm-switch';
@@ -22,6 +23,12 @@ const STATES = [
  * `:has(:state(…))`: a dot marks an edited row, a summary appears while a
  * touched field is invalid, and Reset stays dim until something changed.
  * They also reach into the text fields' error line through `::part(error)`.
+ *
+ * Rules about more than one field (email once the newsletter is on, a
+ * comment for a low rating) are a valibot schema in `feedback-schema.ts`.
+ * After every change the page runs it over the form's `FormData` and hands
+ * each issue to its control's `setCustomValidity()`, so those errors block
+ * submit and show up like the controls' own.
  * The table under the form asks each control `matches(':state(…)')`.
  */
 @customElement('fm-feedback')
@@ -166,13 +173,14 @@ export class FmFeedback extends LitElement {
       <p>
         Three form-associated custom elements in a plain
         <code>&lt;form&gt;</code>. Submit it empty, tab through it, reset it,
-        disable the fieldset. The table shows each control's
+        disable the fieldset. Turn the newsletter on, or give one star, and
+        valibot asks for more. The table shows each control's
         <code>:state()</code>.
       </p>
       <form
         @submit=${this.#onSubmit}
-        @input=${this.#refresh}
-        @change=${this.#refresh}
+        @input=${this.#onChange}
+        @change=${this.#onChange}
         @focusout=${this.#refresh}
         @reset=${this.#onReset}
         @invalid=${{handleEvent: () => this.#refresh(), capture: true}}
@@ -192,12 +200,16 @@ export class FmFeedback extends LitElement {
             label="Email"
             type="email"
             placeholder="you@example.com"
-            required
           ></fm-text-field>
           <div class="row field">
             <label for="rating">How was it?</label>
             <fm-rating id="rating" name="rating" required></fm-rating>
           </div>
+          <fm-text-field
+            class="field"
+            name="comment"
+            label="Anything to add?"
+          ></fm-text-field>
           <div class="row field">
             <fm-switch id="newsletter" name="newsletter"></fm-switch>
             <label for="newsletter">Send me the newsletter</label>
@@ -235,11 +247,7 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
 
   #statesTable() {
     void this.tick;
-    const controls = this.form
-      ? [...this.form.elements].filter((el): el is FormControl =>
-          el.localName.startsWith('fm-')
-        )
-      : [];
+    const controls = this.#controls();
     return html`
       <table>
         <tr>
@@ -258,6 +266,30 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
         )}
       </table>
     `;
+  }
+
+  #controls() {
+    return this.form
+      ? [...this.form.elements].filter((el): el is FormControl =>
+          el.localName.startsWith('fm-')
+        )
+      : [];
+  }
+
+  // The controls put their values in the form when they update, so wait for
+  // that before reading `FormData`.
+  async #check() {
+    const controls = this.#controls();
+    await Promise.all(controls.map((control) => control.updateComplete));
+    const issues = feedbackIssues(this.form);
+    for (const control of controls) {
+      control.setCustomValidity(issues.get(control.name) ?? '');
+    }
+  }
+
+  #onChange() {
+    void this.#check();
+    this.#refresh();
   }
 
   #cell(on: boolean) {
@@ -282,10 +314,13 @@ ${this.submitted.map(([k, v]) => `${k}: ${v}`).join('\n')}</pre>`
   #onReset() {
     this.disabled = false;
     this.submitted = undefined;
+    // The controls take their first values back after this event.
+    requestAnimationFrame(() => void this.#check());
     this.#refresh();
   }
 
   override firstUpdated() {
+    void this.#check();
     this.#refresh();
   }
 }
