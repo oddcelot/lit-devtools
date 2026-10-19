@@ -442,10 +442,14 @@ if (installs) {
     }
   };
 
-  /** Re-attach the observer to the body and every shadow root in the page. */
+  /**
+   * Re-attach the observer to the document and every shadow root in it. The
+   * document element rather than the body: a page that swaps in a new body
+   * (Turbo Drive) leaves an observer of the old one hearing nothing.
+   */
   const syncObserverTargets = (obs: MutationObserver): void => {
     obs.disconnect();
-    obs.observe(document.body, {childList: true, subtree: true});
+    obs.observe(document.documentElement, {childList: true, subtree: true});
     observeShadowRoots(obs, document);
   };
 

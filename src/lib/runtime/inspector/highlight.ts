@@ -12,6 +12,7 @@
  */
 
 import {elementById} from '../timeline/identity.js';
+import {keepInBody} from '../body-keeper.js';
 
 let box: HTMLElement | null = null;
 
@@ -28,7 +29,7 @@ const ensureBox = (): HTMLElement => {
       borderRadius: '2px',
       transition: 'all 80ms ease-out',
     } satisfies Partial<CSSStyleDeclaration>);
-    document.body.append(box);
+    keepInBody(box);
   }
   return box;
 };
@@ -66,7 +67,7 @@ const manyBox = (i: number): HTMLElement => {
       outline: '1px dashed #4d63ff',
       borderRadius: '2px',
     } satisfies Partial<CSSStyleDeclaration>);
-    document.body.append(b);
+    keepInBody(b);
     many[i] = b;
   }
   return b;

@@ -21,6 +21,7 @@ import {
   INSPECT_OVERLAY_TOGGLE_CHANNEL,
   INSPECT_DATA_CHANNEL,
 } from '../../../types/inspector.js';
+import {keepInBody} from '../body-keeper.js';
 
 export interface SourceOverlayInitOptions {
   key?: string;
@@ -604,7 +605,9 @@ export const initSourceOverlay = (
   }
   const el = document.createElement('lit-source-overlay') as LitSourceOverlay;
   el.configure(initOptions);
-  document.body.append(el);
+  // Kept in the page's body, a swapped-in one too, so the picker and its
+  // shortcut outlive a Turbo-style navigation.
+  keepInBody(el);
 };
 
 export const toggleSourceOverlay = () => {
