@@ -235,6 +235,7 @@ test.each(SERVERS)(
     await expect
       .poll(() => defined.textContent(), {timeout: 15_000})
       .toContain('src/my-el.ts:');
+    expect(await defined.getAttribute('data-tip')).toBe('Open in your editor');
     await defined.click();
     await expect
       .poll(opened, {timeout: 10_000})

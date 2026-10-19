@@ -12,7 +12,7 @@ import {
   type TimelineSpan,
 } from '../lib/timeline/derive.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
-import {sourceOpenerFor} from './source-opener.js';
+import {sourceOpenerFor, sourceOpenerTip} from './source-opener.js';
 import {ifDefined} from 'lit/directives/if-defined.js';
 import {
   fullSourceTip,
@@ -358,7 +358,7 @@ export class TimelineSpanDetail extends LitElement {
       class="src-link ${extraClass}"
       size="s"
       appearance="plain"
-      data-tip=${sourceTip(opener === undefined ? tip : 'Open in Sources', file.file, file.line)}
+      data-tip=${sourceTip(opener === undefined ? tip : sourceOpenerTip(), file.file, file.line)}
       @click=${() => {
         if (opener !== undefined) void opener(file);
         else if (file.column === undefined) {

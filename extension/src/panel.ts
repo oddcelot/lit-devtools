@@ -530,6 +530,9 @@ const followElementsSelection = (devtools: typeof chrome.devtools): void => {
   if (sidebar) follow();
 };
 
+/** How long the panel waits at boot to learn whether an editor can open. */
+const EDITOR_PROBE_MS = 1500;
+
 const boot = async (): Promise<void> => {
   setupEl.hidden = true;
   const {port, dial} = pagePort(showPageStatus);
@@ -545,25 +548,40 @@ const boot = async (): Promise<void> => {
     },
   });
   useLocalClient(client);
-  // The page's Vite dev server opens a location in the editor when it can;
+  // The page's dev server opens a location in the editor when it can;
   // otherwise it opens in the Sources panel. Outside DevTools (the e2e's
   // plain tab) there is no Sources panel, and a browser may lack
-  // `openResource` (Firefox); the editor is the only way there.
+  // `openResource` (Firefox): there a location is a link only when the
+  // dev server can open it, and plain text otherwise.
   const panels = devtools?.panels;
   const sources =
     typeof panels?.openResource === 'function'
       ? (location: ElementSource) => openInSources(panels, location)
       : undefined;
+  const pageOrigin = await enabledPageOrigin();
+  const editor =
+    pageOrigin !== undefined &&
+    (await Promise.race([
+      devServerEditor.canOpen(pageOrigin),
+      new Promise<false>((resolve) =>
+        setTimeout(() => resolve(false), EDITOR_PROBE_MS)
+      ),
+    ]));
   // Where the project is, so the panel prints the absolute paths Astro marks
   // its markup with relative to it: the page's Vite dev server can tell.
   useRootFinder(async (file) => {
     const at = await enabledPageOrigin();
     return at === undefined ? undefined : devServerEditor.rootFor(at, file);
   });
-  useSourceOpener(async (location) => {
-    if (await openInEditor(location)) return;
-    await sources?.(location);
-  });
+  if (editor || sources !== undefined) {
+    useSourceOpener(
+      async (location) => {
+        if (editor && (await openInEditor(location))) return;
+        await sources?.(location);
+      },
+      editor ? 'Open in your editor' : 'Open in Sources'
+    );
+  }
   // "Reveal in Elements" evaluates in the page and calls DevTools' `inspect()`
   // there, which Chrome and Firefox both provide; following the Elements
   // selection back evaluates on `$0` the same way.
