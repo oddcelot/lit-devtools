@@ -288,6 +288,33 @@ test('plain-markup churn, in the body or inside a shadow root, pushes no tree', 
   expect(treeMessages.length).toBe(since);
 });
 
+test('a page that swaps in a new body is followed into it', async () => {
+  const {page} = fixture;
+  const swapped = nextTag('swapped');
+  const since = treeMessages.length;
+
+  // What Turbo Drive does on a visit: a new <body> replaces the old one, and
+  // the old one leaves the document. The page's own children move across,
+  // so the tests after this one find the page as it was.
+  await page.evaluate((tag) => {
+    class SwappedElement extends HTMLElement {
+      requestUpdate(): void {}
+    }
+    customElements.define(tag, SwappedElement);
+    const next = document.createElement('body');
+    next.append(...document.body.childNodes);
+    next.append(document.createElement(tag));
+    document.documentElement.replaceChild(next, document.body);
+  }, swapped);
+  await waitForTree(since, (roots) => findNode(roots, swapped) !== undefined);
+
+  // And it keeps watching the new body.
+  const later = nextTag('after-swap');
+  const sinceSwap = treeMessages.length;
+  await appendTag(page, later);
+  await waitForTree(sinceSwap, (roots) => findNode(roots, later) !== undefined);
+});
+
 test('removing a component pushes a tree without it', async () => {
   const {page} = fixture;
   const tag = nextTag('a');

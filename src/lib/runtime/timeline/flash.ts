@@ -17,6 +17,7 @@
  */
 
 import type {UpdateHook} from './lifecycle.js';
+import {keepInBody} from '../body-keeper.js';
 
 /** Fade length; long enough to catch, short enough not to smear. */
 const DURATION_MS = 450;
@@ -73,7 +74,7 @@ const ensureLayer = (): HTMLElement => {
       pointerEvents: 'none',
       overflow: 'hidden',
     } satisfies Partial<CSSStyleDeclaration>);
-    document.body.append(layer);
+    keepInBody(layer);
   }
   return layer;
 };
