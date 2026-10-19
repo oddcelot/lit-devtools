@@ -120,6 +120,7 @@ overrides:
   vite-plugin-lit-web-awesome-example>vite: ^8.3.2
   vite-plugin-lit-fernhouse-example>vite: ^8.3.2
   vite-plugin-lit-css-example>vite: ^8.3.2
+  vite-plugin-lit-forms-example>vite: ^8.3.2
   vite-plugin-lit-tailwind-example>vite: ^8.3.2
   vite-plugin-lit-ssr-example>vite: ^8.3.2
   fflate@<0.7.5: ^0.7.5
@@ -150,7 +151,7 @@ importers:
         version: 2.14.1
       magic-string:
         specifier: ^1.4.2
-        version: 1.4.2
+        version: 1.4.3
       vite:
         specifier: npm:@voidzero-dev/vite-plus-core@1.0.0
         version: '@voidzero-dev/vite-plus-core@1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)'
@@ -368,6 +369,22 @@ importers:
         version: 8.3.2(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
 
   examples/flame:
+    dependencies:
+      lit:
+        specifier: ^3.3.3
+        version: 3.3.3
+    devDependencies:
+      '@oddsquad/vite-plugin-lit':
+        specifier: '*'
+        version: link:../..
+      '@vitejs/devtools':
+        specifier: ^0.7.6
+        version: 0.7.6(@devframes/json-render@1.1.0(@devframes/hub@1.1.0(@devframes/agentic@1.1.0)(crossws@0.4.12(srvx@1.0.5))(devframe@1.1.0))(devframe@1.1.0))(crossws@0.4.12(srvx@1.0.5))(srvx@1.0.5)(vite@8.3.2)
+      vite:
+        specifier: ^8.3.2
+        version: 8.3.2(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
+
+  examples/forms:
     dependencies:
       lit:
         specifier: ^3.3.3
@@ -6692,7 +6709,7 @@ snapshots:
       chokidar: 5.0.0
       colorette: 2.0.20
       consola: 3.4.2
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pathe: 2.0.3
       perfect-debounce: 2.1.0
       tinyglobby: 0.2.17
@@ -6783,7 +6800,7 @@ snapshots:
       '@unocss/config': 66.10.5
       '@unocss/core': 66.10.5
       chokidar: 5.0.0
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pathe: 2.0.3
       tinyglobby: 0.2.17
       unplugin-utils: 0.3.2
@@ -6793,7 +6810,7 @@ snapshots:
   '@unocss/rule-utils@66.10.5':
     dependencies:
       '@unocss/core': 66.10.5
-      magic-string: 1.4.2
+      magic-string: 1.4.3
 
   '@unocss/transformer-attributify-jsx@66.10.5':
     dependencies:
@@ -6822,7 +6839,7 @@ snapshots:
       '@unocss/core': 66.10.5
       '@unocss/inspector': 66.10.5(@devframes/agentic@1.1.0)(cac@7.0.0)(srvx@1.0.5)
       chokidar: 5.0.0
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pathe: 2.0.3
       tinyglobby: 0.2.17
       unplugin-utils: 0.3.2
@@ -6840,7 +6857,7 @@ snapshots:
       '@unocss/core': 66.10.5
       '@unocss/inspector': 66.10.5(@devframes/agentic@1.1.0)(cac@7.0.0)(srvx@1.0.5)
       chokidar: 5.0.0
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pathe: 2.0.3
       tinyglobby: 0.2.17
       unplugin-utils: 0.3.2
@@ -7041,7 +7058,7 @@ snapshots:
       '@vitest/mocker': 5.0.1(@voidzero-dev/vite-plus-core@1.0.0)
       '@vitest/ui': 5.0.1(vitest@5.0.1)
       '@vitest/utils': 5.0.1
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.1
@@ -7059,7 +7076,7 @@ snapshots:
       '@vitest/mocker': 5.0.1(@voidzero-dev/vite-plus-core@1.0.0)
       '@vitest/ui': 5.0.1(vitest@5.0.5)
       '@vitest/utils': 5.0.1
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.1.1
@@ -7097,7 +7114,7 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       '@vitest/spy': 5.0.1
       estree-walker: 3.0.3
-      magic-string: 1.4.2
+      magic-string: 1.4.3
     optionalDependencies:
       vite: '@voidzero-dev/vite-plus-core@1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)'
 
@@ -7118,7 +7135,7 @@ snapshots:
     dependencies:
       '@vitest/pretty-format': 5.0.1
       '@vitest/utils': 5.0.1
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       pathe: 2.0.3
 
   '@vitest/spy@5.0.1': {}
@@ -9845,7 +9862,7 @@ snapshots:
       chai: 6.2.2
       es-module-lexer: 2.3.2
       expect-type: 1.4.0
-      magic-string: 1.4.2
+      magic-string: 1.4.3
       obug: 2.2.1
       picomatch: 4.0.7
       std-env: 4.2.0

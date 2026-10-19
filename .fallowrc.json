@@ -77,6 +77,12 @@
     // but not a mixin such as `extends SignalWatcher(LitElement)`.
     "styles",
     "updated",
+    "shadowRootOptions",
+    // The browser calls these on a form-associated custom element.
+    "formAssociated",
+    "formResetCallback",
+    "formDisabledCallback",
+    "formStateRestoreCallback",
     {
       "implements": "ReactiveController",
       "members": [
@@ -103,6 +109,7 @@
       "examples/web-awesome",
       "examples/fernhouse",
       "examples/css",
+      "examples/forms",
       "examples/tailwind"
     ]
   },
