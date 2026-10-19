@@ -1,3 +1,4 @@
+/* @ts-self-types="./client.d.ts" */
 /**
  * The Astro renderer's client half: what an `<astro-island>` calls once its
  * directive fires. For a server-rendered element it sets the props the HTML

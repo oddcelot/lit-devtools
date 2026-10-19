@@ -1,3 +1,4 @@
+/* @ts-self-types="./server.d.ts" */
 /**
  * The Astro renderer's server half: what Astro calls to render a Lit
  * element, written as a tag in a page (`<my-card>`) or used as an imported
