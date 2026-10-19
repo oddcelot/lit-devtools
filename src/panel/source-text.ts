@@ -4,17 +4,72 @@
  * `source-label.ts`), then the path, split at each `/` so a long one wraps at
  * a directory rather than mid-name. Views add {@link sourceTextStyles} to
  * their own.
+ *
+ * A class defined in a package is usually defined in a bundler's chunk
+ * (`dist/chunks/chunk.7VGCIHDG.js`), which says nothing about the class. When
+ * the package's own Custom Elements Manifest names the module that declares
+ * it, that module and the class's name stand in for the chunk
+ * ({@link manifestModuleOf}). The chunk's line belongs to the chunk, so it
+ * goes; the full path and line stay in the tooltip, and a click still opens
+ * them.
  */
 
 import {css, html, nothing, type TemplateResult} from 'lit';
+import type {ComponentDocs} from '../types/component-docs.js';
 import {sourceLabel} from './source-label.js';
 
-/** `file:line` as the panel prints it. */
-export const sourceText = (file: string, line: number): TemplateResult => {
-  const {pkg, path} = sourceLabel(file);
-  const segments = `${path}:${line}`
+/** Where a package's manifest says one of its classes is declared. */
+export interface ManifestModule {
+  /** The package that ships the manifest. */
+  package: string;
+  /** The declaring module, as the manifest gives it. */
+  path: string;
+  className: string;
+}
+
+/**
+ * The module a package's manifest names for the class `docs` describes;
+ * `undefined` for the project's own docs, or ones read from source.
+ */
+export const manifestModuleOf = (
+  docs: ComponentDocs | null
+): ManifestModule | undefined => {
+  const origin = docs?.origin;
+  if (
+    docs == null ||
+    origin?.package === undefined ||
+    origin.source === true ||
+    origin.module === ''
+  ) {
+    return undefined;
+  }
+  return {
+    package: origin.package,
+    path: origin.module,
+    className: docs.className,
+  };
+};
+
+const segmentsOf = (text: string): TemplateResult[] =>
+  text
     .split(/(?<=\/)/)
     .map((segment) => html`<span class="seg">${segment}</span>`);
+
+/**
+ * `file:line` as the panel prints it; for a file in the package `module`
+ * comes from, the module and class it names instead.
+ */
+export const sourceText = (
+  file: string,
+  line: number,
+  module?: ManifestModule
+): TemplateResult => {
+  const {pkg, path} = sourceLabel(file);
+  const segments =
+    pkg !== undefined && module?.package === pkg.name
+      ? html`${segmentsOf(module.path)}
+          <span class="class">(${module.className})</span>`
+      : segmentsOf(`${path}:${line}`);
   if (pkg === undefined) return html`${segments}`;
   return html`<span class="pkg"
       >${pkg.name}${
@@ -52,7 +107,8 @@ export const sourceTextStyles = css`
     font-weight: 600;
   }
   .ver,
-  .sep {
+  .sep,
+  .class {
     font-weight: normal;
     color: var(--lit-devtools-text-muted);
   }

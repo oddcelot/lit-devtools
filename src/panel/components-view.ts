@@ -81,9 +81,11 @@ import {copyText} from './copy-text.js';
 import {attrKey, changedRows, extraKey, propKey} from './details-diff.js';
 import {
   fullSourceTip,
+  manifestModuleOf,
   sourceText,
   sourceTextStyles,
   sourceTip,
+  type ManifestModule,
 } from './source-text.js';
 
 /**
@@ -3641,9 +3643,10 @@ export class ComponentsView extends LitElement {
     loc: ElementSource,
     cls: string,
     tip: string,
-    open: () => void
+    open: () => void,
+    module?: ManifestModule
   ): TemplateResult {
-    const text = sourceText(loc.file, loc.line);
+    const text = sourceText(loc.file, loc.line, module);
     const inHost = sourceOpenerFor(loc, this._canOpen) !== undefined;
     return this._canOpen || inHost
       ? html`<button
@@ -3808,7 +3811,8 @@ export class ComponentsView extends LitElement {
                     d.source,
                     'src',
                     'Open the class definition in your editor',
-                    this._openSource
+                    this._openSource,
+                    manifestModuleOf(docs.docs)
                   )}
                 </dd>`
         }
