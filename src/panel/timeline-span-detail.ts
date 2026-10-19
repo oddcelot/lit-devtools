@@ -13,6 +13,13 @@ import {
 } from '../lib/timeline/derive.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
 import {sourceOpenerFor} from './source-opener.js';
+import {ifDefined} from 'lit/directives/if-defined.js';
+import {
+  fullSourceTip,
+  sourceText,
+  sourceTextStyles,
+  sourceTip,
+} from './source-text.js';
 import {layerColor} from './timeline-layers.js';
 import type {LayerState} from './timeline-layers.js';
 
@@ -51,6 +58,7 @@ const savedHeight = (): number => {
 export class TimelineSpanDetail extends LitElement {
   static override styles = [
     tokens,
+    sourceTextStyles,
     css`
       :host {
         display: flex;
@@ -333,15 +341,20 @@ export class TimelineSpanDetail extends LitElement {
     tip: string,
     extraClass = ''
   ) {
-    const text = `${file.file}:${file.line}`;
+    const text = sourceText(file.file, file.line);
     // Resolved through the page's sourcemaps: DevTools has it, no editor does.
     const opener = sourceOpenerFor(file, this._canOpen);
-    if (opener === undefined && !this._canOpen) return text;
+    if (opener === undefined && !this._canOpen) {
+      return html`<span
+        data-tip=${ifDefined(fullSourceTip(file.file, file.line))}
+        >${text}</span
+      >`;
+    }
     return html`<wa-button
       class="src-link ${extraClass}"
       size="s"
       appearance="plain"
-      data-tip=${opener === undefined ? tip : 'Open in Sources'}
+      data-tip=${sourceTip(opener === undefined ? tip : 'Open in Sources', file.file, file.line)}
       @click=${() => {
         if (opener !== undefined) void opener(file);
         else if (file.column === undefined) {

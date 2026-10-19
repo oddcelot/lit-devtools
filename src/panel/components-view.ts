@@ -59,6 +59,7 @@ import {PanelLocation} from './panel-location.js';
 import {openInEditor} from './open-in-editor.js';
 import {elementRevealer} from './element-revealer.js';
 import {breakKey, breakpoints} from './breakpoints.js';
+import {ifDefined} from 'lit/directives/if-defined.js';
 import {sourceOpenerFor} from './source-opener.js';
 import {hostInfo, sendToPage, touchPageChannel} from './host.js';
 import {watchPaneVisibility} from './pane-visibility.js';
@@ -78,6 +79,12 @@ import {filterTree, type TreeFilterResult} from './tree-filter.js';
 import {ValueExpansion} from './value-expansion.js';
 import {copyText} from './copy-text.js';
 import {attrKey, changedRows, extraKey, propKey} from './details-diff.js';
+import {
+  fullSourceTip,
+  sourceText,
+  sourceTextStyles,
+  sourceTip,
+} from './source-text.js';
 
 /**
  * localStorage key remembering a paused live tree. Live is the default, so
@@ -637,11 +644,6 @@ const deprecatedChip = (
  * wider than the column. Plain wrapping split `packing-list.ts` at its
  * hyphen.
  */
-const pathSegments = (path: string): TemplateResult[] =>
-  path
-    .split(/(?<=\/)/)
-    .map((segment) => html`<span class="seg">${segment}</span>`);
-
 const typeLabel = (
   type: string,
   value: string
@@ -686,6 +688,7 @@ const describeRoot = (d: InspectorDetails): string | undefined => {
 export class ComponentsView extends LitElement {
   static override styles = [
     tokens,
+    sourceTextStyles,
     css`
       :host {
         display: flex;
@@ -1099,10 +1102,6 @@ export class ComponentsView extends LitElement {
         min-width: 0;
         color: var(--lit-devtools-text-secondary);
         overflow-wrap: anywhere;
-      }
-      .seg {
-        display: inline-block;
-        max-width: 100%;
       }
       .link {
         font: inherit;
@@ -3644,17 +3643,21 @@ export class ComponentsView extends LitElement {
     tip: string,
     open: () => void
   ): TemplateResult {
-    const text = pathSegments(`${loc.file}:${loc.line}`);
+    const text = sourceText(loc.file, loc.line);
     const inHost = sourceOpenerFor(loc, this._canOpen) !== undefined;
     return this._canOpen || inHost
       ? html`<button
           class="link ${cls}"
-          data-tip=${inHost ? 'Open in Sources' : tip}
+          data-tip=${sourceTip(inHost ? 'Open in Sources' : tip, loc.file, loc.line)}
           @click=${open}
         >
           ${text}<wa-icon name="arrow-square-out"></wa-icon>
         </button>`
-      : html`<span class="${cls} src-text">${text}</span>`;
+      : html`<span
+          class="${cls} src-text"
+          data-tip=${ifDefined(fullSourceTip(loc.file, loc.line))}
+          >${text}</span
+        >`;
   }
 
   /** The buttons at the end of the details heading; none in a snapshot. */

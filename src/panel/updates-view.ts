@@ -17,7 +17,14 @@ import './wa-icons.js';
 import {LocationController} from './location-controller.js';
 import {PanelLocation} from './panel-location.js';
 import {canOpenInEditor, openInEditor} from './open-in-editor.js';
+import {ifDefined} from 'lit/directives/if-defined.js';
 import {sourceOpenerFor} from './source-opener.js';
+import {
+  fullSourceTip,
+  sourceText,
+  sourceTextStyles,
+  sourceTip,
+} from './source-text.js';
 
 /**
  * The Updates view: which components re-rendered, how often, how long for, and
@@ -33,6 +40,7 @@ import {sourceOpenerFor} from './source-opener.js';
 export class UpdatesView extends LitElement {
   static override styles = [
     tokens,
+    sourceTextStyles,
     css`
       :host {
         display: flex;
@@ -523,8 +531,10 @@ export class UpdatesView extends LitElement {
           <span>updates</span>
           ${
             source && !(this._canOpen || sourceOpener(source))
-              ? html`<span class="link src-text"
-                  >${source.file}:${source.line}</span
+              ? html`<span
+                  class="link src-text"
+                  data-tip=${ifDefined(fullSourceTip(source.file, source.line))}
+                  >${sourceText(source.file, source.line)}</span
                 >`
               : nothing
           }
@@ -534,22 +544,24 @@ export class UpdatesView extends LitElement {
                   class="link"
                   appearance="plain"
                   size="s"
-                  data-tip=${sourceOpener(source) ? 'Open in Sources' : 'Open this file in your editor'}
+                  data-tip=${sourceTip(sourceOpener(source) ? 'Open in Sources' : 'Open this file in your editor', source.file, source.line)}
                   @click=${() => {
                     const opener = sourceOpener(source);
                     if (opener !== undefined) void opener(source);
                     else void openInEditor(source.file, source.line);
                   }}
                 >
-                  ${source.file}:${source.line}
+                  ${sourceText(source.file, source.line)}
                   <wa-icon slot="end" name="arrow-square-out"></wa-icon>
                 </wa-button>`
               : nothing
           }
           ${
             site && !this._canOpen
-              ? html`<span class="link src-text call-site"
-                  >Rendered at ${site.file}:${site.line}</span
+              ? html`<span
+                  class="link src-text call-site"
+                  data-tip=${ifDefined(fullSourceTip(site.file, site.line))}
+                  >Rendered at ${sourceText(site.file, site.line)}</span
                 >`
               : nothing
           }
@@ -559,10 +571,10 @@ export class UpdatesView extends LitElement {
                   class="link call-site"
                   appearance="plain"
                   size="s"
-                  data-tip="Open the template that renders this element"
+                  data-tip=${sourceTip('Open the template that renders this element', site.file, site.line)}
                   @click=${() => openInEditor(site.file, site.line, site.column)}
                 >
-                  Rendered at ${site.file}:${site.line}
+                  Rendered at ${sourceText(site.file, site.line)}
                   <wa-icon slot="end" name="arrow-square-out"></wa-icon>
                 </wa-button>`
               : nothing
