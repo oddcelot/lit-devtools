@@ -236,11 +236,11 @@ kept in the extension's local storage and shared by every tab.
 The docs compare the extension with the Vite plugin feature by feature:
 https://oddcelot.github.io/vite-plugin-lit/reference/devtools-hosts/
 
-- What needs a dev server isn't there. The panel leaves out the **Export
-  snapshot** button, and components have no source location, since no Vite
-  transform stamped one, so there is nothing to open in your editor. The
-  Settings tab keeps appearance and the About table and says plugin settings
-  need the Vite plugin.
+- What needs the Vite plugin isn't there. The panel leaves out the **Export
+  snapshot** button, and the Settings tab keeps appearance and the About table
+  and says plugin settings need the Vite plugin. Source locations come from
+  the page's sourcemaps, and a click opens them in your editor only on a Vite
+  dev server; elsewhere they open in Chrome's Sources panel.
 - HMR history and patch notices never appear: nothing hot-patches the page.
 - The **Lit Render** timeline layers need Lit's development build. A
   production build emits no render events; the Timeline says so under the
