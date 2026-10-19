@@ -115,7 +115,9 @@ Without the Vite plugin, no build step tells the extension where a component
 lives. If the page ships sourcemaps, the extension works it out from them. The
 original file and line show in the details pane's **defined** row, in the
 **Updates** view's header for a component, and in the **Timeline**'s span
-details, and in Chrome a click opens it in the **Sources** panel.
+details. A click opens it in your editor on a Vite dev server, and in
+Chrome's **Sources** panel elsewhere; see
+[Open a component in your editor](#open-a-component-in-your-editor).
 
 The extension fetches the page's scripts and their sourcemaps from the site to
 do this, so the maps must be reachable from the page. It only sees components
@@ -176,6 +178,32 @@ The list, its order and its switches are remembered per site.
   access back. Firefox can't ask for access from DevTools, so there such an
   entry says it isn't read.
 
+## Open a component in your editor
+
+On a page your Vite dev server serves, the **defined** and **rendered** links
+open the file in your editor, with or without the Vite plugin. The extension
+asks the dev server to open it, so the editor is the one that server
+launches. Set `LAUNCH_EDITOR` in the server's environment to choose it.
+Hovering a link says where it opens: **Open in your editor** or **Open in
+Sources**.
+
+The extension uses the plugin's endpoint when the plugin serves it, which
+it does with `sourceOverlay` on. Otherwise it uses Vite's own
+`/__open-in-editor`, under the page's `base` when it has one. Vite opens a
+path relative to the folder it was started in, so the extension sends an
+absolute path once it knows the project folder. It finds the folder from any
+absolute path the page names, such as Astro's for an element in `.astro`
+markup.
+
+When it can't find the folder, the bottom of the **Lit** tab says files open
+only if Vite runs in the project folder. That is how `vite` usually starts,
+so links work. If you started the server elsewhere, click **Set project
+folder…** and enter the folder. The extension checks it against a module the
+page loaded before keeping it for the site. **Don't show again** hides the
+note for that site.
+
+Without a dev server, the links open in the **Sources** panel instead.
+
 ## Open in the browser's own panels
 
 The Lit panel and DevTools' own panels hand off to each other:
@@ -194,15 +222,18 @@ The Lit panel and DevTools' own panels hand off to each other:
   selection, so you can stay in Elements and read a component's state there.
 - In the **Console**, `$lit` is the element selected in the Lit panel, next
   to `$0` for the Elements panel's.
-- The **defined** link and, on a page built with the Vite plugin, the
-  **rendered** link open in the **Sources** panel at that line. A source the
+- Where no dev server can open them in your editor, the **defined** link
+  and, on a page built with the Vite plugin, the **rendered** link open in
+  the **Sources** panel at that line. A source the
   plugin stamped is a file path, so the extension looks up the URL the page
   loaded for that file and opens it. If the page didn't load the file, nothing
   opens. If you've connected a Chrome DevTools workspace to the project folder,
   Chrome maps the file to your disk and you can edit it there.
 
 Opening in **Sources** needs Chrome: Firefox has no way for an extension to
-open it, so there the links stay plain text.
+open it. In Firefox the links open in your editor on a Vite dev server, and
+stay plain text elsewhere, with a note at the bottom of the **Lit** tab saying
+why.
 
 ## Pause on an update or a change
 
@@ -223,9 +254,10 @@ they are all removed when you select another element or the page reloads.
 
 ## What the extension can't do
 
-The extension has no dev server behind it. Open in editor, hot patching,
-snapshot export and the MCP tools need the Vite plugin, and so do **Rendered
-at** links in the Updates view and the Timeline.
+The extension has no dev server of its own. Hot patching, snapshot export and
+the MCP tools need the Vite plugin, and so do **Rendered at** links in the
+Updates view and the Timeline. Opening in your editor needs a Vite dev server
+behind the page.
 Render events on the timeline need Lit's development build. It sees the top
 frame of `http:` and `https:` pages only.
 
@@ -234,9 +266,12 @@ plugin share one runtime: the extension's loads first and serves the page, and
 the plugin's panel in Vite DevTools sees the same tree. The Components tab says
 so in a line above the tree.
 
-The extension collects no data. Its only network requests fetch an enabled
-site's own scripts, sourcemaps and Custom Elements Manifests, from that site,
-to find where components are defined and what their documentation says. It stores the sites you enabled and your panel settings in your
+The extension collects no data. Its network requests go to the enabled site
+itself. It fetches the site's scripts, sourcemaps and Custom Elements
+Manifests, to find where components are defined and what their documentation
+says. On a Vite dev server it also asks which editor endpoints the server
+has, checks which files it serves to find the project folder, and asks it to
+open files you click. It stores the sites you enabled and your panel settings in your
 browser.
 
 ## Related

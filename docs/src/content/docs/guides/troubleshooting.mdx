@@ -407,6 +407,20 @@ they render; if you paused it, turn it back on), and check Settings, About, for
 the Lit packages (`lit-html`, `lit-element`, `@lit/reactive-element`) the
 runtime detected.
 
+### A source link opens nothing in your editor
+
+**Symptom.** In Lit Inspector, clicking **defined** or **rendered** does
+nothing, and the bottom of the **Lit** tab says files open only if Vite runs in
+the project folder.
+
+**Cause.** Vite opens a path relative to the folder it was started in. A server
+started elsewhere, such as `vite app` from a parent folder, looks in the wrong
+place and still reports success.
+
+**Fix.** Click **Set project folder…** and enter the project folder, or start
+Vite from the project folder. With the plugin's `sourceOverlay` on, the plugin's
+own endpoint resolves paths itself and the problem does not arise.
+
 ### The Components tab warns about more than one copy of lit
 
 **Symptom.** The tab says more than one copy of lit is loaded and names the

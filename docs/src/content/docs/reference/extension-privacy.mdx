@@ -11,7 +11,7 @@ Chrome and Firefox that inspects Lit components from DevTools. It covers the ext
 plugin and the `lit-devtools` CLI run on your own machine and are not part of
 it.
 
-Last updated: 16 October 2026.
+Last updated: 19 October 2026.
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with,
 endorsed by, or produced by Google, Mozilla or the Lit project.
@@ -29,6 +29,7 @@ in your browser, and removing the extension removes it.
 | Enabled sites            | `chrome.storage.local`, key `enabledOrigins`                             | The sites you clicked **Enable on this site** for: origins in Chrome (`https://example.com`), hosts in Firefox (`http://localhost`). |
 | Panel settings           | `chrome.storage.local`, keys `devframe:settings:*`                       | Your preferences in the Lit tab, such as appearance and performance tracks.                                                          |
 | Manifest choices         | `chrome.storage.local`, keys `lit:manifest-urls`, `lit:manifest-ignored` | Per site, the Custom Elements Manifests you added or switched off, their order, and found ones you chose to ignore.                  |
+| Project folders          | `chrome.storage.local`, key `lit:project-roots`                          | Per site, the project folder you set for opening files in your editor, or that you chose not to be asked again.                      |
 | Panel preferences mirror | The extension's own `localStorage`                                       | A synchronous copy of the same preferences, so the panel paints with them before storage answers.                                    |
 | Page-side preferences    | The enabled site's `localStorage`, `lit-devtools-*`                      | The preferences the injected runtime applies in the page, such as update flashing and the color scheme.                              |
 | Tab identifiers          | The enabled site's `sessionStorage`                                      | A random id per browser tab, so a panel talks to the right tab. Cleared when the tab closes.                                         |
@@ -52,7 +53,12 @@ The extension does not:
   defined and what its documentation says (including a few requests that look
   for a `custom-elements.json` beside the page's scripts), and a Custom
   Elements Manifest on another site that you add or allow, after the browser
-  asks you for access to that site;
+  asks you for access to that site. On a site served by a Vite dev server, it
+  also asks that server which editor endpoints it has, requests a few of its
+  files to find the project folder, and asks it to open a file in your editor
+  when you click a source link. The request to the Vite plugin's endpoint is
+  made from the page, which that endpoint requires. All of these go to the
+  enabled site only;
 - collect personal information, browsing history, page content, form input,
   cookies or credentials;
 - run analytics, telemetry, crash reporting or advertising;
