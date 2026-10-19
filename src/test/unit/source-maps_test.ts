@@ -216,6 +216,52 @@ describe('createSourceMapResolver', () => {
     );
   });
 
+  test('skips the compiler helper a Vite dev server serves as a virtual module', async () => {
+    const helper = bundle(ORIGINAL, 'decorate.js');
+    const app = bundle(ORIGINAL, 'my-el.ts');
+    const helperUrl =
+      'http://localhost:5173/@id/__x00__@oxc-project+runtime/helpers/esm/decorate.js';
+    const {fetch} = site({
+      [helperUrl]: {
+        body: `${helper.code}\n//# sourceMappingURL=data:application/json;base64,${base64(helper.map)}\n`,
+      },
+      'http://localhost:5173/src/my-el.ts': {
+        body: `${app.code}\n//# sourceMappingURL=data:application/json;base64,${base64(app.map)}\n`,
+      },
+    });
+    const resolver = createSourceMapResolver({fetch});
+
+    expect(
+      (
+        await resolver.resolve([
+          frameAt(helperUrl),
+          frameAt('http://localhost:5173/src/my-el.ts'),
+        ])
+      )?.url
+    ).toBe('http://localhost:5173/src/my-el.ts');
+  });
+
+  test('a call emitted ahead of the first mapping on its line takes the next one', async () => {
+    // `MyEl = _decorate([customElement('my-el')], MyEl)`: the frame is on
+    // `_decorate(`, which the compiler wrote and mapped nothing to.
+    const ms = new MagicString(ORIGINAL);
+    ms.prepend(HEADER);
+    ms.appendLeft(ORIGINAL.indexOf('customElements'), 'MyEl = _decorate(');
+    const map = ms.generateMap({source: 'my-el.ts', hires: true}).toString();
+    const url = 'http://localhost:5173/src/my-el.ts';
+    const {fetch} = site({
+      [url]: {
+        body: `${ms.toString()}\n//# sourceMappingURL=data:application/json;base64,${base64(map)}\n`,
+      },
+    });
+    const resolver = createSourceMapResolver({fetch});
+
+    expect(await resolver.resolve([frameAt(url, 8)])).toMatchObject({
+      line: 3,
+      column: 1,
+    });
+  });
+
   test('skips a helper the bundler emitted without mappings', async () => {
     // As rolldown bundles decorators: the `__decorate` helper lands right
     // after another module's last token with no segments of its own, so its
