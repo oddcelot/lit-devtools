@@ -2151,6 +2151,57 @@ const pickButton = async (el: ComponentsView) => {
   await flush(el);
 };
 
+test("a package's class reads as the module its manifest names", async () => {
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      origin: {
+        package: '@x/ui',
+        manifest: 'custom-elements.json',
+        module: 'components/button/button.js',
+      },
+    },
+  }));
+  const file =
+    'node_modules/.pnpm/@x+ui@2.1.0/node_modules/@x/ui/dist/chunks/chunk.ABC123.js';
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), source: {file, line: 11}},
+  });
+  await flush(el);
+  await expect
+    .poll(() =>
+      root.querySelector('button.src')?.textContent?.replace(/\s+/g, ' ').trim()
+    )
+    .toBe('@x/ui 2.1.0 › components/button/button.js (XButton)');
+  // The chunk and its line are still what a click opens, and on hover.
+  expect(root.querySelector<HTMLElement>('button.src')!.dataset['tip']).toBe(
+    `Open the class definition in your editor: ${file}:11`
+  );
+});
+
+test("the project's own file keeps its path, docs or not", async () => {
+  answers.set('component-docs', () => ({
+    docs: {
+      ...buttonDocs,
+      origin: {manifest: 'custom-elements.json', module: 'src/b.ts'},
+    },
+  }));
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), source: {file: 'src/b.ts', line: 4}},
+  });
+  await flush(el);
+  await flush(el);
+  expect(root.querySelector('button.src')!.textContent!.trim()).toBe(
+    'src/b.ts:4'
+  );
+});
+
 test("shows the manifest's docs for the selected tag", async () => {
   answers.set('component-docs', () => ({docs: buttonDocs}));
   const {el, root} = await mount(true);
