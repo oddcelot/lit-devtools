@@ -14,6 +14,8 @@
  * No DOM, so it is tested without a panel.
  */
 
+import {packageOfPath} from '../lib/package-path.js';
+
 export interface SourcePackage {
   /** `lit`, `@awesome.me/webawesome`. */
   name: string;
@@ -28,8 +30,6 @@ export interface SourceLabel {
   path: string;
 }
 
-const NODE_MODULES = 'node_modules/';
-
 let projectRoot: string | undefined;
 
 /**
@@ -43,16 +43,6 @@ export const useProjectRoot = (root: string | undefined): void => {
       : root.replace(/\\/g, '/').replace(/\/$/, '');
 };
 
-/** The version pnpm encodes in the store folder holding `name`, if any. */
-const pnpmVersion = (before: string, name: string): string | undefined => {
-  // `…/.pnpm/@awesome.me+webawesome@3.14.0_@floating-ui+utils@0.2.12/`
-  const folder = /\.pnpm\/([^/]+)\/$/.exec(before)?.[1];
-  const prefix = `${name.replace('/', '+')}@`;
-  if (folder === undefined || !folder.startsWith(prefix)) return undefined;
-  const version = folder.slice(prefix.length).split('_')[0];
-  return version === '' ? undefined : version;
-};
-
 /**
  * The label for `file`. Backslashes read as slashes and a query is dropped.
  * A file under `node_modules` but in no package (Vite's `.vite/deps`
@@ -60,20 +50,12 @@ const pnpmVersion = (before: string, name: string): string | undefined => {
  */
 export const sourceLabel = (file: string): SourceLabel => {
   const path = file.replace(/\\/g, '/').replace(/[?#].*$/, '');
-  const at = path.lastIndexOf(NODE_MODULES);
-  if (at === -1) {
-    return projectRoot !== undefined && path.startsWith(`${projectRoot}/`)
-      ? {path: path.slice(projectRoot.length + 1)}
-      : {path};
+  const found = packageOfPath(path);
+  if (found !== undefined) {
+    const {inner, ...pkg} = found;
+    return {pkg, path: inner};
   }
-  const rest = path.slice(at + NODE_MODULES.length);
-  const parts = rest.split('/');
-  const nameLength = parts[0]?.startsWith('@') ? 2 : 1;
-  if (parts.length <= nameLength || parts[0]!.startsWith('.')) return {path};
-  const name = parts.slice(0, nameLength).join('/');
-  const version = pnpmVersion(path.slice(0, at), name);
-  return {
-    pkg: version === undefined ? {name} : {name, version},
-    path: parts.slice(nameLength).join('/'),
-  };
+  return projectRoot !== undefined && path.startsWith(`${projectRoot}/`)
+    ? {path: path.slice(projectRoot.length + 1)}
+    : {path};
 };
