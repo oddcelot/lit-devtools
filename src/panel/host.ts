@@ -20,6 +20,7 @@ import {
 } from '../lib/devframe/protocol.js';
 import {getMeta, isSnapshot, litRpc, type LitClient} from './client.js';
 import {inPageChannel, inPageConnected} from './in-page.js';
+import {useProjectRoot} from './source-label.js';
 
 export interface HostInfo extends LitCapabilities {
   /** A frozen snapshot: no page behind it, so nothing to command. */
@@ -72,6 +73,7 @@ export const hostInfo = (): Promise<HostInfo> =>
     (meta): HostInfo => {
       // `get-meta` has resolved, so the connection has too.
       const snapshot = isSnapshot();
+      useProjectRoot(meta.projectRoot);
       return {
         ...meta.capabilities,
         snapshot,
@@ -87,6 +89,7 @@ export const hostInfo = (): Promise<HostInfo> =>
  */
 export const resetHostInfo = (): void => {
   info = undefined;
+  useProjectRoot(undefined);
   connected = undefined;
   present = false;
 };

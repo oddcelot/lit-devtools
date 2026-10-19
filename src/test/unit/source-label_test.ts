@@ -1,7 +1,9 @@
-import {describe, expect, test} from 'vite-plus/test';
-import {sourceLabel} from '../../panel/source-label.js';
+import {afterEach, describe, expect, test} from 'vite-plus/test';
+import {sourceLabel, useProjectRoot} from '../../panel/source-label.js';
 
 describe('sourceLabel', () => {
+  afterEach(() => useProjectRoot(undefined));
+
   test('a project file keeps its path', () => {
     expect(sourceLabel('src/my-el.ts')).toEqual({path: 'src/my-el.ts'});
   });
@@ -55,5 +57,20 @@ describe('sourceLabel', () => {
       pkg: {name: 'lit'},
       path: 'index.js',
     });
+  });
+
+  test('an absolute path in the project reads relative to its root', () => {
+    useProjectRoot('/home/me/app/');
+    expect(sourceLabel('/home/me/app/src/pages/a.astro')).toEqual({
+      path: 'src/pages/a.astro',
+    });
+    expect(sourceLabel('/home/me/application/x.ts')).toEqual({
+      path: '/home/me/application/x.ts',
+    });
+  });
+
+  test('a Windows root matches with either slash', () => {
+    useProjectRoot('C:\\app');
+    expect(sourceLabel('C:/app/src/a.ts')).toEqual({path: 'src/a.ts'});
   });
 });

@@ -357,6 +357,7 @@ export function createLitDevframePlugin(
     source,
     version: options.version,
     features: options.features,
+    projectRoot: () => options.sourceLocator?.().roots[0],
     clientAssets: options.clientAssets ?? PANEL_DIST_DIR,
     nodeActions: createNodeActions({
       sourceLocator: options.sourceLocator,

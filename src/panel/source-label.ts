@@ -5,10 +5,13 @@
  * when the path carries one (pnpm's `.pnpm/<name>@<version>_<peers>/`
  * folders do), and the path inside the package. pnpm's store path alone runs
  * to a hundred characters before reaching the package, so printing it whole
- * fills five lines of the details pane. The full path stays available to the
- * caller for a tooltip.
+ * fills five lines of the details pane. A file the host gave as an absolute
+ * path inside the project (Astro marks its markup that way) reads relative to
+ * the project's root, when the host said where that is
+ * ({@link useProjectRoot}). The full path stays available to the caller for a
+ * tooltip.
  *
- * Pure, so it is tested without a panel.
+ * No DOM, so it is tested without a panel.
  */
 
 export interface SourcePackage {
@@ -26,6 +29,19 @@ export interface SourceLabel {
 }
 
 const NODE_MODULES = 'node_modules/';
+
+let projectRoot: string | undefined;
+
+/**
+ * Sets the root absolute paths are printed relative to; the panel's host
+ * client calls it with what `get-meta` reports. `undefined` forgets it.
+ */
+export const useProjectRoot = (root: string | undefined): void => {
+  projectRoot =
+    root === undefined
+      ? undefined
+      : root.replace(/\\/g, '/').replace(/\/$/, '');
+};
 
 /** The version pnpm encodes in the store folder holding `name`, if any. */
 const pnpmVersion = (before: string, name: string): string | undefined => {
@@ -45,7 +61,11 @@ const pnpmVersion = (before: string, name: string): string | undefined => {
 export const sourceLabel = (file: string): SourceLabel => {
   const path = file.replace(/\\/g, '/').replace(/[?#].*$/, '');
   const at = path.lastIndexOf(NODE_MODULES);
-  if (at === -1) return {path};
+  if (at === -1) {
+    return projectRoot !== undefined && path.startsWith(`${projectRoot}/`)
+      ? {path: path.slice(projectRoot.length + 1)}
+      : {path};
+  }
   const rest = path.slice(at + NODE_MODULES.length);
   const parts = rest.split('/');
   const nameLength = parts[0]?.startsWith('@') ? 2 : 1;

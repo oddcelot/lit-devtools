@@ -340,6 +340,11 @@ export interface LitGetMetaResult {
   activePageId?: string;
   /** What this host can do; see {@link LitCapabilities}. */
   capabilities: LitCapabilities;
+  /**
+   * The project's root on disk, on a host that knows it: the panel prints an
+   * absolute location inside it relative to it.
+   */
+  projectRoot?: string;
 }
 
 /** Argument of the `list-components` query. */

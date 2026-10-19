@@ -1526,6 +1526,23 @@ test('a location in a package names the package, with the store path on hover', 
   );
 });
 
+test("an absolute location in the project reads relative to the host's root", async () => {
+  meta.projectRoot = '/home/me/app';
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      callSite: {file: '/home/me/app/src/pages/a.astro', line: 26, column: 6},
+    },
+  });
+  await flush(el);
+  const link = root.querySelector<HTMLElement>('button.call-site')!;
+  expect(link.textContent!.trim()).toBe('src/pages/a.astro:26');
+  expect(link.dataset['tip']).toContain('/home/me/app/src/pages/a.astro:26');
+});
+
 test('a sourcemapped location opens in the host viewer, even with no editor', async () => {
   meta.capabilities.openInEditor = false;
   const opened: unknown[] = [];

@@ -26,14 +26,16 @@ export const sourceText = (file: string, line: number): TemplateResult => {
 };
 
 /**
- * The whole `file:line` when {@link sourceText} shortened it, so the store
+ * The whole `file:line` when {@link sourceText} shortened it, so the full
  * path is still there to read on hover; `undefined` when nothing was cut.
  */
 export const fullSourceTip = (
   file: string,
   line: number
-): string | undefined =>
-  sourceLabel(file).pkg === undefined ? undefined : `${file}:${line}`;
+): string | undefined => {
+  const {pkg, path} = sourceLabel(file);
+  return pkg === undefined && path === file ? undefined : `${file}:${line}`;
+};
 
 /** `tip`, followed by {@link fullSourceTip} when there is one. */
 export const sourceTip = (tip: string, file: string, line: number): string => {
