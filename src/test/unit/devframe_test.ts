@@ -94,6 +94,7 @@ const boot = async (
     source,
     version: '9.9.9',
     features: () => null,
+    projectRoot: () => options.roots?.[0],
     nodeActions:
       options.nodeActions ??
       createNodeActions({
@@ -589,6 +590,17 @@ describe('lit devframe definition', () => {
     expect(meta.features).toBeNull();
     // No overlay, no picker.
     expect(meta.picker).toBe(false);
+  });
+
+  test("get-meta reports the project's root when the host knows it", async () => {
+    const known = await boot({roots: ['/home/me/app']});
+    expect((await known.ctx.rpc.invokeLocal('lit:get-meta')).projectRoot).toBe(
+      '/home/me/app'
+    );
+    const unknown = await boot();
+    expect(
+      (await unknown.ctx.rpc.invokeLocal('lit:get-meta')).projectRoot
+    ).toBeUndefined();
   });
 
   test('get-meta reports what the runtime announced', async () => {

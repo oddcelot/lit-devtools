@@ -100,6 +100,8 @@ export interface CreateLitDevframeOptions {
   version: string;
   /** Resolved feature settings, surfaced by `get-meta`. */
   features?: () => FeatureSettings | null;
+  /** The project's root on disk, surfaced by `get-meta` when known. */
+  projectRoot?: () => string | undefined;
   /**
    * Which host this runs on; decides the picker and what `get-meta` reports
    * the host can do. See `host-profile.ts`.
@@ -421,6 +423,7 @@ export function createLitDevframe(
             layers: [...TIMELINE_LAYERS, ...session.value().customLayers],
             features: features ? features() : null,
             picker: profile().picker,
+            projectRoot: options.projectRoot?.(),
             runtime: followed.runtime(),
             stream: {
               channel: `${LIT_DEVFRAME_ID}:${TIMELINE_STREAM_NAME}`,

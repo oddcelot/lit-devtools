@@ -1504,6 +1504,45 @@ test('a source location is plain text where the host has no editor', async () =>
   expect(root.querySelector('.src-text')!.textContent).toBe('src/b.ts:4');
 });
 
+test('a location in a package names the package, with the store path on hover', async () => {
+  const file =
+    'node_modules/.pnpm/@awesome.me+webawesome@3.14.0_@types+node@26.6.3/node_modules/@awesome.me/webawesome/dist/chunks/chunk.7VGCIHDG.js';
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {...detailsFor(), source: {file, line: 11}},
+  });
+  await flush(el);
+  const link = root.querySelector<HTMLElement>('button.src')!;
+  expect(link.querySelector('.pkg')!.textContent).toBe(
+    '@awesome.me/webawesome 3.14.0'
+  );
+  expect(link.textContent!.replace(/\s+/g, ' ').trim()).toBe(
+    '@awesome.me/webawesome 3.14.0 › dist/chunks/chunk.7VGCIHDG.js:11'
+  );
+  expect(link.dataset['tip']).toBe(
+    `Open the class definition in your editor: ${file}:11`
+  );
+});
+
+test("an absolute location in the project reads relative to the host's root", async () => {
+  meta.projectRoot = '/home/me/app';
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      callSite: {file: '/home/me/app/src/pages/a.astro', line: 26, column: 6},
+    },
+  });
+  await flush(el);
+  const link = root.querySelector<HTMLElement>('button.call-site')!;
+  expect(link.textContent!.trim()).toBe('src/pages/a.astro:26');
+  expect(link.dataset['tip']).toContain('/home/me/app/src/pages/a.astro:26');
+});
+
 test('a sourcemapped location opens in the host viewer, even with no editor', async () => {
   meta.capabilities.openInEditor = false;
   const opened: unknown[] = [];

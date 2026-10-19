@@ -102,6 +102,7 @@ export const meta: {
     runtimes?: Array<'vite' | 'extension' | 'standalone'>;
   };
   version: string;
+  projectRoot?: string;
   capabilities: {
     openInEditor: boolean;
     exportSnapshot: boolean;
@@ -156,6 +157,7 @@ export const resetClient = (): void => {
     chromeTracks: true,
   };
   meta.version = '9.9.9';
+  delete meta.projectRoot;
   meta.capabilities = {
     openInEditor: true,
     exportSnapshot: true,
