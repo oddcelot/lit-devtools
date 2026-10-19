@@ -674,6 +674,18 @@ test('the Lit tab leaves out what needs a dev server', async () => {
   await panel.locator('components-view .details h2').waitFor();
   expect(await panel.locator('components-view .src').count()).toBe(0);
 
+  // And the footer says why nothing can open a location here, once the
+  // manifest nudge, which goes first, is put away.
+  const later = panel.locator('#manifest-nudge-later');
+  if (await later.isVisible()) await later.click();
+  await expect
+    .poll(() => panel.locator('#editor-notice').isVisible())
+    .toBe(true);
+  expect(await panel.locator('#editor-notice-text').textContent()).toBe(
+    'Nothing here can open a location: no dev server answered, and there is no Sources panel'
+  );
+  expect(await panel.locator('#editor-folder-offer').isVisible()).toBe(false);
+
   // No disk to write a snapshot to, so no button that could only fail.
   await panel.locator('timeline-view wa-button.record').waitFor({
     state: 'attached',

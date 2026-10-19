@@ -28,7 +28,14 @@
  * The same server tells where its root is: it serves a file in the root at
  * the root-relative path, as a module with `?import`, and answers 404 to any
  * other tail of that file's absolute path. So the shortest tail it serves is
- * the root-relative path, and what comes before it is the root.
+ * the root-relative path, and what comes before it is the root. With no
+ * absolute path to start from, the root stays unknown until the user names
+ * it ({@link DevServerEditor.useRoot}); a folder they name is checked the
+ * same way, against a module the page loaded.
+ *
+ * Whether a click will open anything is known ahead of it
+ * ({@link EditorReach}), so the panel neither offers a link that does
+ * nothing nor stays quiet about why.
  */
 
 import type {ElementSource} from '../../src/types/inspector.js';
@@ -80,9 +87,24 @@ export interface DevServerEditorOptions {
   fetchFromPage: (url: string) => Promise<number | undefined>;
 }
 
+/**
+ * How far the editor reaches from a site: `sure` when the plugin's endpoint
+ * is there or Vite's root is known; `unsure` when only Vite's endpoint is,
+ * which opens a root-relative path only if the server was started in its
+ * root; `none` when no endpoint answers.
+ */
+export type EditorReach = 'sure' | 'unsure' | 'none';
+
 export interface DevServerEditor {
-  /** Whether the dev server at `origin` can open a file in the editor. */
-  canOpen(origin: string): Promise<boolean>;
+  /** How far the editor reaches from the dev server at `origin`. */
+  reach(origin: string): Promise<EditorReach>;
+  /** Takes `root` as the root of `origin`'s dev server. */
+  useRoot(origin: string, root: string): Promise<void>;
+  /**
+   * Whether `root` holds `modulePath`, a root-relative module the page at
+   * `origin` loaded: so whether it is that server's root.
+   */
+  isRoot(origin: string, root: string, modulePath: string): Promise<boolean>;
   /** Opens `location` through `origin`'s dev server; false if it can't. */
   open(origin: string, location: ElementSource): Promise<boolean>;
   /**
@@ -126,7 +148,8 @@ export const createDevServerEditor = ({
   };
 
   const read = async (origin: string): Promise<Server> => {
-    const base = await baseOf(origin);
+    // A page that can't be read (reloading, say) has no base to report.
+    const base = await baseOf(origin).catch(() => '/');
     const [vite, plugin] = await Promise.all([
       answers(`${origin}${base}${VITE_OPEN_PATH}`, [500, 'launch-editor']),
       answers(
@@ -203,9 +226,24 @@ export const createDevServerEditor = ({
   };
 
   return {
-    async canOpen(origin) {
+    async reach(origin) {
       const server = await serverAt(origin);
-      return server.vite || server.plugin;
+      if (server.plugin || (server.vite && server.root !== undefined)) {
+        return 'sure';
+      }
+      return server.vite ? 'unsure' : 'none';
+    },
+    async useRoot(origin, root) {
+      (await serverAt(origin)).root = root;
+    },
+    async isRoot(origin, root, modulePath) {
+      const server = await serverAt(origin);
+      const file = `${root}/${modulePath.replace(/^\/+/, '')}`;
+      return serves(
+        origin,
+        server.base,
+        `@fs${file.startsWith('/') ? '' : '/'}${file}`
+      );
     },
     async rootFor(origin, file) {
       const server = await serverAt(origin);

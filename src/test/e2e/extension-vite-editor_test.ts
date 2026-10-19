@@ -15,7 +15,11 @@
  *   endpoint), started from the directory above the root, as `vite app` is:
  *   Vite's endpoint would look for the root-relative path in the wrong
  *   directory, so the open goes through the plugin's endpoint, asked from
- *   the page.
+ *   the page;
+ * - plain Vite, started from the directory above the root: nothing tells
+ *   the extension where the root is, so the panel says so in its footer,
+ *   and the folder the user names there (checked against a module the page
+ *   loaded) makes the open sure.
  *
  * Set up like `extension_test.ts`. Needs `pnpm run build:extension`.
  */
@@ -92,14 +96,31 @@ interface Server {
   page: string;
   /** Run from the directory above the root rather than the root. */
   outside?: boolean;
+  /**
+   * Nothing on the page tells where the root is, so the panel says opening
+   * relies on Vite running there; started outside it, the user names the
+   * folder.
+   */
+  unsure?: boolean;
   env?: Record<string, string>;
   origin?: string;
   process?: ChildProcess;
 }
 
 const SERVERS: Server[] = [
-  {name: 'plain Vite', page: '/'},
-  {name: 'Vite with a base', page: '/app/', env: {BASE: '/app/'}},
+  {name: 'plain Vite', page: '/', unsure: true},
+  {
+    name: 'Vite with a base',
+    page: '/app/',
+    env: {BASE: '/app/'},
+    unsure: true,
+  },
+  {
+    name: 'plain Vite, started outside its root',
+    page: '/',
+    outside: true,
+    unsure: true,
+  },
   {
     name: 'Vite with the plugin, started outside its root',
     page: '/',
@@ -230,6 +251,29 @@ test.each(SERVERS)(
       await rows.filter({hasText: 'my-app'}).first().locator('.twisty').click();
     }
     await myEl.first().click();
+
+    const notice = panel.locator('#editor-notice');
+    if (server.unsure === true) {
+      await expect.poll(() => notice.isVisible()).toBe(true);
+      expect(await notice.textContent()).toContain(
+        "Can't tell where this project is on disk"
+      );
+    }
+    if (server.unsure === true && server.outside === true) {
+      await panel.locator('#editor-folder-set').click();
+      // A folder that isn't the project is refused.
+      await panel.locator('#editor-folder').fill(workDir);
+      await panel.locator('#editor-folder-form button').click();
+      await expect
+        .poll(() => notice.textContent())
+        .toContain('No /src/main.ts in that folder');
+      await panel.locator('#editor-folder').fill(appDir);
+      await panel.locator('#editor-folder-form button').click();
+      await expect.poll(() => notice.isVisible()).toBe(false);
+    }
+    if (server.unsure !== true) {
+      expect(await notice.isVisible()).toBe(false);
+    }
 
     const defined = panel.locator('components-view button.src:not(.call-site)');
     await expect

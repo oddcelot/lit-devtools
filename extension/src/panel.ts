@@ -53,7 +53,7 @@ import {useLocalClient} from '../../src/panel/client.js';
 import {useElementRevealer} from '../../src/panel/element-revealer.js';
 import {useBreakpoints, type Breakpoints} from '../../src/panel/breakpoints.js';
 import {useSourceOpener} from '../../src/panel/source-opener.js';
-import {useRootFinder} from '../../src/panel/source-label.js';
+import {useProjectRoot, useRootFinder} from '../../src/panel/source-label.js';
 import {
   BREAKPOINTS_KEY,
   ELEMENT_BY_ID_KEY,
@@ -61,7 +61,12 @@ import {
 } from '../../src/types/inspector.js';
 import type {ElementSource} from '../../src/types/inspector.js';
 import {loadedUrlFor} from './loaded-source.js';
-import {createDevServerEditor} from './dev-server-editor.js';
+import {createDevServerEditor, type EditorReach} from './dev-server-editor.js';
+import {
+  normalizeFolder,
+  readProjectRoot,
+  writeProjectRoot,
+} from './project-root.js';
 import {CHANNEL_PAGE_STATUS, PANEL_PORT} from './protocol.js';
 import type {
   OriginStatus,
@@ -117,6 +122,13 @@ const manifestNudge = $('manifest-nudge');
 const manifestNudgeText = $('manifest-nudge-text');
 const manifestNudgeOpen = $<HTMLButtonElement>('manifest-nudge-open');
 const manifestNudgeLater = $<HTMLButtonElement>('manifest-nudge-later');
+const editorNotice = $('editor-notice');
+const editorNoticeText = $('editor-notice-text');
+const editorFolderOffer = $('editor-folder-offer');
+const editorFolderSet = $<HTMLButtonElement>('editor-folder-set');
+const editorFolderForm = $<HTMLFormElement>('editor-folder-form');
+const editorFolder = $<HTMLInputElement>('editor-folder');
+const editorNoticeLater = $<HTMLButtonElement>('editor-notice-later');
 
 // Absent outside DevTools; see the test seam above.
 const devtools = chrome.devtools as typeof chrome.devtools | undefined;
@@ -558,20 +570,39 @@ const boot = async (): Promise<void> => {
     typeof panels?.openResource === 'function'
       ? (location: ElementSource) => openInSources(panels, location)
       : undefined;
+  hasSources = sources !== undefined;
   const pageOrigin = await enabledPageOrigin();
-  const editor =
-    pageOrigin !== undefined &&
-    (await Promise.race([
-      devServerEditor.canOpen(pageOrigin),
-      new Promise<false>((resolve) =>
-        setTimeout(() => resolve(false), EDITOR_PROBE_MS)
-      ),
-    ]));
+  if (pageOrigin !== undefined) {
+    const stored = await readProjectRoot(chrome.storage.local, pageOrigin);
+    if (typeof stored === 'string') {
+      await devServerEditor.useRoot(pageOrigin, stored);
+      useProjectRoot(stored);
+    }
+    editorNoticeSnoozed = stored === false;
+  }
+  editorReach =
+    pageOrigin === undefined
+      ? 'none'
+      : await Promise.race([
+          devServerEditor.reach(pageOrigin).catch((): EditorReach => 'none'),
+          new Promise<EditorReach>((resolve) =>
+            setTimeout(() => resolve('none'), EDITOR_PROBE_MS)
+          ),
+        ]);
+  const editor = editorReach !== 'none';
+  editorNoticeChanged();
   // Where the project is, so the panel prints the absolute paths Astro marks
-  // its markup with relative to it: the page's Vite dev server can tell.
+  // its markup with relative to it: the page's Vite dev server can tell, and
+  // once it has, opening a file is sure.
   useRootFinder(async (file) => {
     const at = await enabledPageOrigin();
-    return at === undefined ? undefined : devServerEditor.rootFor(at, file);
+    if (at === undefined) return undefined;
+    const root = await devServerEditor.rootFor(at, file);
+    if (root !== undefined) {
+      editorReach = await devServerEditor.reach(at);
+      editorNoticeChanged();
+    }
+    return root;
   });
   if (editor || sources !== undefined) {
     useSourceOpener(
@@ -740,6 +771,56 @@ const manifestChanged = (): void => {
       ? 'Found a Custom Elements Manifest for this site'
       : `Found ${count} Custom Elements Manifests for this site`;
   for (const listener of manifestListeners) listener();
+  editorNoticeChanged();
+};
+
+/** How far the editor reaches from the page; set at boot. */
+let editorReach: EditorReach | undefined;
+/** DevTools' Sources panel can open a location here. */
+let hasSources = false;
+let editorNoticeSnoozed = false;
+
+/**
+ * Say so in the footer when a click on a location can't be sure to open the
+ * editor, or when nothing here can open one; the manifest nudge goes first.
+ */
+const editorNoticeChanged = (): void => {
+  const message =
+    editorReach === 'unsure'
+      ? "Can't tell where this project is on disk: files open in your editor only if Vite runs in the project folder"
+      : editorReach === 'none' && !hasSources
+        ? 'Nothing here can open a location: no dev server answered, and there is no Sources panel'
+        : undefined;
+  const show =
+    message !== undefined && !editorNoticeSnoozed && manifestNudge.hidden;
+  editorNotice.hidden = !show;
+  if (message !== undefined) editorNoticeText.textContent = message;
+  editorFolderOffer.hidden =
+    editorReach !== 'unsure' || !editorFolderForm.hidden;
+  pageEl.hidden = !manifestNudge.hidden || show;
+};
+
+/**
+ * A module the page loaded from its own server, root-relative: what a
+ * project folder must hold to be the server's root.
+ */
+const pageModule = async (at: string): Promise<string | undefined> => {
+  for (const script of await pageScripts()) {
+    const url = new URL(script);
+    if (url.origin !== at) continue;
+    const path = decodeURIComponent(url.pathname);
+    if (/^\/(?:@|node_modules\/)/.test(path) || path === '/') continue;
+    return path;
+  }
+  return undefined;
+};
+
+/** Takes `root` as the project folder: for opening and for printing. */
+const useRoot = async (at: string, root: string): Promise<void> => {
+  await devServerEditor.useRoot(at, root);
+  useProjectRoot(root);
+  editorReach = await devServerEditor.reach(at);
+  editorNoticeChanged();
 };
 
 /** The docs the panel shows may come from other manifests now. */
@@ -879,6 +960,37 @@ useManifestSetting({
 
 manifestNudgeOpen.addEventListener('click', () => {
   location.replace(`#${new URLSearchParams({tab: 'settings'})}`);
+});
+
+editorFolderSet.addEventListener('click', () => {
+  editorFolderForm.hidden = false;
+  editorNoticeChanged();
+  editorFolder.focus();
+});
+
+editorFolderForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const at = await enabledPageOrigin();
+  const root = normalizeFolder(editorFolder.value);
+  if (at === undefined || root === '') return;
+  const module = await pageModule(at);
+  if (
+    module !== undefined &&
+    !(await devServerEditor.isRoot(at, root, module))
+  ) {
+    editorNoticeText.textContent = `No ${module} in that folder, so it isn't this page's project`;
+    return;
+  }
+  await writeProjectRoot(chrome.storage.local, at, root);
+  editorFolderForm.hidden = true;
+  await useRoot(at, root);
+});
+
+editorNoticeLater.addEventListener('click', async () => {
+  editorNoticeSnoozed = true;
+  editorNoticeChanged();
+  const at = await enabledPageOrigin();
+  if (at !== undefined) await writeProjectRoot(chrome.storage.local, at, false);
 });
 
 manifestNudgeLater.addEventListener('click', () => {

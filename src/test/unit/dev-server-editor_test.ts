@@ -161,7 +161,7 @@ describe('open', () => {
 
   test("knows the plugin's endpoint by either way it answers", async () => {
     const {editor, fromPage} = devServer({vite: false, plugin: 'trusted'});
-    expect(await editor.canOpen(ORIGIN)).toBe(true);
+    expect(await editor.reach(ORIGIN)).toBe('sure');
     expect(await editor.open(ORIGIN, {file: 'src/b.ts', line: 4})).toBe(true);
     expect(fromPage).toHaveLength(1);
   });
@@ -176,7 +176,7 @@ describe('open', () => {
 
   test('a server with neither endpoint opens nothing', async () => {
     const {editor, fromPage} = devServer({vite: false});
-    expect(await editor.canOpen(ORIGIN)).toBe(false);
+    expect(await editor.reach(ORIGIN)).toBe('none');
     expect(await editor.open(ORIGIN, {file: 'a.ts', line: 1})).toBe(false);
     expect(fromPage).toEqual([]);
   });
@@ -211,4 +211,43 @@ describe('rootFor', () => {
       await editor.rootFor(ORIGIN, `${ROOT}/src/pages/a.astro`)
     ).toBeUndefined();
   });
+});
+
+describe('reach', () => {
+  test('Vite alone is unsure until the root is known', async () => {
+    const {editor} = devServer({files: ['src/pages/a.astro']});
+    expect(await editor.reach(ORIGIN)).toBe('unsure');
+    await editor.rootFor(ORIGIN, `${ROOT}/src/pages/a.astro`);
+    expect(await editor.reach(ORIGIN)).toBe('sure');
+  });
+
+  test('the plugin makes it sure', async () => {
+    const {editor} = devServer({plugin: true});
+    expect(await editor.reach(ORIGIN)).toBe('sure');
+  });
+
+  test('a folder the user names is checked against a module the page loaded', async () => {
+    const {editor, calls} = devServer({files: [`@fs${ROOT}/src/main.ts`]});
+    expect(await editor.isRoot(ORIGIN, ROOT, '/src/main.ts')).toBe(true);
+    expect(calls.at(-1)).toBe(`${ORIGIN}/@fs${ROOT}/src/main.ts?import`);
+    expect(await editor.isRoot(ORIGIN, '/elsewhere', '/src/main.ts')).toBe(
+      false
+    );
+    await editor.useRoot(ORIGIN, ROOT);
+    expect(await editor.reach(ORIGIN)).toBe('sure');
+  });
+});
+
+test('a page whose base cannot be read is taken as having none', async () => {
+  const editor = createDevServerEditor({
+    base: () => Promise.reject(new Error('page is reloading')),
+    fetch: (url) =>
+      Promise.resolve(
+        new URL(url).pathname === '/__open-in-editor'
+          ? new Response('launch-editor', {status: 500})
+          : new Response('not found', {status: 404})
+      ),
+    fetchFromPage: () => Promise.resolve(undefined),
+  });
+  expect(await editor.reach(ORIGIN)).toBe('unsure');
 });
