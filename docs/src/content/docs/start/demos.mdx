@@ -97,7 +97,8 @@ the sheet gains it in place. See the
 A text field, a switch and a star rating built on one `FormControl` base
 class, in a plain `<form>`. They go into `FormData`, block submit while
 invalid, reset with the form and follow a disabled `<fieldset>`, and show
-what they are doing as `:state()` custom states. Submit the form empty, then
+what they are doing as `:state()` custom states. Rules that span fields,
+such as an email once the newsletter is on, are a valibot schema. Submit the form empty, then
 edit a control while it is filled in, and the values stay. See the
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/forms).
 

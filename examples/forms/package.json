@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-lit-forms-example",
-  "description": "Form-associated custom elements in Lit, for @oddsquad/vite-plugin-lit: a FormControl base class over ElementInternals, and a text field, a switch and a star rating built on it that take part in a native <form> (FormData, validation, reset, a disabled fieldset) and expose what they are doing as :state() custom states. Opens on StackBlitz straight from the repo URL.",
+  "description": "Form-associated custom elements in Lit, for @oddsquad/vite-plugin-lit: a FormControl base class over ElementInternals, and a text field, a switch and a star rating built on it that take part in a native <form> (FormData, validation, reset, a disabled fieldset) and expose what they are doing as :state() custom states. Rules that span fields are a valibot schema whose issues reach the controls through setCustomValidity(). Opens on StackBlitz straight from the repo URL.",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,7 +11,8 @@
     "stackblitz": "node stackblitz.mjs"
   },
   "dependencies": {
-    "lit": "^3.3.3"
+    "lit": "^3.3.3",
+    "valibot": "^1.5.0"
   },
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "*",
