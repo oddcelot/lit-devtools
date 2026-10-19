@@ -1,28 +1,26 @@
 import * as v from 'valibot';
 
 /**
- * The rules that depend on more than one field, over the form's `FormData`.
- * A control checks only itself (`required`, `type="email"`), so a rule like
- * "email is required once the newsletter is on" lives here. `forward()`
- * files each issue under the field it is about, and `<fm-feedback>` hands
- * it to that control's `setCustomValidity()`.
- *
- * `FormData` leaves out a switch that is off and a rating with no star, so
- * those keys are optional. The tags come in as a list (see
- * `feedbackIssues()`).
+ * Every rule of the feedback form, over the controls' typed values: a string
+ * from a text field, a number from the rating, a boolean from a switch, a
+ * `Set` from the tags. `FormSchema` runs it after each change and routes
+ * each message to the control named first in its path, so a rule about two
+ * fields uses `forward()` to say which one to blame.
  */
-const FeedbackSchema = v.pipe(
+export const FeedbackSchema = v.pipe(
   v.object({
-    email: v.optional(v.string(), ''),
-    newsletter: v.optional(v.string()),
-    rating: v.optional(v.pipe(v.string(), v.toNumber())),
-    comment: v.optional(v.string(), ''),
-    tags: v.array(v.string()),
+    name: v.pipe(v.string(), v.trim(), v.minLength(2, 'Tell us your name.')),
+    email: v.string(),
+    rating: v.pipe(v.number(), v.minValue(1, 'Pick a rating.')),
+    tags: v.set(v.string()),
+    comment: v.string(),
+    newsletter: v.boolean(),
+    terms: v.literal(true, 'Accept the terms to send this.'),
   }),
   v.forward(
     v.partialCheck(
       [['newsletter'], ['email']],
-      ({newsletter, email}) => newsletter === undefined || email !== '',
+      ({newsletter, email}) => !newsletter || email !== '',
       'Add an email for the newsletter to go to.'
     ),
     ['email']
@@ -31,31 +29,9 @@ const FeedbackSchema = v.pipe(
     v.partialCheck(
       [['rating'], ['comment'], ['tags']],
       ({rating, comment, tags}) =>
-        rating === undefined ||
-        rating > 2 ||
-        comment.trim() !== '' ||
-        tags.length > 0,
+        rating > 2 || comment.trim() !== '' || tags.size > 0,
       'Sorry to hear it. Tell us what went wrong, here or with a tag.'
     ),
     ['comment']
   )
 );
-
-/** The first message for each field the schema has an issue with. */
-export const feedbackIssues = (form: HTMLFormElement): Map<string, string> => {
-  const data = new FormData(form);
-  // `fromEntries` keeps the last of a repeated name; take every tag.
-  const result = v.safeParse(FeedbackSchema, {
-    ...Object.fromEntries(data),
-    tags: data.getAll('tags'),
-  });
-  const nested = result.issues
-    ? (v.flatten<typeof FeedbackSchema>(result.issues).nested ?? {})
-    : {};
-  return new Map(
-    Object.entries(nested).map(([field, messages]) => [
-      field,
-      messages?.[0] ?? '',
-    ])
-  );
-};

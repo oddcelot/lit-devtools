@@ -1,39 +1,30 @@
 import {LitElement, css, html, type PropertyValues} from 'lit';
-import {customElement, property, query, state} from 'lit/decorators.js';
-import {FormControl, type FormValue, type Validity} from './form-control';
+import {customElement, property, query} from 'lit/decorators.js';
+import {FormControl, type FormValue} from './form-control';
 
 /** `value="garden, coffee"` in markup; a `Set` everywhere else. */
-const tagList = {
-  fromAttribute: (value: string | null): ReadonlySet<string> =>
-    new Set(
-      (value ?? '')
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean)
-    ),
-  toAttribute: (value: ReadonlySet<string>) => [...value].join(', '),
-};
+const tagList = (value: string | null): ReadonlySet<string> =>
+  new Set(
+    (value ?? '')
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+  );
 
 /**
  * A set of tags: type one and press Enter or comma, remove one with its ×
  * or Backspace in the empty input.
  *
  * `value` is a `ReadonlySet<string>`, so a tag can't be added twice. It is
- * replaced, never mutated, so Lit sees every change: assign a new set.
- *
- * As on a native `<input>`, the `value` attribute is the default
- * (`defaultValue`) and the `value` property the current tags. Keeping them
- * apart also lets a hot patch of the page keep the tags someone added: the
- * plugin leaves a property the template sets to the template, and carries
- * the rest over.
- * The form gets one entry per tag under `name`, as from a
- * `<select multiple>`, so `formData.getAll('tags')` reads them back.
+ * replaced, never mutated, so Lit sees every change: assign a new set. The
+ * form gets one entry per tag under `name`, as from a `<select multiple>`,
+ * so `formData.getAll('tags')` reads them back.
  *
  * States: `empty` with no tags, `full` at `max`, which hides the input, plus
  * the base class's. Like the text field, its error line is the `error` part.
  */
 @customElement('fm-tags')
-export class FmTags extends FormControl {
+export class FmTags extends FormControl<ReadonlySet<string>> {
   static override shadowRootOptions = {
     ...LitElement.shadowRootOptions,
     delegatesFocus: true,
@@ -115,16 +106,6 @@ export class FmTags extends FormControl {
   @property({type: Number}) max = Infinity;
   @property() placeholder = '';
 
-  /** Unset until someone changes the tags, so it follows `defaultValue`. */
-  @state() private current?: ReadonlySet<string>;
-
-  get value(): ReadonlySet<string> {
-    return this.current ?? this.defaultValue;
-  }
-  set value(value: ReadonlySet<string>) {
-    this.current = value;
-  }
-
   @query('input') private input!: HTMLInputElement;
 
   override render() {
@@ -159,9 +140,7 @@ export class FmTags extends FormControl {
           ? html`<p class="hint">${this.value.size} of ${this.max}</p>`
           : ''
       }
-      <p class="error" part="error">
-        ${this.validate().message || this.customError}
-      </p>
+      <p class="error" part="error">${this.errorMessage}</p>
     `;
   }
 
@@ -183,39 +162,23 @@ export class FmTags extends FormControl {
     if (tag === '' || this.value.has(tag) || this.value.size >= this.max) {
       return;
     }
-    this.#set(new Set([...this.value, tag]));
+    this.commit(new Set([...this.value, tag]));
   }
 
   #remove(tag: string) {
     const next = new Set(this.value);
     next.delete(tag);
-    this.#set(next);
+    this.commit(next);
     // The × that had focus is gone; keep it in the field.
     this.input.focus();
   }
 
-  #set(value: ReadonlySet<string>) {
-    this.value = value;
-    this.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
-    this.dispatchEvent(new Event('change', {bubbles: true}));
+  protected toFormValue(tags: ReadonlySet<string>) {
+    return [...tags];
   }
 
-  protected formValue() {
-    return [...this.value];
-  }
-
-  protected restore(value: FormValue) {
-    this.value = new Set(typeof value === 'string' ? [value] : (value ?? []));
-  }
-
-  protected override validate(): Validity {
-    return this.required && this.value.size === 0
-      ? {
-          flags: {valueMissing: true},
-          message: 'Add at least one tag.',
-          anchor: this.input,
-        }
-      : {};
+  protected fromFormValue(value: FormValue) {
+    return new Set(typeof value === 'string' ? [value] : (value ?? []));
   }
 
   override updated(changed: PropertyValues<this>) {

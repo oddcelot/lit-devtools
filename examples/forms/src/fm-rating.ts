@@ -1,11 +1,10 @@
 import {css, html, type PropertyValues} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
-import {FormControl} from './form-control';
+import {FormControl, type FormValue} from './form-control';
 
 /**
- * A star rating from 1 to `max`. It submits the number, or nothing while no
- * star is picked; `required` makes that invalid with a message of its own,
- * since there is no native control here to borrow one from.
+ * A star rating from 1 to `max`. Its `value` is the number of stars, 0 for
+ * none; it submits the number, or nothing while no star is picked.
  *
  * The host is a `slider` for assistive tech: arrow keys, Home and End move
  * it, and an outside `<label for>` names it.
@@ -14,7 +13,7 @@ import {FormControl} from './form-control';
  * is over the stars, which dims the picked ones so the preview reads as one.
  */
 @customElement('fm-rating')
-export class FmRating extends FormControl {
+export class FmRating extends FormControl<number> {
   static override styles = css`
     :host {
       display: inline-flex;
@@ -47,7 +46,8 @@ export class FmRating extends FormControl {
     }
   `;
 
-  @property({type: Number}) value = 0;
+  /** Stars picked at first, from the `value` attribute; 0 for none. */
+  @property({type: Number, attribute: 'value'}) defaultValue = 0;
   @property({type: Number}) max = 5;
 
   @state() private hovered = 0;
@@ -89,30 +89,17 @@ export class FmRating extends FormControl {
   }
 
   #pick(value: number) {
-    if (this.isDisabled || value === this.value) {
-      return;
+    if (!this.isDisabled && value !== this.value) {
+      this.commit(value);
     }
-    this.value = value;
-    this.dispatchEvent(new Event('input', {bubbles: true, composed: true}));
-    this.dispatchEvent(new Event('change', {bubbles: true}));
   }
 
-  protected formValue() {
-    return this.value > 0 ? String(this.value) : null;
+  protected toFormValue(stars: number) {
+    return stars > 0 ? String(stars) : null;
   }
 
-  protected restore(value: string | null) {
-    this.value = Number(value ?? 0);
-  }
-
-  protected override validate() {
-    return this.required && this.value === 0
-      ? {
-          flags: {valueMissing: true},
-          message: 'Pick a rating.',
-          anchor: this.renderRoot.querySelector<HTMLElement>('.star')!,
-        }
-      : {};
+  protected fromFormValue(value: FormValue) {
+    return Number(value ?? 0);
   }
 
   override updated(changed: PropertyValues<this>) {
@@ -120,9 +107,6 @@ export class FmRating extends FormControl {
     this.internals.ariaValueNow = String(this.value);
     this.internals.ariaValueText =
       this.value > 0 ? `${this.value} of ${this.max} stars` : 'Not rated';
-    this.internals.ariaRequired = String(this.required);
-    this.internals.ariaDisabled = String(this.isDisabled);
-    this.tabIndex = this.isDisabled ? -1 : 0;
     this.toggleState('rated', this.value > 0);
     this.toggleState('previewing', this.hovered > 0);
     super.updated(changed);
