@@ -67,7 +67,7 @@ export const renderEmptyState = (onRecord?: () => void): TemplateResult =>
     >
     ${
       onRecord
-        ? html`<wa-button size="small" appearance="outlined" @click=${onRecord}>
+        ? html`<wa-button size="s" appearance="outlined" @click=${onRecord}>
             <wa-icon slot="start" name="record"></wa-icon>
             Start recording
           </wa-button>`

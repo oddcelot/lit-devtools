@@ -3044,7 +3044,7 @@ export class ComponentsView extends LitElement {
     waiting: number
   ): TemplateResult {
     return html` <wa-switch
-        size="small"
+        size="s"
         .checked=${applied}
         @change=${(e: Event) =>
           this._session.applyOverrides((e.target as WaSwitch).checked)}
@@ -3090,7 +3090,7 @@ export class ComponentsView extends LitElement {
       </details>
       <wa-button
         class="clear-overrides"
-        size="small"
+        size="s"
         appearance="plain"
         @click=${() => this._session.clearOverrides()}
         >Clear all</wa-button
@@ -3669,7 +3669,7 @@ export class ComponentsView extends LitElement {
               class="reveal"
               data-action="request-update"
               appearance="plain"
-              size="small"
+              size="s"
               data-tip="Call requestUpdate() on this element"
               aria-label="Request update"
               @click=${this._requestUpdate}
@@ -3680,7 +3680,7 @@ export class ComponentsView extends LitElement {
       <wa-button
         class="reveal"
         appearance="plain"
-        size="small"
+        size="s"
         data-tip="Scroll this element into view on the page"
         aria-label="Scroll into view"
         @click=${this._reveal}
@@ -3694,7 +3694,7 @@ export class ComponentsView extends LitElement {
               class="reveal"
               data-action="reveal-in-elements"
               appearance="plain"
-              size="small"
+              size="s"
               data-tip="Reveal in the Elements panel"
               aria-label="Reveal in Elements"
               @click=${() => void revealer(d.id)}
@@ -3833,7 +3833,7 @@ export class ComponentsView extends LitElement {
       ${noStateNote(d)}
       <wa-input
         class="filter"
-        size="small"
+        size="s"
         type="text"
         spellcheck="false"
         autocomplete="off"
@@ -4007,7 +4007,7 @@ export class ComponentsView extends LitElement {
   ): TemplateResult {
     return html`<wa-button
       class="${kind} ${on ? 'active' : ''}"
-      size="small"
+      size="s"
       variant=${on ? 'brand' : 'neutral'}
       appearance=${on ? 'filled' : 'outlined'}
       data-tip=${tip}
@@ -4042,7 +4042,7 @@ export class ComponentsView extends LitElement {
         }
         <wa-input
           class="tree-filter"
-          size="small"
+          size="s"
           type="text"
           spellcheck="false"
           autocomplete="off"

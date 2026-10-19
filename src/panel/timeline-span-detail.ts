@@ -339,7 +339,7 @@ export class TimelineSpanDetail extends LitElement {
     if (opener === undefined && !this._canOpen) return text;
     return html`<wa-button
       class="src-link ${extraClass}"
-      size="small"
+      size="s"
       appearance="plain"
       data-tip=${opener === undefined ? tip : 'Open in Sources'}
       @click=${() => {
@@ -354,7 +354,7 @@ export class TimelineSpanDetail extends LitElement {
 
   private _action(text: string, tip: string, onClick: () => void) {
     return html`<wa-button
-      size="small"
+      size="s"
       appearance="plain"
       data-tip=${tip}
       @click=${onClick}

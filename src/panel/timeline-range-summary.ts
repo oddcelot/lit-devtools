@@ -156,7 +156,7 @@ export class TimelineRangeSummary extends LitElement {
         <span class="spacer"></span>
         <wa-button
           class="zoom"
-          size="small"
+          size="s"
           appearance="outlined"
           data-tip="Fit the view to this range"
           @click=${() => this._emit('range-zoom')}
@@ -164,7 +164,7 @@ export class TimelineRangeSummary extends LitElement {
         >
         <wa-button
           class="filter"
-          size="small"
+          size="s"
           appearance="outlined"
           data-tip="Show only this range in the list and the tracks"
           @click=${() => this._emit('range-filter')}
@@ -172,7 +172,7 @@ export class TimelineRangeSummary extends LitElement {
         >
         <wa-button
           class="copy-link"
-          size="small"
+          size="s"
           appearance="outlined"
           data-tip="Copy a link that opens the Timeline on this range. It names times in this recording, so it suits a snapshot or this session"
           @click=${this._copyLink}
@@ -180,7 +180,7 @@ export class TimelineRangeSummary extends LitElement {
         >
         <wa-button
           class="clear"
-          size="small"
+          size="s"
           appearance="plain"
           data-tip="Clear the range (Esc)"
           @click=${() => this._emit('range-clear')}
@@ -219,7 +219,7 @@ export class TimelineRangeSummary extends LitElement {
                       c.elementIds.length === 1 && first !== undefined
                         ? html`<wa-button
                             class="filter-link"
-                            size="small"
+                            size="s"
                             appearance="plain"
                             data-tip="Show only events from this element"
                             @click=${() =>
@@ -231,7 +231,7 @@ export class TimelineRangeSummary extends LitElement {
                       first !== undefined
                         ? html`<wa-button
                             class="inspect-link"
-                            size="small"
+                            size="s"
                             appearance="plain"
                             data-tip="Open this element in the Components tab"
                             @click=${() =>

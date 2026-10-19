@@ -622,7 +622,7 @@ export class TimelineEventList extends LitElement {
               <div class="filterbar">
                 <wa-switch
                   class=${this._raw ? 'on' : ''}
-                  size="small"
+                  size="s"
                   ?checked=${this._raw}
                   data-tip="Show one row per recorded event instead of collapsing start/end pairs"
                   @change=${() => {

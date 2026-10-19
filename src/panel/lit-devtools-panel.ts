@@ -291,7 +291,7 @@ export class LitDevtoolsPanel extends LitElement {
           : html`<wa-callout
               class="page-changed"
               variant="warning"
-              size="small"
+              size="s"
               role="status"
             >
               <wa-icon slot="icon" name="warning"></wa-icon>
@@ -302,7 +302,7 @@ export class LitDevtoolsPanel extends LitElement {
               >
               <wa-button
                 appearance="plain"
-                size="small"
+                size="s"
                 aria-label="Dismiss"
                 data-tip="Dismiss"
                 @click=${() => (this._pageChange = null)}
