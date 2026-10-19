@@ -288,6 +288,65 @@ test('plain-markup churn, in the body or inside a shadow root, pushes no tree', 
   expect(treeMessages.length).toBe(since);
 });
 
+test('a closed root Lit keeps on the element is listed and watched', async () => {
+  const {page} = fixture;
+  const host = nextTag('closed-host');
+  const inner = nextTag('closed-inner');
+  const later = nextTag('closed-later');
+  const since = treeMessages.length;
+
+  // What LitElement does with `shadowRootOptions: {mode: 'closed'}`: the
+  // root is closed, so `shadowRoot` is null, and Lit keeps it as
+  // `renderRoot`.
+  await page.evaluate(
+    ([host, inner, later]) => {
+      for (const tag of [inner, later]) {
+        customElements.define(
+          tag,
+          class extends HTMLElement {
+            requestUpdate(): void {}
+          }
+        );
+      }
+      customElements.define(
+        host,
+        class extends HTMLElement {
+          renderRoot?: ShadowRoot;
+          requestUpdate(): void {}
+          connectedCallback(): void {
+            if (this.renderRoot !== undefined) return;
+            this.renderRoot = this.attachShadow({mode: 'closed'});
+            this.renderRoot.append(document.createElement(inner));
+          }
+        }
+      );
+      document.body.append(document.createElement(host));
+    },
+    [host, inner, later] as const
+  );
+  const tree = await waitForTree(
+    since,
+    (roots) => findNode(roots, inner) !== undefined
+  );
+  expect(findNode(tree, host)?.children.map((c) => c.tagName)).toEqual([inner]);
+
+  // Live hears what changes inside the closed root.
+  const sinceInside = treeMessages.length;
+  await page.evaluate(
+    ([host, later]) => {
+      const el = document.querySelector(host) as HTMLElement & {
+        renderRoot: ShadowRoot;
+      };
+      el.renderRoot.append(document.createElement(later));
+    },
+    [host, later] as const
+  );
+  await waitForTree(
+    sinceInside,
+    (roots) => findNode(roots, later) !== undefined
+  );
+});
+
 test('a page that swaps in a new body is followed into it', async () => {
   const {page} = fixture;
   const swapped = nextTag('swapped');

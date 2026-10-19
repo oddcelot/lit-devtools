@@ -415,9 +415,11 @@ runtime waits 100 ms after the last change, rebuilds once, and sends the tree
 only when it differs. A page that keeps inserting components, such as a large
 virtualised list, rebuilds about every 100 ms while it does.
 
-The tree can't see inside a shadow root attached with `mode: 'closed'`, so
-elements rendered there are missing from it. Lit attaches open roots unless a
-component asks otherwise.
+A Lit component with a closed shadow root, set with
+`shadowRootOptions = {mode: 'closed'}`, is listed and watched like any other:
+Lit keeps the root on the element as `renderRoot`, and the tree reads it
+there. A closed root attached by anything other than Lit stays hidden, and
+elements rendered inside it are missing from the tree.
 
 Closing the panel stops the page observer, and reopening it with Live on
 starts it again. That holds for a panel opened as its own tab too: closing the

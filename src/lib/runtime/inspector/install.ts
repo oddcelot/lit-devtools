@@ -425,19 +425,24 @@ if (installs) {
   // Added elements whose subtrees still need their shadow roots observed.
   let pendingRoots: Element[] = [];
 
-  /** Observe every shadow root at or under `root` (and `root`'s subtree). */
+  /**
+   * Observe every shadow root at or under `root` (and `root`'s subtree),
+   * closed ones too where Lit keeps them on the element, as the tree does.
+   */
   const observeShadowRoots = (
     obs: MutationObserver,
     root: ParentNode
   ): void => {
-    if (root instanceof Element && root.shadowRoot !== null) {
-      obs.observe(root.shadowRoot, {childList: true, subtree: true});
-      observeShadowRoots(obs, root.shadowRoot);
+    const own = root instanceof Element ? shadowOf(root) : null;
+    if (own !== null) {
+      obs.observe(own, {childList: true, subtree: true});
+      observeShadowRoots(obs, own);
     }
     for (const el of root.querySelectorAll('*')) {
-      if (el.shadowRoot !== null) {
-        obs.observe(el.shadowRoot, {childList: true, subtree: true});
-        observeShadowRoots(obs, el.shadowRoot);
+      const shadow = shadowOf(el);
+      if (shadow !== null) {
+        obs.observe(shadow, {childList: true, subtree: true});
+        observeShadowRoots(obs, shadow);
       }
     }
   };
@@ -529,7 +534,7 @@ if (installs) {
   const mayHoldComponents = (node: Node): node is Element => {
     if (!(node instanceof Element)) return false;
     const matters = (el: Element): boolean =>
-      el.localName.includes('-') || el.shadowRoot !== null;
+      el.localName.includes('-') || shadowOf(el) !== null;
     if (matters(node)) return true;
     for (const el of node.querySelectorAll('*')) if (matters(el)) return true;
     return false;
