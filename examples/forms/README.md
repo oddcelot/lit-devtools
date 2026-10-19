@@ -1,7 +1,7 @@
 # Forms
 
-Form-associated custom elements in Lit. A text field, a switch and a star
-rating each take part in a plain `<form>` the way native controls do: they
+Form-associated custom elements in Lit. A text field, a switch, a star
+rating and a tag list each take part in a plain `<form>` the way native controls do: they
 go into `FormData`, block submit while invalid, reset with the form and
 follow a disabled `<fieldset>`. What each one is doing is exposed as custom
 states, which CSS reads with `:state()`. Rules that span fields are a
@@ -11,7 +11,7 @@ states, which CSS reads with `:state()`. Rules that span fields are a
 
 The files in `src/`:
 
-- **`form-control.ts`** is `FormControl`, the base class the three controls
+- **`form-control.ts`** is `FormControl`, the base class the four controls
   extend. It holds the `ElementInternals` and does the form plumbing; a
   subclass only says what it submits, how to take a value back and what makes
   it invalid.
@@ -22,6 +22,8 @@ The files in `src/`:
   the `switch` role set through `ElementInternals`.
 - **`<fm-rating>`** is a `slider` with arrow-key support and a validity rule
   of its own.
+- **`<fm-tags>`** holds a `Set` of tags and submits one entry per tag, as a
+  `<select multiple>` does.
 - **`feedback-schema.ts`** is the valibot schema for the rules that span
   fields.
 - **`<fm-feedback>`** is the page: the form, the schema run after every
@@ -44,9 +46,9 @@ Then:
    the top appear at once.
 2. **Fill it in and send.** The `FormData` the form built is printed below
    it. The newsletter switch adds `newsletter: on` only while it is on, like a
-   checkbox.
+   checkbox. Every tag is its own `tags` entry.
 3. **Turn the newsletter on, or give one or two stars.** Email is optional
-   until the newsletter is on, and the comment until the rating is low. The
+   until the newsletter is on, and a low rating wants a comment or a tag. The
    field that now needs filling in turns invalid with valibot's message, and
    submit is blocked until it is filled.
 4. **Click a label.** "Send me the newsletter" toggles its switch: an outside
@@ -94,7 +96,9 @@ export class FmSwitch extends FormControl {
 ```
 
 After every update, the base class passes the value to `setFormValue()` and
-the validity to `setValidity()`. It also implements the form callbacks:
+the validity to `setValidity()`.
+
+It implements the form callbacks too:
 
 | Callback                   | When                                 | What it does                            |
 | -------------------------- | ------------------------------------ | --------------------------------------- |
@@ -106,6 +110,45 @@ It also gives the controls the `form`, `labels`, `validity`,
 `validationMessage`, `willValidate`, `checkValidity()` and
 `reportValidity()` that native controls have, plus `name`, `disabled` and
 `required` properties, and `setCustomValidity()` for errors from outside.
+
+## Values that aren't one string
+
+`formValue()` returns a `FormValue`: a string, `null` for nothing, or a list
+of strings. The form needs strings (or files), so a richer value is turned
+into one of those at the edge. `<fm-tags>` keeps its tags as a
+`ReadonlySet<string>` and hands over an array:
+
+```ts
+protected formValue() {
+  return [...this.value];
+}
+
+protected restore(value: FormValue) {
+  this.value = new Set(typeof value === 'string' ? [value] : (value ?? []));
+}
+```
+
+The base class passes a list to `setFormValue()` as a `FormData` with one
+entry per item under the control's `name`, and the form appends those
+entries to its own. On the other side, `formData.getAll('tags')` reads them
+back. The browser hands the same `FormData` to `formStateRestoreCallback`,
+and the base class turns it back into a list for `restore()`. Whether the
+control is dirty is decided by comparing the lists, not by identity.
+
+For anything that doesn't fit a list of strings, such as an object or a
+date range, the same edge works with `JSON.stringify()` going in and
+`JSON.parse()` in `restore()`. The server then gets one JSON field.
+
+The value is replaced, never mutated: Lit compares by identity, so
+`tags.value.add('x')` would change the set without updating anything.
+Assign a new set instead.
+
+As on a native `<input>`, the `value` attribute sets the default
+(`defaultValue`), and the `value` property holds the current tags. That
+split matters under HMR. When a hot patch re-creates the control, the plugin
+leaves a property the template sets to the template and carries the rest
+over, so the tags someone added survive instead of going back to the
+attribute's.
 
 ## Rules across fields, with valibot
 
@@ -127,7 +170,8 @@ v.forward(
 
 After every `input` and `change`, `<fm-feedback>` waits for the controls'
 `updateComplete` (they put their values into the form when they update),
-runs the schema with `safeParse`, flattens the issues by field and calls each
+runs the schema with `safeParse` over the form's entries (the tags with
+`getAll('tags')`, since one key can't hold them all), flattens the issues by field and calls each
 control's `setCustomValidity()` with its message, or `''` to clear it.
 
 From there a schema error is just an error. It blocks submit and shows the
@@ -164,22 +208,23 @@ script outside the element, and it doesn't add attributes to the host. `checked`
 `<fm-switch>` is deliberately not reflected: the page sees it only as
 `:state(checked)`.
 
-| State          | Set by            | On while                                        |
-| -------------- | ----------------- | ----------------------------------------------- |
-| `touched`      | `FormControl`     | it has lost focus, or a submit found it invalid |
-| `dirty`        | `FormControl`     | its value differs from the first one            |
-| `user-invalid` | `FormControl`     | it is touched and invalid                       |
-| `empty`        | `<fm-text-field>` | it has no text                                  |
-| `checked`      | `<fm-switch>`     | it is on                                        |
-| `rated`        | `<fm-rating>`     | a star is picked                                |
-| `previewing`   | `<fm-rating>`     | the pointer is over the stars                   |
+| State          | Set by                         | On while                                        |
+| -------------- | ------------------------------ | ----------------------------------------------- |
+| `touched`      | `FormControl`                  | it has lost focus, or a submit found it invalid |
+| `dirty`        | `FormControl`                  | its value differs from the first one            |
+| `user-invalid` | `FormControl`                  | it is touched and invalid                       |
+| `empty`        | `<fm-text-field>`, `<fm-tags>` | it has no text, or no tags                      |
+| `checked`      | `<fm-switch>`                  | it is on                                        |
+| `rated`        | `<fm-rating>`                  | a star is picked                                |
+| `previewing`   | `<fm-rating>`                  | the pointer is over the stars                   |
+| `full`         | `<fm-tags>`                    | it holds `max` tags; the input hides            |
 
 `user-invalid` stands in for the native `:user-invalid`, which matches only
 native controls, so errors wait until someone has been in the field.
 `:invalid`, `:valid` and `:disabled` do work on form-associated elements
 without any help.
 
-The text field's error line is also a CSS part, `error`, so the page can
+The error line of the text field and of the tags is also a CSS part, `error`, so the page can
 restyle it without reaching into the shadow root. `<fm-feedback>` puts a
 warning sign in front of it:
 

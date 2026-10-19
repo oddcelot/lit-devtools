@@ -8,7 +8,8 @@ import * as v from 'valibot';
  * it to that control's `setCustomValidity()`.
  *
  * `FormData` leaves out a switch that is off and a rating with no star, so
- * those keys are optional.
+ * those keys are optional. The tags come in as a list (see
+ * `feedbackIssues()`).
  */
 const FeedbackSchema = v.pipe(
   v.object({
@@ -16,6 +17,7 @@ const FeedbackSchema = v.pipe(
     newsletter: v.optional(v.string()),
     rating: v.optional(v.pipe(v.string(), v.toNumber())),
     comment: v.optional(v.string(), ''),
+    tags: v.array(v.string()),
   }),
   v.forward(
     v.partialCheck(
@@ -27,10 +29,13 @@ const FeedbackSchema = v.pipe(
   ),
   v.forward(
     v.partialCheck(
-      [['rating'], ['comment']],
-      ({rating, comment}) =>
-        rating === undefined || rating > 2 || comment.trim() !== '',
-      'Sorry to hear it. Tell us what went wrong.'
+      [['rating'], ['comment'], ['tags']],
+      ({rating, comment, tags}) =>
+        rating === undefined ||
+        rating > 2 ||
+        comment.trim() !== '' ||
+        tags.length > 0,
+      'Sorry to hear it. Tell us what went wrong, here or with a tag.'
     ),
     ['comment']
   )
@@ -38,10 +43,12 @@ const FeedbackSchema = v.pipe(
 
 /** The first message for each field the schema has an issue with. */
 export const feedbackIssues = (form: HTMLFormElement): Map<string, string> => {
-  const result = v.safeParse(
-    FeedbackSchema,
-    Object.fromEntries(new FormData(form))
-  );
+  const data = new FormData(form);
+  // `fromEntries` keeps the last of a repeated name; take every tag.
+  const result = v.safeParse(FeedbackSchema, {
+    ...Object.fromEntries(data),
+    tags: data.getAll('tags'),
+  });
   const nested = result.issues
     ? (v.flatten<typeof FeedbackSchema>(result.issues).nested ?? {})
     : {};
