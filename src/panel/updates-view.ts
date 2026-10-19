@@ -533,7 +533,7 @@ export class UpdatesView extends LitElement {
               ? html`<wa-button
                   class="link"
                   appearance="plain"
-                  size="small"
+                  size="s"
                   data-tip=${sourceOpener(source) ? 'Open in Sources' : 'Open this file in your editor'}
                   @click=${() => {
                     const opener = sourceOpener(source);
@@ -558,7 +558,7 @@ export class UpdatesView extends LitElement {
               ? html`<wa-button
                   class="link call-site"
                   appearance="plain"
-                  size="small"
+                  size="s"
                   data-tip="Open the template that renders this element"
                   @click=${() => openInEditor(site.file, site.line, site.column)}
                 >
@@ -627,7 +627,7 @@ export class UpdatesView extends LitElement {
                 <wa-button
                   class="link"
                   appearance="plain"
-                  size="small"
+                  size="s"
                   data-tip="Open this instance in the Components tab"
                   @click=${() => this._inspect(cycle.elementId)}
                   >#${cycle.elementId}</wa-button

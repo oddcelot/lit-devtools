@@ -704,7 +704,7 @@ export class TimelineView extends LitElement {
           this._canExport
             ? html`<wa-button
                 class="export"
-                size="small"
+                size="s"
                 appearance="outlined"
                 ?disabled=${this._exporting}
                 data-tip="Write this session to a static panel directory you can attach to a bug report"
@@ -716,7 +716,7 @@ export class TimelineView extends LitElement {
             : nothing
         }
         <wa-button
-          size="small"
+          size="s"
           appearance="outlined"
           data-tip="Delete every recorded event"
           @click=${this._clear}
@@ -730,7 +730,7 @@ export class TimelineView extends LitElement {
             ? nothing
             : html`<wa-button
                 class="record ${this._recording ? 'active' : ''}"
-                size="small"
+                size="s"
                 variant=${this._recording ? 'danger' : 'neutral'}
                 appearance=${this._recording ? 'filled' : 'outlined'}
                 data-tip=${this._recording ? 'Stop recording' : 'Start recording'}
@@ -758,7 +758,7 @@ export class TimelineView extends LitElement {
                       <span class="field">
                         Element
                         <wa-select
-                          size="small"
+                          size="s"
                           label="Filter by element"
                           .value=${
                             filter.elementId === null
@@ -782,7 +782,7 @@ export class TimelineView extends LitElement {
               }
               <wa-input
                 class="regex ${model.regexInvalid ? 'invalid' : ''}"
-                size="small"
+                size="s"
                 type="text"
                 label="Filter events by regex"
                 spellcheck="false"
@@ -796,7 +796,7 @@ export class TimelineView extends LitElement {
                   ? nothing
                   : html`<wa-button
                       class="range-chip"
-                      size="small"
+                      size="s"
                       appearance="outlined"
                       data-tip="Showing only this time range. Click to show all of time again"
                       @click=${this._clearRangeFilter}

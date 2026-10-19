@@ -406,7 +406,7 @@ export class DevtoolsSettings extends LitElement {
   private _pill(on: boolean) {
     return html`<wa-badge
       class="pill ${on ? 'on' : ''}"
-      size="small"
+      size="s"
       variant=${on ? 'success' : 'neutral'}
       >${on ? 'enabled' : 'disabled'}</wa-badge
     >`;
@@ -450,7 +450,7 @@ export class DevtoolsSettings extends LitElement {
       return row.origin && row.origin !== 'default'
         ? html`<wa-badge
             class="env src"
-            size="small"
+            size="s"
             appearance="outlined"
             variant="neutral"
             >(${row.origin})</wa-badge
@@ -462,7 +462,7 @@ export class DevtoolsSettings extends LitElement {
     const s = this._settings;
     return html`<wa-badge
         class="env src ovr"
-        size="small"
+        size="s"
         appearance="outlined"
         variant="brand"
         >${src}: ${override.baseline}</wa-badge
@@ -470,7 +470,7 @@ export class DevtoolsSettings extends LitElement {
       <wa-button
         class="row-reset"
         appearance="plain"
-        size="small"
+        size="s"
         aria-label="Reset to the ${src} value"
         data-tip="Reset to the ${src} value"
         @click=${() => this._resetKey(key)}
@@ -483,20 +483,20 @@ export class DevtoolsSettings extends LitElement {
               class="nudge"
               data-nudge=${key}
               variant="warning"
-              size="small"
+              size="s"
             >
               <span
                 >Config changed since you overrode this: was
                 ${override.moved.was}, now ${override.moved.now}</span
               >
               <wa-button
-                size="small"
+                size="s"
                 data-tip="Discard your override and use the new ${src} value"
                 @click=${() => this._resetKey(key)}
                 >Reset</wa-button
               >
               <wa-button
-                size="small"
+                size="s"
                 data-tip="Keep your override and stop flagging the config change"
                 @click=${() => s !== null && overrides.keep(key, s)}
               >
@@ -514,7 +514,7 @@ export class DevtoolsSettings extends LitElement {
     switch (row.definition.kind) {
       case 'switch':
         return html`<wa-switch
-          size="small"
+          size="s"
           .checked=${row.value === true}
           ?disabled=${row.disabled}
           @change=${(e: Event) => set((e.target as WaSwitch).checked)}
@@ -523,7 +523,7 @@ export class DevtoolsSettings extends LitElement {
         </wa-switch>`;
       case 'select':
         return html`<wa-select
-          size="small"
+          size="s"
           .value=${String(row.value)}
           ?disabled=${row.disabled}
           @change=${(e: Event) => set((e.target as WaSelect).value)}
@@ -574,7 +574,7 @@ export class DevtoolsSettings extends LitElement {
               </td>
               <td class="val">
                 <wa-select
-                  size="small"
+                  size="s"
                   .value=${this._colorScheme}
                   @change=${(e: Event) =>
                     this._setColorScheme(
@@ -633,7 +633,7 @@ export class DevtoolsSettings extends LitElement {
       <tr>
         <td class="key" tabindex="0" data-tip=${row.tip}>${row.label}</td>
         <td class="val">
-          <wa-select size="small" disabled .value=${'custom'}>
+          <wa-select size="s" disabled .value=${'custom'}>
             <wa-option value="custom" disabled>Custom</wa-option>
           </wa-select>
           ${this._badge(row)}
@@ -671,7 +671,7 @@ export class DevtoolsSettings extends LitElement {
           html`<wa-button
             class="docs-link"
             appearance="plain"
-            size="small"
+            size="s"
             href=${userTiming ? USER_TIMING_DOCS : CHROME_TRACKS_DOCS}
             target="_blank"
             data-tip=${
@@ -738,7 +738,7 @@ export class DevtoolsSettings extends LitElement {
             (entry, i) => html`<tr class="manifest-row">
               <td class="val manifest-entry">
                 <wa-switch
-                  size="small"
+                  size="s"
                   .checked=${entry.enabled}
                   @change=${(e: Event) =>
                     void setting.toggle(
@@ -760,7 +760,7 @@ export class DevtoolsSettings extends LitElement {
                 ${this._renderAccess(setting, entry)}
                 <span class="spacer"></span>
                 <wa-button
-                  size="small"
+                  size="s"
                   appearance="plain"
                   ?disabled=${i === 0}
                   @click=${() => void setting.move(entry.url, -1)}
@@ -770,7 +770,7 @@ export class DevtoolsSettings extends LitElement {
                   ></wa-icon
                 ></wa-button>
                 <wa-button
-                  size="small"
+                  size="s"
                   appearance="plain"
                   ?disabled=${i === last}
                   @click=${() => void setting.move(entry.url, 1)}
@@ -783,7 +783,7 @@ export class DevtoolsSettings extends LitElement {
                   entry.linked
                     ? nothing
                     : html`<wa-button
-                        size="small"
+                        size="s"
                         appearance="plain"
                         @click=${() => void setting.remove(entry.url)}
                         >Remove</wa-button
@@ -804,12 +804,12 @@ export class DevtoolsSettings extends LitElement {
             <td class="val">
               <form class="manifest" @submit=${this._addManifest}>
                 <wa-input
-                  size="small"
+                  size="s"
                   label="Custom Elements Manifest URL"
                   placeholder="Path or URL on this site"
                   spellcheck="false"
                 ></wa-input>
-                <wa-button size="small" type="submit">Add</wa-button>
+                <wa-button size="s" type="submit">Add</wa-button>
               </form>
               ${
                 this._manifestError === ''
@@ -846,7 +846,7 @@ export class DevtoolsSettings extends LitElement {
       >`;
     }
     return html`<wa-button
-      size="small"
+      size="s"
       @click=${async () => {
         this._manifestError = (await setting.allow(entry.url)) ?? '';
       }}
@@ -871,19 +871,19 @@ export class DevtoolsSettings extends LitElement {
         }
         beside the page's scripts.</span
       >
-      <wa-button size="small" @click=${() => void setting.use(url)}
+      <wa-button size="s" @click=${() => void setting.use(url)}
         >Use it</wa-button
       >
       ${
         ignored
           ? html`<wa-button
-              size="small"
+              size="s"
               appearance="plain"
               @click=${() => void setting.reset(url)}
               >Reset</wa-button
             >`
           : html`<wa-button
-              size="small"
+              size="s"
               appearance="plain"
               @click=${() => void setting.ignore(url)}
               >Always ignore</wa-button
@@ -994,7 +994,7 @@ export class DevtoolsSettings extends LitElement {
           hasOverride
             ? html`<wa-button
                 class="reset"
-                size="small"
+                size="s"
                 appearance="outlined"
                 data-tip="Discard every override and use the configured values"
                 @click=${this._reset}
