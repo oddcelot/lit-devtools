@@ -743,11 +743,15 @@ test("the Lit tab finds where a component is defined through the page's sourcema
     .filter({hasText: 'mapped-hello'})
     .first()
     .click({timeout: 15_000});
-  // Plain text: a tab is not DevTools, so there is no Sources panel to open.
+  // A link even in a tab, where there is no Sources panel: the page's dev
+  // server may open it in the editor.
   await expect
-    .poll(() => panel.locator('components-view .src-text').textContent(), {
-      timeout: 15_000,
-    })
+    .poll(
+      () => panel.locator('components-view button.src').first().innerText(),
+      {
+        timeout: 15_000,
+      }
+    )
     .toBe('src/mapped.js:5');
 
   await panel.close();
@@ -781,7 +785,7 @@ test("the Lit tab finds where an element is rendered by its template's text", as
   }
   await item.first().click();
   await expect
-    .poll(() => panel.locator('components-view .call-site').textContent(), {
+    .poll(() => panel.locator('components-view .call-site').innerText(), {
       timeout: 15_000,
     })
     .toBe('src/mapped.js:3');

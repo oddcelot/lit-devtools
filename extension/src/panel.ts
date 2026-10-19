@@ -60,6 +60,7 @@ import {
 } from '../../src/types/inspector.js';
 import type {ElementSource} from '../../src/types/inspector.js';
 import {loadedUrlFor} from './loaded-source.js';
+import {createDevServerEditor} from './dev-server-editor.js';
 import {CHANNEL_PAGE_STATUS, PANEL_PORT} from './protocol.js';
 import type {
   OriginStatus,
@@ -231,6 +232,10 @@ const sourceMaps = createSourceMapResolver({
   allows: (url) => origin !== undefined && site(url) === origin,
 });
 
+// Opens a source in the editor through the page's own Vite dev server, from
+// here and only for the enabled site, like the sourcemaps.
+const devServerEditor = createDevServerEditor({fetch: (url) => fetch(url)});
+
 /**
  * Runs `func` in the inspected page for a list of strings: through
  * DevTools' `eval` in the Lit tab, with `chrome.scripting` outside DevTools
@@ -390,6 +395,18 @@ const openInSources = async (
 };
 
 /**
+ * Opens `location` in the editor through the inspected page's dev server,
+ * when the page is on the enabled site; false when nothing was sent.
+ */
+const openInEditor = async (location: ElementSource): Promise<boolean> => {
+  const url = await inspectedUrl();
+  if (url === undefined || origin === undefined || site(url) !== origin) {
+    return false;
+  }
+  return devServerEditor.open(new URL(url).origin, location);
+};
+
+/**
  * Selects the element with the runtime's id in the Elements panel, by
  * evaluating in the page: `inspect()` is a console utility, so it only exists
  * there, and the runtime's lookup (`ELEMENT_BY_ID_KEY`) is how the id becomes
@@ -495,12 +512,19 @@ const boot = async (): Promise<void> => {
     },
   });
   useLocalClient(client);
-  // Outside DevTools (the e2e's plain tab) there is no Sources panel, and a
-  // browser may lack `openResource` (Firefox); locations stay as they are then.
+  // The page's Vite dev server opens a location in the editor when it can;
+  // otherwise it opens in the Sources panel. Outside DevTools (the e2e's
+  // plain tab) there is no Sources panel, and a browser may lack
+  // `openResource` (Firefox); the editor is the only way there.
   const panels = devtools?.panels;
-  if (typeof panels?.openResource === 'function') {
-    useSourceOpener((location) => openInSources(panels, location));
-  }
+  const sources =
+    typeof panels?.openResource === 'function'
+      ? (location: ElementSource) => openInSources(panels, location)
+      : undefined;
+  useSourceOpener(async (location) => {
+    if (await openInEditor(location)) return;
+    await sources?.(location);
+  });
   // "Reveal in Elements" evaluates in the page and calls DevTools' `inspect()`
   // there, which Chrome and Firefox both provide; following the Elements
   // selection back evaluates on `$0` the same way.
