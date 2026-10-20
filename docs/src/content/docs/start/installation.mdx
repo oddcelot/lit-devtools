@@ -25,7 +25,7 @@ includes these steps.
 />
 
 Lit and Vite stay your dependencies.
-[Compatibility](/vite-plugin-lit/reference/compatibility/) lists the versions
+[Compatibility](/reference/compatibility/) lists the versions
 each release supports and the one dev mode it does not.
 
 ## Add it to Vite
@@ -43,7 +43,7 @@ export default defineConfig({
 
 Hot patching, the on-page indicator and the CSS import queries are on from
 here. The DevTools timeline and the source overlay are opt-in; the
-[options reference](/vite-plugin-lit/reference/options/) has the switches.
+[options reference](/reference/options/) has the switches.
 
 The patching applies to the dev server only, so a production build is
 untouched. The `?css-sheet` and `?hmr-url` queries resolve in dev and build
@@ -147,7 +147,7 @@ save. The markup changes, what you typed stays, and the indicator pulses green.
 That is a hot patch: an edit applied to the running page without a reload.
 
 If the page reloads instead, the edit hit a shape that cannot be patched in
-place. [Limitations](/vite-plugin-lit/reference/limitations/) names each one.
+place. [Limitations](/reference/limitations/) names each one.
 
 ## Related
 
@@ -155,11 +155,11 @@ place. [Limitations](/vite-plugin-lit/reference/limitations/) names each one.
   <LinkCard
     title="Options"
     description="Every option litPlugin() takes, with defaults."
-    href="/vite-plugin-lit/reference/options/"
+    href="/reference/options/"
   />
   <LinkCard
     title="Keep state across edits"
     description="What a hot patch preserves, and the three settings worth changing."
-    href="/vite-plugin-lit/guides/hmr/"
+    href="/guides/hmr/"
   />
 </CardGrid>

@@ -16,7 +16,7 @@ import {stripHeader} from '../../../lib/fixture';
 
 One integration renders your Lit components in Astro and hydrates them, hot
 patches them while you edit, and puts the Lit panel in the dev toolbar. Read
-[Server-side rendering](/vite-plugin-lit/guides/ssr/) first if hydration is
+[Server-side rendering](/guides/ssr/) first if hydration is
 new to you.
 
 ## Set it up
@@ -30,9 +30,9 @@ npm install -D @oddsquad/vite-plugin-lit
 ```
 
 Add `lit()` from `@oddsquad/vite-plugin-lit/astro`. It takes the plugin's
-[options](/vite-plugin-lit/reference/options/), turns the timeline on, since
+[options](/reference/options/), turns the timeline on, since
 the panel needs it, and has [three of its
-own](/vite-plugin-lit/reference/options/#astro-options).
+own](/reference/options/#astro-options).
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';
@@ -201,11 +201,11 @@ Every current browser parses declarative shadow roots. For an older one, pass
   <LinkCard
     title="Render Lit on the server"
     description="What the plugin does for hydrated components."
-    href="/vite-plugin-lit/guides/ssr/"
+    href="/guides/ssr/"
   />
   <LinkCard
     title="Inspect live components"
     description="The Components tab, where hydration state shows."
-    href="/vite-plugin-lit/guides/devtools/components/"
+    href="/guides/devtools/components/"
   />
 </CardGrid>

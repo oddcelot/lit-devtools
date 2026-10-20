@@ -34,11 +34,11 @@ the change exists. Every commit carries a `Changelog:` trailer; see
 
 ## More
 
-- [Development](https://oddcelot.github.io/vite-plugin-lit/contributing/development/):
+- [Development](https://vite-plugin-lit.oddsquad.dev/contributing/development/):
   building, the playground, and the docs site
-- [Testing](https://oddcelot.github.io/vite-plugin-lit/contributing/testing/):
+- [Testing](https://vite-plugin-lit.oddsquad.dev/contributing/testing/):
   the unit, DOM, and e2e suites
-- [Design docs](https://oddcelot.github.io/vite-plugin-lit/contributing/design-docs/)
+- [Design docs](https://vite-plugin-lit.oddsquad.dev/contributing/design-docs/)
 
 By contributing, you agree that your contributions are licensed under the
 [BSD-3-Clause license](./LICENSE).

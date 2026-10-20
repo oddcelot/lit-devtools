@@ -6,12 +6,8 @@ import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightChangelogs, {
   makeChangelogsSidebarLinks,
 } from 'starlight-changelogs';
-// GitHub Pages project path. Astro does not rewrite hrefs written in
-// Markdown, and Astro 7's Markdown processor has no rehype hook to do it
-// for us, so internal links in content are written with this prefix. The
-// links validator checks every one of them against the real page set.
 // The redirect map for moved pages lives next to this file.
-import {base, redirects} from './redirects.mjs';
+import {redirects} from './redirects.mjs';
 import {readFileSync} from 'node:fs';
 import {latestRelease} from './src/lib/latest-release.mjs';
 
@@ -20,7 +16,7 @@ const latest = latestRelease(
 );
 
 export default defineConfig({
-  site: 'https://oddcelot.github.io',
+  site: 'https://vite-plugin-lit.oddsquad.dev',
   vite: {
     build: {
       rolldownOptions: {
@@ -79,7 +75,6 @@ export default defineConfig({
       subsets: ['latin'],
     },
   ],
-  base,
   redirects,
   integrations: [
     starlight({
@@ -165,10 +160,7 @@ export default defineConfig({
         starlightLinksValidator({
           // The changelog pages come from starlight-changelogs, outside the
           // docs collection the validator checks against.
-          exclude: [
-            '/vite-plugin-lit/reference/changelog/',
-            '/vite-plugin-lit/reference/changelog/**/*',
-          ],
+          exclude: ['/reference/changelog/', '/reference/changelog/**/*'],
         }),
         starlightChangelogs(),
         // llms.txt and friends, for coding agents working in a project that

@@ -41,12 +41,12 @@ Across an edit to a component module, these survive:
   child element, and the plugin copies the old child's reactive properties and
   `#private` fields onto the new one before it first renders. Properties the
   template binds keep their new values. See
-  [`hmr.childState`](/vite-plugin-lit/reference/options/#hmrchildstate).
+  [`hmr.childState`](/reference/options/#hmrchildstate).
 - **Adopted stylesheets.** Constructed sheets stay the same objects, so
   nothing is re-parsed and nothing is re-adopted.
 - **Controllers holding instance state.** Task results and context
   subscriptions survive. The
-  [ecosystem guide](/vite-plugin-lit/guides/ecosystem/) has the per-library
+  [ecosystem guide](/guides/ecosystem/) has the per-library
   detail.
 
 The playground fixture below is the shape to test against. Edit the header
@@ -90,7 +90,7 @@ its subscribers ride through every patch.
 
 Some component shapes cannot be updated in place. That is an incompatible
 patch, and the plugin detects each case deterministically rather than
-guessing. [Limitations](/vite-plugin-lit/reference/limitations/) lists every
+guessing. [Limitations](/reference/limitations/) lists every
 one with its reason.
 
 `onIncompatible` decides what happens next. The default, `'reload'`, reloads
@@ -201,11 +201,11 @@ dot and raises its idle opacity so the number stays readable.
   <LinkCard
     title="How HMR works"
     description="The two mechanisms behind an in-place patch."
-    href="/vite-plugin-lit/concepts/how-hmr-works/"
+    href="/concepts/how-hmr-works/"
   />
   <LinkCard
     title="Use signals, context, tasks and the virtualizer"
     description="The same rules applied to the Lit ecosystem libraries."
-    href="/vite-plugin-lit/guides/ecosystem/"
+    href="/guides/ecosystem/"
   />
 </CardGrid>

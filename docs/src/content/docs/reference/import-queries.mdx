@@ -11,16 +11,16 @@ Five import queries deliver CSS into a shadow root, and two of them come from
 this plugin. This page states what each one yields and how it behaves on an
 edit; the guides linked in the last column show them in use.
 
-| Query        | Yields                        | Added by    | HMR behaviour                               | Used on                                                                   |
-| ------------ | ----------------------------- | ----------- | ------------------------------------------- | ------------------------------------------------------------------------- |
-| `?css-sheet` | a shared `CSSStyleSheet`      | this plugin | swaps in place, no component re-render      | [`?css-sheet`](/vite-plugin-lit/guides/stylesheets/css-sheet/)            |
-| `?hmr-url`   | a stylesheet URL (`string`)   | this plugin | re-renders the component with a busted href | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
-| `?url`       | an asset URL (`string`)       | Vite        | URL is stable, so call `devCacheBust()`     | [`urlSheet()`](/vite-plugin-lit/guides/stylesheets/url-sheet/)            |
-| `?inline`    | processed CSS text (`string`) | Vite        | re-renders the component                    | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
-| `?raw`       | verbatim file text (`string`) | Vite        | re-renders the component                    | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
+| Query        | Yields                        | Added by    | HMR behaviour                               | Used on                                                   |
+| ------------ | ----------------------------- | ----------- | ------------------------------------------- | --------------------------------------------------------- |
+| `?css-sheet` | a shared `CSSStyleSheet`      | this plugin | swaps in place, no component re-render      | [`?css-sheet`](/guides/stylesheets/css-sheet/)            |
+| `?hmr-url`   | a stylesheet URL (`string`)   | this plugin | re-renders the component with a busted href | [Component styles](/guides/stylesheets/component-styles/) |
+| `?url`       | an asset URL (`string`)       | Vite        | URL is stable, so call `devCacheBust()`     | [`urlSheet()`](/guides/stylesheets/url-sheet/)            |
+| `?inline`    | processed CSS text (`string`) | Vite        | re-renders the component                    | [Component styles](/guides/stylesheets/component-styles/) |
+| `?raw`       | verbatim file text (`string`) | Vite        | re-renders the component                    | [Component styles](/guides/stylesheets/component-styles/) |
 
 Which one to reach for is a delivery tradeoff, and the
-[stylesheets guide](/vite-plugin-lit/guides/stylesheets/) works through it.
+[stylesheets guide](/guides/stylesheets/) works through it.
 
 ## Ambient types
 
@@ -83,8 +83,8 @@ import {addTimelineEvent, addTimelineLayer} from 'virtual:lit-plugin/timeline';
 Its types ship in the same `@oddsquad/vite-plugin-lit/client` declarations, so
 the `types` entry or the triple-slash reference above already covers it. The
 full declaration is on the
-[runtime API page](/vite-plugin-lit/reference/runtime-api/), and
-[custom layers](/vite-plugin-lit/guides/devtools/custom-layers/) puts it to
+[runtime API page](/reference/runtime-api/), and
+[custom layers](/guides/devtools/custom-layers/) puts it to
 work.
 
 ## Related
@@ -93,11 +93,11 @@ work.
   <LinkCard
     title="Runtime API"
     description="urlSheet(), devCacheBust(), and the timeline exports."
-    href="/vite-plugin-lit/reference/runtime-api/"
+    href="/reference/runtime-api/"
   />
   <LinkCard
     title="Component styles"
     description="When to reach for ?hmr-url, ?inline, or ?raw."
-    href="/vite-plugin-lit/guides/stylesheets/component-styles/"
+    href="/guides/stylesheets/component-styles/"
   />
 </CardGrid>

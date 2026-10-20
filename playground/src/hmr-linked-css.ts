@@ -20,7 +20,7 @@ import cssHref from './hmr-linked-css.css?hmr-url';
  * instance, and every CSS edit re-renders the whole component. For a sheet
  * shared across many components, prefer a shared adopted sheet (`?css-sheet`)
  * — see
- * https://oddcelot.github.io/vite-plugin-lit/guides/stylesheets/
+ * https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/
  * (benchmarked in bench/).
  */
 

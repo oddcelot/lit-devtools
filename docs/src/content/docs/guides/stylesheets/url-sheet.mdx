@@ -13,7 +13,7 @@ import {stripHeader} from '../../../../lib/fixture';
 
 Build the shared, hot-swapping sheet yourself when you need a custom fetch or
 code that runs without this plugin. If you do not, use
-[`?css-sheet`](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+[`?css-sheet`](/guides/stylesheets/css-sheet/).
 
 ## Create the sheet module
 
@@ -56,7 +56,7 @@ the same object, so an edit to the CSS reaches all of them at once.
 
 The sheet is constructed at module top level, which needs
 constructable-stylesheet support; see
-[Compatibility](/vite-plugin-lit/reference/compatibility/) for the floor.
+[Compatibility](/reference/compatibility/) for the floor.
 
 ## Keep the accept line where Vite can see it
 
@@ -79,11 +79,11 @@ same two lines in a virtual module so your code stays a bare import.
   <LinkCard
     title="Runtime API"
     description="urlSheet() and devCacheBust() signatures and return types."
-    href="/vite-plugin-lit/reference/runtime-api/"
+    href="/reference/runtime-api/"
   />
   <LinkCard
     title="Share one stylesheet with ?css-sheet"
     description="The same sheet without the boilerplate."
-    href="/vite-plugin-lit/guides/stylesheets/css-sheet/"
+    href="/guides/stylesheets/css-sheet/"
   />
 </CardGrid>

@@ -9,7 +9,7 @@ import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
 
 Set up a local checkout of the plugin, build it, and run the playground against
 it. This page is for changing the plugin itself; to use it in your own project,
-start at [Install the plugin](/vite-plugin-lit/start/installation/).
+start at [Install the plugin](/start/installation/).
 
 The repository needs Node 26 and pnpm 12. `corepack enable` picks up the pinned
 version. The published package itself runs on Node 20 or newer.
@@ -71,14 +71,21 @@ This site lives in `docs/` as its own workspace package, built with Astro and
 Starlight:
 
 ```sh frame="terminal"
-pnpm run docs:dev     # serve at http://localhost:4321/vite-plugin-lit/
-pnpm run docs:build   # sync the changelog, build, check redirects
+pnpm run docs:dev     # serve at http://localhost:4321/
+pnpm run docs:build   # sync the changelog, build, check redirects, write .md copies
 pnpm run docs:shots   # regenerate the screenshots
 ```
 
 `pnpm run docs:build` is the gate. It syncs `CHANGELOG.md` into the reference
 section, fails on a dead internal link or anchor, and asserts every redirect
 target exists. Run it before you open a docs PR.
+
+Pushes to `main` deploy the build to GitHub Pages, served at
+`vite-plugin-lit.oddsquad.dev` through Cloudflare. A Worker on that route,
+in `docs/worker/`, adds the Link headers Pages can't set and answers
+`Accept: text/markdown` with the page's `index.md`. It doesn't deploy with
+the site; after changing it, run `pnpm run worker:deploy` in `docs/` with
+Wrangler logged in.
 
 Screenshots or recordings that need the real browser window, such as Chrome's
 own DevTools or a screen capture for a demo, start Chrome through
@@ -95,24 +102,17 @@ pnpm run chrome:clean --app http://localhost:5179/
 Scripts import `launchCleanChrome()` from `scripts/chrome-profile.mjs`, which
 returns the Playwright page to drive.
 
-<Aside type="caution" title="Links carry the base path">
-  The site deploys under the `/vite-plugin-lit` GitHub Pages path, and Astro
-  does not rewrite hrefs written in Markdown. Internal links are therefore
-  written with that prefix: `/vite-plugin-lit/reference/options/`. The links
-  validator checks every one against the real page set.
-</Aside>
-
 ## Related
 
 <CardGrid>
   <LinkCard
     title="Testing"
     description="Unit, e2e, the env vars they honour, and canary runs against lit main."
-    href="/vite-plugin-lit/contributing/testing/"
+    href="/contributing/testing/"
   />
   <LinkCard
     title="Design docs"
     description="The plans behind the features, in the repository."
-    href="/vite-plugin-lit/contributing/design-docs/"
+    href="/contributing/design-docs/"
   />
 </CardGrid>

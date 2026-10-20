@@ -22,16 +22,16 @@ A shared stylesheet is one `CSSStyleSheet` object adopted by many shadow
 roots. The top three rows deliver one; the bottom two give each component its
 own copy.
 
-| Shape                             | Use when                                                                     | What an edit does                             | Page                                                                      |
-| --------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------- |
-| `?css-sheet`                      | many components share a sheet and you want it cached as its own `.css` asset | restyles every adopter in place, no re-render | [?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/)              |
-| `urlSheet()`                      | the same, but you need a custom fetch or code that runs without this plugin  | restyles every adopter in place, no re-render | [urlSheet()](/vite-plugin-lit/guides/stylesheets/url-sheet/)              |
-| `?raw` into one shared module     | many components share a sheet and first paint must not flash                 | restyles every adopter in place, no re-render | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
-| `?hmr-url` `<link>`               | rules one component owns, kept as a real `.css` asset                        | re-renders that component                     | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
-| `?raw` or `?inline` + `unsafeCSS` | rules one component owns, shipped in the JS chunk                            | re-renders that component                     | [Component styles](/vite-plugin-lit/guides/stylesheets/component-styles/) |
+| Shape                             | Use when                                                                     | What an edit does                             | Page                                                      |
+| --------------------------------- | ---------------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------- |
+| `?css-sheet`                      | many components share a sheet and you want it cached as its own `.css` asset | restyles every adopter in place, no re-render | [?css-sheet](/guides/stylesheets/css-sheet/)              |
+| `urlSheet()`                      | the same, but you need a custom fetch or code that runs without this plugin  | restyles every adopter in place, no re-render | [urlSheet()](/guides/stylesheets/url-sheet/)              |
+| `?raw` into one shared module     | many components share a sheet and first paint must not flash                 | restyles every adopter in place, no re-render | [Component styles](/guides/stylesheets/component-styles/) |
+| `?hmr-url` `<link>`               | rules one component owns, kept as a real `.css` asset                        | re-renders that component                     | [Component styles](/guides/stylesheets/component-styles/) |
+| `?raw` or `?inline` + `unsafeCSS` | rules one component owns, shipped in the JS chunk                            | re-renders that component                     | [Component styles](/guides/stylesheets/component-styles/) |
 
 A re-render is cheap for one component's own rules and expensive for a layer
-every component adopts. [CSS delivery](/vite-plugin-lit/concepts/css-delivery/)
+every component adopts. [CSS delivery](/concepts/css-delivery/)
 has the measurements behind that.
 
 ## Shared sheet for Tailwind or UnoCSS
@@ -70,11 +70,11 @@ equal specificity.
   <LinkCard
     title="CSS delivery"
     description="Why one shared sheet beats N copies, with numbers."
-    href="/vite-plugin-lit/concepts/css-delivery/"
+    href="/concepts/css-delivery/"
   />
   <LinkCard
     title="Share one stylesheet with ?css-sheet"
     description="The zero-boilerplate shared sheet, start to finish."
-    href="/vite-plugin-lit/guides/stylesheets/css-sheet/"
+    href="/guides/stylesheets/css-sheet/"
   />
 </CardGrid>

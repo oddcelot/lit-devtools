@@ -4,7 +4,7 @@
   "description": "Lit for Vite and Astro: true HMR, server rendering and a DevTools panel",
   "license": "BSD-3-Clause",
   "author": "oddcelot",
-  "homepage": "https://oddcelot.github.io/vite-plugin-lit/",
+  "homepage": "https://vite-plugin-lit.oddsquad.dev/",
   "keywords": [
     "vite-plugin",
     "vite",

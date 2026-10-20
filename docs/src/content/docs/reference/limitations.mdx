@@ -11,10 +11,10 @@ Eight shapes behave differently under a hot patch, an edit applied to the
 running page without a reload. Each entry gives the console line it prints, the
 reason, and the fix; if you are chasing a reload and do not know which one
 fired, start at
-[Troubleshooting](/vite-plugin-lit/guides/troubleshooting/).
+[Troubleshooting](/guides/troubleshooting/).
 
 The first three are detected, not guessed, and
-[`hmr.onIncompatible`](/vite-plugin-lit/reference/options/) decides whether the
+[`hmr.onIncompatible`](/reference/options/) decides whether the
 page reloads or only warns. The console lines below are the default `'reload'`
 wording.
 
@@ -113,7 +113,7 @@ code. Only the component class survives, not the module's own variables.
 
 **What to do.** Keep shared signals, context keys, and caches in a module you do
 not edit in the same loop. See
-[Ecosystem libraries](/vite-plugin-lit/guides/ecosystem/).
+[Ecosystem libraries](/guides/ecosystem/).
 
 ## Children of an edited template
 
@@ -141,7 +141,7 @@ can't see what a directive sets. It copies references, not deep clones.
 returned from a helper method, so the children's template never changes. For a
 child without bindings, `hmr.childState: 'reuse'` puts the original element
 back. `'reset'` turns the transfer off. See
-[`hmr.childState`](/vite-plugin-lit/reference/options/#hmrchildstate).
+[`hmr.childState`](/reference/options/#hmrchildstate).
 
 ## Interning map growth
 
@@ -170,11 +170,11 @@ configuration of the full-bundle mode.
   <LinkCard
     title="HMR that keeps state"
     description="What a patch does preserve, and the options around it."
-    href="/vite-plugin-lit/guides/hmr/"
+    href="/guides/hmr/"
   />
   <LinkCard
     title="How HMR works"
     description="Why these specific shapes are the hard ones."
-    href="/vite-plugin-lit/concepts/how-hmr-works/"
+    href="/concepts/how-hmr-works/"
   />
 </CardGrid>

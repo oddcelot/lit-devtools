@@ -19,7 +19,7 @@ the hydrated components, keeps the server's next render in step with your
 edits, and lets sheet modules render on the server. The
 [SSR example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/ssr)
 is a complete setup, which you can also
-[run on StackBlitz](/vite-plugin-lit/start/demos/#lit-ssr).
+[run on StackBlitz](/start/demos/#lit-ssr).
 
 ## Set it up
 
@@ -44,7 +44,7 @@ the components.
   `server.host`. Give Vite the host your server listens on, as `server.mjs`
   does, or the dock may not connect. See [the dock does not connect when Vite
   runs in middleware
-  mode](/vite-plugin-lit/guides/troubleshooting/#the-dock-does-not-connect-when-vite-runs-in-middleware-mode).
+  mode](/guides/troubleshooting/#the-dock-does-not-connect-when-vite-runs-in-middleware-mode).
 </Aside>
 
 ## What works
@@ -63,7 +63,7 @@ the components.
   written into the component's declarative shadow root, so the page arrives
   styled, and once the component hydrates it adopts the real sheet, so css
   edits hot-swap it. See
-  [Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/#choose-the-build-output).
+  [Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/#choose-the-build-output).
 - **A page older than your edit.** If the HTML predates an edit, the
   component renders in the browser once instead of failing to hydrate and
   later showing twice.
@@ -79,7 +79,7 @@ build, so the rendered HTML still arrives styled.
 
 There is no dev server then, so no HMR and no DevTools dock. The Lit panel
 can still attach through
-[`lit-devtools dev`](/vite-plugin-lit/reference/cli/#production-builds): put
+[`lit-devtools dev`](/reference/cli/#production-builds): put
 its script tag first in `<head>`, before the client entry hydrates anything,
 and the Components tab shows the tree and each element's hydration state.
 
@@ -101,11 +101,11 @@ it hydrates, but it is a client render, not a hydration.
   <LinkCard
     title="How HMR works"
     description="What a hot patch replaces, and what it keeps."
-    href="/vite-plugin-lit/concepts/how-hmr-works/"
+    href="/concepts/how-hmr-works/"
   />
   <LinkCard
     title="Inspect live components"
     description="The Components tab, where hydration state shows."
-    href="/vite-plugin-lit/guides/devtools/components/"
+    href="/guides/devtools/components/"
   />
 </CardGrid>

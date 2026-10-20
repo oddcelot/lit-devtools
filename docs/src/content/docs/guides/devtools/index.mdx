@@ -21,7 +21,7 @@ component tree and an update explainer. Dev-only and off by default.
 <Aside type="tip" title="Not on Vite, or inspecting production?">
   The Lit Inspector extension puts the same panel in Chrome and Firefox DevTools
   for any site. See [Inspect any site with Lit
-  Inspector](/vite-plugin-lit/guides/devtools/browser-extension/).
+  Inspector](/guides/devtools/browser-extension/).
 </Aside>
 
 ## Install `@vitejs/devtools`
@@ -63,10 +63,8 @@ LIT_PLUGIN_SOURCE_OVERLAY=true
 <Aside type="caution" title="Experimental">
   `timeline` defaults to `false` while the panel is experimental. Everything it
   adds is dev-only and never reaches a production build. To inspect a production
-  build anyway, see [Production
-  builds](/vite-plugin-lit/reference/cli/#production-builds), and [DevTools
-  features by host](/vite-plugin-lit/reference/devtools-hosts/) for what works
-  there.
+  build anyway, see [Production builds](/reference/cli/#production-builds), and
+  [DevTools features by host](/reference/devtools-hosts/) for what works there.
 </Aside>
 
 ## Without Vite DevTools
@@ -103,12 +101,12 @@ The panel opens on **Components** and carries four tabs.
 
 - **Components** lists every Lit element on the page with its reactive state,
   and needs no recording. See
-  [Inspect live components](/vite-plugin-lit/guides/devtools/components/).
+  [Inspect live components](/guides/devtools/components/).
 - **Updates** answers which component re-rendered, how often, and why. See
-  [Find out why a component re-rendered](/vite-plugin-lit/guides/devtools/updates/).
+  [Find out why a component re-rendered](/guides/devtools/updates/).
 - **Timeline** records lifecycle, render and input events in order. Press
   **▶ Record**, click around for ten seconds, then press **⏹ Stop**. See
-  [Record and read the timeline](/vite-plugin-lit/guides/devtools/timeline/).
+  [Record and read the timeline](/guides/devtools/timeline/).
 - **Settings** shows the resolved configuration and overrides part of it live.
 
 ## Change settings live
@@ -152,7 +150,7 @@ never injected into the page, so there is nothing there to change.
 
 Your overrides and the panel's light/dark choice persist per developer and
 never touch the repository;
-[DevTools architecture](/vite-plugin-lit/concepts/devtools-architecture/)
+[DevTools architecture](/concepts/devtools-architecture/)
 explains where they live and why there are two copies.
 
 ## Related
@@ -161,11 +159,11 @@ explains where they live and why there are two copies.
   <LinkCard
     title="DevTools architecture"
     description="Where the panel runs, how it reaches the page, and where its settings live."
-    href="/vite-plugin-lit/concepts/devtools-architecture/"
+    href="/concepts/devtools-architecture/"
   />
   <LinkCard
     title="Record and read the timeline"
     description="The first thing to do with the panel open."
-    href="/vite-plugin-lit/guides/devtools/timeline/"
+    href="/guides/devtools/timeline/"
   />
 </CardGrid>

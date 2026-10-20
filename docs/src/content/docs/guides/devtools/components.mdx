@@ -251,7 +251,7 @@ While a recording holds updates that the element scheduled for itself, the
 section also counts them for this instance: "Re-rendered itself 3 times in the
 recording". The count joins Lit's `change-in-update` warning, or stands as a
 row of its own when Lit said nothing, as under a production build. The
-[Updates tab](/vite-plugin-lit/guides/devtools/updates/#read-one-components-updates)
+[Updates tab](/guides/devtools/updates/#read-one-components-updates)
 lists those updates.
 
 **Dispatched** counts the events the element dispatched on itself in the
@@ -365,7 +365,7 @@ transforms, so it reads manifests from the site instead: the ones the page
 links to with `<link rel="custom-elements-manifest" href="…">`, ones it finds
 beside the page's scripts, and ones you add in its Settings, from the same
 site only; see
-[the extension guide](/vite-plugin-lit/guides/devtools/browser-extension/#read-component-documentation).
+[the extension guide](/guides/devtools/browser-extension/#read-component-documentation).
 On pages it serves, the Vite plugin adds those links for every manifest it
 found, so the extension shows the same library docs there, but not docs read
 from your source. A snapshot carries neither, so it shows none.
@@ -384,11 +384,11 @@ out to the element around the outlined one and back.
 />
 
 This is the same picker the [source
-overlay](/vite-plugin-lit/guides/source-overlay/) uses, so it needs
+overlay](/guides/source-overlay/) uses, so it needs
 `sourceOverlay` switched on; without it the button is not shown. A page
-connected to [`lit-devtools dev`](/vite-plugin-lit/reference/cli/) gets a
+connected to [`lit-devtools dev`](/reference/cli/) gets a
 picker of its own that targets any Lit element, without source locations.
-Set [`sourceOverlay.hosts`](/vite-plugin-lit/reference/options/#sourceoverlayhosts)
+Set [`sourceOverlay.hosts`](/reference/options/#sourceoverlayhosts)
 to `'lit'` to pick a component library's elements under Vite too. A plain click selects the element here in the
 tree; hold Ctrl or ⌘ while clicking to open it in your editor instead.
 
@@ -430,7 +430,7 @@ and any outline the panel drew.
 
 **⚡ Flash** draws a short fading outline over every Lit element that finishes
 an update, so re-render churn shows up on the page itself rather than only in
-the [Updates tab](/vite-plugin-lit/guides/devtools/updates/). It is off by
+the [Updates tab](/guides/devtools/updates/). It is off by
 default and does not depend on recording. Leave it on while you click around
 and the components doing more work than you expected announce themselves.
 
@@ -501,7 +501,7 @@ An empty tree names its cause instead of one generic line. The tab says when the
 page runtime has not connected to the dev server, when more than one copy of lit
 is loaded, and when the runtime is inside an iframe; otherwise it reports that no
 Lit components were found. Each case has a fix in
-[Troubleshooting](/vite-plugin-lit/guides/troubleshooting/).
+[Troubleshooting](/guides/troubleshooting/).
 
 The Settings tab ends with an About section: the plugin version, the lit
 version or versions the page loaded, the timeline layers, whether the element
@@ -514,11 +514,11 @@ option, `LIT_PLUGIN_*` env, default). Check it first when something looks off.
   <LinkCard
     title="DevTools architecture"
     description="How the panel reaches the page and how its source links open files."
-    href="/vite-plugin-lit/concepts/devtools-architecture/"
+    href="/concepts/devtools-architecture/"
   />
   <LinkCard
     title="Open a component in your editor from the page"
     description="The picker this tab reuses, and its options."
-    href="/vite-plugin-lit/guides/source-overlay/"
+    href="/guides/source-overlay/"
   />
 </CardGrid>
