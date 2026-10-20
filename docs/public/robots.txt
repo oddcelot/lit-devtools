@@ -1,0 +1,28 @@
+# The vite-plugin-lit docs are open-source documentation: search, AI
+# answers and training are all welcome. Agents can also read
+# /llms.txt, or ask any page for Accept: text/markdown.
+
+User-agent: *
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+# Pagefind's search index chunks: machine data, not pages.
+Disallow: /pagefind/
+
+# AI search crawlers: fetch pages that AI assistants cite in answers.
+User-agent: OAI-SearchBot
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+Disallow: /pagefind/
+
+# AI training crawlers.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: Google-Extended
+User-agent: CCBot
+Content-Signal: search=yes, ai-input=yes, ai-train=yes
+Allow: /
+Disallow: /pagefind/
+
+Sitemap: https://vite-plugin-lit.oddsquad.dev/sitemap-index.xml
