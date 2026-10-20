@@ -28,6 +28,9 @@ const chrome = [
   '.sl-anchor-link',
   '.sr-only',
   'video-player',
+  'button',
+  'summary',
+  '.agent-prompt-label',
 ];
 
 /** Expressive Code frames: keep the language, drop the frame's labels. */

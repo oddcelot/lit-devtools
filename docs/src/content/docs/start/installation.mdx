@@ -8,12 +8,18 @@ sidebar:
 import {PackageManagers} from 'starlight-package-managers';
 import {CardGrid, LinkCard} from '@astrojs/starlight/components';
 import ThemedImage from '../../../components/ThemedImage.astro';
+import AgentPrompt from '../../../components/AgentPrompt.astro';
 import indicatorIdleLight from '../../../assets/shots/indicator-idle.light.png';
 import indicatorIdleDark from '../../../assets/shots/indicator-idle.dark.png';
 
 Install the plugin, add one line to `vite.config.ts`, and register the ambient
 types. If you have never used the plugin, follow the tutorial instead; it
 includes these steps.
+
+Working with a coding agent? Hand it this prompt and it does the steps
+below, then reports which files it changed.
+
+<AgentPrompt />
 
 ## Install
 
