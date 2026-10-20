@@ -9,7 +9,35 @@
   "main": "src/index.js",
   "compatibility_date": "2026-10-01",
   "workers_dev": false,
+  // Only the homepage and the content sections. The Worker acts on pages
+  // alone, and every request it runs on counts toward the free plan's 100k
+  // a day; a page view also loads ~20 assets from /_astro/, /demo/, /og/ and
+  // /pagefind/, which these patterns leave out. A new top-level docs section
+  // needs its own pattern here, or its pages go without the Link headers and
+  // Markdown negotiation. Set each route to fail open in the dashboard
+  // (Workers > vite-plugin-lit-docs > Domains & Routes): past the daily cap
+  // the site then serves straight from Pages instead of erroring.
   "routes": [
-    {"pattern": "vite-plugin-lit.oddsquad.dev/*", "zone_name": "oddsquad.dev"},
+    {"pattern": "vite-plugin-lit.oddsquad.dev/", "zone_name": "oddsquad.dev"},
+    {
+      "pattern": "vite-plugin-lit.oddsquad.dev/start/*",
+      "zone_name": "oddsquad.dev",
+    },
+    {
+      "pattern": "vite-plugin-lit.oddsquad.dev/guides/*",
+      "zone_name": "oddsquad.dev",
+    },
+    {
+      "pattern": "vite-plugin-lit.oddsquad.dev/concepts/*",
+      "zone_name": "oddsquad.dev",
+    },
+    {
+      "pattern": "vite-plugin-lit.oddsquad.dev/reference/*",
+      "zone_name": "oddsquad.dev",
+    },
+    {
+      "pattern": "vite-plugin-lit.oddsquad.dev/contributing/*",
+      "zone_name": "oddsquad.dev",
+    },
   ],
 }
