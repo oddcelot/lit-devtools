@@ -9,7 +9,7 @@ import {fileURLToPath} from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = resolve(here, '../dist');
-const {base, redirects} = await import(resolve(here, '../redirects.mjs'));
+const {redirects} = await import(resolve(here, '../redirects.mjs'));
 let failures = 0;
 
 for (const [from, to] of Object.entries(redirects)) {
@@ -39,8 +39,7 @@ for (const [from, to] of Object.entries(redirects)) {
     failures++;
     continue;
   }
-  const rel = url.startsWith(base) ? url.slice(base.length) : url;
-  const dest = join(dist, rel, 'index.html');
+  const dest = join(dist, url, 'index.html');
   try {
     await stat(dest);
   } catch {

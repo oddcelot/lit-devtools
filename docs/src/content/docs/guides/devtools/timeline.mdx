@@ -24,7 +24,7 @@ import devtoolsExportSnapshotDark from '../../../../assets/shots/devtools-export
 
 Record what your components did and in what order, then scrub it. Use it for
 ordering questions; for "why did this re-render", go to the
-[Updates tab](/vite-plugin-lit/guides/devtools/updates/).
+[Updates tab](/guides/devtools/updates/).
 
 ## Start and stop recording
 
@@ -53,7 +53,7 @@ is one category of recorded timeline events, with its own colour and toggle.
 | Lit Lifecycle        | `connectedCallback`, `performUpdate`, `willUpdate`, `update`, `updated`, `firstUpdated`, `disconnectedCallback`, with per-phase durations and changed-property keys, and an `update skipped` point event when `shouldUpdate` returns false | on      |
 | Lit Render           | `begin render` and `end render`, from Lit's built-in `lit-debug` events                                                                                                                                                                    | on      |
 | Lit Render (verbose) | Per-binding `lit-debug` events (`template updating`, `set part`, `commit text`/`node`/`attribute`/`property`/…) — one per part on _every_ render, so it's high volume                                                                      | off     |
-| Changed values       | Adds the old and new value of each changed property to the update events. No events of its own, so it has no track; see [Updates](/vite-plugin-lit/guides/devtools/updates/)                                                               | off     |
+| Changed values       | Adds the old and new value of each changed property to the update events. No events of its own, so it has no track; see [Updates](/guides/devtools/updates/)                                                                               | off     |
 | Mouse                | `mousedown`, `mouseup`, `click`, `dblclick`                                                                                                                                                                                                | off     |
 | Keyboard             | `keydown`, `keyup`                                                                                                                                                                                                                         | off     |
 | Lit warnings         | A `warning:<code>` point event for each warning Lit's development build issues                                                                                                                                                             | on      |
@@ -149,7 +149,7 @@ the match still has its context.
 
 Press **Raw** in the filter bar for one flat row per recorded event instead. Reach
 for it on ordering questions, and for
-[custom layers](/vite-plugin-lit/guides/devtools/custom-layers/), which have no
+[custom layers](/guides/devtools/custom-layers/), which have no
 pairs to collapse.
 
 <ThemedImage
@@ -172,7 +172,7 @@ it instead.
 
 An element row also carries two links. **filter** narrows the list and the tracks to
 that element. **inspect** opens the
-[Components tab](/vite-plugin-lit/guides/devtools/components/) on it, because
+[Components tab](/guides/devtools/components/) on it, because
 both views use the same instance id.
 
 ## See it as tracks
@@ -397,11 +397,11 @@ event is then selected.
   <LinkCard
     title="CLI"
     description="Why lit-devtools build cannot export a snapshot for you."
-    href="/vite-plugin-lit/reference/cli/"
+    href="/reference/cli/"
   />
   <LinkCard
     title="Find out why a component re-rendered"
     description="The same recording, read as updates instead of events."
-    href="/vite-plugin-lit/guides/devtools/updates/"
+    href="/guides/devtools/updates/"
   />
 </CardGrid>

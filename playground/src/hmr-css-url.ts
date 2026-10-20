@@ -22,7 +22,7 @@ import cssUrl from './hmr-css-url.css?url';
  * of the href. ❌ One `<link>` + `CSSStyleSheet` per instance; CSS edits
  * re-render the component. For a shared utility sheet prefer `?css-sheet` —
  * see
- * https://oddcelot.github.io/vite-plugin-lit/guides/stylesheets/
+ * https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/
  * (benchmarked in bench/).
  */
 

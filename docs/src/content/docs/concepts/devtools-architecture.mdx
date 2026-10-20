@@ -29,7 +29,7 @@ From the command line, `lit-devtools dev` starts the panel with no page behind
 it, so it is empty until a page connects. Any page can load the script tag the
 server prints, and a page that already loads this plugin's runtime can call
 `connectToDevServer()` (see the
-[CLI reference](/vite-plugin-lit/reference/cli/)); its tree, inspector and timeline data then
+[CLI reference](/reference/cli/)); its tree, inspector and timeline data then
 flow to that server over devframe RPC instead of the page's own Vite socket.
 For everyday debugging, run your Vite dev server with DevTools enabled; the
 standalone server is for a panel that outlives the app's dev server, and the
@@ -126,11 +126,11 @@ turning recording on also changes what you see in an open panel.
   <LinkCard
     title="CLI"
     description="Every lit-devtools command, and what each one can and cannot do."
-    href="/vite-plugin-lit/reference/cli/"
+    href="/reference/cli/"
   />
   <LinkCard
     title="Ask a coding agent"
     description="The MCP tools the panel's data is exposed through, and how to point an agent at them."
-    href="/vite-plugin-lit/guides/devtools/agents/"
+    href="/guides/devtools/agents/"
   />
 </CardGrid>

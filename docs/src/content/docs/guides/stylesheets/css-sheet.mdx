@@ -47,7 +47,7 @@ roots.
 
 The plugin generates the wiring the sheet needs in a virtual module, which is
 why your code stays a bare import.
-[CSS delivery](/vite-plugin-lit/concepts/css-delivery/) explains why that
+[CSS delivery](/concepts/css-delivery/) explains why that
 indirection exists.
 
 ## Add the type
@@ -246,7 +246,7 @@ Both inline flavours keep what the fetch-backed form gives you: one sheet
 object per css file, shared by every importer, and no flash of unstyled
 content, because there is no fetch to wait on. They construct the sheet at
 module top level, so importing the built module needs constructable-stylesheet
-support. [Compatibility](/vite-plugin-lit/reference/compatibility/) has the
+support. [Compatibility](/reference/compatibility/) has the
 browser and runtime floor.
 
 ## Related
@@ -255,11 +255,11 @@ browser and runtime floor.
   <LinkCard
     title="Options"
     description="cssSheetBuild, its values, and its environment variable."
-    href="/vite-plugin-lit/reference/options/"
+    href="/reference/options/"
   />
   <LinkCard
     title="Wire a shared sheet by hand with urlSheet()"
     description="The same sheet when you need control over the fetch."
-    href="/vite-plugin-lit/guides/stylesheets/url-sheet/"
+    href="/guides/stylesheets/url-sheet/"
   />
 </CardGrid>

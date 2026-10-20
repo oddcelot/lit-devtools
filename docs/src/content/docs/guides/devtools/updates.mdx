@@ -60,7 +60,7 @@ nothing to **Total**.
 Pick a component and the lower pane lists each of its update ticks: **when** it
 started and **how long** it took, **what changed**, **what caused it**, and the
 instance id, which links through to the
-[Components tab](/vite-plugin-lit/guides/devtools/components/). Above the list,
+[Components tab](/guides/devtools/components/). Above the list,
 the source link opens the component's file in your editor. While a single
 instance has updated, a **Rendered at** link beside it opens the template tag
 that created that instance; with several instances there is no one place to
@@ -109,7 +109,7 @@ such link, so it shows only in the browser console.
 Turn on the **Changed values** layer in the Timeline tab before you record.
 Each update then lists `prev → next` for every property that changed, under its
 row. The previews use the same limits as the
-[Components tab](/vite-plugin-lit/guides/devtools/components/): two levels
+[Components tab](/guides/devtools/components/): two levels
 deep, eight items, 120 characters.
 
 A badge reads _new reference, same value_ when the property was assigned a
@@ -172,7 +172,7 @@ Components tree or from an exported snapshot.
 ## Ask an agent instead
 
 The same derivation is available over MCP as `lit_update-summary`, which a
-[coding agent](/vite-plugin-lit/guides/devtools/agents/) should prefer over
+[coding agent](/guides/devtools/agents/) should prefer over
 `lit_recent-events` for anything shaped like "why did this re-render".
 
 ## Related
@@ -181,11 +181,11 @@ The same derivation is available over MCP as `lit_update-summary`, which a
   <LinkCard
     title="Limitations"
     description="What the plugin cannot patch, when a reload explains the reset counts."
-    href="/vite-plugin-lit/reference/limitations/"
+    href="/reference/limitations/"
   />
   <LinkCard
     title="Inspect live components"
     description="The tab an instance id links through to."
-    href="/vite-plugin-lit/guides/devtools/components/"
+    href="/guides/devtools/components/"
   />
 </CardGrid>

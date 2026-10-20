@@ -21,7 +21,7 @@ Vite it can apply its own updates. `main.ts` and `index.html` are the usual
 ones. The edit walks up to a full reload.
 
 **Fix.** Edit the component module instead. See
-[Keep state across edits](/vite-plugin-lit/guides/hmr/).
+[Keep state across edits](/guides/hmr/).
 
 ### The console says "standard accessor decorators"
 
@@ -36,7 +36,7 @@ decorators close over private slots created fresh on each class evaluation.
 
 **Fix.** Use `experimentalDecorators: true` with
 `useDefineForClassFields: false`, or declare `static properties`. Both patch in
-place. See [Limitations](/vite-plugin-lit/reference/limitations/).
+place. See [Limitations](/reference/limitations/).
 
 ### The console says "patching failed"
 
@@ -50,7 +50,7 @@ place. See [Limitations](/vite-plugin-lit/reference/limitations/).
 it read state the old instances do not carry.
 
 **Fix.** Read the detail after `patching failed:`; it is the real error.
-[Limitations](/vite-plugin-lit/reference/limitations/) lists the shapes that
+[Limitations](/reference/limitations/) lists the shapes that
 produce one.
 
 ### The console says observedAttributes changed
@@ -66,7 +66,7 @@ defined. The patch itself succeeded, so nothing reloads, whatever
 `onIncompatible` says.
 
 **Fix.** Reload by hand. The old attribute list stays in effect until you do.
-See [Limitations](/vite-plugin-lit/reference/limitations/).
+See [Limitations](/reference/limitations/).
 
 ### I cannot read the reason before the page reloads
 
@@ -78,7 +78,7 @@ reloads in the same breath.
 **Fix.** Set `onIncompatible: 'warn'` while you investigate. Note it refuses
 the patch, so the old template stays on the page. The Components tab and
 `lit_hmr-incompatibilities` also keep a record. See
-[Options](/vite-plugin-lit/reference/options/).
+[Options](/reference/options/).
 
 ### The first edit after editing tsconfig.json reloads
 
@@ -92,7 +92,7 @@ the patch, so the old template stays on the page. The Components tab and
 edit cannot be patched.
 
 **Fix.** Nothing. This is expected, and only the first edit pays for it. See
-[How HMR works](/vite-plugin-lit/concepts/how-hmr-works/).
+[How HMR works](/concepts/how-hmr-works/).
 
 ## Patched, but state still resets or breaks
 
@@ -106,7 +106,7 @@ declarations are re-created with it.
 
 **Fix.** Move the signal, cache or context key into a module that holds no
 component. See
-[Keep state across edits](/vite-plugin-lit/guides/hmr/).
+[Keep state across edits](/guides/hmr/).
 
 ### Editing a @lit/task body does nothing
 
@@ -117,7 +117,7 @@ controller still holds the old one.
 
 **Fix.** Reload once to pick the new body up. Results survive edits to the rest
 of the component. See
-[Use signals, context, tasks and the virtualizer](/vite-plugin-lit/guides/ecosystem/).
+[Use signals, context, tasks and the virtualizer](/guides/ecosystem/).
 
 ### Editing the parent re-renders the child, or an input loses focus
 
@@ -134,7 +134,7 @@ fields across.
 **Fix.** Put the part you edit often in its own template literal, returned from
 a helper method. For a child without bindings, `hmr.childState: 'reuse'` puts
 the original element back. See
-[Keep state across edits](/vite-plugin-lit/guides/hmr/).
+[Keep state across edits](/guides/hmr/).
 
 ### Every update throws "Cannot read private member"
 
@@ -152,7 +152,7 @@ update.
 
 **Fix.** Reload to recover. Then turn `hmr.privateFields` back on, or switch to
 TypeScript's `private` modifier. See
-[Limitations](/vite-plugin-lit/reference/limitations/#native-private-fields).
+[Limitations](/reference/limitations/#native-private-fields).
 
 ### A newly added reactive property is undefined
 
@@ -164,7 +164,7 @@ undefined`.
 exist never run the new one, and nothing diagnoses it.
 
 **Fix.** Reload once after adding a property. See
-[How HMR works](/vite-plugin-lit/concepts/how-hmr-works/).
+[How HMR works](/concepts/how-hmr-works/).
 
 ### The first edit after a dev-server restart reloads
 
@@ -174,7 +174,7 @@ exist never run the new one, and nothing diagnoses it.
 lives in the page, not the server, so a restarted server has no record of it.
 
 **Fix.** Nothing. Later edits patch normally. See
-[How HMR works](/vite-plugin-lit/concepts/how-hmr-works/).
+[How HMR works](/concepts/how-hmr-works/).
 
 ### reconnect: true seems to do nothing
 
@@ -185,7 +185,7 @@ instances, nothing more. A component that does no work there has nothing to
 re-run.
 
 **Fix.** Leave it off unless `connectedCallback()` does real setup. See
-[Keep state across edits](/vite-plugin-lit/guides/hmr/).
+[Keep state across edits](/guides/hmr/).
 
 ### The console shows nothing on a successful patch
 
@@ -195,7 +195,7 @@ re-run.
 unless the console shows Verbose.
 
 **Fix.** Turn Verbose on, or watch the on-page indicator instead. See
-[Keep state across edits](/vite-plugin-lit/guides/hmr/).
+[Keep state across edits](/guides/hmr/).
 
 ## The indicator
 
@@ -207,7 +207,7 @@ unless the console shows Verbose.
 of them off. The indicator is forced off whenever HMR is.
 
 **Fix.** Check the Settings tab for the resolved values. See
-[Options](/vite-plugin-lit/reference/options/).
+[Options](/reference/options/).
 
 ### It pulses cyan and the count does not move
 
@@ -217,7 +217,7 @@ of them off. The indicator is forced off whenever HMR is.
 so nothing counts.
 
 **Fix.** Nothing. This is the expected signal for CSS delivered as a shared
-sheet. See [Keep state across edits](/vite-plugin-lit/guides/hmr/).
+sheet. See [Keep state across edits](/guides/hmr/).
 
 ### The count went back to 0
 
@@ -227,7 +227,7 @@ sheet. See [Keep state across edits](/vite-plugin-lit/guides/hmr/).
 zeroes it.
 
 **Fix.** Find the reload in the group above. See
-[Limitations](/vite-plugin-lit/reference/limitations/).
+[Limitations](/reference/limitations/).
 
 ### The count went up but my change is not on the page
 
@@ -237,7 +237,7 @@ zeroes it.
 and the update still counts.
 
 **Fix.** Read the `can't be hot-patched` warning and reload by hand. See
-[Options](/vite-plugin-lit/reference/options/).
+[Options](/reference/options/).
 
 ## Stylesheets
 
@@ -249,7 +249,7 @@ and the update still counts.
 
 **Fix.** Add `@oddsquad/vite-plugin-lit/client` to `types` in `tsconfig.json`,
 keeping `vite/client` alongside it. See
-[Import queries](/vite-plugin-lit/reference/import-queries/).
+[Import queries](/reference/import-queries/).
 
 ### The shared sheet applies nothing
 
@@ -262,7 +262,7 @@ error status, the `CSSStyleSheet` stays empty (or keeps its last good css
 after an HMR update).
 
 **Fix.** Check the Network tab for the stylesheet request. See
-[Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+[Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
 
 ### A flash of unstyled content on first paint
 
@@ -272,7 +272,7 @@ after an HMR update).
 
 **Fix.** Add a `<link rel="preload" as="style">` for it, set
 `cssSheetBuild: 'inline'`, or inline the shared module. See
-[Choose how to deliver CSS](/vite-plugin-lit/guides/stylesheets/).
+[Choose how to deliver CSS](/guides/stylesheets/).
 
 ### Library consumers get no styles
 
@@ -283,7 +283,7 @@ build.
 
 **Fix.** `build.lib` already inlines the sheet. Without it, set
 `cssSheetBuild: 'inline'`. See
-[Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+[Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
 
 ### Lightning CSS errors on @property
 
@@ -294,7 +294,7 @@ build.
 
 **Fix.** Set `cssSheetBuild: 'inline-raw'`, or import the file with `?raw`.
 Both skip the CSS pipeline. See
-[Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+[Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
 
 ### urlSheet() edits do not swap
 
@@ -306,7 +306,7 @@ specifier statically.
 
 **Fix.** Put the accept call in the module that imports the CSS, spelled with
 the same literal. See
-[Wire a shared sheet by hand with urlSheet()](/vite-plugin-lit/guides/stylesheets/url-sheet/).
+[Wire a shared sheet by hand with urlSheet()](/guides/stylesheets/url-sheet/).
 
 ### A link keeps stale CSS with ?url
 
@@ -315,7 +315,7 @@ the same literal. See
 **Cause.** `?url` returns a stable URL, so the browser serves it from cache.
 
 **Fix.** Import with `?hmr-url`, or call `devCacheBust()` at module scope. See
-[Style a single component from a .css file](/vite-plugin-lit/guides/stylesheets/component-styles/).
+[Style a single component from a .css file](/guides/stylesheets/component-styles/).
 
 ### Tailwind or UnoCSS regenerates but nothing swaps
 
@@ -327,7 +327,7 @@ that generates the CSS has to emit one. Tailwind's Vite plugin does, and so does
 
 **Fix.** For UnoCSS, use `unoSheet()`. For another integration, check that it
 triggers HMR for that module. See
-[Share one stylesheet with ?css-sheet](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+[Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
 
 ### CSSStyleSheet is not defined in jsdom
 
@@ -340,7 +340,7 @@ instead, so it does not throw there.
 
 **Fix.** Run those tests in a browser, or in happy-dom, or keep sheet modules
 out of the code jsdom imports. See
-[CSS delivery](/vite-plugin-lit/concepts/css-delivery/).
+[CSS delivery](/concepts/css-delivery/).
 
 ## The DevTools panel
 
@@ -355,7 +355,7 @@ at `/__lit/` instead and prints `Lit DevTools:` with its address.
 
 **Fix.** Open that address, or add `DevTools()` to `plugins` to get the dock
 (under Vite+, a `devtools:` key in the config does the same; use one, not
-both). See [Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
+both). See [Set up the DevTools panel](/guides/devtools/).
 
 ### Vite errors with DTK0034
 
@@ -365,7 +365,7 @@ both). See [Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
 `DevTools()` in `plugins` registers it a second time.
 
 **Fix.** Keep one of the two. See
-[Set up the DevTools panel](/vite-plugin-lit/guides/devtools/).
+[Set up the DevTools panel](/guides/devtools/).
 
 ### The dock does not connect when Vite runs in middleware mode
 
@@ -481,7 +481,7 @@ back. Dismiss the banner with the close button.
 toggles are remembered in `localStorage` across sessions.
 
 **Fix.** Press **▶ Record**, then check the layer pills. See
-[Record and read the timeline](/vite-plugin-lit/guides/devtools/timeline/).
+[Record and read the timeline](/guides/devtools/timeline/).
 
 ### Updates shows a tick with no changed keys
 
@@ -491,7 +491,7 @@ toggles are remembered in `localStorage` across sessions.
 `super`, so that phase is never reported.
 
 **Fix.** Call `super` in the override. See
-[Find out why a component re-rendered](/vite-plugin-lit/guides/devtools/updates/).
+[Find out why a component re-rendered](/guides/devtools/updates/).
 
 ### A component shows ⚠ in Updates
 
@@ -506,7 +506,7 @@ records the error's name and message only, never a stack.
 
 **Fix.** Open the browser console for the stack, fix the throwing method, and
 record again. See
-[Find out why a component re-rendered](/vite-plugin-lit/guides/devtools/updates/).
+[Find out why a component re-rendered](/guides/devtools/updates/).
 
 ### No Pick button, or Meta+Shift+E does nothing
 
@@ -517,7 +517,7 @@ shows no picker on the page.
 by default. (A page connected to `lit-devtools dev` brings its own picker.)
 
 **Fix.** Set `sourceOverlay: true`. See
-[Open a component in your editor from the page](/vite-plugin-lit/guides/source-overlay/).
+[Open a component in your editor from the page](/guides/source-overlay/).
 
 ### A source link opens nothing, or the wrong editor
 
@@ -528,7 +528,7 @@ the panel falls back to the plugin's own endpoint. The editor comes from
 `launch-editor` there, not from `sourceOverlay.editor`.
 
 **Fix.** See
-[DevTools architecture](/vite-plugin-lit/concepts/devtools-architecture/).
+[DevTools architecture](/concepts/devtools-architecture/).
 
 ### Settings I changed are missing in another browser
 
@@ -539,7 +539,7 @@ to DevTools exists.
 
 **Fix.** Open the panel once in that browser; it refills the cache from the
 durable copy. See
-[DevTools architecture](/vite-plugin-lit/concepts/devtools-architecture/).
+[DevTools architecture](/concepts/devtools-architecture/).
 
 ### The exported snapshot lacks details or early events
 
@@ -551,7 +551,7 @@ keeps its most recent events.
 
 **Fix.** Click the components that matter before exporting. `lit-devtools
 build` cannot export for you. See
-[Record and read the timeline](/vite-plugin-lit/guides/devtools/timeline/).
+[Record and read the timeline](/guides/devtools/timeline/).
 
 ## The source overlay
 
@@ -563,7 +563,7 @@ build` cannot export for you. See
 or the browser claimed the combination first.
 
 **Fix.** Enable it and pick a free key. See
-[Open a component in your editor from the page](/vite-plugin-lit/guides/source-overlay/).
+[Open a component in your editor from the page](/guides/source-overlay/).
 
 ### It works locally but not on StackBlitz
 
@@ -573,7 +573,7 @@ or the browser claimed the combination first.
 editor's URL scheme when the server is unreachable.
 
 **Fix.** Nothing. This is expected in a hosted preview. See
-[Open a component in your editor from the page](/vite-plugin-lit/guides/source-overlay/).
+[Open a component in your editor from the page](/guides/source-overlay/).
 
 ## The CLI and agents
 
@@ -591,7 +591,7 @@ editor's URL scheme when the server is unreachable.
 the path that needs them.
 
 **Fix.** Install the named package. See
-[CLI](/vite-plugin-lit/reference/cli/).
+[CLI](/reference/cli/).
 
 ### The agent lists no instances
 
@@ -603,7 +603,7 @@ the plugin warned about it at startup.
 **Fix.** Start the server, or bridge the URL directly with
 `mcp-remote http://localhost:<port>/__devtools/__mcp`, or `/__lit/__mcp` when
 the server runs without Vite DevTools. See
-[Connect a coding agent](/vite-plugin-lit/guides/devtools/agents/).
+[Connect a coding agent](/guides/devtools/agents/).
 
 ### lit_recent-events returns nothing
 
@@ -612,7 +612,7 @@ the server runs without Vite DevTools. See
 **Cause.** Recording is off, and nothing is being captured.
 
 **Fix.** Call `lit_set-recording`, or press **▶ Record** in the panel. See
-[Connect a coding agent](/vite-plugin-lit/guides/devtools/agents/).
+[Connect a coding agent](/guides/devtools/agents/).
 
 ## Configuration
 
@@ -625,7 +625,7 @@ also only accept `true`, `1`, `false` and `0`.
 
 **Fix.** Remove the explicit option, fix the value, and restart the dev server
 after editing `.env`. See
-[Environment variables](/vite-plugin-lit/reference/environment-variables/).
+[Environment variables](/reference/environment-variables/).
 
 ### LIT_PLUGIN_CSS_SHEET_BUILD is rejected
 
@@ -635,7 +635,7 @@ after editing `.env`. See
 
 **Fix.** Use `auto`, `url`, `inline` or `inline-raw`. A typo falls back to the
 default rather than disabling the feature. See
-[Environment variables](/vite-plugin-lit/reference/environment-variables/).
+[Environment variables](/reference/environment-variables/).
 
 ### Rolldown full-bundle dev mode gives plain reloads
 
@@ -646,7 +646,7 @@ module is served and re-executed on its own.
 
 **Fix.** Use the standard dev server. There is no supported configuration of
 the full-bundle mode. See
-[Limitations](/vite-plugin-lit/reference/limitations/).
+[Limitations](/reference/limitations/).
 
 ### virtual:lit-plugin/timeline breaks vite build or reports TS2307
 
@@ -656,7 +656,7 @@ the full-bundle mode. See
 ambient types.
 
 **Fix.** Upgrade to 0.3.0 or later. See
-[Changelog](/vite-plugin-lit/reference/changelog/).
+[Changelog](/reference/changelog/).
 
 ## Related
 
@@ -664,11 +664,11 @@ ambient types.
   <LinkCard
     title="Limitations"
     description="Every component shape that cannot be patched, with its console line."
-    href="/vite-plugin-lit/reference/limitations/"
+    href="/reference/limitations/"
   />
   <LinkCard
     title="Keep state across edits"
     description="The defaults behind most of the entries above."
-    href="/vite-plugin-lit/guides/hmr/"
+    href="/guides/hmr/"
   />
 </CardGrid>

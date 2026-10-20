@@ -26,7 +26,7 @@ import rawCss from './hmr-raw-css.css?raw';
  * `?raw` skips the CSS pipeline. Right for a component's own styles — for a
  * sheet shared across many types, import one shared sheet (see
  * `hmr-shared-sheet` / `?css-sheet`) —
- * https://oddcelot.github.io/vite-plugin-lit/guides/stylesheets/.
+ * https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/.
  */
 
 @customElement('hmr-raw-css')

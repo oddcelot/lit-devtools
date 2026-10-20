@@ -14,7 +14,7 @@ environment variable, and where to read more.
 <Aside type="note" title="Two places, one surface">
   The entries here mirror the JSDoc in `src/lib/plugin.ts`, and the two change
   in the same commit. Environment variables are documented on [their own
-  page](/vite-plugin-lit/reference/environment-variables/).
+  page](/reference/environment-variables/).
 </Aside>
 
 | Option                        | Type                                          | Default      | Env var                                 |
@@ -58,7 +58,7 @@ queries and the Lightning CSS literal processing still apply.
 **Type:** `boolean | HmrOptions` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_HMR` (maps to `hmr.enabled`)
 
-See also: [HMR that keeps state](/vite-plugin-lit/guides/hmr/).
+See also: [HMR that keeps state](/guides/hmr/).
 
 ### hmr.enabled
 
@@ -76,7 +76,7 @@ export default defineConfig({
 
 **Type:** `boolean` · **Default:** `true` · **Env:** `LIT_PLUGIN_HMR`
 
-See also: [HMR that keeps state](/vite-plugin-lit/guides/hmr/).
+See also: [HMR that keeps state](/guides/hmr/).
 
 ### hmr.reconnect
 
@@ -99,7 +99,7 @@ a plain patch leaves alone. Turn it on when a component does setup work in
 **Type:** `boolean` · **Default:** `false` · **Env:**
 `LIT_PLUGIN_HMR_RECONNECT`
 
-See also: [HMR that keeps state](/vite-plugin-lit/guides/hmr/).
+See also: [HMR that keeps state](/guides/hmr/).
 
 ### hmr.privateFields
 
@@ -123,7 +123,7 @@ Turn the rewrite off if a test or a library relies on the brand check in dev.
 **Type:** `boolean` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_HMR_PRIVATE_FIELDS`
 
-See also: [Limitations](/vite-plugin-lit/reference/limitations/).
+See also: [Limitations](/reference/limitations/).
 
 ### hmr.childState
 
@@ -155,7 +155,7 @@ same root can hand the removed child's state to the new one.
 **Type:** `'reset' | 'transfer' | 'reuse'` · **Default:** `'transfer'` ·
 **Env:** `LIT_PLUGIN_HMR_CHILD_STATE`
 
-See also: [HMR that keeps state](/vite-plugin-lit/guides/hmr/).
+See also: [HMR that keeps state](/guides/hmr/).
 
 ### hmr.onIncompatible
 
@@ -177,7 +177,7 @@ logs one line and leaves the page alone, so you can read the message.
 **Type:** `'reload' | 'warn'` · **Default:** `'reload'` · **Env:**
 `LIT_PLUGIN_HMR_ON_INCOMPATIBLE`
 
-See also: [Limitations](/vite-plugin-lit/reference/limitations/).
+See also: [Limitations](/reference/limitations/).
 
 ### hmr.indicator
 
@@ -215,7 +215,7 @@ everything and resets the count.
 **Type:** `boolean | HmrIndicatorOptions` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_HMR_INDICATOR` (maps to `hmr.indicator.enabled`)
 
-See also: [Build your first component](/vite-plugin-lit/start/first-component/).
+See also: [Build your first component](/start/first-component/).
 
 ### hmr.indicator.count
 
@@ -236,7 +236,7 @@ stays readable between updates.
 **Type:** `boolean` · **Default:** `false` · **Env:**
 `LIT_PLUGIN_HMR_INDICATOR_COUNT`
 
-See also: [Read the update explainer](/vite-plugin-lit/guides/devtools/updates/).
+See also: [Read the update explainer](/guides/devtools/updates/).
 
 ## sourceOverlay
 
@@ -258,7 +258,7 @@ object configures them.
 **Type:** `boolean | SourceOverlayOptions` · **Default:** `false` · **Env:**
 `LIT_PLUGIN_SOURCE_OVERLAY`
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.key
 
@@ -276,7 +276,7 @@ export default defineConfig({
 **Type:** `string` · **Default:** `'s'` · **Env:**
 `LIT_PLUGIN_SOURCE_OVERLAY_KEY`
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.editor
 
@@ -298,12 +298,12 @@ column.
 
 The DevTools panel's source links also open in this editor (`vscode`, `cursor`,
 `zed` and `idea`). Other values leave the choice to `launch-editor`'s
-auto-detection. See [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/#choose-your-editor).
+auto-detection. See [Open a component in your editor](/guides/source-overlay/#choose-your-editor).
 
 **Type:** `string | EditorConfig` · **Default:** `'vscode'` · **Env:**
 `LIT_PLUGIN_SOURCE_OVERLAY_EDITOR`
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.workspaceRoot
 
@@ -320,7 +320,7 @@ export default defineConfig({
 
 **Type:** `string` · **Default:** none · **Env:** none
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.throttleMs
 
@@ -338,7 +338,7 @@ export default defineConfig({
 **Type:** `number` · **Default:** `50` · **Env:**
 `LIT_PLUGIN_SOURCE_OVERLAY_THROTTLE_MS`
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.hosts
 
@@ -359,7 +359,7 @@ export default defineConfig({
 
 **Type:** `'source' | 'lit'` · **Default:** `'source'` · **Env:** none
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.exclude
 
@@ -381,7 +381,7 @@ export default defineConfig({
 **Type:** `(el: Element) => boolean` · **Default:** none · **Env:** none, this
 is a function
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.onSelect
 
@@ -406,7 +406,7 @@ lineNumber}}`.
 **Type:** `(info: ElementInfo) => void` · **Default:** none · **Env:** none,
 this is a function
 
-See also: [Open a component in your editor](/vite-plugin-lit/guides/source-overlay/).
+See also: [Open a component in your editor](/guides/source-overlay/).
 
 ## timeline
 
@@ -432,7 +432,7 @@ toggle.
 
 **Type:** `boolean` · **Default:** `false` · **Env:** `LIT_PLUGIN_TIMELINE`
 
-See also: [Open the DevTools panel](/vite-plugin-lit/guides/devtools/).
+See also: [Open the DevTools panel](/guides/devtools/).
 
 ## cssSheetBuild
 
@@ -463,7 +463,7 @@ typo cannot change your build output silently.
 **Type:** `'auto' | 'url' | 'inline' | 'inline-raw'` · **Default:** `'auto'` ·
 **Env:** `LIT_PLUGIN_CSS_SHEET_BUILD`
 
-See also: [Share one stylesheet with `?css-sheet`](/vite-plugin-lit/guides/stylesheets/css-sheet/).
+See also: [Share one stylesheet with `?css-sheet`](/guides/stylesheets/css-sheet/).
 
 ## devtoolsWorkspace
 
@@ -574,16 +574,16 @@ export default defineConfig({
   <LinkCard
     title="Environment variables"
     description="The same surface, resolved from the environment."
-    href="/vite-plugin-lit/reference/environment-variables/"
+    href="/reference/environment-variables/"
   />
   <LinkCard
     title="Limitations"
     description="What onIncompatible reacts to."
-    href="/vite-plugin-lit/reference/limitations/"
+    href="/reference/limitations/"
   />
   <LinkCard
     title="Use Lit in Astro"
     description="Where lit() and its options fit."
-    href="/vite-plugin-lit/guides/astro/"
+    href="/guides/astro/"
   />
 </CardGrid>

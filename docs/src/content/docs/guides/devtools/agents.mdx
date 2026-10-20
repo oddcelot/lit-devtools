@@ -31,7 +31,7 @@ The equivalent `claude_desktop_config.json` or `mcp.json` entry:
 ```
 
 The command needs two optional peers, `cac` and `@devframes/agentic`. See the
-[CLI reference](/vite-plugin-lit/reference/cli/) for the message it prints when
+[CLI reference](/reference/cli/) for the message it prints when
 one is missing.
 
 ## The eleven tools
@@ -74,7 +74,7 @@ empty answer.
 
 Point the agent at `lit_update-summary` first for anything shaped like "why did
 this re-render". It returns the same derived cycles and per-component totals the
-[Updates tab](/vite-plugin-lit/guides/devtools/updates/) shows, so the agent
+[Updates tab](/guides/devtools/updates/) shows, so the agent
 never pairs thousands of start and end events itself.
 
 `lit_range-summary` takes a `start` and an `end` in milliseconds, on the same
@@ -111,7 +111,7 @@ the reason:
 ```
 
 Vite DevTools mounts the endpoint at `/__devtools/__mcp` on the dev server;
-[without Vite DevTools](/vite-plugin-lit/guides/devtools/#without-vite-devtools)
+[without Vite DevTools](/guides/devtools/#without-vite-devtools)
 the panel's own mount serves it at `/__lit/__mcp`. Bridge that URL instead and
 skip discovery altogether:
 
@@ -133,11 +133,11 @@ claude mcp add lit-devtools -- npx -y mcp-remote http://localhost:5179/__devtool
   <LinkCard
     title="CLI"
     description="Every lit-devtools subcommand, its flags, and its optional peers."
-    href="/vite-plugin-lit/reference/cli/"
+    href="/reference/cli/"
   />
   <LinkCard
     title="Record and read the timeline"
     description="The recording lit_recent-events reads from."
-    href="/vite-plugin-lit/guides/devtools/timeline/"
+    href="/guides/devtools/timeline/"
   />
 </CardGrid>

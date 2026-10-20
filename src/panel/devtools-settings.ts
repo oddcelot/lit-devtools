@@ -38,9 +38,9 @@ import {
 
 /** The guide sections on where the Lit tracks appear: Chrome's, then the rest. */
 const CHROME_TRACKS_DOCS =
-  'https://oddcelot.github.io/vite-plugin-lit/guides/devtools/timeline/#see-it-in-chromes-performance-panel';
+  'https://vite-plugin-lit.oddsquad.dev/guides/devtools/timeline/#see-it-in-chromes-performance-panel';
 const USER_TIMING_DOCS =
-  'https://oddcelot.github.io/vite-plugin-lit/guides/devtools/timeline/#in-firefox-and-older-chrome';
+  'https://vite-plugin-lit.oddsquad.dev/guides/devtools/timeline/#in-firefox-and-older-chrome';
 
 /** A feature switch: shown in a section header, never overridden. */
 type FeatureKey = SettingKeyOf<'feature'>;
