@@ -6,7 +6,8 @@
  * tags; the image is the only one it has no way to know about.
  *
  * It also links the page's Markdown copy, which `scripts/page-markdown.mjs`
- * writes beside it after the build.
+ * writes beside it after the build, and the site's agent catalog in
+ * `public/.well-known/ai-catalog.json`.
  */
 import {defineRouteMiddleware} from '@astrojs/starlight/route-data';
 import {ogImageFor} from './lib/og';
@@ -26,5 +27,9 @@ export const onRequest = defineRouteMiddleware((context) => {
   head.push({
     tag: 'link',
     attrs: {rel: 'alternate', type: 'text/markdown', href: 'index.md'},
+  });
+  head.push({
+    tag: 'link',
+    attrs: {rel: 'ai-catalog', href: '/.well-known/ai-catalog.json'},
   });
 });

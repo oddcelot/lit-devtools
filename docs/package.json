@@ -7,7 +7,7 @@
   "scripts": {
     "sync": "node scripts/sync-changelog.mjs",
     "dev": "node scripts/sync-changelog.mjs && astro dev",
-    "build": "node scripts/sync-changelog.mjs && astro build && node scripts/check-redirects.mjs && node scripts/page-markdown.mjs",
+    "build": "node scripts/sync-changelog.mjs && astro build && node scripts/check-redirects.mjs && node scripts/page-markdown.mjs && node scripts/agent-skills-index.mjs",
     "preview": "astro preview",
     "worker:deploy": "pnpm dlx --allow-build=workerd --allow-build=esbuild wrangler@4 deploy --config worker/wrangler.jsonc"
   },

@@ -1,0 +1,132 @@
+---
+/**
+ * Registers the docs' WebMCP tools, so an agent driving a browser on this
+ * site can search the docs, read a page as Markdown and open a page without
+ * scraping the UI. Search goes through the Pagefind index Starlight's own
+ * search box uses, which only exists in a build; reading fetches the
+ * index.md `scripts/page-markdown.mjs` writes beside each page. Browsers
+ * without WebMCP skip the whole script.
+ */
+---
+
+<script>
+  type Tool = {
+    name: string;
+    description: string;
+    inputSchema: object;
+    annotations?: {readOnlyHint?: boolean};
+    execute: (input: Record<string, unknown>) => Promise<unknown>;
+  };
+  type ModelContext = {
+    registerTool(tool: Tool, options?: {signal?: AbortSignal}): Promise<void>;
+  };
+  type Pagefind = {
+    search(query: string): Promise<{
+      results: {
+        data(): Promise<{url: string; meta: {title?: string}; excerpt: string}>;
+      }[];
+    }>;
+  };
+
+  const modelContext: ModelContext | undefined =
+    (document as unknown as {modelContext?: ModelContext}).modelContext ??
+    (navigator as unknown as {modelContext?: ModelContext}).modelContext;
+
+  const base = import.meta.env.BASE_URL;
+  let pagefind: Promise<Pagefind> | undefined;
+
+  /** A same-origin docs path ending in a slash, or an error. */
+  function docsPath(input: unknown): string {
+    const url = new URL(String(input ?? ''), location.origin);
+    if (url.origin !== location.origin) {
+      throw new Error('Only pages on this site can be read.');
+    }
+    return url.pathname.replace(/(index\.(html|md))?$/, '').replace(/\/?$/, '/');
+  }
+
+  const tools: Tool[] = [
+    {
+      name: 'search_docs',
+      description:
+        'Search the vite-plugin-lit docs (HMR for Lit components in Vite, CSS delivery to shadow roots, the Lit DevTools panel). Returns matching pages with their path, title and an excerpt.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          query: {type: 'string', description: 'What to search for.'},
+          limit: {
+            type: 'integer',
+            minimum: 1,
+            maximum: 20,
+            description: 'How many results to return. Defaults to 5.',
+          },
+        },
+        required: ['query'],
+      },
+      annotations: {readOnlyHint: true},
+      async execute({query, limit = 5}) {
+        pagefind ??= import(/* @vite-ignore */ `${base}pagefind/pagefind.js`);
+        const {results} = await (await pagefind).search(String(query));
+        const top = await Promise.all(
+          results.slice(0, Number(limit)).map((result) => result.data())
+        );
+        return top.map(({url, meta, excerpt}) => ({
+          path: url.replace(/\.html$/, '/').replace(/\/index\/$/, '/'),
+          title: meta.title,
+          excerpt: excerpt.replace(/<[^>]+>/g, ''),
+        }));
+      },
+    },
+    {
+      name: 'read_docs_page',
+      description:
+        'Read one vite-plugin-lit docs page as Markdown, by its path (for example /guides/hmr/ or /reference/options/).',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: {type: 'string', description: 'The page path on this site.'},
+        },
+        required: ['path'],
+      },
+      annotations: {readOnlyHint: true},
+      async execute({path}) {
+        const page = docsPath(path);
+        const res = await fetch(`${page}index.md`);
+        if (!res.ok) throw new Error(`No docs page at ${page}.`);
+        return {path: page, markdown: await res.text()};
+      },
+    },
+    {
+      name: 'open_docs_page',
+      description:
+        'Navigate this tab to a vite-plugin-lit docs page, by its path, optionally scrolled to a heading anchor.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: {type: 'string', description: 'The page path on this site.'},
+          anchor: {
+            type: 'string',
+            description: 'A heading id on that page, without the #.',
+          },
+        },
+        required: ['path'],
+      },
+      async execute({path, anchor}) {
+        const page = docsPath(path);
+        location.assign(anchor ? `${page}#${anchor}` : page);
+        return {opened: page};
+      },
+    },
+  ];
+
+  if (modelContext) {
+    const registration = new AbortController();
+    addEventListener('pagehide', () => registration.abort(), {once: true});
+    for (const tool of tools) {
+      modelContext
+        .registerTool(tool, {signal: registration.signal})
+        .catch((error) =>
+          console.warn(`[docs] WebMCP tool ${tool.name} not registered`, error)
+        );
+    }
+  }
+</script>

@@ -1,6 +1,7 @@
 # The vite-plugin-lit docs are open-source documentation: search, AI
 # answers and training are all welcome. Agents can also read
-# /llms.txt, or ask any page for Accept: text/markdown.
+# /llms.txt, or ask any page for Accept: text/markdown. Skills and other
+# resources for agents are listed in /.well-known/ai-catalog.json.
 
 User-agent: *
 Content-Signal: search=yes, ai-input=yes, ai-train=yes
@@ -26,3 +27,4 @@ Allow: /
 Disallow: /pagefind/
 
 Sitemap: https://vite-plugin-lit.oddsquad.dev/sitemap-index.xml
+Agentmap: https://vite-plugin-lit.oddsquad.dev/.well-known/ai-catalog.json
