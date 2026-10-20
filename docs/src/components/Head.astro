@@ -12,10 +12,13 @@
  * The changelog pages also get the video player: their release videos come
  * from CHANGELOG.md as markup (docs/scripts/sync-changelog.mjs), with no
  * component to load it, unlike DemoVideo.
+ *
+ * Every page registers the docs' WebMCP tools.
  */
 import Default from '@astrojs/starlight/components/Head.astro';
 import {Font} from 'astro:assets';
 import VideoPlayerScript from './VideoPlayerScript.astro';
+import WebMcpTools from './WebMcpTools.astro';
 
 const changelog = Astro.url.pathname.includes('/reference/changelog/');
 ---
@@ -24,3 +27,4 @@ const changelog = Astro.url.pathname.includes('/reference/changelog/');
 <Font cssVariable="--font-manrope" preload />
 <Font cssVariable="--font-roboto-mono" />
 {changelog && <VideoPlayerScript />}
+<WebMcpTools />
