@@ -22,6 +22,8 @@
     "bench/index.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
     "docs/src/routeData.ts",
+    // docs/worker/wrangler.jsonc names it as the Worker's main module.
+    "docs/worker/src/index.js",
     // examples/astro/astro.multi.config.mjs sets `srcDir: './multi'`, which
     // fallow's Astro plugin doesn't read.
     "examples/astro/multi/pages/**/*.astro"

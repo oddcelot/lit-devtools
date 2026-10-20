@@ -1,0 +1,15 @@
+// A Worker on the docs' route, in front of GitHub Pages. Pages serves the
+// site; this adds the response headers Pages can't set and answers
+// `Accept: text/markdown`. It has no assets of its own: fetch() from a route
+// Worker to its own host goes to the origin. Deploy by hand when
+// src/index.js changes: `pnpm run worker:deploy` in docs/.
+{
+  "$schema": "https://unpkg.com/wrangler/config-schema.json",
+  "name": "vite-plugin-lit-docs",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "routes": [
+    {"pattern": "vite-plugin-lit.oddsquad.dev/*", "zone_name": "oddsquad.dev"},
+  ],
+}
