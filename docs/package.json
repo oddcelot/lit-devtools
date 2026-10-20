@@ -7,7 +7,7 @@
   "scripts": {
     "sync": "node scripts/sync-changelog.mjs",
     "dev": "node scripts/sync-changelog.mjs && astro dev",
-    "build": "node scripts/sync-changelog.mjs && astro build && node scripts/check-redirects.mjs",
+    "build": "node scripts/sync-changelog.mjs && astro build && node scripts/check-redirects.mjs && node scripts/page-markdown.mjs",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -25,6 +25,13 @@
   },
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "workspace:*",
+    "hast-util-select": "^6.0.4",
+    "rehype-parse": "^9.0.1",
+    "rehype-remark": "^10.0.1",
+    "remark-gfm": "^4.0.1",
+    "remark-stringify": "^11.0.0",
+    "unified": "^11.0.5",
+    "unist-util-remove": "^4.0.0",
     "vite": "catalog:"
   }
 }

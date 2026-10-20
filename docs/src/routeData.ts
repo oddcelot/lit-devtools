@@ -4,6 +4,9 @@
  * generated, or a release video's poster on a changelog release page.
  * Starlight already emits `twitter:card: summary_large_image` and the other OG
  * tags; the image is the only one it has no way to know about.
+ *
+ * It also links the page's Markdown copy, which `scripts/page-markdown.mjs`
+ * writes beside it after the build.
  */
 import {defineRouteMiddleware} from '@astrojs/starlight/route-data';
 import {ogImageFor} from './lib/og';
@@ -20,4 +23,8 @@ export const onRequest = defineRouteMiddleware((context) => {
   meta('og:image:width', String(image.width));
   meta('og:image:height', String(image.height));
   meta('og:image:alt', image.alt);
+  head.push({
+    tag: 'link',
+    attrs: {rel: 'alternate', type: 'text/markdown', href: 'index.md'},
+  });
 });
