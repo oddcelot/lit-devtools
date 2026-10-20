@@ -1,0 +1,121 @@
+---
+/**
+ * A setup prompt to paste into a coding agent: a copy button, with the prompt
+ * itself folded away underneath for anyone who wants to read it first. The
+ * prompt points at the agent skill rather than repeating its steps, so the
+ * skill stays the one place they're written down.
+ */
+const skill =
+  'https://vite-plugin-lit.oddsquad.dev/.well-known/agent-skills/vite-plugin-lit/SKILL.md';
+
+const prompt = `Set up @oddsquad/vite-plugin-lit in this project, following the agent skill at ${skill}.
+
+1. Install it as a dev dependency with the package manager this project already uses.
+2. Add litPlugin() to the plugins array in the Vite config. Leave the rest of the config as it is.
+3. Register the "@oddsquad/vite-plugin-lit/client" types in tsconfig.json, next to "vite/client" rather than instead of it.
+4. Start the dev server and check that the plugin's indicator appears on a page with a Lit component.
+
+Don't enable the DevTools panel or the source overlay unless I ask. When you're done, list the files you changed.`;
+---
+
+<div class="agent-prompt not-content">
+  <div class="bar">
+    <span class="label agent-prompt-label">Set it up with a coding agent</span>
+    <button type="button" class="copy" data-prompt={prompt}>
+      <span class="idle">Copy prompt</span>
+      <span class="done" aria-hidden="true">Copied</span>
+    </button>
+    <span class="status sr-only" role="status"></span>
+  </div>
+  <details>
+    <summary>Show the prompt</summary>
+    <pre>{prompt}</pre>
+  </details>
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>(
+    '.agent-prompt .copy'
+  )) {
+    const status = button.parentElement?.querySelector('.status');
+    button.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(button.dataset.prompt ?? '');
+      button.classList.add('copied');
+      if (status) status.textContent = 'Prompt copied';
+      setTimeout(() => {
+        button.classList.remove('copied');
+        if (status) status.textContent = '';
+      }, 2000);
+    });
+  }
+</script>
+
+<style>
+  .agent-prompt {
+    margin-block: 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: var(--sl-color-gray-6);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+  }
+  .label {
+    font-weight: 600;
+    color: var(--sl-color-white);
+  }
+  .copy {
+    display: inline-grid;
+    padding: 0.375rem 0.875rem;
+    border: 1px solid var(--sl-color-accent);
+    border-radius: 0.375rem;
+    background: var(--sl-color-accent);
+    color: var(--sl-color-text-invert);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .copy:hover {
+    filter: brightness(1.15);
+  }
+  .copy:focus-visible {
+    outline: 2px solid var(--sl-color-accent-high);
+    outline-offset: 2px;
+  }
+  /* Both labels share one grid cell, so the button keeps its width. */
+  .copy > span {
+    grid-area: 1 / 1;
+  }
+  .copy .done,
+  .copy.copied .idle {
+    visibility: hidden;
+  }
+  .copy.copied .done {
+    visibility: visible;
+  }
+  details {
+    border-top: 1px solid var(--sl-color-gray-5);
+  }
+  summary {
+    padding: 0.5rem 1rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+  }
+  pre {
+    margin: 0;
+    padding: 0 1rem 1rem;
+    white-space: pre-wrap;
+    font-family: var(--sl-font-mono);
+    font-size: var(--sl-text-xs);
+    line-height: 1.6;
+    color: var(--sl-color-gray-1);
+  }
+</style>
