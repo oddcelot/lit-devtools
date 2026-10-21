@@ -230,12 +230,14 @@ export class LitDevtoolsPanel extends LitElement {
 
   /**
    * Keep the address bar pointing at what is on screen, so copying it is a
-   * link. Only meaningful when the panel owns its URL — docked in the hub it
-   * is an iframe nobody reads the address of, and writing there would be
-   * noise.
+   * link. Only meaningful when someone reads the URL: the panel's own tab, or
+   * the page's dock (`?dock`, see `runtime/dock.ts`), which reads the tab
+   * off it to reopen there after a page load. Docked in the hub it is an
+   * iframe nobody reads the address of, and writing there would be noise.
    */
   private _syncHash(): void {
-    if (window.top !== window.self) return;
+    const docked = new URLSearchParams(location.search).has('dock');
+    if (window.top !== window.self && !docked) return;
     writeHashLink(this._location.link());
   }
 

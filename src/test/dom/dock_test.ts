@@ -3,6 +3,8 @@ import {createDock} from '../../lib/runtime/dock.js';
 
 // A real panel URL would make happy-dom fetch it for the iframe.
 const PANEL = 'about:blank';
+// What the dock loads: the panel, told that its hash is read.
+const DOCKED = `${PANEL}?dock`;
 
 const host = () =>
   document.querySelector<HTMLElement>('[data-lit-devtools-dock]')!;
@@ -26,7 +28,7 @@ describe('createDock', () => {
     createDock(PANEL);
     toggle().click();
     expect(host().hasAttribute('open')).toBe(true);
-    expect(frame()?.src).toBe(PANEL);
+    expect(frame()?.src).toBe(DOCKED);
     toggle().click();
     expect(host().hasAttribute('open')).toBe(false);
     // Closing keeps the panel loaded, for a quick reopen.
@@ -37,7 +39,7 @@ describe('createDock', () => {
     const dock = createDock(PANEL);
     dock.show();
     dock.show(`${PANEL}#tab=components&component=3`);
-    expect(frame()?.src).toBe(`${PANEL}#tab=components&component=3`);
+    expect(frame()?.src).toBe(`${DOCKED}#tab=components&component=3`);
     expect(host().shadowRoot!.querySelectorAll('iframe')).toHaveLength(1);
   });
 
@@ -47,7 +49,17 @@ describe('createDock', () => {
 
     createDock(PANEL);
     expect(host().hasAttribute('open')).toBe(true);
-    expect(frame()?.src).toBe(PANEL);
+    expect(frame()?.src).toBe(DOCKED);
+  });
+
+  test('keeps the panel’s tab across a page load, but not its selection', () => {
+    createDock(PANEL).show();
+    frame()!.contentWindow!.location.hash = '#tab=timeline&component=3';
+    dispatchEvent(new Event('pagehide'));
+    host().remove();
+
+    createDock(PANEL);
+    expect(frame()?.src).toBe(`${DOCKED}#tab=timeline`);
   });
 
   test('is not a custom element, so it is never counted as the page’s', () => {

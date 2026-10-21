@@ -11,6 +11,11 @@
  * counts the page's Lit elements, and the dock is not one of the page's.
  * The iframe is only created on first open, so a dock nobody opens costs
  * the page nothing but the button.
+ *
+ * A full page load takes the panel with it. The dock keeps what it can
+ * across one: open or not, its height, and the panel's tab, read off the
+ * panel's hash as the page goes. Not the selection: its ids name elements
+ * of the page that is leaving, and on the next one could name others.
  */
 
 export interface Dock {
@@ -26,6 +31,8 @@ const MIN_HEIGHT = 160;
 interface DockState {
   open: boolean;
   height: number;
+  /** The panel's tab when the last page went (its `tab=` hash parameter). */
+  tab?: string;
 }
 
 const FLAME = `<svg viewBox="0 0 160 200" aria-hidden="true"><path fill="#00e8ff" d="M40 120l20-60l90 90l-30 50l-40-40h-20"/><path fill="#283198" d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"/><path fill="#324fff" d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"/><path fill="#00ffff" d="M40 200v-80l40 40"/></svg>`;
@@ -141,6 +148,13 @@ export const createDock = (panelUrl: string): Dock => {
   const drawer = root.querySelector<HTMLElement>('.drawer')!;
   const handle = root.querySelector<HTMLElement>('.handle')!;
   let frame: HTMLIFrameElement | undefined;
+  // `?dock` tells the panel someone reads its hash, so it keeps it current.
+  const framed = (hash: string) => {
+    const url = new URL(panelUrl);
+    url.search = 'dock';
+    url.hash = hash;
+    return url.href;
+  };
 
   const render = () => {
     host.toggleAttribute('open', state.open);
@@ -154,12 +168,18 @@ export const createDock = (panelUrl: string): Dock => {
       if (frame === undefined) {
         frame = document.createElement('iframe');
         frame.title = 'Lit DevTools';
-        frame.src = href ?? panelUrl;
+        frame.src = framed(
+          href === undefined
+            ? state.tab === undefined
+              ? ''
+              : `#${new URLSearchParams({tab: state.tab})}`
+            : new URL(href).hash
+        );
         drawer.append(frame);
       } else if (href !== undefined) {
         // Only the hash differs from what is loaded, so the panel follows the
         // link in place rather than reloading.
-        frame.src = href;
+        frame.src = framed(new URL(href).hash);
       }
       state.open = true;
       save(state);
@@ -177,6 +197,19 @@ export const createDock = (panelUrl: string): Dock => {
   };
 
   toggle.addEventListener('click', () => dock.toggle());
+
+  addEventListener('pagehide', () => {
+    if (frame === undefined) return;
+    try {
+      const params = new URLSearchParams(
+        frame.contentWindow!.location.hash.replace(/^#/, '')
+      );
+      state.tab = params.get('tab') ?? undefined;
+      save(state);
+    } catch {
+      // A panel on another origin keeps its hash to itself.
+    }
+  });
 
   handle.addEventListener('pointerdown', (event) => {
     event.preventDefault();
