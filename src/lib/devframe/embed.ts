@@ -5,13 +5,16 @@
  *
  * The host mounts {@link LitDevtools.handler} on a catch-all under
  * {@link LitDevtools.base} and puts {@link LitDevtools.script} at the top of
- * its pages' `<head>`. The panel, the page script and the RPC all answer on
- * the host's own origin, so nothing binds a port of its own and the page's
- * requests are never cross-origin.
+ * its pages' `<head>`. The panel and the page script answer on the host's
+ * own origin.
  *
- * RPC runs over SSE rather than a WebSocket: SSE is plain HTTP through the
- * same handler, while a WebSocket needs the host's upgrade wiring, which
- * differs per server.
+ * The RPC runs over a WebSocket on a side-car port that devframe binds
+ * itself: the host's handler would need upgrade wiring, which differs per
+ * server. Not SSE by default, though it needs no wiring at all: every page
+ * holds a stream open, and a docked panel a second one, and over HTTP/1.1 the
+ * browser allows six connections per host across all tabs. Three docked tabs
+ * fill them, and the next page load waits forever. WebSockets do not count
+ * against that limit.
  *
  * As with `lit-devtools dev`, there are no build-time transforms here, so
  * HMR patching is unavailable. The tree, inspector and timeline work, and
@@ -44,6 +47,20 @@ export interface LitDevtoolsOptions {
    * with `false` the panel is only its own tab at {@link LitDevtools.base}.
    */
   dock?: boolean;
+  /**
+   * How pages and the panel reach the RPC. `'websocket'` (the default) binds a
+   * side-car WebSocket on a free port of {@link host}. `'sse'` keeps
+   * everything on the host's origin, for setups that expose one port only (a
+   * proxy, a tunnel, StackBlitz); over HTTP/1.1 its streams count against the
+   * browser's six connections per host, so it suits HTTP/2 or a tab or two.
+   */
+  transport?: 'websocket' | 'sse';
+  /**
+   * Where the side-car WebSocket listens. The browser dials it on the page's
+   * hostname, so this has to be the address pages use: a page on
+   * `http://127.0.0.1:3000` needs `'127.0.0.1'`. Default `localhost`.
+   */
+  host?: string;
 }
 
 export interface LitDevtools {
@@ -55,7 +72,7 @@ export interface LitDevtools {
   handler: (request: Request) => Promise<Response>;
   /** Resolves once the devframe is set up; the handler awaits it itself. */
   ready: Promise<void>;
-  /** Tears down the RPC sessions. */
+  /** Tears down the RPC sessions and the side-car WebSocket. */
   close: () => Promise<void>;
 }
 
@@ -74,6 +91,8 @@ export const createLitDevtools = ({
   base = '/__lit-devtools/',
   auth = true,
   dock = true,
+  transport = 'websocket',
+  host = 'localhost',
 }: LitDevtoolsOptions = {}): LitDevtools => {
   const devframe = initDevframe(
     createStandaloneLitDevframe({
@@ -84,7 +103,7 @@ export const createLitDevtools = ({
       // Where components are defined, read off the page's own sourcemaps.
       pageSourceMaps: true,
     }),
-    {base, auth, ws: false}
+    {base, auth, host, ws: transport === 'sse' ? false : {sidecar: true}}
   );
   // The page script finds its server from its own address, so it has to be
   // served under the base, next to the endpoints it dials.

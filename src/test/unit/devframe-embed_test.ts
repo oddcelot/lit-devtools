@@ -28,8 +28,19 @@ describe('createLitDevtools', () => {
     expect(devtools.script).toBe('/tools/lit-devtools.js');
   });
 
-  test('advertises SSE, since the host does not hand it upgrades', async () => {
+  test('advertises a side-car WebSocket, which no connection limit counts', async () => {
     const devtools = create({auth: false});
+    const response = await get(devtools, '/__lit-devtools/__connection.json');
+    const meta = (await response.json()) as {
+      backend: string;
+      websocket?: {port?: number};
+    };
+    expect(meta.backend).toBe('websocket');
+    expect(meta.websocket?.port).toBeGreaterThan(0);
+  });
+
+  test('keeps everything on the host’s origin with transport: sse', async () => {
+    const devtools = create({auth: false, transport: 'sse'});
     const response = await get(devtools, '/__lit-devtools/__connection.json');
     const meta = (await response.json()) as {backend: string};
     expect(meta.backend).toBe('sse');
@@ -44,7 +55,7 @@ describe('createLitDevtools', () => {
       /^globalThis\.__LIT_DEVTOOLS_CONNECT__ = (.*);$/m.exec(body)![1]!
     ) as {url: string; connectionMeta: {backend: string}};
     expect(config.url).toBe('http://localhost:3000/__lit-devtools/');
-    expect(config.connectionMeta.backend).toBe('sse');
+    expect(config.connectionMeta.backend).toBe('websocket');
   });
 
   test('docks the panel in the page unless told not to', async () => {

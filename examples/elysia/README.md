@@ -100,10 +100,10 @@ Lit DevTools at http://localhost:3000/__lit-devtools/
 [`src/dev.ts`](src/dev.ts) makes
 the panel with `createLitDevtools()` from `@oddsquad/vite-plugin-lit/devframe`,
 mounts its handler on `/__lit-devtools/*`, and puts its script first in
-`<head>`, so the runtime sees every component the client defines. Panel, script
-and RPC (over SSE) all answer on the app's own origin: no second process, no
-second port. The code gate is off because the dev server only listens on
-`localhost`.
+`<head>`, so the runtime sees every component the client defines. The panel and
+its script are routes on the app; the RPC is a WebSocket devframe serves on a
+spare port of its own, so there is no second process to start. The code gate is
+off because the dev server only listens on `localhost`.
 
 The Components tab shows `<sign-form>` as deferred until you point at it, the
 inspector shows each element's properties, and the sourcemap gives where each

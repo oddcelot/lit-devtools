@@ -93,7 +93,9 @@ customElements.define('page-two', PageTwo);
   })) as unknown as Array<{output: Array<{code: string}>}>;
   const appJs = built[0].output[0].code;
 
-  devtools = createLitDevtools({auth: false});
+  // The page is on 127.0.0.1, and the browser dials the side-car WebSocket on
+  // the page's hostname.
+  devtools = createLitDevtools({auth: false, host: '127.0.0.1'});
   server = createServer((req, res) => {
     const pathname = new URL(req.url ?? '/', 'http://x').pathname;
     if (pathname.startsWith(devtools.base)) {
@@ -225,3 +227,23 @@ test('after a page load the dock reopens on the tab it was on', async () => {
     0
   );
 }, 60_000);
+
+test('four docked tabs all load: the RPC holds no HTTP connection open', async () => {
+  // Over SSE, each docked tab held two streams, and Chrome allows six HTTP/1.1
+  // connections per host: the fourth tab never loaded.
+  const context = await browser.newContext({
+    viewport: {width: 900, height: 700},
+  });
+  try {
+    for (let n = 0; n < 4; n++) {
+      const tab = await context.newPage();
+      await tab.goto(origin, {timeout: 10_000});
+      if (n === 0) await dock(tab).locator('button').click();
+      await panel(tab)
+        .getByText('<page-one>', {exact: true})
+        .waitFor({timeout: 10_000});
+    }
+  } finally {
+    await context.close();
+  }
+}, 90_000);
