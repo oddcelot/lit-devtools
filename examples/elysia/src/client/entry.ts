@@ -3,16 +3,18 @@
 import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {render} from 'lit';
-import {regions, type PageView} from '../page.ts';
+import {regionsOf, type PageView} from '../page.ts';
 import type {LiveMessage, PageData} from '../shared.ts';
 import {api} from './api.ts';
 
 const data = JSON.parse(
   document.querySelector('#page-data')!.textContent!
 ) as PageData;
-const live = Object.entries(regions.live).map(
-  ([id, template]) => [document.getElementById(id)!, template] as const
-);
+const live = regionsOf(data)
+  .filter((region) => region.hydrate)
+  .map(
+    (region) => [document.getElementById(region.id)!, region.render] as const
+  );
 
 // The same templates and data the server rendered: hydration adopts the DOM
 // it finds rather than building it again.
@@ -21,7 +23,7 @@ for (const [root, template] of live) hydrate(template(view), root);
 
 /** From here on, every change is a plain render of each live region. */
 const update = (changes: Partial<PageView>) => {
-  view = {...view, ...changes};
+  view = {...view, ...changes} as PageView;
   for (const [root, template] of live) render(template(view), root);
 };
 
@@ -37,12 +39,12 @@ setTimeout(() => {
   connect();
 });
 
-// The form stays server HTML until someone reaches for it. Removing
-// `defer-hydration` hydrates it on the spot; a submit before that posts
-// natively, which works too.
-const form = document.querySelector('sign-form')!;
+// The form, on the book's page, stays server HTML until someone reaches for
+// it. Removing `defer-hydration` hydrates it on the spot; a submit before
+// that posts natively, which works too.
+const form = document.querySelector('sign-form');
 for (const type of ['pointerenter', 'focusin', 'touchstart']) {
-  form.addEventListener(type, () => form.removeAttribute('defer-hydration'), {
+  form?.addEventListener(type, () => form.removeAttribute('defer-hydration'), {
     once: true,
   });
 }
@@ -50,11 +52,15 @@ for (const type of ['pointerenter', 'focusin', 'touchstart']) {
 const onMessage = (message: LiveMessage) => {
   if (message.type === 'online') {
     update({online: message.count});
-  } else if (!view.entries.some((entry) => entry.id === message.entry.id)) {
+  } else if (view.page === 'book') {
+    if (view.entries.some((entry) => entry.id === message.entry.id)) return;
     update({
       entries: [message.entry, ...view.entries],
       fresh: [...(view.fresh ?? []), message.entry.id],
     });
+  } else if (view.newerId === undefined && message.entry.id > view.entry.id) {
+    // The newest signature had no newer one; now it has.
+    update({newerId: message.entry.id});
   }
 };
 
@@ -67,7 +73,7 @@ const connect = (retry = 500, reconnecting = false) => {
   socket.on('open', async () => {
     retry = 500;
     update({connection: 'live'});
-    if (!reconnecting) return;
+    if (!reconnecting || view.page !== 'book') return;
     const {data: entries} = await api().api.entries.get();
     if (entries) update({entries});
   });

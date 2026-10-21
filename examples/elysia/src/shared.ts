@@ -11,13 +11,34 @@ export interface Entry {
   createdAt: string;
 }
 
-/** What the server renders the page from, and what the page hydrates with. */
-export interface PageData {
-  entries: Entry[];
+/**
+ * What the server renders a page from, and what the page hydrates with.
+ * `page` says which page it is; the client reads it to know which regions
+ * to hydrate.
+ */
+export type PageData = BookData | EntryData;
+
+interface CommonData {
   /** Pages connected to `/live` when this one was rendered. */
   online: number;
+}
+
+/** `/`: every signature, and the form. */
+export interface BookData extends CommonData {
+  page: 'book';
+  entries: Entry[];
   /** Set when a form post without JavaScript failed validation. */
   error?: string;
+}
+
+/** `/entries/:id`: one signature, with links to its neighbours. */
+export interface EntryData extends CommonData {
+  page: 'entry';
+  entry: Entry;
+  /** The next signature back, if any. */
+  olderId?: number;
+  /** The next signature on, if any. */
+  newerId?: number;
 }
 
 /** Everything `/live` sends. */

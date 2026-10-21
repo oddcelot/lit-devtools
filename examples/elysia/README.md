@@ -10,19 +10,28 @@ pnpm install   # or bun install, outside this repo
 pnpm dev       # http://localhost:3000
 ```
 
-Open it in two windows and sign in one: the entry arrives in both.
+Open it in two windows and sign in one: the entry arrives in both. Click a
+signature for its own page.
 
 ## What happens on a request
 
-`GET /` renders the page in three regions, each its own Lit template
-([`src/page.ts`](src/page.ts)), into a `ReadableStream`
-([`src/render.ts`](src/render.ts)). The head goes out before Lit has rendered
+There are two pages, and moving between them is a full page load, as in any
+multi-page app:
+
+- **`/`** is the book: the masthead, the form and every signature.
+- **`/entries/:id`** is one signature, with links to the ones either side. A
+  signature made while you read it shows up as **Newer →**.
+
+Each page is a list of regions in [`src/page.ts`](src/page.ts), each region its
+own Lit template. The server renders them into a `ReadableStream`
+([`src/render.ts`](src/render.ts)): the head goes out before Lit has rendered
 anything, so the browser starts fetching the client bundle while the server is
-still at work. The page data follows as JSON for the client to hydrate with.
+still at work. The page data follows as JSON, with a `page` field that says
+which page it is.
 
 In the browser, [`src/client/entry.ts`](src/client/entry.ts) imports Lit's
-hydrate support before any component, then hydrates each live region with the
-same template and data. From there the client owns the data: every change, from
+hydrate support before any component, reads that `page` field, then hydrates
+each of the page's live regions with the same template and data. From there the client owns the data: every change, from
 the clock or the socket, is a plain `render()` of the regions.
 
 - **`<live-status>`** shows whether the page is connected to `/live` and how
@@ -38,7 +47,7 @@ the clock or the socket, is a plain `render()` of the regions.
 
 ## Elysia
 
-[`src/app.ts`](src/app.ts) is the whole server: the page, `/assets/*`, a JSON
+[`src/app.ts`](src/app.ts) is the whole server: the two pages, `/assets/*`, a JSON
 API with TypeBox validation, the form's `/sign` action, and the `/live`
 WebSocket that every page subscribes to. The client calls the API through
 [Eden Treaty](https://elysiajs.com/eden/overview), typed from the app itself
@@ -99,6 +108,12 @@ second port. The code gate is off because the dev server only listens on
 The Components tab shows `<sign-form>` as deferred until you point at it, the
 inspector shows each element's properties, and the sourcemap gives where each
 one is defined and rendered. HMR needs Vite and is not available.
+
+Following a signature to its page reloads everything, the panel included. The
+drawer comes back open, as tall as it was and on the tab you had, showing the
+new page's components. A selection does not carry over: it named an element of
+the page that left. Nor does a timeline recording, which restarts with each
+page.
 
 In this repo the package is linked from the root, so run `pnpm run build` there
 first: the example loads its built `lib/` and `dist/`.

@@ -1,7 +1,7 @@
 import {Elysia, t} from 'elysia';
 import type {Entries} from './entries.ts';
 import {renderDocument} from './render.ts';
-import {LIMITS, type LiveMessage} from './shared.ts';
+import {LIMITS, type LiveMessage, type PageData} from './shared.ts';
 
 /** Where the client bundle comes from: built in memory, or from `dist/`. */
 export interface Assets {
@@ -46,24 +46,31 @@ export const createApp = ({entries, assets, devtools, reload}: AppOptions) => {
     return entry;
   };
 
+  const page = (data: PageData) =>
+    new Response(
+      renderDocument({data, script: assets.script, devtools, reload}),
+      {headers: {'content-type': 'text/html; charset=utf-8'}}
+    );
+
   const app = new Elysia()
-    .get('/', ({query}) => {
-      const body = renderDocument({
-        data: {
-          entries: entries.list(),
-          online,
-          error:
-            query.error === 'invalid'
-              ? 'Both a name and a message, please.'
-              : undefined,
-        },
-        script: assets.script,
-        devtools,
-        reload,
-      });
-      return new Response(body, {
-        headers: {'content-type': 'text/html; charset=utf-8'},
-      });
+    .get('/', ({query}) =>
+      page({
+        page: 'book',
+        entries: entries.list(),
+        online,
+        error:
+          query.error === 'invalid'
+            ? 'Both a name and a message, please.'
+            : undefined,
+      })
+    )
+    // Parsed by hand: a numeric params schema becomes a union inside
+    // Elysia, which wants TypeBox's compiler and warns at startup.
+    .get('/entries/:id', ({params, status}) => {
+      const id = Number(params.id);
+      const entry = Number.isInteger(id) ? entries.get(id) : undefined;
+      if (!entry) return status(404, 'No such signature');
+      return page({page: 'entry', entry, online, ...entries.neighbours(id)});
     })
     .get('/assets/*', async ({params, status}) => {
       return (await assets.serve(params['*'])) ?? status(404, 'Not found');

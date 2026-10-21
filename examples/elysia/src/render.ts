@@ -1,6 +1,6 @@
 import {render} from '@lit-labs/ssr';
 import type {RenderResult} from '@lit-labs/ssr/lib/render-result.js';
-import {regions} from './page.ts';
+import {regionsOf, titleOf} from './page.ts';
 import type {PageData} from './shared.ts';
 import {documentStyles} from './styles.ts';
 
@@ -34,7 +34,7 @@ export const renderDocument = ({
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Guestbook · Lit on Elysia</title>${
+    <title>${escapeHtml(titleOf(data))}</title>${
       devtools ? `\n    <script src="${devtools}"></script>` : ''
     }
     <script type="module" src="${script}"></script>${
@@ -58,15 +58,12 @@ export const renderDocument = ({
   return new ReadableStream({
     async start(controller) {
       const send = (html: string) => controller.enqueue(encoder.encode(html));
-      const region = async (tag: string, id: string, result: RenderResult) => {
-        send(`\n      <${tag} id="${id}">`);
-        for await (const chunk of flatten(result)) send(chunk);
-        send(`</${tag}>`);
-      };
       send(head);
-      await region('header', 'masthead', render(regions.live.masthead(data)));
-      await region('section', 'sign', render(regions.sign(data)));
-      await region('section', 'book', render(regions.live.book(data)));
+      for (const {tag, id, render: template} of regionsOf(data)) {
+        send(`\n      <${tag} id="${id}">`);
+        for await (const chunk of flatten(render(template(data)))) send(chunk);
+        send(`</${tag}>`);
+      }
       send(tail);
       controller.close();
     },
@@ -91,6 +88,10 @@ async function* flatten(result: RenderResult): AsyncGenerator<string> {
   }
   if (pending) yield pending;
 }
+
+/** Text that is safe inside an element, for the one string Lit does not render. */
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 /** JSON that is safe inside a `<script>` element. */
 const serialize = (data: PageData) =>

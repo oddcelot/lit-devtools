@@ -50,6 +50,31 @@ export const documentStyles = `
     margin: 0.4rem 0 0;
     color: var(--muted);
   }
+  #masthead h1 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  #entry {
+    display: grid;
+    gap: 1rem;
+  }
+  .crumbs a,
+  .pager a {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .crumbs a:hover,
+  .pager a:hover {
+    text-decoration: underline;
+  }
+  .pager {
+    display: flex;
+    justify-content: space-between;
+  }
+  .pager a[rel='next'] {
+    margin-left: auto;
+  }
   footer {
     color: var(--muted);
     font-size: 0.85rem;

@@ -26,6 +26,20 @@ export class GuestBook extends LitElement {
       padding: 0;
       list-style: none;
     }
+    a {
+      display: block;
+      color: inherit;
+      text-decoration: none;
+      border-radius: 0.75rem;
+    }
+    /* Custom properties inherit into the entry's shadow root. */
+    a:hover guest-entry {
+      --line: var(--accent);
+    }
+    a:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
     .empty {
       color: var(--muted);
       font-style: italic;
@@ -52,11 +66,13 @@ export class GuestBook extends LitElement {
                 (entry) => entry.id,
                 (entry) =>
                   html`<li>
-                    <guest-entry
-                      .entry=${entry}
-                      .now=${this.now}
-                      ?fresh=${this.fresh.includes(entry.id)}
-                    ></guest-entry>
+                    <a href="/entries/${entry.id}">
+                      <guest-entry
+                        .entry=${entry}
+                        .now=${this.now}
+                        ?fresh=${this.fresh.includes(entry.id)}
+                      ></guest-entry>
+                    </a>
                   </li>`
               )}
             </ol>`

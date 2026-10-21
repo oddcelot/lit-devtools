@@ -72,6 +72,51 @@ describe('the page', () => {
   });
 });
 
+describe('an entry’s page', () => {
+  it('links every signature in the book to its page', async () => {
+    const {app, entries} = setup();
+    const {id} = entries.add({name: 'Ada', message: 'Hi'});
+    expect(await page(app)).toContain(`<a href="/entries/${id}">`);
+  });
+
+  it('renders one signature, titled with its name', async () => {
+    const {app, entries} = setup();
+    const {id} = entries.add({name: 'Ada <3', message: 'Hello'});
+    const html = await page(app, `/entries/${id}`);
+    expect(html).toContain('<title>Ada &#60;3 · Guestbook</title>');
+    expect(html).toContain('<section id="entry">');
+    expect(html).toMatch(/<guest-entry[^>]*><template[^>]*shadowrootmode/);
+    // No form here, and the page data says which page this is.
+    expect(html).not.toContain('<sign-form');
+    expect(html).toContain('"page":"entry"');
+  });
+
+  it('links to the signatures either side', async () => {
+    const {app, entries} = setup();
+    const first = entries.add({name: 'A', message: '1'});
+    const middle = entries.add({name: 'B', message: '2'});
+    const last = entries.add({name: 'C', message: '3'});
+
+    const html = await page(app, `/entries/${middle.id}`);
+    expect(html).toContain(`href="/entries/${first.id}"`);
+    expect(html).toContain(`href="/entries/${last.id}"`);
+
+    const oldest = await page(app, `/entries/${first.id}`);
+    expect(oldest).not.toContain('rel="prev"');
+    expect(oldest).toContain('rel="next"');
+  });
+
+  it('answers 404 for a signature that does not exist', async () => {
+    const {app} = setup();
+    const missing = await app.handle(new Request('http://localhost/entries/9'));
+    const garbage = await app.handle(
+      new Request('http://localhost/entries/nope')
+    );
+    expect(missing.status).toBe(404);
+    expect(garbage.status).toBe(404);
+  });
+});
+
 describe('the API', () => {
   it('adds an entry and lists it first', async () => {
     const {api} = setup();
