@@ -67,18 +67,37 @@ const onMessage = (message: LiveMessage) => {
 // Every reader subscribes to `/live`: new signatures and the reader count
 // arrive here, for everyone, including the one who signed. After a dropped
 // connection the list is fetched again, for what was signed meanwhile.
+let socket: ReturnType<ReturnType<typeof api>['live']['subscribe']> | undefined;
+let parked = false;
+
 const connect = (retry = 500, reconnecting = false) => {
-  const socket = api().live.subscribe();
-  socket.subscribe(({data}) => onMessage(data as LiveMessage));
-  socket.on('open', async () => {
+  const current = api().live.subscribe();
+  socket = current;
+  current.subscribe(({data}) => onMessage(data as LiveMessage));
+  current.on('open', async () => {
     retry = 500;
     update({connection: 'live'});
     if (!reconnecting || view.page !== 'book') return;
     const {data: entries} = await api().api.entries.get();
     if (entries) update({entries});
   });
-  socket.on('close', () => {
+  current.on('close', () => {
+    if (parked || current !== socket) return;
     update({connection: 'offline'});
     setTimeout(() => connect(Math.min(retry * 2, 10_000), true), retry);
   });
 };
+
+// Leaving the page can park it in the back/forward cache, frozen but whole:
+// its socket would stay open and count it as a reader of a page nobody is
+// on. So it hangs up as it goes, and dials again if Back brings it back.
+window.addEventListener('pagehide', (event) => {
+  if (!event.persisted) return;
+  parked = true;
+  socket?.close();
+});
+window.addEventListener('pageshow', (event) => {
+  if (!event.persisted) return;
+  parked = false;
+  connect(500, true);
+});
