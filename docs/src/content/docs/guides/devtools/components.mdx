@@ -15,6 +15,7 @@ import devtoolsComponentsPickLight from '../../../../assets/shots/devtools-compo
 import devtoolsComponentsPickDark from '../../../../assets/shots/devtools-components-pick.dark.png';
 import devtoolsFlashLight from '../../../../assets/shots/devtools-flash.light.png';
 import devtoolsFlashDark from '../../../../assets/shots/devtools-flash.dark.png';
+import Since from '../../../../components/Since.astro';
 
 See every Lit element on the page, its reactive properties and its source
 file, and watch which ones re-render. Everything here works without recording.
@@ -288,6 +289,8 @@ page, the pane says so instead of showing stale values.
 
 ## Read a component's documentation
 
+<Since v="0.17.0" />
+
 The pane adds what the component's documentation says about it, read from
 its JSDoc for your own components or from a
 [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)
@@ -454,6 +457,8 @@ boot and they survive a reload.
 
 ## See an element's slots and parts
 
+<Since v="0.15.0" />
+
 **Anatomy** draws the selected element's composition on the page: a grey
 outline round the element, one coloured region per slot, and a dashed box per
 `::part` export. Each region carries a label such as `slot "title"`,
@@ -496,6 +501,8 @@ the element's children: adding, removing or renaming one updates the _not
 rendered_ list too.
 
 ## When the tree is empty
+
+<Since v="0.10.0" />
 
 An empty tree names its cause instead of one generic line. The tab says when the
 page runtime has not connected to the dev server, when more than one copy of lit

@@ -21,6 +21,7 @@ import devtoolsChromeTracksLight from '../../../../assets/shots/devtools-chrome-
 import devtoolsChromeTracksDark from '../../../../assets/shots/devtools-chrome-performance-tracks.dark.png';
 import devtoolsExportSnapshotLight from '../../../../assets/shots/devtools-export-snapshot.light.png';
 import devtoolsExportSnapshotDark from '../../../../assets/shots/devtools-export-snapshot.dark.png';
+import Since from '../../../../components/Since.astro';
 
 Record what your components did and in what order, then scrub it. Use it for
 ordering questions; for "why did this re-render", go to the
@@ -177,6 +178,8 @@ both views use the same instance id.
 
 ## See it as tracks
 
+<Since v="0.5.0" />
+
 The Timeline opens in **Tracks**: the recording as one horizontal lane per
 layer on a shared time axis, so you see what happened at the same time and how
 far apart things were. The list shows order and attribution instead. The
@@ -213,6 +216,8 @@ so a search you typed in one view still applies when you switch to the other.
 
 ### Select a time range
 
+<Since v="0.15.0" />
+
 **Shift+drag** on the tracks, or drag on the time ruler above them, shades a
 range of the recording and shows its bounds and length while you drag. A click
 on the ruler, or **Esc**, clears it. To pick the range of one span from the
@@ -247,6 +252,8 @@ range clears the span selection. The detail pane holds one or the other.
   the tracks then show only that window. Click the chip to show everything again.
 
 ## See it in Chrome's Performance panel
+
+<Since v="0.6.0" />
 
 The panel's tracks share a time axis with each other, not with the browser.
 To see Lit updates next to layout, paint, network and long tasks, mirror the
@@ -289,6 +296,8 @@ sees Lit's work too.
   page load, are not in the trace.
 
 ### In Firefox and older Chrome
+
+<Since v="0.14.0" />
 
 The tracks use `console.timeStamp` with its track arguments, which needs
 Chrome 134 or newer. Older Chrome versions, Firefox and Safari ignore those
