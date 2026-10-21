@@ -109,9 +109,14 @@ new Elysia()
   .listen({hostname: 'localhost', port: 3000});
 ```
 
-The panel opens at `/__lit-devtools/`; pass `base` to move it. The handler
-takes a `Request` and returns a `Response`, so the same two lines fit Hono,
-`Bun.serve`, a SvelteKit `+server.ts` or a Next.js route handler.
+The handler takes a `Request` and returns a `Response`, so the same two lines
+fit Hono, `Bun.serve`, a SvelteKit `+server.ts` or a Next.js route handler.
+
+The panel is docked in the page: a Lit button in the bottom-right corner opens
+it in a drawer along the bottom, which you can drag taller, and picking an
+element opens it there. The page remembers whether the drawer was open and how
+tall. It is also its own page at `/__lit-devtools/`; pass `base` to move it,
+or `dock: false` to leave the page alone.
 
 - **Auth.** On by default: the page and the panel ask for a one-time code
   that the server prints. `createLitDevtools({auth: false})` skips it; only do

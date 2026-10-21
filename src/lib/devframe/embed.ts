@@ -38,6 +38,12 @@ export interface LitDevtoolsOptions {
    * loopback.
    */
   auth?: boolean;
+  /**
+   * Dock the panel in the page: a button in the corner opens it in a drawer
+   * along the bottom, and picking an element opens it there. On by default;
+   * with `false` the panel is only its own tab at {@link LitDevtools.base}.
+   */
+  dock?: boolean;
 }
 
 export interface LitDevtools {
@@ -67,6 +73,7 @@ export interface LitDevtools {
 export const createLitDevtools = ({
   base = '/__lit-devtools/',
   auth = true,
+  dock = true,
 }: LitDevtoolsOptions = {}): LitDevtools => {
   const devframe = initDevframe(
     createStandaloneLitDevframe({
@@ -93,7 +100,8 @@ export const createLitDevtools = ({
       await devframe.ready;
       return standaloneScriptResponse(
         new URL(devframe.base, request.url).href,
-        devframe.connectionMeta()
+        devframe.connectionMeta(),
+        {dock}
       );
     },
     ready: devframe.ready,

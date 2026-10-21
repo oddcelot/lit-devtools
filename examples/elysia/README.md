@@ -77,14 +77,18 @@ components by transforming them in Vite, and nothing here runs Vite.
 
 ## Lit DevTools without Vite
 
-The dev server hosts the Lit DevTools itself: `pnpm dev` prints
+The dev server hosts the Lit DevTools itself. Click the Lit button in the
+bottom-right corner of the page and the panel opens in a drawer along the
+bottom; drag its top edge to make it taller. Picking an element (**⌖ Pick** in
+the panel, or Ctrl/⌘+Shift+S on the page) selects it there. The panel is also a
+page of its own, at the second address `pnpm dev` prints:
 
 ```text
 Guestbook at http://localhost:3000/
 Lit DevTools at http://localhost:3000/__lit-devtools/
 ```
 
-Open the second address next to the first. [`src/dev.ts`](src/dev.ts) makes
+[`src/dev.ts`](src/dev.ts) makes
 the panel with `createLitDevtools()` from `@oddsquad/vite-plugin-lit/devframe`,
 mounts its handler on `/__lit-devtools/*`, and puts its script first in
 `<head>`, so the runtime sees every component the client defines. Panel, script

@@ -30,6 +30,7 @@ import './inspector/persist.js';
 import './timeline/install.js';
 import './inspector/install.js';
 import {initSourceOverlay} from './source-overlay/overlay-element.js';
+import {createDock} from './dock.js';
 import {pickInto} from './panel-window.js';
 import {connectToDevServer} from './rpc-transport.js';
 import {joinPage} from './runtime-registry.js';
@@ -50,6 +51,8 @@ forgetOwnLit();
 interface StandaloneConfig {
   url?: string;
   connectionMeta?: ConnectOptions['connectionMeta'];
+  /** Dock the panel in the page; see `dock.ts`. */
+  dock?: boolean;
 }
 
 const config =
@@ -68,8 +71,15 @@ if (url === undefined) {
       'script from the server with <script src="http://localhost:5180/lit-devtools.js">.'
   );
 } else {
-  const startPicker = () =>
-    initSourceOverlay({hosts: 'lit', onPick: pickInto(url)});
+  const startPicker = () => {
+    // Docked, a pick opens the drawer on the element; otherwise it raises
+    // the panel's own tab.
+    const dock = config.dock === true ? createDock(url) : undefined;
+    initSourceOverlay({
+      hosts: 'lit',
+      onPick: pickInto(url, dock && ((href) => dock.show(href))),
+    });
+  };
   // Usually loaded from <head>, before there is a <body> to attach to.
   if (document.body === null) {
     document.addEventListener('DOMContentLoaded', startPicker, {once: true});

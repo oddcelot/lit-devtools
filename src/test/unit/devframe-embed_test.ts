@@ -47,6 +47,19 @@ describe('createLitDevtools', () => {
     expect(config.connectionMeta.backend).toBe('sse');
   });
 
+  test('docks the panel in the page unless told not to', async () => {
+    const dockOf = async (devtools: LitDevtools) => {
+      const body = await (await get(devtools, devtools.script)).text();
+      return (
+        JSON.parse(
+          /^globalThis\.__LIT_DEVTOOLS_CONNECT__ = (.*);$/m.exec(body)![1]!
+        ) as {dock: boolean}
+      ).dock;
+    };
+    expect(await dockOf(create({auth: false}))).toBe(true);
+    expect(await dockOf(create({auth: false, dock: false}))).toBe(false);
+  });
+
   test('serves the panel at the base', async () => {
     const devtools = create({auth: false});
     const response = await get(devtools, '/__lit-devtools/');

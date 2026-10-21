@@ -26,10 +26,12 @@ const STANDALONE_SCRIPT: string = join(
  *
  * @param url Where the devframe answers; the page's fallback when it cannot
  *   read its own script's address.
+ * @param options.dock Dock the panel in the page (see `runtime/dock.ts`).
  */
 export const standaloneScriptResponse = async (
   url: string,
-  {backend, websocket, sse}: ConnectionMeta
+  {backend, websocket, sse}: ConnectionMeta,
+  {dock = false}: {dock?: boolean} = {}
 ): Promise<Response> => {
   const headers = {
     'content-type': 'text/javascript; charset=utf-8',
@@ -45,7 +47,7 @@ export const standaloneScriptResponse = async (
       {status: 500, headers}
     );
   }
-  const config = {url, connectionMeta: {backend, websocket, sse}};
+  const config = {url, connectionMeta: {backend, websocket, sse}, dock};
   return new Response(
     `globalThis.__LIT_DEVTOOLS_CONNECT__ = ${JSON.stringify(config)};\n${bundle}`,
     {headers}
