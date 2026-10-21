@@ -1,0 +1,28 @@
+{
+  "name": "vite-plugin-lit-elysia-example",
+  "description": "A guestbook of Lit components server-rendered by Elysia on Bun with @lit-labs/ssr, streamed, hydrated and kept live over a WebSocket. No Vite: Bun bundles the client.",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/dev.ts",
+    "devtools": "lit-devtools dev --no-auth",
+    "build": "NODE_ENV=production bun scripts/build.ts",
+    "start": "./dist/guestbook",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@elysia/eden": "^1.4.10",
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
+    "elysia": "^1.4.30",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "*",
+    "@types/bun": "^1.3.0",
+    "cac": "^7.0.0",
+    "typescript": "^7.0.2"
+  }
+}

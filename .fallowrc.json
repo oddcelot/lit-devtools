@@ -26,7 +26,11 @@
     "docs/worker/src/index.js",
     // examples/astro/astro.multi.config.mjs sets `srcDir: './multi'`, which
     // fallow's Astro plugin doesn't read.
-    "examples/astro/multi/pages/**/*.astro"
+    "examples/astro/multi/pages/**/*.astro",
+    // Bun.build bundles the client from this path (src/dev.ts and
+    // scripts/build.ts), and the build's generated entry imports prod.ts.
+    "examples/elysia/src/client/entry.ts",
+    "examples/elysia/src/prod.ts"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
@@ -66,7 +70,10 @@
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
     "@phosphor-icons/core",
-    "sugar-high"
+    "sugar-high",
+    // The optional peer that examples/elysia's `devtools` script needs to run
+    // the lit-devtools command; never imported.
+    "cac"
   ],
   "ignoreExports": [
     // Stand-ins for src/panel modules, loaded with
@@ -112,7 +119,8 @@
       "examples/fernhouse",
       "examples/css",
       "examples/forms",
-      "examples/tailwind"
+      "examples/tailwind",
+      "examples/elysia"
     ]
   },
   "duplicates": {

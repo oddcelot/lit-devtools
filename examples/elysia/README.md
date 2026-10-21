@@ -1,0 +1,111 @@
+# Lit on Elysia
+
+A guestbook of Lit components that [Elysia](https://elysiajs.com) renders on
+the server with [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), streams
+to the browser, and keeps live over a WebSocket. Runs on Bun, which also
+bundles the client. No Vite.
+
+```sh
+pnpm install   # or bun install, outside this repo
+pnpm dev       # http://localhost:3000
+```
+
+Open it in two windows and sign in one: the entry arrives in both.
+
+## What happens on a request
+
+`GET /` renders the page in three regions, each its own Lit template
+([`src/page.ts`](src/page.ts)), into a `ReadableStream`
+([`src/render.ts`](src/render.ts)). The head goes out before Lit has rendered
+anything, so the browser starts fetching the client bundle while the server is
+still at work. The page data follows as JSON for the client to hydrate with.
+
+In the browser, [`src/client/entry.ts`](src/client/entry.ts) imports Lit's
+hydrate support before any component, then hydrates each live region with the
+same template and data. From there the client owns the data: every change, from
+the clock or the socket, is a plain `render()` of the regions.
+
+- **`<live-status>`** shows whether the page is connected to `/live` and how
+  many readers are. The server renders the count it has; the socket updates it.
+- **`<guest-book>`** lists the entries. Each **`<guest-entry>`** shows its time
+  in UTC until the client passes in the reader's clock, then switches to
+  "5 minutes ago".
+- **`<sign-form>`** is an island. The server renders it with `defer-hydration`,
+  and it stays server HTML until someone points at it or focuses it. Before
+  that it is a plain `<form method="post" action="/sign">`, which works with
+  JavaScript off; after, it posts through Eden and the entry comes back over
+  the socket.
+
+## Elysia
+
+[`src/app.ts`](src/app.ts) is the whole server: the page, `/assets/*`, a JSON
+API with TypeBox validation, the form's `/sign` action, and the `/live`
+WebSocket that every page subscribes to. The client calls the API through
+[Eden Treaty](https://elysiajs.com/eden/overview), typed from the app itself
+([`src/client/api.ts`](src/client/api.ts)), so a renamed route or a changed body
+fails the type check in the component that uses it. Entries live in SQLite
+through `bun:sqlite`.
+
+## Things that bite
+
+Lit's hydration expects the first client render to produce exactly the server's
+HTML, and does not patch the DOM where it differs; it just believes it.
+
+- **Don't change data before hydration is done.** Elements hydrate in the
+  microtasks after `hydrate()`. Setting the clock straight after left every time
+  in UTC for good: the elements hydrated with the new value and never wrote it.
+  The entry waits a task before its first change.
+- **`hydrate()` removes `defer-hydration`** from every custom element in the
+  template it hydrates. An island has to sit outside any hydrated template,
+  which is why the form is a region of its own that the client never hydrates.
+- **Browser-only state stays out of the first render.** The server cannot know
+  the reader's time zone or connection, so both start as values the server can
+  render (UTC, "Connecting…") and change after hydration.
+- **Bun resolves Lit's `development` build** unless `NODE_ENV=production`. The
+  `production` export condition alone does not switch it. The build script runs
+  with `NODE_ENV=production`.
+
+## Dev loop
+
+`pnpm dev` is `bun --watch src/dev.ts`. Bun builds the client in memory at
+startup. A change to anything the server imports restarts the process; a change
+under `src/client/` rebuilds the bundle in place. Either way the page reloads
+itself: an inline script holds a socket to `/__reload`.
+
+It is a full reload, not HMR. `@oddsquad/vite-plugin-lit` hot-patches
+components by transforming them in Vite, and nothing here runs Vite.
+
+## Lit DevTools without Vite
+
+The standalone DevTools still work. In a second terminal:
+
+```sh
+pnpm devtools
+LIT_DEVTOOLS=http://localhost:5180/lit-devtools.js pnpm dev
+```
+
+Open http://localhost:5180 for the panel. The page loads `lit-devtools.js`
+first in `<head>`, so the runtime sees every component: the Components tab
+shows `<sign-form>` as deferred until you point at it, the inspector shows each
+element's properties, and the sourcemap gives where each one is defined and
+rendered. Open-in-editor and HMR need Vite and are not available.
+
+## Production
+
+```sh
+pnpm build   # dist/guestbook
+pnpm start
+```
+
+[`scripts/build.ts`](scripts/build.ts) bundles the client with hashed names,
+then compiles the server into one executable with those files embedded. Copy
+`dist/guestbook` anywhere and run it: it needs neither Bun nor `node_modules`.
+`PORT`, `DB` (the SQLite file, `guestbook.sqlite` by default) and
+`LIT_DEVTOOLS` work there too.
+
+## Tests
+
+```sh
+pnpm test        # bun test: the page, the API and the form, in process
+pnpm typecheck
+```
