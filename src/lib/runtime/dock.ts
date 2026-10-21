@@ -41,6 +41,12 @@ const STYLES = `
   :host {
     all: initial;
     --height: 40vh;
+    display: block;
+  }
+  /* The host sits last in <body>. Open, it takes the drawer's height, so the
+     page can scroll its last content up above the drawer. */
+  :host([open]) {
+    height: var(--height);
   }
   .toggle {
     position: fixed;
