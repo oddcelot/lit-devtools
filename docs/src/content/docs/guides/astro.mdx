@@ -13,6 +13,9 @@ import containerTest from '../../../../../examples/astro/test/container.test.ts?
 import vitestConfig from '../../../../../examples/astro/vitest.config.ts?raw';
 import tagList from '../../../../../examples/astro/src/components/tag-list.ts?raw';
 import {stripHeader} from '../../../lib/fixture';
+import Since from '../../../components/Since.astro';
+
+<Since v="0.20.0" />
 
 One integration renders your Lit components in Astro and hydrates them, hot
 patches them while you edit, and puts the Lit panel in the dev toolbar. Read

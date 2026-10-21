@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import {Aside, CardGrid, LinkCard} from '@astrojs/starlight/components';
+import Since from '../../../components/Since.astro';
 
 `litPlugin()` takes a single options object, and this page lists every key in
 it. Each entry gives the meaning, a config you can paste, the default, the
@@ -103,6 +104,8 @@ See also: [HMR that keeps state](/guides/hmr/).
 
 ### hmr.privateFields
 
+<Since v="0.7.0" />
+
 Rewrites native `#private` class members to keys the next evaluation of the
 module shares, so components that use them are patched in place and keep their
 private state. Only the dev server does this; builds keep real `#private`.
@@ -126,6 +129,8 @@ Turn the rewrite off if a test or a library relies on the brand check in dev.
 See also: [Limitations](/reference/limitations/).
 
 ### hmr.childState
+
+<Since v="0.7.0" />
 
 What happens to a child element when a parent edit changes the template
 literal it sits in. Lit clones fresh DOM for an edited template, so the child
@@ -342,6 +347,8 @@ See also: [Open a component in your editor](/guides/source-overlay/).
 
 ### sourceOverlay.hosts
 
+<Since v="0.10.0" />
+
 Which elements the picker can pick. `'source'` is your own components, the
 ones with a file to open. `'lit'` adds every other Lit element on the page,
 such as a component library's `<wa-button>` or `<sl-input>`: those pick into
@@ -467,6 +474,8 @@ See also: [Share one stylesheet with `?css-sheet`](/guides/stylesheets/css-sheet
 
 ## devtoolsWorkspace
 
+<Since v="0.16.0" />
+
 Lets Chrome DevTools connect your project as a workspace, so edits you make in
 the **Sources** panel save to disk. In dev, the server answers
 `/.well-known/appspecific/com.chrome.devtools.json` with the folder and a
@@ -494,6 +503,8 @@ requests from the network on to Vite.
 `LIT_PLUGIN_DEVTOOLS_WORKSPACE`
 
 ## Astro options
+
+<Since v="0.20.0" />
 
 `lit()` from `@oddsquad/vite-plugin-lit/astro` takes every option above, with
 `timeline` on by default, since the panel in the dev toolbar needs it

@@ -11,6 +11,7 @@ import {Image} from 'astro:assets';
 import StoreButtons from '../../../../components/StoreButtons.astro';
 import DemoVideo from '../../../../components/DemoVideo.astro';
 import screenshot from '../../../../../../extension/store/screenshot-1-components.png';
+import Since from '../../../../components/Since.astro';
 
 Inspect the Lit components on any page, including production builds and sites
 you don't serve, from a **Lit** tab in your browser's DevTools. Skip this page
@@ -65,6 +66,8 @@ version as a second **Lit Inspector**; turn one of them off.
 
 ### Firefox
 
+<Since v="0.14.0" />
+
 Install Lit Inspector from [Firefox
 Add-ons](https://addons.mozilla.org/firefox/addon/lit-inspector/?utm_source=docs&utm_medium=install-section&utm_campaign=guides-devtools-browser-extension)
 with **Add to Firefox**. You need Firefox 140 or later. Firefox keeps it up to
@@ -111,6 +114,8 @@ the bottom right of the **Lit** tab.
 
 ## Where a component is defined
 
+<Since v="0.16.0" />
+
 Without the Vite plugin, no build step tells the extension where a component
 lives. If the page ships sourcemaps, the extension works it out from them. The
 original file and line show in the details pane's **defined** row, in the
@@ -134,6 +139,8 @@ row out or name the first of them. Elements created any other way, such as
 with `document.createElement`, have no **rendered** row.
 
 ## Read component documentation
+
+<Since v="0.17.0" />
 
 The details pane shows what a
 [Custom Elements Manifest](https://github.com/webcomponents/custom-elements-manifest)
@@ -180,6 +187,8 @@ The list, its order and its switches are remembered per site.
 
 ## Open a component in your editor
 
+<Since v="0.21.0" />
+
 On a page your Vite dev server serves, the **defined** and **rendered** links
 open the file in your editor, with or without the Vite plugin. The extension
 asks the dev server to open it, so the editor is the one that server
@@ -205,6 +214,8 @@ note for that site.
 Without a dev server, the links open in the **Sources** panel instead.
 
 ## Open in the browser's own panels
+
+<Since v="0.16.0" />
 
 The Lit panel and DevTools' own panels hand off to each other:
 
@@ -236,6 +247,8 @@ stay plain text elsewhere, with a note at the bottom of the **Lit** tab saying
 why.
 
 ## Pause on an update or a change
+
+<Since v="0.19.0" />
 
 Because the Lit panel runs inside DevTools, it can stop the page in the
 debugger. The details pane has a **break on** line with **update** and

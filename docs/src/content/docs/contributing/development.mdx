@@ -80,6 +80,22 @@ pnpm run docs:shots   # regenerate the screenshots
 section, fails on a dead internal link or anchor, and asserts every redirect
 target exists. Run it before you open a docs PR.
 
+A section about a feature from a release after 0.3.0 carries a badge naming
+that release, on the line under its heading:
+
+```mdx
+import Since from '../../../components/Since.astro';
+
+## Pause on an update or a change
+
+<Since v="0.19.0" />
+```
+
+It reads "New in" for the latest release and "Added in" before that, and
+links to the release's changelog page. The version must have a section in
+`CHANGELOG.md`, or the build fails. Keep it out of the heading itself, where
+it would become part of the anchor.
+
 Pushes to `main` deploy the build to GitHub Pages, served at
 `vite-plugin-lit.oddsquad.dev` through Cloudflare. A Worker on that route,
 in `docs/worker/`, adds the Link headers Pages can't set and answers

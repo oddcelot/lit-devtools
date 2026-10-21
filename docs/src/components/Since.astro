@@ -1,0 +1,52 @@
+---
+/**
+ * Marks a section or an option with the release that introduced it, as a
+ * badge linking to that release's changelog page. Put it on the line under a
+ * heading, or after an option's name in a table:
+ *
+ *   ## Export a snapshot
+ *
+ *   <Since v="0.15.0" />
+ *
+ * The version has to have a section in CHANGELOG.md, so a typo fails the
+ * build instead of linking to a page that doesn't exist. The newest release
+ * reads as "New in", older ones as "Added in".
+ */
+import {Badge} from '@astrojs/starlight/components';
+import changelog from '../../../CHANGELOG.md?raw';
+import {releasedVersions, releasePath} from '../lib/latest-release.mjs';
+
+interface Props {
+  /** The release that introduced the feature, as `X.Y.Z`. */
+  v: string;
+}
+
+const {v} = Astro.props;
+const versions = releasedVersions(changelog);
+if (!versions.includes(v)) {
+  throw new Error(
+    `<Since v="${v}" /> in ${Astro.url.pathname}: CHANGELOG.md has no ${v} section`
+  );
+}
+const latest = v === versions[0];
+const href = import.meta.env.BASE_URL.replace(/\/$/, '') + releasePath(v);
+---
+
+<p class="since">
+  <a href={href} title={`See the ${v} release notes`}>
+    <Badge
+      text={`${latest ? 'New in' : 'Added in'} v${v}`}
+      variant={latest ? 'tip' : 'note'}
+      size="small"
+    />
+  </a>
+</p>
+
+<style>
+  .since a {
+    text-decoration: none;
+  }
+  .since a:hover :global(.sl-badge) {
+    text-decoration: underline;
+  }
+</style>

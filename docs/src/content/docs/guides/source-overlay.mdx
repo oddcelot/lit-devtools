@@ -9,6 +9,7 @@ import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
 import ThemedImage from '../../../components/ThemedImage.astro';
 import sourceOverlayArmedLight from '../../../assets/shots/source-overlay-armed.light.png';
 import sourceOverlayArmedDark from '../../../assets/shots/source-overlay-armed.dark.png';
+import Since from '../../../components/Since.astro';
 
 Point at any element on the page and jump to the file and line that renders
 it. Off by default; one option turns it on.
@@ -70,6 +71,8 @@ A plain click, without the modifier, hands the element to the DevTools
 Components tab instead, when the panel is set up.
 
 ## Where an element is rendered
+
+<Since v="0.13.0" />
 
 The overlay and the Components tab open the file that declares a component.
 The dev transform also stamps a `data-lit-source="file:line:column"`

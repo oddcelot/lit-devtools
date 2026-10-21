@@ -15,7 +15,17 @@ export const latestRelease = (changelog) => {
   return {
     version,
     date,
-    /** The release's page from starlight-changelogs, without the site base. */
-    path: `/reference/changelog/version/${version.replaceAll('.', '-')}/`,
+    path: releasePath(version),
   };
 };
+
+/** Every `X.Y.Z` with a section in CHANGELOG.md, newest first. */
+export const releasedVersions = (changelog) =>
+  [...changelog.matchAll(/^## (\d+\.\d+\.\d+) — /gm)].map(([, v]) => v);
+
+/**
+ * A release's page from starlight-changelogs, without the site base.
+ * @param {string} version
+ */
+export const releasePath = (version) =>
+  `/reference/changelog/version/${version.replaceAll('.', '-')}/`;

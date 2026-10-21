@@ -11,6 +11,9 @@ import server from '../../../../../examples/ssr/server.mjs?raw';
 import entryServer from '../../../../../examples/ssr/src/entry-server.ts?raw';
 import entryClient from '../../../../../examples/ssr/src/entry-client.ts?raw';
 import {stripHeader} from '../../../lib/fixture';
+import Since from '../../../components/Since.astro';
+
+<Since v="0.19.0" />
 
 With [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), a Vite dev server
 can render Lit components to HTML with declarative shadow roots, and the

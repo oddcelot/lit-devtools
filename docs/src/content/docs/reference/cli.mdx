@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+import Since from '../../../components/Since.astro';
 
 The `lit-devtools` command runs the panel on its own or bridges it to a coding
 agent. It needs two optional peers, and it talks to a dev server you already
@@ -53,6 +54,8 @@ against one checkout.
 could otherwise drive the panel without a code.
 
 ### Feeding it a live page
+
+<Since v="0.5.0" />
 
 Started alone, the panel is empty: the server has no page. At startup it prints
 a script tag; add it to a page, before the scripts that define your components:

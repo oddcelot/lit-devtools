@@ -14,6 +14,7 @@ import devtoolsUpdatesTableLight from '../../../../assets/shots/devtools-updates
 import devtoolsUpdatesTableDark from '../../../../assets/shots/devtools-updates-table.dark.png';
 import devtoolsUpdatesDetailLight from '../../../../assets/shots/devtools-updates-detail.light.png';
 import devtoolsUpdatesDetailDark from '../../../../assets/shots/devtools-updates-detail.dark.png';
+import Since from '../../../../components/Since.astro';
 
 Answer "which component re-renders too much" and "why did this one update" from
 one recording. Only the Lit Lifecycle layer needs to be on.
@@ -105,6 +106,8 @@ An error thrown from a timer or an event listener the component set up has no
 such link, so it shows only in the browser console.
 
 ## See the old and new values
+
+<Since v="0.10.0" />
 
 Turn on the **Changed values** layer in the Timeline tab before you record.
 Each update then lists `prev → next` for every property that changed, under its

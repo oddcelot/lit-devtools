@@ -13,6 +13,7 @@ import {stripHeader} from '../../../../lib/fixture';
 import ThemedImage from '../../../../components/ThemedImage.astro';
 import indicatorCyanLight from '../../../../assets/shots/indicator-cyan.light.png';
 import indicatorCyanDark from '../../../../assets/shots/indicator-cyan.dark.png';
+import Since from '../../../../components/Since.astro';
 
 Import a `.css` file with `?css-sheet` and every component that imports it
 shares one `CSSStyleSheet`. Edit the file and every adopter restyles in place,
@@ -129,6 +130,8 @@ has a `@property` rule. The
 runs this setup.
 
 ## Share UnoCSS utilities
+
+<Since v="0.18.0" />
 
 `unoSheet()` writes the UnoCSS utilities your source uses into a real `.css`
 file, so every component can adopt them as one shared sheet. UnoCSS's own
