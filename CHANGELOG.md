@@ -87,7 +87,7 @@ hydration as a state and stops labelling other libraries' elements. The
 DevTools now warn when the Lit Inspector extension and the plugin share a page,
 and both work there. Nothing needs action to upgrade.
 
-[![Watch the 0.20.0 release video, 44 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.20.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.20.0/vite-plugin-lit-0.20.0.mp4)
+[![Watch the 0.20.0 release video, 44 seconds](https://vite-plugin-lit.oddsquad.dev/demo/release-0.20.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.20.0/vite-plugin-lit-0.20.0.mp4)
 
 ### Added
 
@@ -153,7 +153,7 @@ gains a Lit tab in the Elements panel and reads Custom Elements Manifests from
 more places, and the DevTools flag double renders. Nothing needs action to
 upgrade.
 
-[![Watch the 0.19.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.19.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.19.0/vite-plugin-lit-0.19.0.mp4)
+[![Watch the 0.19.0 release video, 46 seconds](https://vite-plugin-lit.oddsquad.dev/demo/release-0.19.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.19.0/vite-plugin-lit-0.19.0.mp4)
 
 ### Added
 
@@ -274,7 +274,7 @@ emit carries no HMR code. The Components tab gains a Request update button, and
 the console gets `$lit` and Store as global variable. Nothing needs action to
 upgrade.
 
-[![Watch the 0.18.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.18.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.18.0/vite-plugin-lit-0.18.0.mp4)
+[![Watch the 0.18.0 release video, 46 seconds](https://vite-plugin-lit.oddsquad.dev/demo/release-0.18.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.18.0/vite-plugin-lit-0.18.0.mp4)
 
 ### Added
 
@@ -378,7 +378,7 @@ app's own writes, and pinned to survive a reload. Anatomy labels sit beside the
 component with leader lines, and a CSS example shows each way of styling a
 shadow root. Nothing needs action to upgrade.
 
-[![Watch the 0.17.0 release video, 46 seconds](https://oddcelot.github.io/vite-plugin-lit/demo/release-0.17.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.17.0/vite-plugin-lit-0.17.0.mp4)
+[![Watch the 0.17.0 release video, 46 seconds](https://vite-plugin-lit.oddsquad.dev/demo/release-0.17.0-poster.jpg)](https://github.com/oddcelot/vite-plugin-lit/releases/download/v0.17.0/vite-plugin-lit-0.17.0.mp4)
 
 [Watch it on YouTube](https://youtu.be/mByiAk5wsn4)
 
