@@ -11,6 +11,7 @@
     "./astro/polyfill": "./lib/astro/polyfill.js",
     "./css.js": "./lib/runtime/css.js",
     "./connect.js": "./lib/runtime/rpc-transport.js",
+    "./devframe": "./lib/devframe/embed.js",
     "./uno": "./lib/uno-sheet.js"
   },
   "publish": {

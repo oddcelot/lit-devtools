@@ -24,7 +24,6 @@
  * @see plans/devtools-features.md (CLI and stdio MCP)
  */
 
-import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import process from 'node:process';
 import {pathToFileURL} from 'node:url';
@@ -32,6 +31,7 @@ import {resolveAllowedOrigins} from './lib/devframe/allowed-origins.js';
 import {createStandaloneLitDevframe} from './lib/devframe/rpc-source.js';
 import {createNodeActions} from './lib/devframe/node-actions.js';
 import {PACKAGE_VERSION, PANEL_DIST_DIR} from './lib/devframe/paths.js';
+import {standaloneScriptResponse} from './lib/devframe/standalone-script.js';
 
 /**
  * Standalone `dev` default port. Deliberately *not* the playground's 5179
@@ -41,12 +41,6 @@ import {PACKAGE_VERSION, PANEL_DIST_DIR} from './lib/devframe/paths.js';
  * experience than a port nobody has to think about.
  */
 const DEFAULT_DEV_PORT = 5180;
-
-/** The script pages outside Vite load; built by `build:standalone`. */
-const STANDALONE_SCRIPT = new URL(
-  './dist/standalone/lit-devtools.js',
-  import.meta.url
-);
 
 /** True for a host only this machine can reach. */
 const isLoopbackHost = (host) =>
@@ -125,36 +119,8 @@ const main = async () => {
         process.exit(1);
       }
       let server;
-      const serveScript = async () => {
-        const headers = {
-          'content-type': 'text/javascript; charset=utf-8',
-          'cache-control': 'no-store',
-        };
-        let bundle;
-        try {
-          bundle = await readFile(STANDALONE_SCRIPT, 'utf8');
-        } catch {
-          return new Response(
-            '// lit-devtools: the standalone script is not built. ' +
-              'Run `pnpm run build` in the package and restart.\n',
-            {status: 500, headers}
-          );
-        }
-        // The descriptor `__connection.json` would answer with, inlined so the
-        // page never fetches it: that request is cross-origin from a page
-        // that is not on this server, and gets no CORS headers. Picked, not
-        // spread, so nothing else devframe puts in it rides along to any page
-        // that can load a script tag.
-        const {backend, websocket, sse} = server.connectionMeta();
-        const config = {
-          url: server.origin + '/',
-          connectionMeta: {backend, websocket, sse},
-        };
-        return new Response(
-          `globalThis.__LIT_DEVTOOLS_CONNECT__ = ${JSON.stringify(config)};\n${bundle}`,
-          {headers}
-        );
-      };
+      const serveScript = () =>
+        standaloneScriptResponse(server.origin + '/', server.connectionMeta());
       // devframe mounts a static catch-all that answers 404 for paths it
       // does not know, so a route added to its app in `onReady` would never be
       // reached. The route has to go on the app *before* devframe's, which

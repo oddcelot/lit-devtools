@@ -88,6 +88,42 @@ you can reach. Everything else in this guide works the same, except that there
 is no dock to bring forward: a pick on the page selects the element in the
 open panel, but the panel's tab stays where it is.
 
+## In a server that is not Vite
+
+<Since v="0.22.0" />
+
+A server without Vite can host the panel itself, on its own origin, without
+the `lit-devtools dev` process. `createLitDevtools()` returns one web-standard
+request handler for the panel, the page script and the RPC; mount it on a
+catch-all route and load the script first in each page's `<head>`:
+
+```ts
+import {createLitDevtools} from '@oddsquad/vite-plugin-lit/devframe';
+import {Elysia} from 'elysia';
+
+const devtools = createLitDevtools();
+
+new Elysia()
+  .all(`${devtools.base}*`, ({request}) => devtools.handler(request))
+  .get('/', () => page(`<script src="${devtools.script}"></script>`))
+  .listen({hostname: 'localhost', port: 3000});
+```
+
+The panel opens at `/__lit-devtools/`; pass `base` to move it. The handler
+takes a `Request` and returns a `Response`, so the same two lines fit Hono,
+`Bun.serve`, a SvelteKit `+server.ts` or a Next.js route handler.
+
+- **Auth.** On by default: the page and the panel ask for a one-time code
+  that the server prints. `createLitDevtools({auth: false})` skips it; only do
+  that on a server bound to loopback, since the RPC can open files in your
+  editor.
+- **Transport.** The RPC runs over SSE through the same handler, so the host
+  needs no WebSocket wiring.
+- **Limits.** As with `lit-devtools dev`: the tree, inspector and timeline
+  work, component locations come from the page's sourcemaps, and HMR patching
+  needs Vite. The [Elysia example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/elysia)
+  runs it this way.
+
 ## Open it and record ten seconds
 
 Start the dev server, open the page, and open the Vite DevTools overlay. Lit
