@@ -70,10 +70,7 @@
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
     "@phosphor-icons/core",
-    "sugar-high",
-    // The optional peer that examples/elysia's `devtools` script needs to run
-    // the lit-devtools command; never imported.
-    "cac"
+    "sugar-high"
   ],
   "ignoreExports": [
     // Stand-ins for src/panel modules, loaded with

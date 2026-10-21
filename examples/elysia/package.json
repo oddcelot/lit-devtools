@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/dev.ts",
-    "devtools": "lit-devtools dev --no-auth",
     "build": "NODE_ENV=production bun scripts/build.ts",
     "start": "./dist/guestbook",
     "test": "bun test",
@@ -22,7 +21,6 @@
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "*",
     "@types/bun": "^1.3.0",
-    "cac": "^7.0.0",
     "typescript": "^7.0.2"
   }
 }

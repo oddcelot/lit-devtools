@@ -77,18 +77,27 @@ components by transforming them in Vite, and nothing here runs Vite.
 
 ## Lit DevTools without Vite
 
-The standalone DevTools still work. In a second terminal:
+The dev server hosts the Lit DevTools itself: `pnpm dev` prints
 
-```sh
-pnpm devtools
-LIT_DEVTOOLS=http://localhost:5180/lit-devtools.js pnpm dev
+```text
+Guestbook at http://localhost:3000/
+Lit DevTools at http://localhost:3000/__lit-devtools/
 ```
 
-Open http://localhost:5180 for the panel. The page loads `lit-devtools.js`
-first in `<head>`, so the runtime sees every component: the Components tab
-shows `<sign-form>` as deferred until you point at it, the inspector shows each
-element's properties, and the sourcemap gives where each one is defined and
-rendered. Open-in-editor and HMR need Vite and are not available.
+Open the second address next to the first. [`src/dev.ts`](src/dev.ts) makes
+the panel with `createLitDevtools()` from `@oddsquad/vite-plugin-lit/devframe`,
+mounts its handler on `/__lit-devtools/*`, and puts its script first in
+`<head>`, so the runtime sees every component the client defines. Panel, script
+and RPC (over SSE) all answer on the app's own origin: no second process, no
+second port. The code gate is off because the dev server only listens on
+`localhost`.
+
+The Components tab shows `<sign-form>` as deferred until you point at it, the
+inspector shows each element's properties, and the sourcemap gives where each
+one is defined and rendered. HMR needs Vite and is not available.
+
+In this repo the package is linked from the root, so run `pnpm run build` there
+first: the example loads its built `lib/` and `dist/`.
 
 ## Production
 
@@ -100,8 +109,9 @@ pnpm start
 [`scripts/build.ts`](scripts/build.ts) bundles the client with hashed names,
 then compiles the server into one executable with those files embedded. Copy
 `dist/guestbook` anywhere and run it: it needs neither Bun nor `node_modules`.
-`PORT`, `DB` (the SQLite file, `guestbook.sqlite` by default) and
-`LIT_DEVTOOLS` work there too.
+`PORT` and `DB` (the SQLite file, `guestbook.sqlite` by default) work there
+too. The binary carries no DevTools; to inspect it, start `npx lit-devtools dev`
+and set `LIT_DEVTOOLS` to the script address it prints.
 
 ## Tests
 
