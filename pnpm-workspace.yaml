@@ -14,6 +14,14 @@ packages:
 # `workspace:*`, so StackBlitz's `npm install` can read it; this still links
 # the local copy.
 linkWorkspacePackages: true
+# Bun's types stay with examples/elysia, which depends on them. Hoisted, they
+# would also resolve for crossws (under devframe), whose `import 'bun'` then
+# loads Bun's globals into the root type check, where Bun's `import.meta.hot`
+# clashes with the casts in src/lib/runtime.
+hoistPattern:
+  - '*'
+  - '!@types/bun'
+  - '!bun-types'
 # playground/package.json repeats vite and vite-plus as plain versions (npm on
 # StackBlitz cannot read `catalog:`); bump them there too.
 # It also pins rolldown to the version vite-plus-core bundles (its
