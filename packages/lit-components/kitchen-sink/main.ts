@@ -7,9 +7,8 @@
  * selectors in tokens.css and the theme, which don't reach into shadow DOM.
  */
 import {html, render} from 'lit';
-import {SECTIONS, type Section} from './sections.js';
+import {GROUPS, SECTIONS, type Section} from './sections.js';
 
-const GROUPS = ['Actions', 'Feedback', 'Forms', 'Layout', 'DevTools'] as const;
 const DENSITY_KEY = 'kitchen-sink:density';
 
 let density =

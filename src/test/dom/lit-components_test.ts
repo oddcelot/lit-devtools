@@ -1,0 +1,164 @@
+import {afterEach, beforeAll, describe, expect, test} from 'vite-plus/test';
+import type {LitButton} from '../../../packages/lit-components/src/button.js';
+import type {LitIcon} from '../../../packages/lit-components/src/icon.js';
+import type {LitSelect} from '../../../packages/lit-components/src/select.js';
+import type {LitSwitch} from '../../../packages/lit-components/src/switch.js';
+
+/**
+ * The lit-* leaves in packages/lit-components extend Web Awesome's classes.
+ * These check what the package adds (the tags, the design system's
+ * defaults, lit-icon-button's icon) and that WA's behaviour survives the
+ * subclassing, including inside WA containers that find children by tag.
+ * What needs a real browser (form submission, native validity, a dropdown's
+ * popover) is in src/test/e2e/lit-components_test.ts.
+ */
+beforeAll(async () => {
+  await import('../../../packages/lit-components/src/all.js');
+  await import('@awesome.me/webawesome/dist/components/option/option.js');
+  await import('@awesome.me/webawesome/dist/components/button-group/button-group.js');
+});
+
+afterEach(() => {
+  document.body.replaceChildren();
+});
+
+const mount = async <T extends HTMLElement>(markup: string): Promise<T> => {
+  const host = document.createElement('div');
+  host.innerHTML = markup;
+  document.body.append(host);
+  const el = host.firstElementChild as T & {updateComplete?: Promise<unknown>};
+  await el.updateComplete;
+  return el;
+};
+
+describe('lit-* leaves', () => {
+  test.each([
+    ['lit-badge', 'wa-badge'],
+    ['lit-button', 'wa-button'],
+    ['lit-callout', 'wa-callout'],
+    ['lit-card', 'wa-card'],
+    ['lit-copy-button', 'wa-copy-button'],
+    ['lit-details', 'wa-details'],
+    ['lit-icon', 'wa-icon'],
+    ['lit-icon-button', 'wa-button'],
+    ['lit-input', 'wa-input'],
+    ['lit-select', 'wa-select'],
+    ['lit-switch', 'wa-switch'],
+  ] as const)('%s is registered and extends %s', async (tag, base) => {
+    const el = await mount(`<${tag}></${tag}>`);
+    expect(el).toBeInstanceOf(customElements.get(base));
+    expect(el.shadowRoot).not.toBeNull();
+  });
+
+  test.each([
+    ['lit-button', {variant: 'brand', size: 's'}],
+    ['lit-icon-button', {variant: 'neutral', appearance: 'plain', size: 's'}],
+    ['lit-badge', {variant: 'neutral', appearance: 'filled-outlined'}],
+    ['lit-input', {size: 's'}],
+    ['lit-select', {size: 's'}],
+    ['lit-switch', {size: 's'}],
+    ['lit-callout', {size: 's'}],
+  ] as const)(
+    '%s starts with the design system defaults',
+    async (tag, defaults) => {
+      const el = await mount<HTMLElement & Record<string, unknown>>(
+        `<${tag}></${tag}>`
+      );
+      for (const [name, value] of Object.entries(defaults)) {
+        expect(el[name], name).toBe(value);
+      }
+    }
+  );
+
+  test('an attribute in markup overrides a default', async () => {
+    const el = await mount<LitButton>(
+      '<lit-button variant="danger" size="l">Delete</lit-button>'
+    );
+    expect(el.variant).toBe('danger');
+    expect(el.size).toBe('l');
+  });
+
+  test('lit-button still fires click and honours disabled', async () => {
+    const el = await mount<LitButton>('<lit-button>Go</lit-button>');
+    let clicks = 0;
+    el.addEventListener('click', () => clicks++);
+    el.click();
+    expect(clicks).toBe(1);
+    el.disabled = true;
+    await el.updateComplete;
+    expect(
+      el.shadowRoot!.querySelector('button')?.hasAttribute('disabled')
+    ).toBe(true);
+  });
+});
+
+describe('lit-icon-button', () => {
+  const iconOf = (el: HTMLElement) =>
+    el.querySelector<LitIcon>(':scope > lit-icon');
+
+  test('draws its icon, named by label', async () => {
+    const el = await mount<HTMLElement>(
+      '<lit-icon-button icon="gear" label="Settings"></lit-icon-button>'
+    );
+    expect(iconOf(el)?.name).toBe('gear');
+    expect(iconOf(el)?.label).toBe('Settings');
+  });
+
+  test('keeps one icon in step with icon and label', async () => {
+    const el = await mount<
+      HTMLElement & {
+        icon: string;
+        label: string;
+        updateComplete: Promise<unknown>;
+      }
+    >('<lit-icon-button icon="gear" label="Settings"></lit-icon-button>');
+    el.icon = 'trash';
+    el.label = 'Clear';
+    await el.updateComplete;
+    expect(el.querySelectorAll('lit-icon')).toHaveLength(1);
+    expect(iconOf(el)?.name).toBe('trash');
+    expect(iconOf(el)?.label).toBe('Clear');
+    el.icon = '';
+    await el.updateComplete;
+    expect(iconOf(el)).toBeNull();
+  });
+});
+
+describe('form controls keep Web Awesome behaviour', () => {
+  test('lit-switch toggles and fires change', async () => {
+    const el = await mount<LitSwitch>('<lit-switch>Flash</lit-switch>');
+    let changes = 0;
+    el.addEventListener('change', () => changes++);
+    el.shadowRoot!.querySelector('input')!.click();
+    await el.updateComplete;
+    expect(el.checked).toBe(true);
+    expect(changes).toBe(1);
+  });
+
+  test('lit-select takes its value from wa-option children', async () => {
+    const el = await mount<LitSelect>(
+      `<lit-select>
+        <wa-option value="vscode">VS Code</wa-option>
+        <wa-option value="zed" selected>Zed</wa-option>
+      </lit-select>`
+    );
+    await new Promise((r) => setTimeout(r));
+    expect(el.value).toBe('zed');
+  });
+});
+
+describe('inside Web Awesome containers', () => {
+  test('lit-button sits in a wa-button-group', async () => {
+    const group = await mount<HTMLElement & {updateComplete: Promise<unknown>}>(
+      `<wa-button-group label="Alignment">
+        <lit-button>Left</lit-button>
+        <lit-button>Right</lit-button>
+      </wa-button-group>`
+    );
+    const slot = group.shadowRoot!.querySelector('slot')!;
+    expect(slot.assignedElements().map((e) => e.localName)).toEqual([
+      'lit-button',
+      'lit-button',
+    ]);
+  });
+});

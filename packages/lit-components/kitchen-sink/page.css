@@ -148,6 +148,37 @@ section > header p {
   font-family: var(--font-mono);
 }
 
+.stack {
+  display: grid;
+  gap: var(--space-5);
+  justify-items: start;
+}
+.stack > lit-callout,
+.stack > lit-details {
+  justify-self: stretch;
+}
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+}
+.icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--space-4);
+}
+.icon {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.icon lit-icon {
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
 /* DevTools density: what the panel's src/panel/wa-theme.css sets. On the
    halves themselves, because Web Awesome redeclares its tokens on every
    .wa-dark / .wa-light element. */
