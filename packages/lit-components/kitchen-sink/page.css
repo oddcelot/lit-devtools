@@ -132,6 +132,12 @@ section > header p {
   background: var(--lit-devtools-bg);
   color: var(--lit-devtools-text);
 }
+/* A whole tab's view: the height of a panel, as the views lay out in one. */
+.panel-specimen.tall {
+  display: flex;
+  flex-direction: column;
+  height: 30rem;
+}
 
 /* A row/column grid of variants: a label column, then one per value. */
 .matrix {
