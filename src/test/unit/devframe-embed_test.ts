@@ -39,6 +39,20 @@ describe('createLitDevtools', () => {
     expect(meta.websocket?.port).toBeGreaterThan(0);
   });
 
+  test('two side-cars never share a port, one per address family or not', async () => {
+    // `localhost` is 127.0.0.1 and ::1. A fixed port checked on one of them
+    // was free for a second server on the other, and a page dialling
+    // localhost could then reach the wrong app's devframe.
+    const portOf = async (devtools: LitDevtools) => {
+      const response = await get(devtools, '/__lit-devtools/__connection.json');
+      return ((await response.json()) as {websocket: {port: number}}).websocket
+        .port;
+    };
+    const v4 = await portOf(create({auth: false, host: '127.0.0.1'}));
+    const v6 = await portOf(create({auth: false, host: '::1'}));
+    expect(v4).not.toBe(v6);
+  });
+
   test('keeps everything on the host’s origin with transport: sse', async () => {
     const devtools = create({auth: false, transport: 'sse'});
     const response = await get(devtools, '/__lit-devtools/__connection.json');

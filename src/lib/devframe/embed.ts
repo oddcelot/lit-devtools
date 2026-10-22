@@ -21,6 +21,7 @@
  * component locations come from the page's sourcemaps.
  */
 
+import type {DevframeDefinition} from 'devframe';
 import {initDevframe} from 'devframe/initiate';
 import {resolveAllowedOrigins} from './allowed-origins.js';
 import {createNodeActions} from './node-actions.js';
@@ -86,6 +87,23 @@ const hasAgenticPeer = (): boolean => {
   }
 };
 
+/**
+ * The side-car takes its port from the definition's `cli` settings, which
+ * default to devframe's fixed 9999, checked on whichever address `localhost`
+ * resolves to first. A second server then got 9999 on the other family, and
+ * a page dialling `localhost` could reach the wrong app's devframe. A random
+ * port is advertised in `__connection.json` all the same, and two servers
+ * drawing the same one is far less likely.
+ */
+const withRandomSidecarPort = (
+  definition: DevframeDefinition
+): DevframeDefinition => ({
+  ...definition,
+  // Port 0 is how get-port-please asks for a random one; `random: true` is
+  // ignored once a port is given, and devframe always gives one.
+  cli: {...definition.cli, port: 0},
+});
+
 export interface LitDevtools {
   /** The normalized mount path, e.g. `/__lit-devtools/`. */
   base: string;
@@ -120,14 +138,16 @@ export const createLitDevtools = ({
 }: LitDevtoolsOptions = {}): LitDevtools => {
   const origins = resolveAllowedOrigins(allowedOrigins);
   const devframe = initDevframe(
-    createStandaloneLitDevframe({
-      host: 'standalone',
-      version: PACKAGE_VERSION,
-      clientAssets: PANEL_DIST_DIR,
-      nodeActions: createNodeActions(),
-      // Where components are defined, read off the page's own sourcemaps.
-      pageSourceMaps: true,
-    }),
+    withRandomSidecarPort(
+      createStandaloneLitDevframe({
+        host: 'standalone',
+        version: PACKAGE_VERSION,
+        clientAssets: PANEL_DIST_DIR,
+        nodeActions: createNodeActions(),
+        // Where components are defined, read off the page's own sourcemaps.
+        pageSourceMaps: true,
+      })
+    ),
     {
       base,
       auth,
