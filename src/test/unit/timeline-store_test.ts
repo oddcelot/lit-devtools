@@ -99,6 +99,21 @@ describe('timeline store', () => {
     expect(store.getTimelineError()).toBeNull();
   });
 
+  test('a recording fills the buffer and no reader starts', async () => {
+    const calls: string[] = [];
+    rpcState.call = async (name) => {
+      calls.push(name);
+      return history;
+    };
+    const store = await load();
+    store.useRecordedEvents([ev('r-1'), ev('r-2')]);
+    const listener = vi.fn();
+    store.subscribeTimeline(listener);
+    await flush();
+    expect(store.getTimelineEvents().map((e) => e.id)).toEqual(['r-1', 'r-2']);
+    expect(calls).toEqual([]);
+  });
+
   test('seeds from history and appends streamed batches', async () => {
     history = [ev('e-1'), ev('e-2')];
     const store = await load();

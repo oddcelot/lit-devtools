@@ -102,6 +102,17 @@ export const clearTimelineEvents = (): void => {
 };
 
 /**
+ * Fill the buffer with a recording and never start the reader: for a page
+ * that shows panel views over recorded data (see `figures/`). Must run
+ * before anything subscribes, which would start a reader on the host.
+ */
+export const useRecordedEvents = (recorded: TimelineEvent[]): void => {
+  started = true;
+  events = recorded;
+  notify();
+};
+
+/**
  * Subscribes to buffer changes and starts the reader on first use. The
  * returned function unsubscribes; it does not stop the reader.
  */

@@ -13,6 +13,7 @@ import {
   layerChipsCompact,
   rangeSummary,
   spanDetail,
+  updates,
 } from './panel-specimens.js';
 import {iconNames} from '../src/icons.js';
 import type {Variants} from './generated.js';
@@ -596,5 +597,13 @@ export const SECTIONS: Section[] = [
     summary:
       'src/panel/timeline-range-summary.ts · what happened in a range drawn on the tracks · summary, layers',
     render: rangeSummary,
+  },
+  {
+    tag: 'updates-view',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      'src/panel/updates-view.ts · the Updates tab: what updated, how often and why, from the recording · click a component',
+    render: updates,
   },
 ];
