@@ -5,8 +5,6 @@ the server with [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), streams
 to the browser, and keeps live over a WebSocket. Runs on Bun, which also
 bundles the client. No Vite.
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/oddcelot/vite-plugin-lit?devcontainer_path=.devcontainer/elysia/devcontainer.json)
-
 ```sh
 pnpm install   # or bun install, outside this repo
 pnpm dev       # http://localhost:3000
@@ -120,34 +118,21 @@ page.
 In this repo the package is linked from the root, so run `pnpm run build` there
 first: the example loads its built `lib/` and `dist/`.
 
-## In a codespace
+## Behind a tunnel or cloud preview
 
-StackBlitz runs Node only, so the example opens in GitHub Codespaces instead,
-on your own account's codespace hours. Its configuration is in the repository
-root, at [`.devcontainer/elysia/`](../../.devcontainer/elysia/): Node, pnpm and
-Bun, then the plugin built from the same checkout and linked in, so the
-codespace runs the code of the branch it was made from. To try a branch other
-than `main`:
+A tunnel or cloud preview (ngrok, a cloud IDE) puts the page on an origin of
+its own, often with one hostname per port. Start the dev server with that
+origin in `PREVIEW_ORIGIN`, a `*` standing for any subdomain:
 
 ```sh
-gh codespace create -r oddcelot/vite-plugin-lit -b <branch> \
-  --devcontainer-path .devcontainer/elysia/devcontainer.json
+PREVIEW_ORIGIN='https://*.ngrok-free.app' pnpm dev
 ```
 
-The dev server starts in a terminal of its own, with
-`PREVIEW_ORIGIN='https://*.app.github.dev'`: Codespaces gives each forwarded
-port its own `https://<codespace>-<port>.app.github.dev` origin. With it set,
-[`src/dev.ts`](src/dev.ts) listens on every interface, and the DevTools keep
-their RPC on the page's origin (`transport: 'sse'`), admit that origin and keep
-the code gate on. The page asks for the code the terminal printed, once per
-browser; in a frame, such as the editor's built-in browser, the Lit button
-carries a dot instead, and the drawer holds the field for it.
-
-[`.devcontainer/`](.devcontainer/) and
-[`.codesandbox/tasks.json`](.codesandbox/tasks.json) in this folder do the same
-for CodeSandbox, for a workspace with VM credits, with
-`PREVIEW_ORIGIN='https://*.csb.app'`. There the plugin comes from npm, so it
-needs a release with `createLitDevtools()` (0.22.0 or later).
+[`src/dev.ts`](src/dev.ts) then listens on every interface, and the DevTools
+keep their RPC on the page's origin (`transport: 'sse'`), admit that origin and
+keep the code gate on: the page asks for the code the dev server printed, once
+per browser. In a frame, such as an IDE's built-in preview, the Lit button
+carries a dot instead, and the drawer holds the field for the code.
 
 ## Production
 

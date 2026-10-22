@@ -79,11 +79,11 @@ if (entries.list(1).length === 0) {
   entries.add({name: 'Elysia', message: 'Served from Bun, no Vite in sight.'});
 }
 
-// Behind a cloud preview (CodeSandbox: `https://*.csb.app`) the page is on an
-// origin of its own, one hostname per port. The server then listens on every
-// interface for the preview's proxy to reach, and the DevTools keep their
-// RPC on the page's origin (SSE), admit that origin, and ask for the code
-// they print: the preview is reachable by more than this machine.
+// Behind a tunnel or cloud preview (ngrok: `https://*.ngrok-free.app`) the
+// page is on an origin of its own, often one hostname per port. The server
+// then listens on every interface for the tunnel to reach, and the DevTools
+// keep their RPC on the page's origin (SSE), admit that origin, and ask for
+// the code they print: the tunnel is reachable by more than this machine.
 const preview = process.env.PREVIEW_ORIGIN;
 
 // The Lit DevTools panel, served by this app at /__lit-devtools/. Locally no

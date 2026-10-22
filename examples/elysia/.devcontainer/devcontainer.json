@@ -1,7 +1,0 @@
-{
-  // The environment CodeSandbox (or GitHub Codespaces) builds for this
-  // example: Node, which CodeSandbox's tooling expects, plus Bun, which runs
-  // the example.
-  "name": "Lit on Elysia",
-  "build": {"dockerfile": "Dockerfile"}
-}
