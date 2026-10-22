@@ -1,29 +1,30 @@
 /**
- * `<docs-timeline-figure>`: the panel's Timeline tracks, live, over a
- * recording committed next to this file. Zoom, pan, draw a range and select
+ * `<timeline-figure>`: the panel's Timeline tracks, live, over a recording
+ * committed next to this file, for pages outside the panel: the docs'
+ * Timeline guide and the kitchen sink. Zoom, pan, draw a range and select
  * marks as in the panel; the detail pane opens underneath.
  *
  * The panel's views render here as they do in the panel: the same elements,
  * fed what `timeline-view` would feed them. Only the connection is missing,
  * so the page says there is no host before anything asks for one, and the
  * panel's tokens and Web Awesome density go on this element rather than on
- * the docs' `:root`.
+ * the page's `:root`.
  *
  * timeline-recording.json is a session from the playground (counter, list
  * and route clicks), read off `timeline-view` after recording.
  */
 import {LitElement, css, html} from 'lit';
-import {useNoHost} from '../../../src/panel/client.js';
-import {injectTokens} from '../../../src/lib/tokens.js';
-import {TimelineModel} from '../../../src/lib/timeline/model.js';
-import type {LayerState} from '../../../src/panel/timeline-layers.js';
-import type {TimelineEvent} from '../../../src/types/timeline.js';
-import '../../../src/panel/wa-icons.js';
-import '../../../src/panel/timeline-tracks.js';
+import {useNoHost} from '../client.js';
+import {injectTokens} from '../../lib/tokens.js';
+import {TimelineModel} from '../../lib/timeline/model.js';
+import type {LayerState} from '../timeline-layers.js';
+import type {TimelineEvent} from '../../types/timeline.js';
+import '../wa-icons.js';
+import '../timeline-tracks.js';
 import recording from './timeline-recording.json';
 
 useNoHost();
-injectTokens({scope: 'docs-timeline-figure', webAwesome: true});
+injectTokens({scope: 'timeline-figure', webAwesome: true});
 
 const events = recording.events as TimelineEvent[];
 const layers = recording.layers as LayerState[];
@@ -32,7 +33,7 @@ const visibleTracks = layers
   .filter((l) => l.enabled && l.id !== 'lit-changed-values')
   .map((l) => l.id);
 
-export class DocsTimelineFigure extends LitElement {
+export class TimelineFigure extends LitElement {
   static override styles = css`
     :host {
       display: flex;
@@ -88,10 +89,10 @@ export class DocsTimelineFigure extends LitElement {
   }
 }
 
-customElements.define('docs-timeline-figure', DocsTimelineFigure);
+customElements.define('timeline-figure', TimelineFigure);
 
 declare global {
   interface HTMLElementTagNameMap {
-    'docs-timeline-figure': DocsTimelineFigure;
+    'timeline-figure': TimelineFigure;
   }
 }
