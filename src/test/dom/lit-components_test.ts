@@ -44,6 +44,7 @@ describe('lit-* leaves', () => {
     ['lit-icon-button', 'wa-button'],
     ['lit-input', 'wa-input'],
     ['lit-select', 'wa-select'],
+    ['lit-split-panel', 'wa-split-panel'],
     ['lit-switch', 'wa-switch'],
   ] as const)('%s is registered and extends %s', async (tag, base) => {
     const el = await mount(`<${tag}></${tag}>`);
