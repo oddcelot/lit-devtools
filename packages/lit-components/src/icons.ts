@@ -25,6 +25,7 @@ import caretRight from '@phosphor-icons/core/assets/regular/caret-right.svg?raw'
 import caretUp from '@phosphor-icons/core/assets/regular/caret-up.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
 import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
+import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
 import gear from '@phosphor-icons/core/assets/regular/gear.svg?raw';
 import info from '@phosphor-icons/core/assets/regular/info.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
@@ -33,6 +34,7 @@ import play from '@phosphor-icons/core/assets/regular/play.svg?raw';
 import plus from '@phosphor-icons/core/assets/regular/plus.svg?raw';
 import trash from '@phosphor-icons/core/assets/regular/trash.svg?raw';
 import warning from '@phosphor-icons/core/assets/regular/warning.svg?raw';
+import packageIcon from '@phosphor-icons/core/assets/regular/package.svg?raw';
 import x from '@phosphor-icons/core/assets/regular/x.svg?raw';
 
 const icons = new Map<string, string>(
@@ -45,6 +47,7 @@ const icons = new Map<string, string>(
     'caret-up': caretUp,
     check,
     copy,
+    cube,
     gear,
     info,
     lightning,
@@ -53,6 +56,7 @@ const icons = new Map<string, string>(
     plus,
     trash,
     warning,
+    package: packageIcon,
     x,
   })
 );

@@ -8,7 +8,8 @@ import type {LitSwitch} from '../../../packages/lit-components/src/switch.js';
  * The lit-* leaves in packages/lit-components extend Web Awesome's classes.
  * These check what the package adds (the tags, the design system's
  * defaults, lit-icon-button's icon) and that WA's behaviour survives the
- * subclassing, including inside WA containers that find children by tag.
+ * subclassing, including inside WA containers that find children by tag,
+ * then the compounds' own contracts: their events and what they render.
  * What needs a real browser (form submission, native validity, a dropdown's
  * popover) is in src/test/e2e/lit-components_test.ts.
  */
@@ -160,5 +161,114 @@ describe('inside Web Awesome containers', () => {
       'lit-button',
       'lit-button',
     ]);
+  });
+});
+
+describe('lit-* compounds', () => {
+  type Updating = HTMLElement & {updateComplete: Promise<unknown>};
+
+  test('lit-segmented-tabs renders its items and reports a pick once', async () => {
+    const el = await mount<Updating & {items: unknown[]; value: string}>(
+      '<lit-segmented-tabs value="a"></lit-segmented-tabs>'
+    );
+    el.items = [
+      {id: 'a', label: 'Components'},
+      {id: 'b', label: 'Updates', badge: 3, warnings: 2},
+    ];
+    await el.updateComplete;
+    const root = el.shadowRoot!;
+    expect(root.querySelectorAll('wa-tab')).toHaveLength(2);
+    expect(
+      [...root.querySelectorAll('lit-badge')].map((b) => b.textContent?.trim())
+    ).toEqual(['3', '2']);
+
+    const picks: string[] = [];
+    el.addEventListener('change', (e) =>
+      picks.push((e as CustomEvent<{value: string}>).detail.value)
+    );
+    const show = (name: string) =>
+      root
+        .querySelector('wa-tab-group')!
+        .dispatchEvent(new CustomEvent('wa-tab-show', {detail: {name}}));
+    show('a'); // the current value: the group echoing it, not a pick
+    show('b');
+    expect(picks).toEqual(['b']);
+    expect(el.value).toBe('b');
+  });
+
+  test('lit-state-row toggles its children and says so', async () => {
+    const el = await mount<Updating & {expanded: boolean}>(
+      `<lit-state-row name="config" value="{…}" expandable>
+        <lit-state-row name="open" value="true" type="boolean" depth="1"></lit-state-row>
+      </lit-state-row>`
+    );
+    const toggles: boolean[] = [];
+    el.addEventListener('toggle', (e) => {
+      if (e.target === el) {
+        toggles.push(
+          (e as unknown as CustomEvent<{expanded: boolean}>).detail.expanded
+        );
+      }
+    });
+    el.shadowRoot!.querySelector('button')!.click();
+    await el.updateComplete;
+    expect(el.expanded).toBe(true);
+    expect(el.hasAttribute('expanded')).toBe(true);
+    expect(toggles).toEqual([true]);
+  });
+
+  test('lit-state-row has no toggle unless expandable', async () => {
+    const el = await mount<Updating>(
+      '<lit-state-row name="count" value="0" type="number"></lit-state-row>'
+    );
+    expect(el.shadowRoot!.querySelector('button')).toBeNull();
+  });
+
+  test('lit-tree-node selects on click and toggles on its caret only', async () => {
+    const el = await mount<Updating & {selected: boolean; expanded: boolean}>(
+      '<lit-tree-node tag="my-list" expandable></lit-tree-node>'
+    );
+    const events: string[] = [];
+    el.addEventListener('select', () => events.push('select'));
+    el.addEventListener('toggle', () => events.push('toggle'));
+    el.shadowRoot!.querySelector('button')!.click();
+    await el.updateComplete;
+    expect(events).toEqual(['toggle']);
+    expect(el.expanded).toBe(true);
+    expect(el.selected).toBe(false);
+    el.shadowRoot!.querySelector<HTMLElement>('.row')!.click();
+    await el.updateComplete;
+    expect(events).toEqual(['toggle', 'select']);
+    expect(el.selected).toBe(true);
+  });
+
+  test('lit-stat-card shows its value and label', async () => {
+    const el = await mount<Updating>(
+      '<lit-stat-card icon="cube" value="24" label="custom elements"></lit-stat-card>'
+    );
+    const root = el.shadowRoot!;
+    expect(root.querySelector('[part="value"]')?.textContent).toBe('24');
+    expect(root.querySelector('[part="label"]')?.textContent).toBe(
+      'custom elements'
+    );
+    expect(root.querySelector('lit-icon')?.getAttribute('name')).toBe('cube');
+  });
+
+  test('lit-copy-prompt copies its text and announces it', async () => {
+    const copied: string[] = [];
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {writeText: async (t: string) => void copied.push(t)},
+    });
+    const el = await mount<Updating>(
+      '<lit-copy-prompt label="Set it up" text="Install the plugin."></lit-copy-prompt>'
+    );
+    el.shadowRoot!.querySelector<HTMLElement>('lit-button')!.click();
+    await new Promise((r) => setTimeout(r));
+    await el.updateComplete;
+    expect(copied).toEqual(['Install the plugin.']);
+    expect(el.shadowRoot!.querySelector('[role="status"]')?.textContent).toBe(
+      'Prompt copied'
+    );
   });
 });

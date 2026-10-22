@@ -93,6 +93,11 @@ test('the kitchen sink renders every element with no errors', async () => {
       'lit-card',
       'lit-details',
       'lit-icon',
+      'lit-copy-prompt',
+      'lit-segmented-tabs',
+      'lit-stat-card',
+      'lit-state-row',
+      'lit-tree-node',
     ])
   );
   // Every lit-* on the page upgraded (a missing define leaves it inert).

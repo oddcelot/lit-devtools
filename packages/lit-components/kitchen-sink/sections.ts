@@ -360,6 +360,132 @@ export const SECTIONS: Section[] = [
       ),
   },
   {
+    tag: 'lit-copy-prompt',
+    group: 'Actions',
+    summary: 'compound · label, text, summary · lit-button + lit-details',
+    render: () =>
+      html`<lit-copy-prompt
+        label="Set it up with a coding agent"
+        text=${'Set up @oddsquad/vite-plugin-lit in this project.\n\n1. Install it as a dev dependency.\n2. Add litPlugin() to the Vite config.'}
+      ></lit-copy-prompt>`,
+  },
+  {
+    tag: 'lit-segmented-tabs',
+    group: 'Layout',
+    summary:
+      'compound over wa-tab-group · items [{id, label, icon, badge, warnings}], value, size · change',
+    render: () => html`
+      ${row(
+        'md',
+        html`<div class="tabs-bar">
+          <lit-segmented-tabs
+            value="components"
+            .items=${[
+              {id: 'components', label: 'Components', icon: 'cube'},
+              {id: 'updates', label: 'Updates', badge: 3},
+              {id: 'timeline', label: 'Timeline', warnings: 2},
+              {id: 'settings', label: 'Settings', icon: 'gear'},
+            ]}
+          ></lit-segmented-tabs>
+        </div>`
+      )}
+      ${row(
+        'sm',
+        html`<div class="tabs-bar">
+          <lit-segmented-tabs
+            size="sm"
+            value="props"
+            .items=${[
+              {id: 'props', label: 'Properties'},
+              {id: 'attrs', label: 'Attributes'},
+              {id: 'events', label: 'Events'},
+            ]}
+          ></lit-segmented-tabs>
+        </div>`
+      )}
+    `,
+  },
+  {
+    tag: 'lit-stat-card',
+    group: 'DevTools',
+    summary: 'compound · icon, value, label, accent',
+    render: () => html`<div class="cards">
+      <lit-stat-card
+        icon="package"
+        value="v3.3.3"
+        label="Lit"
+        accent
+      ></lit-stat-card>
+      <lit-stat-card
+        icon="cube"
+        value="24"
+        label="custom elements"
+      ></lit-stat-card>
+    </div>`,
+  },
+  {
+    tag: 'lit-state-row',
+    group: 'DevTools',
+    summary:
+      'compound · name, value, type, depth, expandable, expanded, badge · toggle',
+    render: () => html`<div>
+      <lit-state-row
+        name="label"
+        value='"initial"'
+        type="string"
+      ></lit-state-row>
+      <lit-state-row name="factor" value="2" type="number"></lit-state-row>
+      <lit-state-row name="open" value="false" type="boolean"></lit-state-row>
+      <lit-state-row
+        name="host"
+        value="<hmr-counter>"
+        type="ref"
+      ></lit-state-row>
+      <lit-state-row
+        name="render"
+        value="ƒ render()"
+        type="function"
+      ></lit-state-row>
+      <lit-state-row name="parent" value="null" type="null"></lit-state-row>
+      <lit-state-row
+        name="config"
+        value="{colorScheme: 'auto'}"
+        expandable
+        expanded
+        badge="Reactive"
+      >
+        <lit-state-row
+          name="colorScheme"
+          value='"auto"'
+          type="string"
+          depth="1"
+        ></lit-state-row>
+        <lit-state-row
+          name="dense"
+          value="true"
+          type="boolean"
+          depth="1"
+        ></lit-state-row>
+      </lit-state-row>
+    </div>`,
+  },
+  {
+    tag: 'lit-tree-node',
+    group: 'DevTools',
+    summary:
+      'compound · tag, depth, expandable, expanded, selected, badge · select, toggle',
+    render: () => html`<div role="tree">
+      <lit-tree-node tag="my-app" expandable expanded>
+        <lit-tree-node tag="my-header" depth="1"></lit-tree-node>
+        <lit-tree-node tag="my-list" depth="1" expandable expanded badge="3">
+          <lit-tree-node tag="my-item" depth="2" selected></lit-tree-node>
+          <lit-tree-node tag="my-item" depth="2"></lit-tree-node>
+        </lit-tree-node>
+        <lit-tree-node tag="my-footer" depth="1" expandable></lit-tree-node>
+      </lit-tree-node>
+    </div>`,
+  },
+  {
     tag: 'lit-icon',
     group: 'Icons',
     summary:

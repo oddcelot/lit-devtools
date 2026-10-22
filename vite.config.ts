@@ -70,7 +70,7 @@ export default defineConfig({
       {
         // Lit invokes template event listeners with `this` set to the host,
         // so `@click=${this.foo}` is the idiomatic binding, not a bug.
-        files: ['playground/**', 'src/panel/**'],
+        files: ['playground/**', 'src/panel/**', 'packages/lit-components/**'],
         rules: {'typescript/unbound-method': 'off'},
       },
       {
