@@ -44,11 +44,13 @@
     --wa-font-family-heading: var(--font-sans);
     --wa-font-family-code: var(--font-mono);
 
-    /* Controls and cards at 8px, as the design system specifies. */
+    /* The design system's radii, square throughout; circles (a switch
+       thumb, a status dot) follow pills. */
     --wa-border-radius-s: var(--radius-sm);
     --wa-border-radius-m: var(--radius-md);
     --wa-border-radius-l: var(--radius-lg);
     --wa-border-radius-pill: var(--radius-pill);
+    --wa-border-radius-circle: var(--radius-pill);
 
     --wa-transition-easing: var(--ease-standard);
     --wa-transition-fast: var(--dur-instant);
