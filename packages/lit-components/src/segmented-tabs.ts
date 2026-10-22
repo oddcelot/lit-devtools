@@ -75,6 +75,13 @@ export class LitSegmentedTabs extends LitElement {
     lit-icon {
       font-size: 1.15em;
     }
+    /* WA spaces a slotted wa-icon from the label; the same for lit-icon. */
+    wa-tab > lit-icon:first-child {
+      margin-inline-end: 0.5em;
+    }
+    wa-tab > lit-icon:last-child {
+      margin-inline-start: 0.5em;
+    }
   `;
 
   @property({type: Array}) items: SegmentedTabItem[] = [];

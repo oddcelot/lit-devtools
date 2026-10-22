@@ -1,12 +1,12 @@
-import WaButton from '@awesome.me/webawesome/dist/components/button/button.js';
+import {LitButton} from './button.js';
 import {property} from 'lit/decorators.js';
 import type {PropertyValues} from 'lit';
 import type {LitIcon} from './icon.js';
 import './icon.js';
 
 /**
- * An icon-only button: a Web Awesome button, neutral and plain at the design
- * system's small size, that draws `icon` and names itself with `label`.
+ * An icon-only button: a lit-button (so a Web Awesome button), neutral and
+ * plain at the design system's small size, that draws `icon` and names itself with `label`.
  * Use it in toolbars and panel headers. Always pass `label`: it is the
  * button's accessible name.
  *
@@ -14,7 +14,7 @@ import './icon.js';
  * this adds; it keeps a `lit-icon` child in step with them. Everything else
  * is `wa-button`'s.
  */
-export class LitIconButton extends WaButton {
+export class LitIconButton extends LitButton {
   /** The icon's name, from the set icons.ts registers. */
   @property() icon = '';
   /** The accessible name, which is also what a tooltip should say. */

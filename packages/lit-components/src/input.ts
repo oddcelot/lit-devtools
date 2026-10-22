@@ -1,4 +1,6 @@
 import WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
+import {css} from 'lit';
+import {extendCss} from './styles.js';
 import './icons.js';
 
 /**
@@ -9,6 +11,17 @@ import './icons.js';
  * Importing this module also registers the `wa-*` tag the class defines.
  */
 export class LitInput extends WaInput {
+  // WA mutes a `wa-icon` in the start and end slots; the same for `lit-icon`.
+  static override css = extendCss(
+    WaInput.css,
+    css`
+      .start::slotted(lit-icon),
+      .end::slotted(lit-icon) {
+        color: var(--wa-color-neutral-on-quiet);
+      }
+    `
+  );
+
   constructor() {
     super();
     this.size = 's';
