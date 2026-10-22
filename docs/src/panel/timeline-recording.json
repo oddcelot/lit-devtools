@@ -1,0 +1,2117 @@
+{
+  "events": [
+    {
+      "layerId": "lit-lifecycle",
+      "time": 153.60000002384186,
+      "groupId": "14:1",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-0"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154,
+      "groupId": "14:1",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "willUpdate", "changed": []},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-1"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154,
+      "groupId": "14:1",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-2"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154,
+      "groupId": "14:1",
+      "title": "update:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "update", "changed": []},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-3"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 154.10000002384186,
+      "groupId": 50,
+      "title": "render:start",
+      "subtitle": "hmr-clock",
+      "data": {"kind": "begin render", "id": 50},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-4"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 154.30000007152557,
+      "groupId": 50,
+      "title": "render:end",
+      "subtitle": "hmr-clock",
+      "data": {"kind": "end render", "id": 50},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-5"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.30000007152557,
+      "groupId": "14:1",
+      "title": "update:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-6"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.40000009536743,
+      "groupId": "14:1",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-7"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.5,
+      "groupId": "15:1",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-8"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.5,
+      "groupId": "15:1",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "willUpdate", "changed": []},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-9"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.5,
+      "groupId": "15:1",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-10"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 154.5,
+      "groupId": "15:1",
+      "title": "update:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "update", "changed": []},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-11"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 154.90000009536743,
+      "groupId": 51,
+      "title": "render:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"kind": "begin render", "id": 51},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-12"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 155.80000007152557,
+      "groupId": 51,
+      "title": "render:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"kind": "end render", "id": 51},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-13"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 155.80000007152557,
+      "groupId": "15:1",
+      "title": "update:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-14"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 155.90000009536743,
+      "groupId": "15:1",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-15"
+    },
+    {
+      "layerId": "app-router",
+      "title": "navigate /inbox",
+      "subtitle": "from /",
+      "data": {"from": "/", "to": "/inbox"},
+      "time": 581.3000000715256,
+      "id": "mvk1zotj-16"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.3000000715256,
+      "groupId": "3:1",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-17"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.4000000953674,
+      "groupId": "3:1",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-18"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.4000000953674,
+      "groupId": "3:1",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-19"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.4000000953674,
+      "groupId": "3:1",
+      "title": "update:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-20"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 581.4000000953674,
+      "groupId": 52,
+      "title": "render:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "begin render", "id": 52},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-21"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 581.6000000238419,
+      "groupId": 52,
+      "title": "render:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "end render", "id": 52},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-22"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.7000000476837,
+      "groupId": "3:1",
+      "title": "update:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-23"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.7000000476837,
+      "groupId": "3:1",
+      "title": "updated:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-24"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.7000000476837,
+      "groupId": "3:1",
+      "title": "updated:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-25"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 581.7000000476837,
+      "groupId": "3:1",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-26"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.8000000715256,
+      "groupId": "0:1",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-27"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.8000000715256,
+      "groupId": "0:1",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-28"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.8000000715256,
+      "groupId": "0:1",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-29"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.8000000715256,
+      "groupId": "0:1",
+      "title": "update:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-30"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 616.8000000715256,
+      "groupId": 53,
+      "title": "render:start",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "begin render", "id": 53},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-31"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 616.8000000715256,
+      "groupId": 53,
+      "title": "render:end",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "end render", "id": 53},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-32"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.8000000715256,
+      "groupId": "0:1",
+      "title": "update:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-33"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 616.9000000953674,
+      "groupId": "0:1",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-34"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.6000000238419,
+      "groupId": "10:1",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-35"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.6000000238419,
+      "groupId": "10:1",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-36"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.6000000238419,
+      "groupId": "10:1",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-37"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.6000000238419,
+      "groupId": "10:1",
+      "title": "update:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-38"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 696.6000000238419,
+      "groupId": 54,
+      "title": "render:start",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "begin render", "id": 54},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-39"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 696.7000000476837,
+      "groupId": 54,
+      "title": "render:end",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "end render", "id": 54},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-40"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.7000000476837,
+      "groupId": "10:1",
+      "title": "update:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-41"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 696.8000000715256,
+      "groupId": "10:1",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-42"
+    },
+    {
+      "layerId": "app-router",
+      "title": "navigate /settings",
+      "subtitle": "from /inbox",
+      "data": {"from": "/inbox", "to": "/settings"},
+      "time": 763.6000000238419,
+      "id": "mvk1zotj-43"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-44"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-45"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-46"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "update:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-47"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 763.7000000476837,
+      "groupId": 55,
+      "title": "render:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "begin render", "id": 55},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-48"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 763.7000000476837,
+      "groupId": 55,
+      "title": "render:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "end render", "id": 55},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-49"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "update:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-50"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "updated:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-51"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "updated:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-52"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 763.7000000476837,
+      "groupId": "3:2",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-53"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.7000000476837,
+      "groupId": "0:2",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-54"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.7000000476837,
+      "groupId": "0:2",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-55"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.7000000476837,
+      "groupId": "0:2",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-56"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.7000000476837,
+      "groupId": "0:2",
+      "title": "update:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-57"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 796.7000000476837,
+      "groupId": 56,
+      "title": "render:start",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "begin render", "id": 56},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-58"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 796.7000000476837,
+      "groupId": 56,
+      "title": "render:end",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "end render", "id": 56},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-59"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.7000000476837,
+      "groupId": "0:2",
+      "title": "update:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-60"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 796.8000000715256,
+      "groupId": "0:2",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-61"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.5,
+      "groupId": "10:2",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-62"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.5,
+      "groupId": "10:2",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-63"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.5,
+      "groupId": "10:2",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-64"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.5,
+      "groupId": "10:2",
+      "title": "update:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-65"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 846.5,
+      "groupId": 57,
+      "title": "render:start",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "begin render", "id": 57},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-66"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 846.5,
+      "groupId": 57,
+      "title": "render:end",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "end render", "id": 57},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-67"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.5,
+      "groupId": "10:2",
+      "title": "update:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-68"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 846.6000000238419,
+      "groupId": "10:2",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-69"
+    },
+    {
+      "layerId": "app-router",
+      "title": "navigate /",
+      "subtitle": "from /settings",
+      "data": {"from": "/settings", "to": "/"},
+      "time": 895.9000000953674,
+      "id": "mvk1zotj-70"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-71"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-72"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-73"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "update:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-74"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 895.9000000953674,
+      "groupId": 58,
+      "title": "render:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "begin render", "id": 58},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-75"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 895.9000000953674,
+      "groupId": 58,
+      "title": "render:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "end render", "id": 58},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-76"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "update:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-77"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "updated:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-78"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "updated:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-79"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 895.9000000953674,
+      "groupId": "3:3",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-80"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.8000000715256,
+      "groupId": "0:3",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-81"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.8000000715256,
+      "groupId": "0:3",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-82"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.8000000715256,
+      "groupId": "0:3",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-83"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.8000000715256,
+      "groupId": "0:3",
+      "title": "update:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-84"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 929.8000000715256,
+      "groupId": 59,
+      "title": "render:start",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "begin render", "id": 59},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-85"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 929.9000000953674,
+      "groupId": 59,
+      "title": "render:end",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "end render", "id": 59},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-86"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.9000000953674,
+      "groupId": "0:3",
+      "title": "update:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-87"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 929.9000000953674,
+      "groupId": "0:3",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-88"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.5,
+      "groupId": "10:3",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-89"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.5,
+      "groupId": "10:3",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-90"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.5,
+      "groupId": "10:3",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-91"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.5,
+      "groupId": "10:3",
+      "title": "update:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-92"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 979.6000000238419,
+      "groupId": 60,
+      "title": "render:start",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "begin render", "id": 60},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-93"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 979.6000000238419,
+      "groupId": 60,
+      "title": "render:end",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "end render", "id": 60},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-94"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.6000000238419,
+      "groupId": "10:3",
+      "title": "update:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-95"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 979.6000000238419,
+      "groupId": "10:3",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-96"
+    },
+    {
+      "layerId": "app-router",
+      "title": "navigate /inbox",
+      "subtitle": "from /",
+      "data": {"from": "/", "to": "/inbox"},
+      "time": 1029.4000000953674,
+      "id": "mvk1zotj-97"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.5,
+      "groupId": "3:4",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-98"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.5,
+      "groupId": "3:4",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-99"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.5,
+      "groupId": "3:4",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-100"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.5,
+      "groupId": "3:4",
+      "title": "update:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-101"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1029.5,
+      "groupId": 61,
+      "title": "render:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "begin render", "id": 61},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-102"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1029.6000000238419,
+      "groupId": 61,
+      "title": "render:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"kind": "end render", "id": 61},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-103"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.6000000238419,
+      "groupId": "3:4",
+      "title": "update:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-104"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.6000000238419,
+      "groupId": "3:4",
+      "title": "updated:start",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated", "changed": ["route"]},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-105"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.6000000238419,
+      "groupId": "3:4",
+      "title": "updated:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "updated"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-106"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1029.6000000238419,
+      "groupId": "3:4",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-custom-layer",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 3,
+        "tagName": "hmr-custom-layer",
+        "source": {"file": "src/hmr-custom-layer.ts", "line": 15},
+        "callSite": {"file": "index.html", "line": 138, "column": 9}
+      },
+      "id": "mvk1zotj-107"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1062.9000000953674,
+      "groupId": "0:4",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-108"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1062.9000000953674,
+      "groupId": "0:4",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-109"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1062.9000000953674,
+      "groupId": "0:4",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-110"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1062.9000000953674,
+      "groupId": "0:4",
+      "title": "update:start",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update", "changed": ["count"]},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-111"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1063,
+      "groupId": 62,
+      "title": "render:start",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "begin render", "id": 62},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-112"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1063,
+      "groupId": 62,
+      "title": "render:end",
+      "subtitle": "hmr-counter",
+      "data": {"kind": "end render", "id": 62},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-113"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1063,
+      "groupId": "0:4",
+      "title": "update:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-114"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1063.1000000238419,
+      "groupId": "0:4",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-counter",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 0,
+        "tagName": "hmr-counter",
+        "source": {"file": "src/hmr-counter.ts", "line": 7},
+        "callSite": {"file": "index.html", "line": 120, "column": 9}
+      },
+      "id": "mvk1zotj-115"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.7000000476837,
+      "groupId": "10:4",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-116"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.8000000715256,
+      "groupId": "10:4",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-117"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.8000000715256,
+      "groupId": "10:4",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-118"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.8000000715256,
+      "groupId": "10:4",
+      "title": "update:start",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update", "changed": ["items"]},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-119"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1112.8000000715256,
+      "groupId": 63,
+      "title": "render:start",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "begin render", "id": 63},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-120"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1112.8000000715256,
+      "groupId": 63,
+      "title": "render:end",
+      "subtitle": "hmr-properties",
+      "data": {"kind": "end render", "id": 63},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-121"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.8000000715256,
+      "groupId": "10:4",
+      "title": "update:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-122"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1112.9000000953674,
+      "groupId": "10:4",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-properties",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 10,
+        "tagName": "hmr-properties",
+        "source": {"file": "src/hmr-properties.ts", "line": 10},
+        "callSite": {"file": "index.html", "line": 173, "column": 9}
+      },
+      "id": "mvk1zotj-123"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.7000000476837,
+      "groupId": "14:2",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-124"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.7000000476837,
+      "groupId": "14:2",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "willUpdate", "changed": []},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-125"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.7000000476837,
+      "groupId": "14:2",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-126"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.7000000476837,
+      "groupId": "14:2",
+      "title": "update:start",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "update", "changed": []},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-127"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1153.7000000476837,
+      "groupId": 64,
+      "title": "render:start",
+      "subtitle": "hmr-clock",
+      "data": {"kind": "begin render", "id": 64},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-128"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1153.9000000953674,
+      "groupId": 64,
+      "title": "render:end",
+      "subtitle": "hmr-clock",
+      "data": {"kind": "end render", "id": 64},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-129"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "14:2",
+      "title": "update:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-130"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "14:2",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 14,
+        "tagName": "hmr-clock",
+        "source": {"file": "src/hmr-clock.ts", "line": 18},
+        "callSite": {"file": "index.html", "line": 207, "column": 9}
+      },
+      "id": "mvk1zotj-131"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "15:2",
+      "title": "performUpdate:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-132"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "15:2",
+      "title": "willUpdate:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "willUpdate", "changed": []},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-133"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "15:2",
+      "title": "willUpdate:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "willUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-134"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1153.9000000953674,
+      "groupId": "15:2",
+      "title": "update:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "update", "changed": []},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-135"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1154.3000000715256,
+      "groupId": 65,
+      "title": "render:start",
+      "subtitle": "hmr-digital-clock",
+      "data": {"kind": "begin render", "id": 65},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-136"
+    },
+    {
+      "layerId": "lit-render",
+      "time": 1155,
+      "groupId": 65,
+      "title": "render:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"kind": "end render", "id": 65},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-137"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1155,
+      "groupId": "15:2",
+      "title": "update:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "update"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-138"
+    },
+    {
+      "layerId": "lit-lifecycle",
+      "time": 1155,
+      "groupId": "15:2",
+      "title": "performUpdate:end",
+      "subtitle": "hmr-digital-clock",
+      "data": {"phase": "performUpdate"},
+      "meta": {
+        "elementId": 15,
+        "tagName": "hmr-digital-clock",
+        "source": {"file": "src/hmr-digital-clock.ts", "line": 19},
+        "callSite": {"file": "index.html", "line": 219, "column": 9}
+      },
+      "id": "mvk1zotj-139"
+    }
+  ],
+  "layers": [
+    {
+      "id": "lit-lifecycle",
+      "label": "Lit Lifecycle",
+      "color": 5071871,
+      "enabled": true
+    },
+    {
+      "id": "lit-render",
+      "label": "Lit Render",
+      "color": 3300607,
+      "enabled": true
+    },
+    {
+      "id": "lit-render-verbose",
+      "label": "Lit Render (verbose)",
+      "color": 10071807,
+      "enabled": false
+    },
+    {
+      "id": "lit-changed-values",
+      "label": "Changed values",
+      "color": 7044095,
+      "enabled": false
+    },
+    {"id": "mouse", "label": "Mouse", "color": 10768815, "enabled": false},
+    {"id": "keyboard", "label": "Keyboard", "color": 8475055, "enabled": false},
+    {
+      "id": "custom-events",
+      "label": "Custom events",
+      "color": 11500113,
+      "enabled": false
+    },
+    {
+      "id": "lit-warnings",
+      "label": "Lit warnings",
+      "color": 16039759,
+      "enabled": true
+    },
+    {"id": "app-router", "label": "Router", "color": 16739125, "enabled": true}
+  ]
+}

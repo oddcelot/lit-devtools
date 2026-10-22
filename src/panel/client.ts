@@ -57,6 +57,27 @@ export const useLocalClient = (
   connecting = Promise.resolve(client.scope(LIT_DEVFRAME_ID));
 };
 
+/**
+ * Run with no host at all: for a page that shows panel views over recorded
+ * data (the docs). Every {@link litRpc} rejects at once, without looking for
+ * a server or asking for a code, so views settle on what they show without
+ * one: no editor links, nothing to command.
+ *
+ * Must run before anything calls {@link litRpc}, like {@link useLocalClient}.
+ */
+export const useNoHost = (): void => {
+  if (connecting !== undefined) {
+    throw new Error(
+      '[lit-devtools] useNoHost() must run before the panel connects'
+    );
+  }
+  connecting = Promise.reject(
+    new Error('[lit-devtools] no host: these views show recorded data')
+  );
+  // Callers handle the rejection; this keeps it from reporting as unhandled.
+  connecting.catch(() => {});
+};
+
 /** Long enough to type a code from the terminal into the frame's host. */
 const AUTH_TIMEOUT_MS = 10 * 60_000;
 
