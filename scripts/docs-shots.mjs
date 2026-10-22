@@ -151,7 +151,7 @@ const exerciseRoutes = async (app) => {
 const recordSession = async (ctx, {run = exercise, throttle = 1} = {}) => {
   const app = await ctx.openApp();
   const panel = await ctx.openPanel('#tab=timeline');
-  const record = timelineView(panel).locator('css=wa-button.record');
+  const record = timelineView(panel).locator('css=lit-button.record');
   await record.waitFor();
   await record.click();
   await record.and(panel.locator('css=.active')).waitFor();
@@ -482,7 +482,7 @@ const SHOTS = [
     capture: async (ctx) => {
       const app = await ctx.openApp();
       const panel = await ctx.openPanel('#tab=components');
-      const pick = componentsView(panel).locator('css=wa-button.pick');
+      const pick = componentsView(panel).locator('css=lit-button.pick');
       await pick.waitFor();
       await pick.click();
       await app.bringToFront();
@@ -542,7 +542,7 @@ const SHOTS = [
     name: 'devtools-timeline-raw',
     capture: async (ctx) => {
       const {panel} = await recordSession(ctx);
-      await eventList(panel).locator('css=.filterbar wa-switch').click();
+      await eventList(panel).locator('css=.filterbar lit-switch').click();
       await sleep(400);
       await blur(panel);
       // The Router's navigate events are the tail of the recording.
@@ -739,7 +739,7 @@ const SHOTS = [
       const {panel} = await recordSession(ctx);
       const toolbar = timelineView(panel).locator('css=.toolbar');
       await toolbar
-        .locator('css=wa-button', {hasText: 'Export snapshot'})
+        .locator('css=lit-button', {hasText: 'Export snapshot'})
         .click();
       const note = timelineView(panel).locator('css=.export-note');
       await note.waitFor();

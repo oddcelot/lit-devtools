@@ -351,9 +351,14 @@ export class TimelineTracks extends LitElement {
         (t) =>
           t instanceof HTMLElement &&
           (t.isContentEditable ||
-            ['INPUT', 'TEXTAREA', 'SELECT', 'WA-INPUT', 'WA-TEXTAREA'].includes(
-              t.tagName
-            ))
+            [
+              'INPUT',
+              'TEXTAREA',
+              'SELECT',
+              'WA-INPUT',
+              'LIT-INPUT',
+              'WA-TEXTAREA',
+            ].includes(t.tagName))
       );
     if (typing) return;
     if (this._draft !== null) {

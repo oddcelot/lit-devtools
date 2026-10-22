@@ -67,7 +67,7 @@ const mount = async (picker = false, roots: InspectorTreeNode[] = tree) => {
   return {
     el,
     root,
-    pick: () => root.querySelector<HTMLElement>('wa-button.pick'),
+    pick: () => root.querySelector<HTMLElement>('lit-button.pick'),
     rows: () => [...root.querySelectorAll<HTMLElement>('.row')],
     inspects: () =>
       calls.filter((c) => c.name === 'inspect').map((c) => c.args[0]),
@@ -166,7 +166,7 @@ const bigTree: InspectorTreeNode[] = [
 ];
 
 const filterTree = async (el: ComponentsView, root: ShadowRoot, q: string) => {
-  const input = root.querySelector<HTMLInputElement>('wa-input.tree-filter')!;
+  const input = root.querySelector<HTMLInputElement>('lit-input.tree-filter')!;
   input.value = q;
   input.dispatchEvent(new Event('input'));
   await flush(el);
@@ -247,7 +247,7 @@ test('a tree filter with no match says so, and Escape clears it', async () => {
       .trim()
   ).toBe('No elements match “nope”.');
   root
-    .querySelector('wa-input.tree-filter')!
+    .querySelector('lit-input.tree-filter')!
     .dispatchEvent(
       new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})
     );
@@ -295,14 +295,14 @@ test('Shift does nothing with no row under the pointer', async () => {
 
 test('Anatomy stays on across a reload', async () => {
   const first = await mount(true);
-  first.root.querySelector<HTMLElement>('wa-button.anatomy')!.click();
+  first.root.querySelector<HTMLElement>('lit-button.anatomy')!.click();
   await flush(first.el);
   expect(localStorage.getItem(ANATOMY_LS_KEY)).toBe('true');
 
   document.body.replaceChildren();
   const {el, root, inspects} = await mount(true);
   expect(
-    root.querySelector('wa-button.anatomy')!.classList.contains('active')
+    root.querySelector('lit-button.anatomy')!.classList.contains('active')
   ).toBe(true);
   push('inspector-message', {type: 'pick', id: 2});
   await flush(el);
@@ -313,7 +313,7 @@ test('Anatomy stays on across a reload', async () => {
 test('Anatomy turned off stays off', async () => {
   localStorage.setItem(ANATOMY_LS_KEY, 'true');
   const {el, root} = await mount(true);
-  root.querySelector<HTMLElement>('wa-button.anatomy')!.click();
+  root.querySelector<HTMLElement>('lit-button.anatomy')!.click();
   await flush(el);
   expect(localStorage.getItem(ANATOMY_LS_KEY)).toBe('false');
 });
@@ -324,7 +324,7 @@ test('Anatomy turned off stays off', async () => {
 test('pausing Live remembers it and pulls one fresh tree', async () => {
   const {el, root, inspects} = await mount();
   const before = inspects().length;
-  root.querySelector<HTMLElement>('wa-button.live')!.click();
+  root.querySelector<HTMLElement>('lit-button.live')!.click();
   await flush(el);
   expect(inspects().slice(before)).toEqual([
     {type: 'observe', enabled: false},
@@ -443,7 +443,7 @@ test('badges the options a property sets beyond the defaults', async () => {
   });
   await flush(el);
   const badges = [...root.querySelectorAll('.details .entry')].map((r) =>
-    [...r.querySelectorAll('wa-badge')].map((b) => b.textContent?.trim())
+    [...r.querySelectorAll('lit-badge')].map((b) => b.textContent?.trim())
   );
   expect(badges).toEqual([
     [],
@@ -600,7 +600,7 @@ const filterable = () => ({
 
 const typeFilter = async (el: ComponentsView, root: ShadowRoot, q: string) => {
   const input = root.querySelector<HTMLInputElement>(
-    '.details wa-input.filter'
+    '.details lit-input.filter'
   )!;
   input.value = q;
   input.dispatchEvent(new Event('input'));
@@ -671,7 +671,7 @@ test('Escape clears the filter', async () => {
   await flush(el);
   await typeFilter(el, root, 'user');
   root
-    .querySelector('.details wa-input.filter')!
+    .querySelector('.details lit-input.filter')!
     .dispatchEvent(
       new KeyboardEvent('keydown', {key: 'Escape', bubbles: true})
     );
@@ -692,7 +692,7 @@ test('the filter stays set when another element is selected', async () => {
   });
   await flush(el);
   expect(
-    root.querySelector<HTMLInputElement>('.details wa-input.filter')!.value
+    root.querySelector<HTMLInputElement>('.details lit-input.filter')!.value
   ).toBe('label');
   expect(names(root)).toEqual(['label']);
 });
@@ -798,7 +798,7 @@ test('re-renders under a hovered row do not resend the solo region', async () =>
 
 test('with Anatomy on a hovered row focuses and sends no solo region', async () => {
   const {el, root, rows, hover, anatomyCalls} = await mountRegions();
-  root.querySelector<HTMLElement>('wa-button.anatomy')!.click();
+  root.querySelector<HTMLElement>('lit-button.anatomy')!.click();
   await flush(el);
   await hover(rows[0], 'mouseenter');
   expect(anatomyCalls()).toEqual([
@@ -1063,7 +1063,9 @@ test('Scroll into view reveals the selected element in the page', async () => {
   push('inspector-message', {type: 'details', details: detailsFor([])});
   await flush(el);
   root
-    .querySelector<HTMLElement>('.details [aria-label="Scroll into view"]')!
+    .querySelector<HTMLElement>(
+      '.details lit-icon-button[label="Scroll into view"]'
+    )!
     .click();
   expect(inspects()).toContainEqual({type: 'reveal', id: 2});
 });
@@ -1111,7 +1113,7 @@ test('never offers Scroll into view in a snapshot', async () => {
   push('inspector-message', {type: 'details', details: detailsFor([])});
   await flush(el);
   expect(root.querySelector('.details h2')).not.toBeNull();
-  expect(root.querySelector('wa-button.reveal')).toBeNull();
+  expect(root.querySelector('lit-icon-button.reveal')).toBeNull();
 });
 
 test('a context row shows its key and links to the provider element', async () => {
@@ -1449,7 +1451,7 @@ test('a patch does not count toward the HMR issue badge', async () => {
 });
 
 const splitOf = (root: ShadowRoot) =>
-  root.querySelector<HTMLElement>('wa-split-panel')!;
+  root.querySelector<HTMLElement>('lit-split-panel')!;
 
 test('the details pane starts at 340px and keeps its width on resize', async () => {
   const {root} = await mount();
@@ -1623,7 +1625,9 @@ test('Reveal in Elements is absent without a host revealer', async () => {
   push('inspector-message', {type: 'pick', id: 2});
   push('inspector-message', {type: 'details', details: detailsFor()});
   await flush(el);
-  expect(root.querySelector('[aria-label="Reveal in Elements"]')).toBeNull();
+  expect(
+    root.querySelector('lit-icon-button[label="Reveal in Elements"]')
+  ).toBeNull();
 });
 
 test('Reveal in Elements calls the host revealer with the element id', async () => {
@@ -1635,7 +1639,7 @@ test('Reveal in Elements calls the host revealer with the element id', async () 
     push('inspector-message', {type: 'details', details: detailsFor()});
     await flush(el);
     const button = root.querySelector<HTMLElement>(
-      '[aria-label="Reveal in Elements"]'
+      'lit-icon-button[label="Reveal in Elements"]'
     )!;
     expect(button.dataset['tip']).toBe('Reveal in the Elements panel');
     button.click();
@@ -1943,7 +1947,7 @@ test('an element that never upgraded gets no hydration pill, server HTML or not'
   const {el, root, rows} = await mount(true, [
     {
       id: 1,
-      tagName: 'wa-icon',
+      tagName: 'lit-icon',
       notUpgraded: true,
       ssr: 'pending',
       children: [],
@@ -1951,7 +1955,7 @@ test('an element that never upgraded gets no hydration pill, server HTML or not'
     {id: 2, tagName: 'x-plain', notUpgraded: true, children: []},
   ]);
   const [served, plain] = rows();
-  expect(served!.querySelector('wa-badge.ssr')).toBeNull();
+  expect(served!.querySelector('lit-badge.ssr')).toBeNull();
   // Never hydrating is covered by the one chip, which says why.
   const chip = served!.querySelector('.status.not-upgraded')!;
   expect(chip.getAttribute('data-tip')).toContain(
@@ -1967,7 +1971,7 @@ test('an element that never upgraded gets no hydration pill, server HTML or not'
     details: {
       ...detailsFor(),
       id: 1,
-      tagName: 'wa-icon',
+      tagName: 'lit-icon',
       notUpgraded: true,
       ssr: 'pending',
       properties: [],
@@ -1976,7 +1980,7 @@ test('an element that never upgraded gets no hydration pill, server HTML or not'
   });
   await flush(el);
   const head = root.querySelector('.details .head')!;
-  expect(head.querySelector('wa-badge.ssr')).toBeNull();
+  expect(head.querySelector('lit-badge.ssr')).toBeNull();
   expect(head.querySelector('.status.not-upgraded')).not.toBeNull();
   expect(root.querySelector('.not-defined-note')?.textContent).toContain(
     'will not hydrate'
@@ -1989,11 +1993,11 @@ test('marks server-rendered elements by where hydration stands', async () => {
     {id: 2, tagName: 'x-button', ssr: 'hydrated', children: []},
   ]);
   expect(
-    rows().map((r) => r.querySelector('wa-badge.ssr')?.textContent)
+    rows().map((r) => r.querySelector('lit-badge.ssr')?.textContent)
   ).toEqual(['deferred', 'hydrated']);
   expect(
     rows().map((r) =>
-      r.querySelector('wa-badge.ssr wa-icon')?.getAttribute('name')
+      r.querySelector('lit-badge.ssr lit-icon')?.getAttribute('name')
     )
   ).toEqual(['drop-simple', 'drop-simple-fill']);
   push('inspector-message', {type: 'pick', id: 2});
@@ -2007,10 +2011,10 @@ test('marks server-rendered elements by where hydration stands', async () => {
   });
   await flush(el);
   const head = root.querySelector('.details .head')!;
-  expect(head.querySelector('wa-badge.ssr')?.textContent).toBe('not hydrated');
-  expect(head.querySelector('wa-badge.ssr wa-icon')?.getAttribute('name')).toBe(
-    'drop-simple'
-  );
+  expect(head.querySelector('lit-badge.ssr')?.textContent).toBe('not hydrated');
+  expect(
+    head.querySelector('lit-badge.ssr lit-icon')?.getAttribute('name')
+  ).toBe('drop-simple');
   // The server rendered it; "not rendered" would be wrong.
   expect(head.textContent).not.toContain('not rendered');
 });
@@ -2254,7 +2258,7 @@ test('names the source module for docs read from source', async () => {
   await pickButton(el);
   const origin = root.querySelector('.details .section > .origin')!;
   expect(origin.getAttribute('data-tip')).toBe('From src/x-button.ts');
-  expect(origin.querySelector('wa-icon')!.getAttribute('name')).toBe(
+  expect(origin.querySelector('lit-icon')!.getAttribute('name')).toBe(
     'file-code'
   );
 });
@@ -2308,7 +2312,7 @@ test('the row filter reaches the docs', async () => {
   const {el, root} = await mount(true);
   await pickButton(el);
   const filter = root.querySelector<HTMLInputElement & {value: string}>(
-    '.details wa-input.filter'
+    '.details lit-input.filter'
   )!;
   filter.value = 'spacing';
   filter.dispatchEvent(new Event('input'));
@@ -2352,7 +2356,7 @@ test('the row filter marks a word inside rendered prose', async () => {
   const {el, root} = await mount(true);
   await pickButton(el);
   const filter = root.querySelector<HTMLInputElement & {value: string}>(
-    '.details wa-input.filter'
+    '.details lit-input.filter'
   )!;
   filter.value = 'bold';
   filter.dispatchEvent(new Event('input'));
@@ -2906,7 +2910,7 @@ test('the overrides bar shows while the page has overrides', async () => {
   ]);
   expect(el.location.selected('components')).toBe(1);
 
-  const toggle = bar()!.querySelector('wa-switch')!;
+  const toggle = bar()!.querySelector('lit-switch')!;
   (toggle as HTMLElement & {checked: boolean}).checked = false;
   toggle.dispatchEvent(new Event('change'));
   bar()!.querySelector<HTMLElement>('.clear-overrides')!.click();
@@ -3007,7 +3011,7 @@ test('the bar reports dropped overrides until dismissed', async () => {
   expect(notice()!.querySelector('code')!.textContent).toBe(
     '<x-button>.cfg.theme.mode'
   );
-  expect(root.querySelector('.overrides-bar wa-switch')).toBeNull();
+  expect(root.querySelector('.overrides-bar lit-switch')).toBeNull();
   notice()!.querySelector<HTMLElement>('.remove-override')!.click();
   await flush(el);
   expect(root.querySelector('.overrides-bar')).toBeNull();
@@ -3090,7 +3094,9 @@ test('details-only shows just the details, for the element the host inspector se
     push('inspector-message', {type: 'details', details: detailsFor()});
     await flush(el);
     expect(root.querySelector('.details h2')).not.toBeNull();
-    expect(root.querySelector('[aria-label="Reveal in Elements"]')).toBeNull();
+    expect(
+      root.querySelector('lit-icon-button[label="Reveal in Elements"]')
+    ).toBeNull();
 
     followElement(null);
     await flush(el);

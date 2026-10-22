@@ -1,7 +1,7 @@
 import {LitElement, html, css, nothing} from 'lit';
 import type {TemplateResult} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
+import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
 
@@ -46,10 +46,10 @@ export const emptyStateStyles = css`
     font-size: var(--lit-devtools-text-2xs);
     color: var(--lit-devtools-text-muted);
   }
-  .empty wa-button {
+  .empty lit-button {
     margin-top: var(--lit-devtools-space-3);
   }
-  .empty wa-button::part(base) {
+  .empty lit-button::part(base) {
     height: var(--lit-devtools-control-height, 28px);
   }
 `;
@@ -67,10 +67,15 @@ export const renderEmptyState = (onRecord?: () => void): TemplateResult =>
     >
     ${
       onRecord
-        ? html`<wa-button size="s" appearance="outlined" @click=${onRecord}>
-            <wa-icon slot="start" name="record"></wa-icon>
+        ? html`<lit-button
+            variant="neutral"
+            size="s"
+            appearance="outlined"
+            @click=${onRecord}
+          >
+            <lit-icon slot="start" name="record"></lit-icon>
             Start recording
-          </wa-button>`
+          </lit-button>`
         : nothing
     }
   </div>`;

@@ -82,7 +82,7 @@ const mount = async (props: Partial<TimelineEventList> = {}) => {
   return {
     el,
     count: () => root.querySelector('.count')?.textContent?.trim(),
-    raw: () => root.querySelector<HTMLElement>('.filterbar wa-switch')!,
+    raw: () => root.querySelector<HTMLElement>('.filterbar lit-switch')!,
     detail: () => root.querySelector('timeline-span-detail'),
   };
 };

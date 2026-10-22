@@ -1,8 +1,8 @@
 import {LitElement, html, css, nothing} from 'lit';
 import type {TemplateResult} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
-import '@awesome.me/webawesome/dist/components/badge/badge.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
+import '../../packages/lit-components/src/badge.js';
+import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
 import {formatMs} from '../lib/timeline/range.js';
@@ -169,7 +169,7 @@ export class TimelineSpanDetail extends LitElement {
         display: inline-flex;
         gap: var(--lit-devtools-space-2);
       }
-      wa-button::part(base) {
+      lit-button::part(base) {
         height: auto;
         min-height: 0;
         padding: 0 var(--lit-devtools-space-2);
@@ -177,7 +177,7 @@ export class TimelineSpanDetail extends LitElement {
         line-height: 1.5;
         color: var(--lit-devtools-accent);
       }
-      wa-button.src-link::part(base) {
+      lit-button.src-link::part(base) {
         padding: 0;
       }
       .chip {
@@ -356,7 +356,7 @@ export class TimelineSpanDetail extends LitElement {
         >${text}</span
       >`;
     }
-    return html`<wa-button
+    return html`<lit-button
       class="src-link ${extraClass}"
       size="s"
       appearance="plain"
@@ -367,17 +367,18 @@ export class TimelineSpanDetail extends LitElement {
           void openInEditor(file.file, file.line);
         } else void openInEditor(file.file, file.line, file.column);
       }}
-      >${text}</wa-button
+      >${text}</lit-button
     >`;
   }
 
   private _action(text: string, tip: string, onClick: () => void) {
-    return html`<wa-button
+    return html`<lit-button
+      variant="neutral"
       size="s"
       appearance="plain"
       data-tip=${tip}
       @click=${onClick}
-      >${text}</wa-button
+      >${text}</lit-button
     >`;
   }
 
@@ -425,17 +426,15 @@ export class TimelineSpanDetail extends LitElement {
       ${row.changedDetail!.map(
         (c) => html`<span class="vkey">${c.key}</span>
           <span class="prev">${c.prev}</span>
-          <wa-icon class="arrow" name="arrow-right"></wa-icon>
+          <lit-icon class="arrow" name="arrow-right"></lit-icon>
           <span class="next">${c.next}</span>
           <span
             >${
               c.sameRef
-                ? html`<wa-badge variant="neutral" appearance="filled"
-                    >same reference</wa-badge
-                  >`
+                ? html`<lit-badge variant="neutral">same reference</lit-badge>`
                 : c.equal
-                  ? html`<wa-badge variant="neutral" appearance="filled"
-                      >new reference, same value</wa-badge
+                  ? html`<lit-badge variant="neutral"
+                      >new reference, same value</lit-badge
                     >`
                   : nothing
             }</span

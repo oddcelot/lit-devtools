@@ -47,7 +47,7 @@ const mount = async (props: {
     root.querySelector(sel)?.textContent?.replace(/\s+/g, ' ').trim();
   const value = (key: string) => text(`.val[data-key="${key}"]`);
   const link = (text: string) =>
-    [...root.querySelectorAll<HTMLElement>('wa-button')].find(
+    [...root.querySelectorAll<HTMLElement>('lit-button')].find(
       (a) => a.textContent?.trim() === text
     );
   return {el, root, text, value, link};
@@ -142,10 +142,10 @@ test('lists old and new values when the span has them', async () => {
     'count 0 1 items [1] [1] new reference, same value'
   );
   // An icon, not a text glyph, sits between each prev and next.
-  const arrows = root.querySelectorAll('wa-icon.arrow[name="arrow-right"]');
+  const arrows = root.querySelectorAll('lit-icon.arrow[name="arrow-right"]');
   expect(arrows).toHaveLength(2);
   const cells = [...root.querySelectorAll('.values > *')].map((c) =>
-    c.localName === 'wa-icon' ? '→' : c.textContent!.trim()
+    c.localName === 'lit-icon' ? '→' : c.textContent!.trim()
   );
   expect(cells).toEqual([
     'count',

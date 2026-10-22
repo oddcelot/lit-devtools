@@ -238,7 +238,7 @@ test('says so when the followed page changes, until dismissed', async () => {
     'Another page connected'
   );
   expect(getTimelineEvents()).toEqual([]);
-  root.querySelector<HTMLElement>('.page-changed wa-button')!.click();
+  root.querySelector<HTMLElement>('.page-changed lit-icon-button')!.click();
   await flush(el);
   expect(root.querySelector('.page-changed')).toBeNull();
 });

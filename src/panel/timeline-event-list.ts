@@ -3,8 +3,8 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {ref, createRef} from 'lit/directives/ref.js';
 import {virtualize, virtualizerRef} from '@lit-labs/virtualizer/virtualize.js';
 import type {VirtualizerHostElement} from '@lit-labs/virtualizer/virtualize.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/switch/switch.js';
+import '../../packages/lit-components/src/button.js';
+import '../../packages/lit-components/src/switch.js';
 import {tokens} from '../lib/tokens.js';
 import type {TimelineEvent} from '../types/timeline.js';
 import {isSelfCaused, type TimelineSpan} from '../lib/timeline/derive.js';
@@ -616,7 +616,7 @@ export class TimelineEventList extends LitElement {
         this.events.length > 0
           ? html`
               <div class="filterbar">
-                <wa-switch
+                <lit-switch
                   class=${this._raw ? 'on' : ''}
                   size="s"
                   ?checked=${this._raw}
@@ -629,10 +629,11 @@ export class TimelineEventList extends LitElement {
                   }}
                 >
                   Raw
-                </wa-switch>
+                </lit-switch>
                 ${
                   ticks.length > 0
-                    ? html`<wa-button
+                    ? html`<lit-button
+                        variant="neutral"
                         class="expand-all"
                         size="s"
                         appearance="plain"
@@ -643,7 +644,7 @@ export class TimelineEventList extends LitElement {
                             ? 'Collapse all'
                             : 'Expand all'
                         }
-                      </wa-button>`
+                      </lit-button>`
                     : nothing
                 }
                 <span class="count">${counts}</span>

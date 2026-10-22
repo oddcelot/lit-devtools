@@ -309,7 +309,7 @@ test('the regex filter narrows the tracks as well as the list', async () => {
   await expect.poll(() => marks.count()).toBeGreaterThan(0);
 
   // The filter bar stays on screen in Tracks mode.
-  const regex = page.locator('timeline-view wa-input.regex input');
+  const regex = page.locator('timeline-view lit-input.regex input');
   await regex.fill('^no-such-span$');
   await expect.poll(() => marks.count()).toBe(0);
 
@@ -330,7 +330,7 @@ test('a filter that hides the selected mark keeps its detail in Tracks', async (
   await detail.waitFor();
 
   await page
-    .locator('timeline-view wa-input.regex input')
+    .locator('timeline-view lit-input.regex input')
     .fill('^no-such-span$');
   await expect.poll(() => marks.count()).toBe(0);
   expect(await detail.count()).toBe(1);
@@ -340,7 +340,7 @@ test('a filter that hides the selected mark keeps its detail in Tracks', async (
 test('Shift+drag selects a range in Tracks and summarises it', async () => {
   const {page} = panel;
   // The previous test leaves its regex in the shared filter.
-  await page.locator('timeline-view wa-input.regex input').fill('');
+  await page.locator('timeline-view lit-input.regex input').fill('');
   await fixture.page.locator('hmr-counter #increment').click();
   await page.getByText('Tracks', {exact: true}).first().click();
   await expect
@@ -417,7 +417,7 @@ test('the Tracks ruler spans the same width as every lane plot', async () => {
   await fixture.page.locator('hmr-counter #increment').click();
   await page.getByText('Tracks', {exact: true}).first().click();
   // An earlier test may have left a regex that hides every mark.
-  const regex = page.locator('timeline-view wa-input.regex input');
+  const regex = page.locator('timeline-view lit-input.regex input');
   if ((await regex.count()) > 0) await regex.fill('');
   await page.locator('timeline-tracks .mark').first().waitFor();
   const ticks = (await page.locator('timeline-tracks .ticks').boundingBox())!;
@@ -440,16 +440,16 @@ test('the Tracks ruler spans the same width as every lane plot', async () => {
 test('Pick is not offered when the source overlay is off', async () => {
   const {page} = panel;
   await page.goto(`${fixture.origin}/__lit/#tab=components`);
-  await page.locator('components-view wa-button.live').waitFor();
+  await page.locator('components-view lit-button.live').waitFor();
   // `get-meta` arrives after the toolbar first renders; give it the time.
   await page.waitForTimeout(500);
-  expect(await page.locator('components-view wa-button.pick').count()).toBe(0);
+  expect(await page.locator('components-view lit-button.pick').count()).toBe(0);
 });
 
 test('the selection is the same element after the page reloads', async () => {
   const {page} = panel;
   await page.goto(`${fixture.origin}/__lit/#tab=components`);
-  await page.locator('components-view wa-button.live').waitFor();
+  await page.locator('components-view lit-button.live').waitFor();
   const idOf = (tag: string) =>
     fixture.page.evaluate(
       `globalThis[Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of')](document.querySelector('${tag}'))`
