@@ -1,31 +1,22 @@
 /**
  * Phosphor Icons (https://phosphoricons.com), Copyright (c) 2023 Phosphor
- * Icons, MIT License (full text in THIRD_PARTY_NOTICES.md), for `<wa-icon>`,
- * bundled into the panel.
+ * Icons, MIT License (full text in THIRD_PARTY_NOTICES.md): the panel's set.
  *
- * Web Awesome's `default` icon library fetches Font Awesome SVGs from a CDN
- * at runtime, which breaks the panel offline and inside exported snapshots.
- * This module re-registers `default` over an explicit map of SVGs imported as
- * strings, so only the icons listed here ship, `<wa-icon name>` never leaves
- * the bundle, and an unlisted name renders nothing.
- *
+ * packages/lit-components' icons.ts swaps Web Awesome's CDN icon library for
+ * inlined SVGs (and defines `<wa-icon>`); this module adds the names the
+ * panel draws, so only these ship and an unlisted name renders nothing.
  * Names are Phosphor's, in the regular weight unless they end in `-fill`.
  *
- * This module also defines `<wa-icon>`, and views import it instead of Web
- * Awesome's icon.js, so the element never exists without the library above.
+ * Views import this module rather than an icon element directly, so no icon
+ * renders before its SVG is registered.
  */
-import '@awesome.me/webawesome/dist/components/icon/icon.js';
-import {
-  getIconLibrary,
-  registerIconLibrary,
-} from '@awesome.me/webawesome/dist/components/icon/library.js';
+import {registerIcons} from '../../packages/lit-components/src/icons.js';
 import arrowsClockwise from '@phosphor-icons/core/assets/regular/arrows-clockwise.svg?raw';
 import arrowCounterClockwise from '@phosphor-icons/core/assets/regular/arrow-counter-clockwise.svg?raw';
 import arrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import arrowSquareOut from '@phosphor-icons/core/assets/regular/arrow-square-out.svg?raw';
 import boundingBox from '@phosphor-icons/core/assets/regular/bounding-box.svg?raw';
 import caretDown from '@phosphor-icons/core/assets/regular/caret-down.svg?raw';
-import caretLeft from '@phosphor-icons/core/assets/regular/caret-left.svg?raw';
 import caretRight from '@phosphor-icons/core/assets/regular/caret-right.svg?raw';
 import caretUp from '@phosphor-icons/core/assets/regular/caret-up.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
@@ -103,35 +94,4 @@ const ICONS = {
 /** A name `<wa-icon name=…>` resolves in the panel. */
 export type IconName = keyof typeof ICONS;
 
-const isIconName = (name: string): name is IconName => name in ICONS;
-
-const toUri = (svg: string) => `data:image/svg+xml,${encodeURIComponent(svg)}`;
-
-registerIconLibrary('default', {
-  resolver: (name) => (isIconName(name) ? toUri(ICONS[name]) : ''),
-});
-
-/**
- * Web Awesome components draw their own glyphs (the select's arrow and clear
- * cross, a checked state, tab-scroll chevrons) from the inlined `system`
- * library. Swap in the Phosphor equivalents for those, and defer to the
- * original for anything else so no built-in glyph goes missing.
- */
-const SYSTEM: Record<string, string> = {
-  check,
-  'chevron-down': caretDown,
-  'chevron-left': caretLeft,
-  'chevron-right': caretRight,
-  'chevron-up': caretUp,
-  xmark: x,
-};
-const system = getIconLibrary('system');
-if (system !== undefined) {
-  registerIconLibrary('system', {
-    resolver: (name, family, variant, autoWidth) =>
-      SYSTEM[name] !== undefined
-        ? toUri(SYSTEM[name])
-        : system.resolver(name, family, variant, autoWidth),
-    mutator: system.mutator,
-  });
-}
+registerIcons(ICONS);
