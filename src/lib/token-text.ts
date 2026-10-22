@@ -31,18 +31,14 @@ import {designBaseCSS, designDarkCSS, designLightCSS} from './design-tokens.js';
 
 /**
  * What the DevTools add on top of the design tokens: their control and row
- * sizes, a system sans stack (no webfont download for a dev-only tool), and
- * Lilex for code, which the panel bundles (src/panel/main.ts). The in-page UI
- * loads no font files, so its code falls back to the system monospace.
+ * sizes. The fonts are the design system's: the system sans, and Lilex for
+ * code, which the panel bundles (src/panel/main.ts). The in-page UI loads no
+ * font files, so its code falls back to the system monospace.
  */
 const devtoolsTokenCSS = `
   /* ---- Shared sizing: toolbar controls and tree/list rows ---- */
   --lit-devtools-control-height:  28px;
   --lit-devtools-row-height:      22px;
-
-  /* ---- System sans in place of Manrope; Lilex for code ---- */
-  --lit-devtools-font-sans:  system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --lit-devtools-font-mono:  'Lilex Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 `;
 
 export const baseTokenCSS = `${designBaseCSS}${devtoolsTokenCSS}`;
