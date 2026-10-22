@@ -4,6 +4,7 @@
  * tokens.css and the theme both switch on, so both schemes show at once.
  */
 @import '@oddsquad/webawesome-theme-lit/lit.css';
+@import '@fontsource-variable/lilex/wght.css';
 
 * {
   box-sizing: border-box;

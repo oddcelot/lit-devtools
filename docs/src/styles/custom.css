@@ -15,11 +15,11 @@
 /* ---------------------------------------------------------------- Type ---- */
 
 :root {
-  /* `--font-manrope` / `--font-roboto-mono` come from Astro's font pipeline;
+  /* `--font-manrope` / `--font-lilex` come from Astro's font pipeline;
      they are declared in astro.config.mjs and emitted by the `<Font>` tags in
      the Head override. Starlight appends its own system stack after each. */
   --sl-font: var(--font-manrope);
-  --sl-font-mono: var(--font-roboto-mono);
+  --sl-font-mono: var(--font-lilex);
 
   /* Web Awesome's controls in the same fonts as the page around them. */
   --wa-font-family-body: var(--sl-font);

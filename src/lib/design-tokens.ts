@@ -45,7 +45,7 @@ export const designBaseCSS = `
   /* ---- Typography ---- */
   --lit-devtools-font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --lit-devtools-font-mono:
-    'Roboto Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    'Lilex Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
   --lit-devtools-weight-regular: 400;
   --lit-devtools-weight-medium: 500;

@@ -165,6 +165,9 @@ importers:
       '@devframes/service-open':
         specifier: 1.1.0
         version: 1.1.0(devframe@1.1.0)
+      '@fontsource-variable/lilex':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@lit-labs/signals':
         specifier: ^0.3.0
         version: 0.3.0
@@ -536,6 +539,9 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
     devDependencies:
+      '@fontsource-variable/lilex':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@oddsquad/vite-plugin-lit':
         specifier: workspace:*
         version: link:../..
@@ -1244,6 +1250,9 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@fontsource-variable/lilex@5.3.0':
+    resolution: {integrity: sha512-jbRNwWELe/QiTulFS30gk22dM0IY5WxSuyJKomqcI5KMfeFdZu4BVzTaQubSAdls7b7NshKDqty6ekzEtp7t7A==}
 
   '@fontsource-variable/manrope@5.3.0':
     resolution: {integrity: sha512-6D5dgokHsWDDMtmXHznKa0hK229NN+1a4BLPmUCLqcO1Pw5EEhWY5RFt0AcXnVRAljFFPfRtLkJePQj6LSsV6g==}
@@ -5995,6 +6004,8 @@ snapshots:
       '@floating-ui/utils': 0.2.12
 
   '@floating-ui/utils@0.2.12': {}
+
+  '@fontsource-variable/lilex@5.3.0': {}
 
   '@fontsource-variable/manrope@5.3.0': {}
 

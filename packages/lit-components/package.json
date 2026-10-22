@@ -18,6 +18,7 @@
     "lit": "^3.3.3"
   },
   "devDependencies": {
+    "@fontsource-variable/lilex": "^5.3.0",
     "@oddsquad/vite-plugin-lit": "workspace:*",
     "vite": "catalog:",
     "vite-plus": "catalog:"

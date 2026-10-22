@@ -68,10 +68,11 @@ export default defineConfig({
       formats: ['ttf'],
     },
     {
-      name: 'Roboto Mono',
-      cssVariable: '--font-roboto-mono',
+      name: 'Lilex',
+      cssVariable: '--font-lilex',
       provider: fontProviders.fontsource(),
-      weights: [400],
+      // Variable too; code is mostly 400, with bold for emphasis.
+      weights: ['400 700'],
       styles: ['normal'],
       subsets: ['latin'],
     },

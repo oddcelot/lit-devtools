@@ -1,7 +1,7 @@
 /*
  * The panel's Web Awesome theme: the Lit Design System theme from
  * packages/webawesome-theme-lit. The panel's density (13px body text, the
- * toolbar control height, system fonts) is not here: `injectTokens()` sets it
+ * toolbar control height, the DevTools fonts) is not here: `injectTokens()` sets it
  * (`webAwesome`, see src/lib/token-text.ts), on `:root` in the panel and on a
  * wrapper where a page embeds panel views.
  *
