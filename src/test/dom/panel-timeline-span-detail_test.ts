@@ -32,6 +32,7 @@ const span: TimelineSpan = {
 const mount = async (props: {
   span?: TimelineSpan;
   filterable?: boolean;
+  inspectable?: boolean;
   layers?: {id: string; label: string; color: number; enabled: boolean}[];
 }) => {
   const el = document.createElement('timeline-span-detail');
@@ -114,6 +115,11 @@ test('inspect asks the shell for the Components tab', async () => {
   );
   link('inspect')!.click();
   expect(ids).toEqual([7]);
+});
+
+test('no inspect link where nothing can take it', async () => {
+  const {link} = await mount({span, inspectable: false});
+  expect(link('inspect')).toBeFalsy();
 });
 
 test('the source link opens the file at its line', async () => {

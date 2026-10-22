@@ -22,6 +22,7 @@ import devtoolsChromeTracksDark from '../../../../assets/shots/devtools-chrome-p
 import devtoolsExportSnapshotLight from '../../../../assets/shots/devtools-export-snapshot.light.png';
 import devtoolsExportSnapshotDark from '../../../../assets/shots/devtools-export-snapshot.dark.png';
 import Since from '../../../../components/Since.astro';
+import TimelineFigure from '../../../../components/TimelineFigure.astro';
 
 Record what your components did and in what order, then scrub it. Use it for
 ordering questions; for "why did this re-render", go to the
@@ -202,6 +203,11 @@ ended yet runs to the end of the recording.
 - **Drag** pans.
 - **Double-click** fits the whole recording again. While you record, a fitted
   view follows the newest events.
+
+Try it on a recording from the playground: this is the panel's own Tracks
+view, running in the page.
+
+<TimelineFigure caption="A recorded session from the playground: counter, list and route clicks across the Lit Lifecycle, Lit Render and Router layers." />
 
 Click a mark to select it. The same detail pane opens under the tracks, and
 the selection carries over: switch back to **List** and it scrolls to that

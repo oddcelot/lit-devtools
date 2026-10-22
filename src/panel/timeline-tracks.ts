@@ -289,6 +289,8 @@ export class TimelineTracks extends LitElement {
   @property({type: Boolean}) canRecord = false;
   /** The drawn time range, kept by the view; null for none. */
   @property({attribute: false}) range: TimeRange | null = null;
+  /** Let the detail pane offer **inspect** (see `timeline-span-detail`). */
+  @property({attribute: false}) inspectable = true;
 
   /** Multiple of "fit"; 1 shows the whole recording. */
   @state() private _zoom = 1;
@@ -662,6 +664,7 @@ export class TimelineTracks extends LitElement {
     const detail = selected
       ? html`<timeline-span-detail
           filterable
+          .inspectable=${this.inspectable}
           .span=${selected}
           .layers=${this.layers}
         ></timeline-span-detail>`
