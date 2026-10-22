@@ -1,6 +1,7 @@
 import {defineConfig, fontProviders} from 'astro/config';
 import starlight from '@astrojs/starlight';
 import sitemap from '@astrojs/sitemap';
+import {litDevtools} from '@oddsquad/vite-plugin-lit/astro';
 import starlightLinksValidator from 'starlight-links-validator';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightChangelogs, {
@@ -77,6 +78,12 @@ export default defineConfig({
   ],
   redirects,
   integrations: [
+    // The plugin this site documents, run on the site itself: Lit DevTools
+    // in Astro's dev toolbar while writing docs. Without the renderer
+    // (`lit()`): no page server-renders a Lit component, and the renderer's
+    // hydrate support would add ~15 KB to every page. The Web Awesome
+    // components are client-only and bring their own Lit.
+    litDevtools(),
     starlight({
       title: 'vite-plugin-lit',
       // The Lit flame from the design system, beside the title rather than
