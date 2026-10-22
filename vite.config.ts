@@ -75,7 +75,8 @@ export default defineConfig({
       },
       {
         // `<wa-icon>` without the bundled library fetches from a CDN; views
-        // get the element from src/panel/wa-icons.ts, the only importer.
+        // get the element from src/panel/wa-icons.ts, which registers the
+        // panel's icons through packages/lit-components' icons.ts.
         files: ['src/**'],
         rules: {
           'no-restricted-imports': [
@@ -91,10 +92,6 @@ export default defineConfig({
             },
           ],
         },
-      },
-      {
-        files: ['src/panel/wa-icons.ts'],
-        rules: {'no-restricted-imports': 'off'},
       },
       {
         // `const {page, edit} = fixture` destructures arrow closures off the
