@@ -39,6 +39,8 @@ describe('tokenStyleText', () => {
     // The page's own scheme switch reaches the scoped element.
     expect(text).toContain(":root[data-theme='dark'] .lit-devtools-root");
     expect(text).toContain(':root.color-scheme-light .lit-devtools-root');
+    // So does a scheme class on an ancestor (the kitchen sink's halves).
+    expect(text).toContain('.wa-dark .lit-devtools-root');
   });
 
   test('Web Awesome density only on request', () => {

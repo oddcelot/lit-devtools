@@ -15,6 +15,8 @@
     "useDefineForClassFields": false,
     "module": "esnext",
     "moduleResolution": "bundler",
+    // The figures import their recordings (src/panel/figures).
+    "resolveJsonModule": true,
     "rootDir": "../.."
   },
   "include": ["**/*.ts"],

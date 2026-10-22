@@ -4,6 +4,9 @@ import '@awesome.me/webawesome/dist/components/dropdown/dropdown.js';
 import '@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js';
 import '@awesome.me/webawesome/dist/components/option/option.js';
 import '../src/all.js';
+// Not a lit-* component: a panel view over a recording, shown so a theme
+// change can be checked on the panel itself, in both schemes.
+import '../../../src/panel/figures/timeline-figure.js';
 import {iconNames} from '../src/icons.js';
 import type {Variants} from './generated.js';
 
@@ -14,6 +17,7 @@ export const GROUPS = [
   'Layout',
   'Icons',
   'DevTools',
+  'Panel views',
 ] as const;
 
 /** One component's entry on the page. */
@@ -466,5 +470,13 @@ export const SECTIONS: Section[] = [
             >`
         )}
       </div>`,
+  },
+  {
+    tag: 'timeline-figure',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      'src/panel/figures · the Timeline tracks over a recorded session, as in the docs · zoom, pan, select',
+    render: () => html`<timeline-figure></timeline-figure>`,
   },
 ];

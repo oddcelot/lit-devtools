@@ -1,7 +1,8 @@
 ---
 /**
  * The DevTools Timeline in Tracks mode, running in the page over a recorded
- * session (src/panel/timeline-figure.ts). It renders in the browser only: the
+ * session (src/panel/figures/timeline-figure.ts, shared with the kitchen
+ * sink). It renders in the browser only: the
  * panel's elements have no server rendering, so the figure holds its height
  * empty until the script runs.
  */
@@ -13,19 +14,19 @@ const {caption} = Astro.props;
 ---
 
 <figure class="timeline-figure not-content">
-  <docs-timeline-figure></docs-timeline-figure>
+  <timeline-figure></timeline-figure>
   <figcaption>{caption}</figcaption>
 </figure>
 
 <script>
-  import '../panel/timeline-figure.ts';
+  import '../../../src/panel/figures/timeline-figure.ts';
 </script>
 
 <style>
   .timeline-figure {
     margin-block: 1.5rem;
   }
-  docs-timeline-figure:not(:defined) {
+  timeline-figure:not(:defined) {
     display: block;
     height: 28rem;
   }

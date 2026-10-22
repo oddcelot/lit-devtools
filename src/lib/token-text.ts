@@ -85,7 +85,8 @@ export interface InjectTokensOptions {
    * (say `.lit-devtools-root`) confines them to that element, for a page
    * that shows panel views among its own content. A scoped sheet follows
    * the page's scheme from `.color-scheme-*` classes or `data-theme` on
-   * `:root`, falling back to `prefers-color-scheme`.
+   * `:root`, or from a `.wa-dark` / `.wa-light` ancestor (the kitchen
+   * sink's halves), falling back to `prefers-color-scheme`.
    */
   scope?: string;
   /**
@@ -118,7 +119,7 @@ export const tokenStyleText = ({
   const forced = (scheme: 'light' | 'dark'): string =>
     scope === ':root'
       ? `:root.color-scheme-${scheme}`
-      : `:root.color-scheme-${scheme} ${scope}, :root[data-theme='${scheme}'] ${scope}`;
+      : `:root.color-scheme-${scheme} ${scope}, :root[data-theme='${scheme}'] ${scope}, .wa-${scheme} ${scope}`;
   return `
     ${scope} {
       ${baseTokenCSS}
