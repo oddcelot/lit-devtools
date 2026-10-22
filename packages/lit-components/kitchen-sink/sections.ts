@@ -502,6 +502,59 @@ export const SECTIONS: Section[] = [
     `,
   },
   {
+    tag: 'source-overlay-specimen',
+    group: 'In-page UI',
+    variants: false,
+    summary:
+      'src/lib/runtime/source-overlay/template.ts · the picker over a component, drawn in place · tag, path, site, step, armed',
+    render: () => html`
+      ${row(
+        'hovering a component',
+        html`<source-overlay-specimen
+          tag="todo-item"
+          path="src/todo-item.ts:12"
+          site="src/todo-list.ts:40"
+          step="↑ <todo-list>"
+          ><lit-button variant="neutral" appearance="outlined"
+            >Buy oat milk</lit-button
+          ></source-overlay-specimen
+        >`
+      )}
+      ${row(
+        'Cmd/Ctrl held: opens the declaration',
+        html`<source-overlay-specimen
+          tag="todo-item"
+          path="src/todo-item.ts:12"
+          site="src/todo-list.ts:40"
+          armed="source"
+          ><lit-button variant="neutral" appearance="outlined"
+            >Buy oat milk</lit-button
+          ></source-overlay-specimen
+        >`
+      )}
+      ${row(
+        'Cmd/Ctrl+Shift held: opens where it is rendered',
+        html`<source-overlay-specimen
+          tag="todo-item"
+          path="src/todo-item.ts:12"
+          site="src/todo-list.ts:40"
+          armed="site"
+          ><lit-button variant="neutral" appearance="outlined"
+            >Buy oat milk</lit-button
+          ></source-overlay-specimen
+        >`
+      )}
+      ${row(
+        'no source (a page the plugin did not build)',
+        html`<source-overlay-specimen tag="todo-item"
+          ><lit-button variant="neutral" appearance="outlined"
+            >Buy oat milk</lit-button
+          ></source-overlay-specimen
+        >`
+      )}
+    `,
+  },
+  {
     tag: 'timeline-figure',
     group: 'Panel views',
     variants: false,
