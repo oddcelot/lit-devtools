@@ -1,5 +1,6 @@
 packages:
   - docs
+  - packages/*
   - playground
   - examples/flame
   - examples/web-awesome
