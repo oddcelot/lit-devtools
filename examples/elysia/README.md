@@ -5,7 +5,7 @@ the server with [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), streams
 to the browser, and keeps live over a WebSocket. Runs on Bun, which also
 bundles the client. No Vite.
 
-[![Open in CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/github/oddcelot/vite-plugin-lit/tree/main/examples/elysia)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/oddcelot/vite-plugin-lit?devcontainer_path=.devcontainer/elysia/devcontainer.json)
 
 ```sh
 pnpm install   # or bun install, outside this repo
@@ -120,23 +120,34 @@ page.
 In this repo the package is linked from the root, so run `pnpm run build` there
 first: the example loads its built `lib/` and `dist/`.
 
-## On CodeSandbox
+## In a codespace
 
-StackBlitz runs Node only, so the example opens on CodeSandbox, whose sandboxes
-are virtual machines: [`.devcontainer/`](.devcontainer/) adds Bun to a Node
-image, and [`.codesandbox/tasks.json`](.codesandbox/tasks.json) installs and
-starts the dev server with `PREVIEW_ORIGIN='https://*.csb.app'`.
+StackBlitz runs Node only, so the example opens in GitHub Codespaces instead,
+on your own account's codespace hours. Its configuration is in the repository
+root, at [`.devcontainer/elysia/`](../../.devcontainer/elysia/): Node, pnpm and
+Bun, then the plugin built from the same checkout and linked in, so the
+codespace runs the code of the branch it was made from. To try a branch other
+than `main`:
 
-The preview gives each port its own `https://<id>-<port>.csb.app` origin, so
-with `PREVIEW_ORIGIN` set [`src/dev.ts`](src/dev.ts) listens on every
-interface, and the DevTools keep their RPC on the page's origin
-(`transport: 'sse'`), admit the preview's origin, and keep the code gate on.
-CodeSandbox shows the preview in a frame, where the page cannot prompt, so the
-Lit button carries a dot: open the drawer and enter the code the **Guestbook**
-task printed in its terminal. The browser remembers it after that.
+```sh
+gh codespace create -r oddcelot/vite-plugin-lit -b <branch> \
+  --devcontainer-path .devcontainer/elysia/devcontainer.json
+```
 
-It installs `@oddsquad/vite-plugin-lit` from npm, and needs a release with
-`createLitDevtools()` (0.22.0 or later).
+The dev server starts in a terminal of its own, with
+`PREVIEW_ORIGIN='https://*.app.github.dev'`: Codespaces gives each forwarded
+port its own `https://<codespace>-<port>.app.github.dev` origin. With it set,
+[`src/dev.ts`](src/dev.ts) listens on every interface, and the DevTools keep
+their RPC on the page's origin (`transport: 'sse'`), admit that origin and keep
+the code gate on. The page asks for the code the terminal printed, once per
+browser; in a frame, such as the editor's built-in browser, the Lit button
+carries a dot instead, and the drawer holds the field for it.
+
+[`.devcontainer/`](.devcontainer/) and
+[`.codesandbox/tasks.json`](.codesandbox/tasks.json) in this folder do the same
+for CodeSandbox, for a workspace with VM credits, with
+`PREVIEW_ORIGIN='https://*.csb.app'`. There the plugin comes from npm, so it
+needs a release with `createLitDevtools()` (0.22.0 or later).
 
 ## Production
 
