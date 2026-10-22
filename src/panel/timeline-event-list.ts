@@ -3,9 +3,9 @@ import {customElement, property, state} from 'lit/decorators.js';
 import {ref, createRef} from 'lit/directives/ref.js';
 import {virtualize, virtualizerRef} from '@lit-labs/virtualizer/virtualize.js';
 import type {VirtualizerHostElement} from '@lit-labs/virtualizer/virtualize.js';
+import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/switch/switch.js';
 import {tokens} from '../lib/tokens.js';
-import {waSquare} from './wa-square.js';
 import type {TimelineEvent} from '../types/timeline.js';
 import {isSelfCaused, type TimelineSpan} from '../lib/timeline/derive.js';
 import {
@@ -100,7 +100,6 @@ const FLAG_MARK: Record<TickAttention, string> = {
 export class TimelineEventList extends LitElement {
   static override styles = [
     tokens,
-    waSquare,
     emptyStateStyles,
     css`
       :host {
@@ -127,6 +126,12 @@ export class TimelineEventList extends LitElement {
         font-size: var(--lit-devtools-text-2xs);
         color: var(--lit-devtools-text-muted);
         flex-shrink: 0;
+      }
+      /* Row height, not control height: the bar stays as dense as the rows. */
+      .expand-all::part(base) {
+        height: var(--lit-devtools-row-height, 22px);
+        min-height: 0;
+        font-size: inherit;
       }
       .filterbar .count {
         margin-left: auto;
@@ -289,15 +294,6 @@ export class TimelineEventList extends LitElement {
       }
       .mark {
         flex-shrink: 0;
-      }
-      .expand-all {
-        font: inherit;
-        color: var(--lit-devtools-text-secondary);
-        background: none;
-        border: 0;
-        padding: 0;
-        cursor: pointer;
-        text-decoration: underline;
       }
       .dur {
         color: var(--lit-devtools-text-secondary);
@@ -636,8 +632,10 @@ export class TimelineEventList extends LitElement {
                 </wa-switch>
                 ${
                   ticks.length > 0
-                    ? html`<button
+                    ? html`<wa-button
                         class="expand-all"
+                        size="s"
+                        appearance="plain"
                         @click=${() => this._toggleAll()}
                       >
                         ${
@@ -645,7 +643,7 @@ export class TimelineEventList extends LitElement {
                             ? 'Collapse all'
                             : 'Expand all'
                         }
-                      </button>`
+                      </wa-button>`
                     : nothing
                 }
                 <span class="count">${counts}</span>

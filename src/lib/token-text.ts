@@ -29,8 +29,7 @@ import {designBaseCSS, designDarkCSS, designLightCSS} from './design-tokens.js';
 
 /**
  * What the DevTools add on top of the design tokens: their control and row
- * sizes, system font stacks (no webfont download for a dev-only tool), and
- * square corners in the panel and the in-page UI.
+ * sizes, and system font stacks (no webfont download for a dev-only tool).
  */
 const devtoolsTokenCSS = `
   /* ---- Shared sizing: toolbar controls and tree/list rows ---- */
@@ -40,15 +39,6 @@ const devtoolsTokenCSS = `
   /* ---- System fonts in place of Manrope / Roboto Mono ---- */
   --lit-devtools-font-sans:  system-ui, -apple-system, 'Segoe UI', sans-serif;
   --lit-devtools-font-mono:  ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-
-  /* ---- Radius · square corners throughout ---- */
-  --lit-devtools-radius-xs:   0;
-  --lit-devtools-radius-sm:   0;
-  --lit-devtools-radius-md:   0;
-  --lit-devtools-radius-lg:   0;
-  --lit-devtools-radius-xl:   0;
-  --lit-devtools-radius-2xl:  0;
-  --lit-devtools-radius-pill: 0;
 `;
 
 export const baseTokenCSS = `${designBaseCSS}${devtoolsTokenCSS}`;
