@@ -5,6 +5,8 @@ the server with [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), streams
 to the browser, and keeps live over a WebSocket. Runs on Bun, which also
 bundles the client. No Vite.
 
+[![Open in CodeSandbox](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/p/sandbox/github/oddcelot/vite-plugin-lit/tree/main/examples/elysia)
+
 ```sh
 pnpm install   # or bun install, outside this repo
 pnpm dev       # http://localhost:3000
@@ -117,6 +119,23 @@ page.
 
 In this repo the package is linked from the root, so run `pnpm run build` there
 first: the example loads its built `lib/` and `dist/`.
+
+## On CodeSandbox
+
+StackBlitz runs Node only, so the example opens on CodeSandbox, whose sandboxes
+are virtual machines: [`.devcontainer/`](.devcontainer/) adds Bun to a Node
+image, and [`.codesandbox/tasks.json`](.codesandbox/tasks.json) installs and
+starts the dev server with `PREVIEW_ORIGIN='https://*.csb.app'`.
+
+The preview gives each port its own `https://<id>-<port>.csb.app` origin, so
+with `PREVIEW_ORIGIN` set [`src/dev.ts`](src/dev.ts) listens on every
+interface, and the DevTools keep their RPC on the page's origin
+(`transport: 'sse'`), admit the preview's origin, and keep the code gate on:
+the first time the page or panel connects it asks for a code, which the
+**Guestbook** task prints in its terminal.
+
+It installs `@oddsquad/vite-plugin-lit` from npm, and needs a release with
+`createLitDevtools()` (0.22.0 or later).
 
 ## Production
 

@@ -79,9 +79,20 @@ if (entries.list(1).length === 0) {
   entries.add({name: 'Elysia', message: 'Served from Bun, no Vite in sight.'});
 }
 
-// The Lit DevTools panel, served by this app at /__lit-devtools/. No code
-// gate: the server only listens on loopback.
-const devtools = createLitDevtools({auth: false});
+// Behind a cloud preview (CodeSandbox: `https://*.csb.app`) the page is on an
+// origin of its own, one hostname per port. The server then listens on every
+// interface for the preview's proxy to reach, and the DevTools keep their
+// RPC on the page's origin (SSE), admit that origin, and ask for the code
+// they print: the preview is reachable by more than this machine.
+const preview = process.env.PREVIEW_ORIGIN;
+
+// The Lit DevTools panel, served by this app at /__lit-devtools/. Locally no
+// code gate: the server only listens on loopback.
+const devtools = createLitDevtools(
+  preview === undefined
+    ? {auth: false}
+    : {transport: 'sse', allowedOrigins: [preview]}
+);
 
 const app = createApp({
   entries,
@@ -98,7 +109,10 @@ const app = createApp({
       },
     })
   )
-  .listen({hostname: 'localhost', port: Number(process.env.PORT ?? 3000)});
+  .listen({
+    hostname: preview === undefined ? 'localhost' : '0.0.0.0',
+    port: Number(process.env.PORT ?? 3000),
+  });
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 watch(SRC, {recursive: true}, () => {
@@ -111,5 +125,13 @@ watch(SRC, {recursive: true}, () => {
   }, 50);
 });
 
-console.log(`Guestbook at ${app.server?.url}`);
-console.log(`Lit DevTools at ${new URL(devtools.base, app.server?.url)}`);
+if (preview === undefined) {
+  console.log(`Guestbook at ${app.server?.url}`);
+  console.log(`Lit DevTools at ${new URL(devtools.base, app.server?.url)}`);
+} else {
+  console.log(`Guestbook on port ${app.server?.port}, behind ${preview}`);
+  console.log(
+    `Lit DevTools at ${devtools.base} on the preview; the code it asks ` +
+      `for prints here`
+  );
+}

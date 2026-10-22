@@ -1,0 +1,14 @@
+{
+  "$schema": "https://codesandbox.io/schemas/tasks.json",
+  "setupTasks": ["bun install"],
+  "tasks": {
+    "dev": {
+      "name": "Guestbook",
+      // The preview gives each port its own https://<id>-<port>.csb.app
+      // origin; see PREVIEW_ORIGIN in src/dev.ts.
+      "command": "PREVIEW_ORIGIN='https://*.csb.app' bun run dev",
+      "runAtStart": true,
+      "preview": {"port": 3000}
+    }
+  }
+}
