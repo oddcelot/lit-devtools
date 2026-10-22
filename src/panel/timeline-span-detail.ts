@@ -238,6 +238,8 @@ export class TimelineSpanDetail extends LitElement {
   @property({type: Array}) layers: LayerState[] = [];
   /** Offer the **filter** link (both presentations honour the element filter). */
   @property({type: Boolean}) filterable = false;
+  /** Offer the **inspect** link: off where no Components tab can take it. */
+  @property({attribute: false}) inspectable = true;
 
   /** Whether `source` opens in the editor; plain text otherwise. */
   @state() private _canOpen = false;
@@ -442,6 +444,27 @@ export class TimelineSpanDetail extends LitElement {
     </div>`;
   }
 
+  /** The element fact's **filter** and **inspect** links, as offered. */
+  private _elementActions(id: number) {
+    return html`<span class="actions"
+      >${
+        this.filterable
+          ? this._action('filter', 'Show only events from this element', () =>
+              this._emit('element-filter', id)
+            )
+          : nothing
+      }${
+        this.inspectable
+          ? this._action(
+              'inspect',
+              'Open this element in the Components tab',
+              () => this._emit('inspect-element', id)
+            )
+          : nothing
+      }</span
+    >`;
+  }
+
   override render() {
     const row = this.span;
     if (!row) return nothing;
@@ -502,25 +525,7 @@ export class TimelineSpanDetail extends LitElement {
                         ? html` <span class="id">#${id}</span>`
                         : nothing
                     }</span
-                  >${
-                    id != null
-                      ? html`<span class="actions"
-                          >${
-                            this.filterable
-                              ? this._action(
-                                  'filter',
-                                  'Show only events from this element',
-                                  () => this._emit('element-filter', id)
-                                )
-                              : nothing
-                          }${this._action(
-                            'inspect',
-                            'Open this element in the Components tab',
-                            () => this._emit('inspect-element', id)
-                          )}</span
-                        >`
-                      : nothing
-                  }`
+                  >${id != null ? this._elementActions(id) : nothing}`
               )
             : nothing
         }
