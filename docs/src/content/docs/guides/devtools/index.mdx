@@ -88,6 +88,59 @@ you can reach. Everything else in this guide works the same, except that there
 is no dock to bring forward: a pick on the page selects the element in the
 open panel, but the panel's tab stays where it is.
 
+## In a server that is not Vite
+
+<Since v="0.22.0" />
+
+A server without Vite can host the panel itself, on its own origin, without
+the `lit-devtools dev` process. `createLitDevtools()` returns one web-standard
+request handler for the panel, the page script and the RPC; mount it on a
+catch-all route and load the script first in each page's `<head>`:
+
+```ts
+import {createLitDevtools} from '@oddsquad/vite-plugin-lit/devframe';
+import {Elysia} from 'elysia';
+
+const devtools = createLitDevtools();
+
+new Elysia()
+  .all(`${devtools.base}*`, ({request}) => devtools.handler(request))
+  .get('/', () => page(`<script src="${devtools.script}"></script>`))
+  .listen({hostname: 'localhost', port: 3000});
+```
+
+The handler takes a `Request` and returns a `Response`, so the same two lines
+fit Hono, `Bun.serve`, a SvelteKit `+server.ts` or a Next.js route handler.
+
+The panel is docked in the page: a Lit button in the bottom-right corner opens
+it in a drawer along the bottom, which you can drag taller, and picking an
+element opens it there. The page remembers whether the drawer was open and how
+tall. It is also its own page at `/__lit-devtools/`; pass `base` to move it,
+or `dock: false` to leave the page alone.
+
+- **Auth.** On by default: the page asks for a one-time code that the server
+  prints, once per browser. In a frame, such as a cloud IDE's preview, the
+  browser cannot prompt, so the dock asks instead: its button carries a dot,
+  and the drawer holds a field for the code. `createLitDevtools({auth: false})`
+  skips the code; only do that on a server bound to loopback, since the RPC
+  can open files in your editor.
+- **Transport.** The RPC runs over a WebSocket that devframe serves on a spare
+  local port of its own, so the host needs no upgrade wiring. The browser
+  dials it on the page's hostname: pass `host: '127.0.0.1'` if your pages are
+  on `127.0.0.1` rather than `localhost`. Behind a proxy or tunnel that
+  exposes one port only, pass `transport: 'sse'` to keep the RPC on the
+  host's origin. Over HTTP/1.1 each SSE stream holds one of the browser's six
+  connections per host, and a docked page holds two, so stay at two tabs or
+  serve over HTTP/2.
+- **Cloud previews and tunnels.** Only loopback pages may connect by default.
+  Name the others in `allowedOrigins`; a `*` in the host stands for any
+  subdomain, so `['https://*.csb.app']` admits every CodeSandbox preview. Keep
+  `auth` on there: the preview is reachable by more than your machine.
+- **Limits.** As with `lit-devtools dev`: the tree, inspector and timeline
+  work, component locations come from the page's sourcemaps, and HMR patching
+  needs Vite. The [Elysia example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/elysia)
+  runs it this way.
+
 ## Open it and record ten seconds
 
 Start the dev server, open the page, and open the Vite DevTools overlay. Lit

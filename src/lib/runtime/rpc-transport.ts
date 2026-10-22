@@ -70,7 +70,32 @@ export interface ConnectOptions {
    * and a classic script tag is exempt from them where `fetch` is not.
    */
   connectionMeta?: ConnectionMeta;
+  /**
+   * Called when the page has to ask for the one-time code itself. devframe
+   * prompts for it only in a top-level window; in a frame (a cloud IDE's
+   * preview, an embedded demo) it waits for a trust that never comes. With
+   * this set, a framed page that holds no trusted token asks the server to
+   * print a code and hands the caller a way to send it back.
+   */
+  onAuthRequired?: (auth: CodeRequest) => void;
 }
+
+/** What {@link ConnectOptions.onAuthRequired} gets. */
+export interface CodeRequest {
+  /** Sends a code; resolves `true` once the server trusts the page. */
+  submit(code: string): Promise<boolean>;
+  /** Asks the server to print a fresh code, for one that expired. */
+  reissue(): Promise<void>;
+}
+
+/** devframe's own prompt runs only here; see `onAuthRequired`. */
+const topLevel = (): boolean => {
+  try {
+    return window.self === window.top;
+  } catch {
+    return false;
+  }
+};
 
 /**
  * Point this page's runtime at a standalone `lit-devtools dev` server.
@@ -96,7 +121,22 @@ export const connectToDevServer = async (
     authToken: options.authToken,
     connectionMeta: options.connectionMeta,
   });
-  await client.ensureTrusted();
+  if (options.onAuthRequired !== undefined && !topLevel()) {
+    // A token stored by an earlier visit is tried as the client starts; give
+    // it a moment before asking for a code.
+    const trusted = await client.ensureTrusted(2000).catch(() => false);
+    if (!trusted) {
+      await client.requestAuthCode().catch(() => {});
+      options.onAuthRequired({
+        submit: (code) => client.requestTrustWithCode(code.trim()),
+        reissue: () => client.requestAuthCode({reissue: true}),
+      });
+      // No timeout: the reader types at their own pace.
+      await client.ensureTrusted(0);
+    }
+  } else {
+    await client.ensureTrusted();
+  }
 
   const replaced = pageChannel.carriers;
   for (const previous of replaced) pageChannel.detach(previous);

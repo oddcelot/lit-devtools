@@ -71,6 +71,10 @@
       "types": "./lib/runtime/rpc-transport.d.ts",
       "default": "./lib/runtime/rpc-transport.js"
     },
+    "./devframe": {
+      "types": "./lib/devframe/embed.d.ts",
+      "default": "./lib/devframe/embed.js"
+    },
     "./uno": {
       "types": "./lib/uno-sheet.d.ts",
       "default": "./lib/uno-sheet.js"
