@@ -132,6 +132,13 @@ section > header p {
   background: var(--lit-devtools-bg);
   color: var(--lit-devtools-text);
 }
+/* The whole panel, framed: tall enough for the demo above it and a tab. */
+iframe.live-panel {
+  display: block;
+  width: 100%;
+  height: 44rem;
+  border: 1px solid var(--lit-devtools-border, var(--border));
+}
 /* A whole tab's view: the height of a panel, as the views lay out in one. */
 .panel-specimen.tall {
   display: flex;

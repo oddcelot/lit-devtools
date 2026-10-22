@@ -31,14 +31,15 @@ const setDensity = (next: 'docs' | 'devtools') => {
   draw();
 };
 
-const halves = (label: string, content: () => unknown) => html`<div
-  class="halves"
->
+const halves = (
+  label: string,
+  content: (scheme: 'dark' | 'light') => unknown
+) => html`<div class="halves">
   ${(['dark', 'light'] as const).map(
     (scheme) =>
       html`<div class="half wa-${scheme}">
         <div class="scheme">${label} · .wa-${scheme}</div>
-        ${content()}
+        ${content(scheme)}
       </div>`
   )}
 </div>`;

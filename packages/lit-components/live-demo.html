@@ -1,0 +1,30 @@
+<!doctype html>
+<!-- The page live-panel.html inspects: src/panel/figures/live/demo-page.ts. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Live panel demo</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <hmr-counter></hmr-counter>
+    <hmr-lifecycle></hmr-lifecycle>
+    <hmr-properties></hmr-properties>
+    <script type="module" src="./kitchen-sink/live-demo.ts"></script>
+  </body>
+</html>
