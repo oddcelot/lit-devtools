@@ -22,6 +22,7 @@
  */
 
 import {initDevframe} from 'devframe/initiate';
+import {resolveAllowedOrigins} from './allowed-origins.js';
 import {createNodeActions} from './node-actions.js';
 import {PACKAGE_VERSION, PANEL_DIST_DIR} from './paths.js';
 import {createStandaloneLitDevframe} from './rpc-source.js';
@@ -61,7 +62,29 @@ export interface LitDevtoolsOptions {
    * `http://127.0.0.1:3000` needs `'127.0.0.1'`. Default `localhost`.
    */
   host?: string;
+  /**
+   * Origins besides loopback that pages and the panel may connect from, for a
+   * dev server reached through a cloud preview or a tunnel. A `*` in the host
+   * stands for any subdomain, as with `lit-devtools dev --allow-origin`:
+   * `['https://*.csb.app']` admits every CodeSandbox preview. Scheme and port
+   * have to match.
+   */
+  allowedOrigins?: readonly string[];
 }
+
+/**
+ * Whether the optional peer behind devframe's MCP endpoint is installed.
+ * Without it devframe warns (DF0078) at every start; off is the same
+ * outcome, silently.
+ */
+const hasAgenticPeer = (): boolean => {
+  try {
+    import.meta.resolve('@devframes/agentic');
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export interface LitDevtools {
   /** The normalized mount path, e.g. `/__lit-devtools/`. */
@@ -93,7 +116,9 @@ export const createLitDevtools = ({
   dock = true,
   transport = 'websocket',
   host = 'localhost',
+  allowedOrigins = [],
 }: LitDevtoolsOptions = {}): LitDevtools => {
+  const origins = resolveAllowedOrigins(allowedOrigins);
   const devframe = initDevframe(
     createStandaloneLitDevframe({
       host: 'standalone',
@@ -103,7 +128,14 @@ export const createLitDevtools = ({
       // Where components are defined, read off the page's own sourcemaps.
       pageSourceMaps: true,
     }),
-    {base, auth, host, ws: transport === 'sse' ? false : {sidecar: true}}
+    {
+      base,
+      auth,
+      host,
+      ws: transport === 'sse' ? false : {sidecar: true},
+      ...(origins === undefined ? {} : {allowedOrigins: origins}),
+      ...(hasAgenticPeer() ? {} : {mcp: false}),
+    }
   );
   // The page script finds its server from its own address, so it has to be
   // served under the base, next to the endpoints it dials.

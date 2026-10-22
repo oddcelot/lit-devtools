@@ -46,6 +46,26 @@ describe('createLitDevtools', () => {
     expect(meta.backend).toBe('sse');
   });
 
+  test('admits a preview origin only when it is allowed', async () => {
+    const stream = (devtools: LitDevtools) =>
+      devtools.handler(
+        new Request('https://abc-3000.csb.app/__lit-devtools/__sse', {
+          headers: {origin: 'https://abc-3000.csb.app'},
+        })
+      );
+    const closed = create({auth: false, transport: 'sse'});
+    expect((await stream(closed)).status).toBe(403);
+
+    const open = create({
+      auth: false,
+      transport: 'sse',
+      allowedOrigins: ['https://*.csb.app'],
+    });
+    const response = await stream(open);
+    expect(response.status).toBe(200);
+    await response.body?.cancel();
+  });
+
   test('serves the page script with its server and descriptor', async () => {
     const devtools = create({auth: false});
     const response = await get(devtools, devtools.script);

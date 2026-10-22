@@ -130,6 +130,10 @@ or `dock: false` to leave the page alone.
   host's origin. Over HTTP/1.1 each SSE stream holds one of the browser's six
   connections per host, and a docked page holds two, so stay at two tabs or
   serve over HTTP/2.
+- **Cloud previews and tunnels.** Only loopback pages may connect by default.
+  Name the others in `allowedOrigins`; a `*` in the host stands for any
+  subdomain, so `['https://*.csb.app']` admits every CodeSandbox preview. Keep
+  `auth` on there: the preview is reachable by more than your machine.
 - **Limits.** As with `lit-devtools dev`: the tree, inspector and timeline
   work, component locations come from the page's sourcemaps, and HMR patching
   needs Vite. The [Elysia example](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/elysia)
