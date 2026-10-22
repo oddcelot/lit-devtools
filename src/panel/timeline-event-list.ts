@@ -325,6 +325,8 @@ export class TimelineEventList extends LitElement {
    *  same filter to the tracks; applied here too because Raw rows are not
    *  spans the view derives. */
   @property({attribute: false}) filter: TimelineFilter = NO_FILTER;
+  /** Let the detail pane offer **inspect** (see `timeline-span-detail`). */
+  @property({attribute: false}) inspectable = true;
   /** One row per raw event instead of one per collapsed span. */
   @state() private _raw = false;
   /** Keys of the ticks whose nested rows are listed. Replaced, never mutated,
@@ -695,6 +697,7 @@ export class TimelineEventList extends LitElement {
         selected
           ? html`<timeline-span-detail
               filterable
+              .inspectable=${this.inspectable}
               .span=${selected}
               .layers=${this.layers}
               .causeSpan=${this._causeOf(selected)}

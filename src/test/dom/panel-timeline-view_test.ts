@@ -498,6 +498,20 @@ test('Copy link puts the range link on the clipboard', async () => {
   ).toContain('Copied');
 });
 
+test('the range summary goes without inspect when the tracks do', async () => {
+  const {el, tracks} = await mount();
+  setEvents(events);
+  await flush(el);
+  await drawRange(el, tracks(), {start: 0, end: 20});
+  const summary = () =>
+    tracks().shadowRoot!.querySelector('timeline-range-summary')!;
+  expect(summary().shadowRoot!.querySelector('.inspect-link')).not.toBeNull();
+  tracks().inspectable = false;
+  await flush(el);
+  await summary().updateComplete;
+  expect(summary().shadowRoot!.querySelector('.inspect-link')).toBeNull();
+});
+
 test('a link with a range and an event shows both', async () => {
   const {el, tracks} = await mount();
   el.location.apply({range: {start: 9, end: 20}, eventId: '2-start'});
