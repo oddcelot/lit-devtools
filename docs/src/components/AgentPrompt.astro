@@ -1,8 +1,8 @@
 ---
 /**
  * A setup prompt to paste into a coding agent: a copy button, with the prompt
- * itself folded away underneath (Web Awesome's button and details, themed by
- * the theme package astro.config.mjs loads) for anyone who wants to read it first. The
+ * itself folded away underneath (`lit-copy-prompt` from
+ * packages/lit-components) for anyone who wants to read it first. The
  * prompt points at the agent skill rather than repeating its steps, so the
  * skill stays the one place they're written down.
  */
@@ -19,95 +19,17 @@ const prompt = `Set up @oddsquad/vite-plugin-lit in this project, following the 
 Don't enable the DevTools panel or the source overlay unless I ask. When you're done, list the files you changed.`;
 ---
 
-<div class="agent-prompt not-content">
-  <div class="bar">
-    <span class="label agent-prompt-label">Set it up with a coding agent</span>
-    <wa-button variant="brand" size="s" class="copy" data-prompt={prompt}>
-      <span class="labels">
-        <span class="idle">Copy prompt</span>
-        <span class="done" aria-hidden="true">Copied</span>
-      </span>
-    </wa-button>
-    <span class="status sr-only" role="status"></span>
-  </div>
-  <wa-details summary="Show the prompt" appearance="plain">
-    <pre>{prompt}</pre>
-  </wa-details>
-</div>
+<lit-copy-prompt
+  class="agent-prompt not-content"
+  label="Set it up with a coding agent"
+  text={prompt}></lit-copy-prompt>
 
 <script>
-  import '@awesome.me/webawesome/dist/components/button/button.js';
-  import '@awesome.me/webawesome/dist/components/details/details.js';
-
-  for (const button of document.querySelectorAll<HTMLElement>(
-    '.agent-prompt .copy'
-  )) {
-    const status = button.parentElement?.querySelector('.status');
-    button.addEventListener('click', async () => {
-      await navigator.clipboard.writeText(button.dataset.prompt ?? '');
-      button.classList.add('copied');
-      if (status) status.textContent = 'Prompt copied';
-      setTimeout(() => {
-        button.classList.remove('copied');
-        if (status) status.textContent = '';
-      }, 2000);
-    });
-  }
+  import '@oddsquad/lit-components/copy-prompt.js';
 </script>
 
 <style>
   .agent-prompt {
     margin-block: 1rem;
-    border: 1px solid var(--sl-color-gray-5);
-    border-radius: 0.5rem;
-    background: var(--sl-color-gray-6);
-  }
-  .bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-  }
-  .label {
-    font-weight: 600;
-    color: var(--sl-color-white);
-  }
-  .copy {
-    flex-shrink: 0;
-  }
-  /* Both labels share one grid cell, so the button keeps its width. */
-  .labels {
-    display: inline-grid;
-  }
-  .labels > span {
-    grid-area: 1 / 1;
-  }
-  .copy .done,
-  .copy.copied .idle {
-    visibility: hidden;
-  }
-  .copy.copied .done {
-    visibility: visible;
-  }
-  wa-details {
-    border-top: 1px solid var(--sl-color-gray-5);
-  }
-  wa-details::part(header) {
-    padding: 0.5rem 1rem;
-    font-size: var(--sl-text-sm);
-    color: var(--sl-color-gray-2);
-  }
-  wa-details::part(content) {
-    padding: 0;
-  }
-  pre {
-    margin: 0;
-    padding: 0 1rem 1rem;
-    white-space: pre-wrap;
-    font-family: var(--sl-font-mono);
-    font-size: var(--sl-text-xs);
-    line-height: 1.6;
-    color: var(--sl-color-gray-1);
   }
 </style>

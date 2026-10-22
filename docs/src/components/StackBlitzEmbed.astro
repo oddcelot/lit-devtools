@@ -40,9 +40,9 @@ const query = (extra: Record<string, string>) => {
 <figure class="stackblitz-embed">
   <stackblitz-embed data-src={query({embed: '1', hideExplorer: '1'})}>
     <div class="start">
-      <wa-button variant="brand" class="run" data-title={title} pill>
+      <lit-button size="m" class="run" data-title={title} pill>
         Run this demo
-      </wa-button>
+      </lit-button>
       <p class="notice">
         Runs on StackBlitz: starting it connects to stackblitz.com, which
         installs and runs this project in your browser (<a
@@ -53,16 +53,16 @@ const query = (extra: Record<string, string>) => {
     </div>
   </stackblitz-embed>
   <figcaption>
-    <wa-button appearance="plain" size="s" class="reload" hidden>
+    <lit-button appearance="plain" class="reload" hidden>
       Stuck? Reload the demo
-    </wa-button>
+    </lit-button>
     <a href={query({})}>Open in StackBlitz</a>
   </figcaption>
 </figure>
 
 <script>
-  import '@awesome.me/webawesome/dist/components/button/button.js';
-  import type WaButton from '@awesome.me/webawesome/dist/components/button/button.js';
+  import type {LitButton} from '@oddsquad/lit-components/button.js';
+  import '@oddsquad/lit-components/button.js';
 
   // A WebContainer embed runs only on a cross-origin isolated page, in a
   // `credentialless` iframe; otherwise StackBlitz shows "Unable to run
@@ -83,10 +83,10 @@ const query = (extra: Record<string, string>) => {
 
   class StackBlitzEmbed extends HTMLElement {
     connectedCallback() {
-      const run = this.querySelector<WaButton>('.run');
+      const run = this.querySelector<LitButton>('.run');
       const startArea = this.querySelector<HTMLElement>('.start');
       const reload =
-        this.closest('figure')?.querySelector<WaButton>('.reload');
+        this.closest('figure')?.querySelector<LitButton>('.reload');
       if (
         run === null ||
         startArea === null ||
