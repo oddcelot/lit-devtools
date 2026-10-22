@@ -1,6 +1,6 @@
 import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
+import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
 import {describeRange, formatMs} from '../lib/timeline/range.js';
@@ -67,7 +67,7 @@ export class TimelineRangeSummary extends LitElement {
         height: 8px;
         margin-right: var(--lit-devtools-space-2);
       }
-      header wa-button::part(base) {
+      header lit-button::part(base) {
         height: var(--lit-devtools-control-height, 28px);
         min-height: 0;
       }
@@ -93,7 +93,7 @@ export class TimelineRangeSummary extends LitElement {
         line-height: 1.5;
         vertical-align: baseline;
       }
-      td wa-button::part(base) {
+      td lit-button::part(base) {
         height: auto;
         min-height: 0;
         padding: 0 var(--lit-devtools-space-2);
@@ -154,37 +154,41 @@ export class TimelineRangeSummary extends LitElement {
           it</span
         >
         <span class="spacer"></span>
-        <wa-button
+        <lit-button
+          variant="neutral"
           class="zoom"
           size="s"
           appearance="outlined"
           data-tip="Fit the view to this range"
           @click=${() => this._emit('range-zoom')}
-          >Zoom to range</wa-button
+          >Zoom to range</lit-button
         >
-        <wa-button
+        <lit-button
+          variant="neutral"
           class="filter"
           size="s"
           appearance="outlined"
           data-tip="Show only this range in the list and the tracks"
           @click=${() => this._emit('range-filter')}
-          >Filter to range</wa-button
+          >Filter to range</lit-button
         >
-        <wa-button
+        <lit-button
+          variant="neutral"
           class="copy-link"
           size="s"
           appearance="outlined"
           data-tip="Copy a link that opens the Timeline on this range. It names times in this recording, so it suits a snapshot or this session"
           @click=${this._copyLink}
-          >${this._copied ? 'Copied' : 'Copy link'}</wa-button
+          >${this._copied ? 'Copied' : 'Copy link'}</lit-button
         >
-        <wa-button
+        <lit-button
+          variant="neutral"
           class="clear"
           size="s"
           appearance="plain"
           data-tip="Clear the range (Esc)"
           @click=${() => this._emit('range-clear')}
-          >Clear</wa-button
+          >Clear</lit-button
         >
       </header>
       <div class="layers">
@@ -217,26 +221,26 @@ export class TimelineRangeSummary extends LitElement {
                   <td>
                     ${
                       c.elementIds.length === 1 && first !== undefined
-                        ? html`<wa-button
+                        ? html`<lit-button
                             class="filter-link"
                             size="s"
                             appearance="plain"
                             data-tip="Show only events from this element"
                             @click=${() =>
                               this._emit('element-filter', {id: first})}
-                            >filter</wa-button
+                            >filter</lit-button
                           >`
                         : nothing
                     }${
                       first !== undefined
-                        ? html`<wa-button
+                        ? html`<lit-button
                             class="inspect-link"
                             size="s"
                             appearance="plain"
                             data-tip="Open this element in the Components tab"
                             @click=${() =>
                               this._emit('inspect-element', {id: first})}
-                            >inspect</wa-button
+                            >inspect</lit-button
                           >`
                         : nothing
                     }

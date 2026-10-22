@@ -617,7 +617,7 @@ test("the Lit tab shows the page's components, picks, and follows a reload", asy
 
   // Pick: the panel's toggle reaches the page's picker through the port, and
   // the pick comes back the same way and selects the element.
-  await panel.locator('components-view wa-button.pick').click();
+  await panel.locator('components-view lit-button.pick').click();
   await expect
     .poll(() =>
       page.evaluate(() =>
@@ -687,10 +687,12 @@ test('the Lit tab leaves out what needs a dev server', async () => {
   expect(await panel.locator('#editor-folder-offer').isVisible()).toBe(false);
 
   // No disk to write a snapshot to, so no button that could only fail.
-  await panel.locator('timeline-view wa-button.record').waitFor({
+  await panel.locator('timeline-view lit-button.record').waitFor({
     state: 'attached',
   });
-  expect(await panel.locator('timeline-view wa-button.export').count()).toBe(0);
+  expect(await panel.locator('timeline-view lit-button.export').count()).toBe(
+    0
+  );
 
   // The Settings tab says why the plugin settings are missing.
   await panel.locator('lit-segmented-tabs').getByText('Settings').click();
@@ -814,7 +816,7 @@ const docsSettings = async (panel: Page) => {
 /** In the Settings tab: add `value` as a manifest URL. */
 const addManifest = async (panel: Page, value: string) => {
   const section = await docsSettings(panel);
-  await section.locator('wa-input input').fill(value);
+  await section.locator('lit-input input').fill(value);
   await section.getByRole('button', {name: 'Add'}).click();
 };
 
@@ -1002,12 +1004,12 @@ test('the Lit tab lists a linked manifest with the added ones, in an order the u
 
   // Switched off, it is skipped; with both off, there are no docs.
   await docsSettings(panel);
-  await entry('/assets/cem.json').locator('wa-switch').click();
+  await entry('/assets/cem.json').locator('lit-switch').click();
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .toContain(ROOT);
   await docsSettings(panel);
-  await entry('/custom-elements.json').locator('wa-switch').click();
+  await entry('/custom-elements.json').locator('lit-switch').click();
   await expect
     .poll(() => detailsText(panel), {timeout: 15_000})
     .not.toContain(ROOT);
@@ -1119,7 +1121,7 @@ test("the Lit tab's switch puts Lit tracks in Chrome's Performance panel", async
   const tracks = panel
     .locator('devtools-settings tr')
     .filter({hasText: 'performance tracks'})
-    .locator('wa-switch');
+    .locator('lit-switch');
   await tracks.waitFor({timeout: 15_000});
 
   // Off by default: an update stamps nothing.

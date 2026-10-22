@@ -7,16 +7,17 @@ import {
   type TemplateResult,
 } from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
-import '@awesome.me/webawesome/dist/components/badge/badge.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/details/details.js';
-import '@awesome.me/webawesome/dist/components/input/input.js';
+import '../../packages/lit-components/src/badge.js';
+import '../../packages/lit-components/src/button.js';
+import '../../packages/lit-components/src/icon-button.js';
+import '../../packages/lit-components/src/details.js';
+import '../../packages/lit-components/src/input.js';
 import './wa-icons.js';
-import '@awesome.me/webawesome/dist/components/split-panel/split-panel.js';
-import '@awesome.me/webawesome/dist/components/switch/switch.js';
-import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
-import type WaSplitPanel from '@awesome.me/webawesome/dist/components/split-panel/split-panel.js';
-import type WaSwitch from '@awesome.me/webawesome/dist/components/switch/switch.js';
+import '../../packages/lit-components/src/split-panel.js';
+import '../../packages/lit-components/src/switch.js';
+import type {LitInput} from '../../packages/lit-components/src/input.js';
+import type {LitSplitPanel} from '../../packages/lit-components/src/split-panel.js';
+import type {LitSwitch} from '../../packages/lit-components/src/switch.js';
 import {tokens} from '../lib/tokens.js';
 import {
   ANATOMY_COLORS,
@@ -279,13 +280,12 @@ const hydrationPill = (n: {
 }): TemplateResult | typeof nothing => {
   if (n.ssr === undefined || n.notUpgraded === true) return nothing;
   const {text, icon, variant, tip} = HYDRATION_PILLS[n.ssr];
-  return html`<wa-badge
+  return html`<lit-badge
     class="ssr ${n.ssr}"
     variant=${variant}
-    appearance="outlined"
     pill
     data-tip=${tip}
-    ><wa-icon name=${icon}></wa-icon>${text}</wa-badge
+    ><lit-icon name=${icon}></lit-icon>${text}</lit-badge
   >`;
 };
 
@@ -552,12 +552,8 @@ const PROP_OPTION_TIPS: Record<InspectorPropOption, string> = {
 /** Badges for the options a property sets beyond Lit's defaults. */
 const propOptionBadges = (p: InspectorProp): TemplateResult[] => {
   const badge = (label: string, tip: string) =>
-    html`<wa-badge
-      class="badge"
-      variant="neutral"
-      appearance="outlined"
-      data-tip=${tip}
-      >${label}</wa-badge
+    html`<lit-badge class="badge" variant="neutral" data-tip=${tip}
+      >${label}</lit-badge
     >`;
   return [
     ...(p.attribute === false && !p.state
@@ -719,8 +715,8 @@ export class ComponentsView extends LitElement {
       }
       /* The inputs carry a \`label\` for their accessible name; WA renders it
          visibly, and the placeholder or the text beside them already says it. */
-      wa-input[label]::part(form-control-label),
-      wa-select[label]::part(form-control-label) {
+      lit-input[label]::part(form-control-label),
+      lit-select[label]::part(form-control-label) {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -728,20 +724,20 @@ export class ComponentsView extends LitElement {
         clip-path: inset(50%);
         white-space: nowrap;
       }
-      .toolbar wa-button,
-      .toolbar wa-input {
+      .toolbar lit-button,
+      .toolbar lit-input {
         --wa-form-control-height: var(--lit-devtools-control-height);
       }
-      .toolbar wa-button::part(base) {
+      .toolbar lit-button::part(base) {
         min-height: var(--lit-devtools-control-height);
       }
-      wa-input.tree-filter {
+      lit-input.tree-filter {
         width: 200px;
         min-width: 120px;
         flex-shrink: 1;
         font-family: var(--lit-devtools-font-mono);
       }
-      wa-input.tree-filter wa-icon[slot='start'],
+      lit-input.tree-filter lit-icon[slot='start'],
       .match-count {
         color: var(--lit-devtools-text-muted);
       }
@@ -754,7 +750,7 @@ export class ComponentsView extends LitElement {
       .row.context .tag {
         opacity: 0.55;
       }
-      wa-split-panel {
+      lit-split-panel {
         flex: 1;
         min-height: 0;
         --min: ${DETAILS_WIDTH_MIN}px;
@@ -813,7 +809,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-muted);
         flex-shrink: 0;
       }
-      .twisty wa-icon {
+      .twisty lit-icon {
         font-size: 0.8em;
       }
       .tag {
@@ -904,7 +900,7 @@ export class ComponentsView extends LitElement {
       .row .status.undefined,
       .row .status.not-upgraded,
       .row .status.warned,
-      .row wa-badge.ssr {
+      .row lit-badge.ssr {
         margin-left: var(--lit-devtools-space-3);
       }
       /* A true pill, the one round shape in the square theme, so the
@@ -913,7 +909,7 @@ export class ComponentsView extends LitElement {
          matches the vertical padding, which centres the round icon in the
          pill's round end; the text side gets about half the height, so the
          label clears the curve. */
-      wa-badge.ssr {
+      lit-badge.ssr {
         --wa-border-radius-pill: 9999px;
         flex-shrink: 0;
         gap: 0.3em;
@@ -923,7 +919,7 @@ export class ComponentsView extends LitElement {
         padding: 0.2em 0.6em 0.2em 0.2em;
       }
       /* Kept at the 2xs pill's size while the label shrinks. */
-      wa-badge.ssr wa-icon {
+      lit-badge.ssr lit-icon {
         font-size: 1.2em;
       }
       .not-defined-note {
@@ -1127,7 +1123,7 @@ export class ComponentsView extends LitElement {
         outline-offset: 1px;
         border-radius: 2px;
       }
-      .link wa-icon {
+      .link lit-icon {
         margin-left: var(--lit-devtools-space-1);
         vertical-align: -0.125em;
       }
@@ -1180,11 +1176,11 @@ export class ComponentsView extends LitElement {
       summary .count {
         font-family: var(--lit-devtools-font-mono);
       }
-      wa-input.filter {
+      lit-input.filter {
         margin: var(--lit-devtools-space-4) 0 0;
         font-family: var(--lit-devtools-font-mono);
       }
-      wa-input.filter wa-icon[slot='start'] {
+      lit-input.filter lit-icon[slot='start'] {
         color: var(--lit-devtools-text-muted);
       }
       mark {
@@ -1456,7 +1452,7 @@ export class ComponentsView extends LitElement {
         flex-shrink: 0;
         background: var(--lit-devtools-error-soft);
       }
-      wa-details.hmr-banner {
+      lit-details.hmr-banner {
         --spacing: var(--lit-devtools-space-2) var(--lit-devtools-space-5);
         border: 0;
         border-radius: 0;
@@ -1867,7 +1863,7 @@ export class ComponentsView extends LitElement {
         void this._toggleBreak(target);
       }}
     >
-      <wa-icon name="pause-circle"></wa-icon>${label ?? nothing}
+      <lit-icon name="pause-circle"></lit-icon>${label ?? nothing}
     </button>`;
   }
 
@@ -2227,7 +2223,7 @@ export class ComponentsView extends LitElement {
   }
 
   private _saveDetailsWidth(e: Event): void {
-    const width = Math.round((e.target as WaSplitPanel).positionInPixels);
+    const width = Math.round((e.target as LitSplitPanel).positionInPixels);
     if (!(width >= DETAILS_WIDTH_MIN)) return;
     try {
       localStorage.setItem(DETAILS_WIDTH_LS_KEY, String(width));
@@ -2237,7 +2233,7 @@ export class ComponentsView extends LitElement {
   }
 
   private _onHmrToggle(e: Event): void {
-    // wa-show/wa-hide also bubble from nested wa-details; only ours counts.
+    // wa-show/wa-hide also bubble from nested lit-details; only ours counts.
     if (e.target !== e.currentTarget) return;
     this._hmrExpanded = (e.target as HTMLElement).hasAttribute('open');
   }
@@ -2312,9 +2308,9 @@ export class ComponentsView extends LitElement {
           }}
           >${
             hasChildren
-              ? html`<wa-icon
+              ? html`<lit-icon
                   name=${expanded ? 'caret-down' : 'caret-right'}
-                ></wa-icon>`
+                ></lit-icon>`
               : nothing
           }</span
         >
@@ -2444,7 +2440,7 @@ export class ComponentsView extends LitElement {
         aria-label=${`Set to ${next}`}
         @click=${() => this._setProp(edit, next)}
       >
-        <wa-icon name=${next ? 'toggle-right' : 'toggle-left'}></wa-icon>
+        <lit-icon name=${next ? 'toggle-right' : 'toggle-left'}></lit-icon>
       </button>`;
     }
     return html`<button
@@ -2453,7 +2449,7 @@ export class ComponentsView extends LitElement {
       aria-label="Edit value"
       @click=${() => void this._startEdit(key)}
     >
-      <wa-icon name="pencil-simple"></wa-icon>
+      <lit-icon name="pencil-simple"></lit-icon>
     </button>`;
   }
 
@@ -2561,7 +2557,7 @@ export class ComponentsView extends LitElement {
       @click=${(e: Event) =>
         void this._copy(key, text, e.currentTarget as HTMLElement)}
     >
-      <wa-icon name=${copied ? 'check' : 'copy'}></wa-icon>
+      <lit-icon name=${copied ? 'check' : 'copy'}></lit-icon>
     </button>`;
   }
 
@@ -2580,7 +2576,7 @@ export class ComponentsView extends LitElement {
         if (id !== undefined) sendToPage({type: 'store-global', id, path});
       }}
     >
-      <wa-icon name="terminal"></wa-icon>
+      <lit-icon name="terminal"></lit-icon>
     </button>`;
   }
 
@@ -2611,7 +2607,7 @@ export class ComponentsView extends LitElement {
       }`}
       @click=${() => this._expansion.toggle(path)}
     >
-      <wa-icon name=${open ? 'caret-down' : 'caret-right'}></wa-icon>
+      <lit-icon name=${open ? 'caret-down' : 'caret-right'}></lit-icon>
     </button>`;
   }
 
@@ -2800,9 +2796,9 @@ export class ComponentsView extends LitElement {
           data-tip=${this._originText(docs.origin)}
           aria-label=${this._originText(docs.origin)}
         >
-          <wa-icon
+          <lit-icon
             name=${docs.origin.source === true ? 'file-code' : 'package'}
-          ></wa-icon>
+          ></lit-icon>
         </button>`,
       }
     );
@@ -2884,12 +2880,11 @@ export class ComponentsView extends LitElement {
         rowClass: p.override === undefined ? '' : 'overridden',
         trailing: html`${this._renderPropBreak(p)}${this._renderShadowed({...p, keys: []})}${
           p.reflects
-            ? html`<wa-badge
+            ? html`<lit-badge
                 class="badge"
                 variant="neutral"
-                appearance="outlined"
                 data-tip="Reflects to an attribute"
-                >${typeof p.attribute === 'string' ? p.attribute : 'attr'}</wa-badge
+                >${typeof p.attribute === 'string' ? p.attribute : 'attr'}</lit-badge
               >`
             : nothing
         }${propOptionBadges(p)}`,
@@ -2957,7 +2952,7 @@ export class ComponentsView extends LitElement {
                 aria-label=${`Remove the override on ${pathLabel(t.name, t.keys)}`}
                 @click=${() => this._session.removeOverride(t.name, t.keys)}
               >
-                <wa-icon name="x"></wa-icon>
+                <lit-icon name="x"></lit-icon>
               </button>`
       }`;
   }
@@ -2981,7 +2976,7 @@ export class ComponentsView extends LitElement {
       data-tip=${persist ? 'Kept across reloads' : 'Keep across reloads'}
       @click=${() => this._session.persistOverride(name, !persist, keys, id)}
     >
-      <wa-icon name="push-pin"></wa-icon>
+      <lit-icon name="push-pin"></lit-icon>
     </button>`;
   }
 
@@ -3015,7 +3010,7 @@ export class ComponentsView extends LitElement {
     const replaced = dropped.filter((e) => e.reason !== 'refused');
     const refused = dropped.filter((e) => e.reason === 'refused');
     return html`<div class="overrides-dropped" role="status">
-      <wa-icon name="warning"></wa-icon>
+      <lit-icon name="warning"></lit-icon>
       <span
         >${
           replaced.length === 0
@@ -3038,7 +3033,7 @@ export class ComponentsView extends LitElement {
         aria-label="Dismiss"
         @click=${() => this._session.dismissDropped()}
       >
-        <wa-icon name="x"></wa-icon>
+        <lit-icon name="x"></lit-icon>
       </button>
     </div>`;
   }
@@ -3048,12 +3043,12 @@ export class ComponentsView extends LitElement {
     entries: readonly InspectorOverrideEntry[],
     waiting: number
   ): TemplateResult {
-    return html` <wa-switch
+    return html` <lit-switch
         size="s"
         .checked=${applied}
         @change=${(e: Event) =>
-          this._session.applyOverrides((e.target as WaSwitch).checked)}
-        >Apply overrides</wa-switch
+          this._session.applyOverrides((e.target as LitSwitch).checked)}
+        >Apply overrides</lit-switch
       >
       <details>
         <summary>
@@ -3087,18 +3082,19 @@ export class ComponentsView extends LitElement {
                   @click=${() =>
                     this._session.removeOverride(e.name, e.keys ?? [], e.id)}
                 >
-                  <wa-icon name="x"></wa-icon>
+                  <lit-icon name="x"></lit-icon>
                 </button>
               </li>`
           )}
         </ul>
       </details>
-      <wa-button
+      <lit-button
+        variant="neutral"
         class="clear-overrides"
         size="s"
         appearance="plain"
         @click=${() => this._session.clearOverrides()}
-        >Clear all</wa-button
+        >Clear all</lit-button
       >`;
   }
 
@@ -3208,12 +3204,8 @@ export class ComponentsView extends LitElement {
   }
 
   private _renderSlotBadge(label: string, tip: string): TemplateResult {
-    return html`<wa-badge
-      class="badge"
-      variant="neutral"
-      appearance="outlined"
-      data-tip=${tip}
-      >${label}</wa-badge
+    return html`<lit-badge class="badge" variant="neutral" data-tip=${tip}
+      >${label}</lit-badge
     >`;
   }
 
@@ -3519,7 +3511,7 @@ export class ComponentsView extends LitElement {
       }}
     >
       <summary>
-        <wa-icon name=${open ? 'caret-down' : 'caret-right'}></wa-icon>
+        <lit-icon name=${open ? 'caret-down' : 'caret-right'}></lit-icon>
         <span class="label">${label}</span>
         ${
           opts.count === false
@@ -3606,7 +3598,7 @@ export class ComponentsView extends LitElement {
   }
 
   private _onTreeFilterInput(e: Event): void {
-    this._treeQuery = (e.target as WaInput).value ?? '';
+    this._treeQuery = (e.target as LitInput).value ?? '';
   }
 
   private _onTreeFilterKeydown(e: KeyboardEvent): void {
@@ -3616,7 +3608,7 @@ export class ComponentsView extends LitElement {
   }
 
   private _onFilterInput(e: Event): void {
-    this._query = (e.target as WaInput).value ?? '';
+    this._query = (e.target as LitInput).value ?? '';
   }
 
   private _onFilterKeydown(e: KeyboardEvent): void {
@@ -3658,7 +3650,7 @@ export class ComponentsView extends LitElement {
           data-tip=${sourceTip(inHost ? sourceOpenerTip() : tip, loc.file, loc.line)}
           @click=${open}
         >
-          ${text}<wa-icon name="arrow-square-out"></wa-icon>
+          ${text}<lit-icon name="arrow-square-out"></lit-icon>
         </button>`
       : html`<span
           class="${cls} src-text"
@@ -3675,42 +3667,33 @@ export class ComponentsView extends LitElement {
       ${
         hasNoLitState(d)
           ? nothing
-          : html`<wa-button
+          : html`<lit-icon-button
               class="reveal"
               data-action="request-update"
-              appearance="plain"
-              size="s"
               data-tip="Call requestUpdate() on this element"
-              aria-label="Request update"
               @click=${this._requestUpdate}
-            >
-              <wa-icon name="arrows-clockwise"></wa-icon>
-            </wa-button>`
+              icon="arrows-clockwise"
+              label="Request update"
+            ></lit-icon-button>`
       }
-      <wa-button
+      <lit-icon-button
         class="reveal"
-        appearance="plain"
-        size="s"
         data-tip="Scroll this element into view on the page"
-        aria-label="Scroll into view"
         @click=${this._reveal}
-      >
-        <wa-icon name="target"></wa-icon>
-      </wa-button>
+        icon="target"
+        label="Scroll into view"
+      ></lit-icon-button>
       ${
         revealer === undefined || this.detailsOnly
           ? nothing
-          : html`<wa-button
+          : html`<lit-icon-button
               class="reveal"
               data-action="reveal-in-elements"
-              appearance="plain"
-              size="s"
               data-tip="Reveal in the Elements panel"
-              aria-label="Reveal in Elements"
               @click=${() => void revealer(d.id)}
-            >
-              <wa-icon name="cursor-click"></wa-icon>
-            </wa-button>`
+              icon="cursor-click"
+              label="Reveal in Elements"
+            ></lit-icon-button>`
       }
     `;
   }
@@ -3842,7 +3825,7 @@ export class ComponentsView extends LitElement {
         ${this._renderBreakOn(d)}
       </dl>
       ${noStateNote(d)}
-      <wa-input
+      <lit-input
         class="filter"
         size="s"
         type="text"
@@ -3856,9 +3839,9 @@ export class ComponentsView extends LitElement {
         @wa-clear=${() => (this._query = '')}
         @keydown=${this._onFilterKeydown}
       >
-        <wa-icon slot="start" name="magnifying-glass"></wa-icon>
-        <wa-icon slot="clear-icon" name="x"></wa-icon>
-      </wa-input>
+        <lit-icon slot="start" name="magnifying-glass"></lit-icon>
+        <lit-icon slot="clear-icon" name="x"></lit-icon>
+      </lit-input>
       ${this._renderAbout(docs)} ${warnings.section}
       ${d.anatomy === undefined ? nothing : this._renderAnatomy(d.anatomy, docs)}
       ${this._renderSection(
@@ -3952,7 +3935,7 @@ export class ComponentsView extends LitElement {
   private _renderHmrBanner(): TemplateResult | typeof nothing {
     if (this._session.hmrIncompatibilities.length === 0) return nothing;
     return html`
-      <wa-details
+      <lit-details
         class="hmr-banner"
         appearance="plain"
         ?open=${this._hmrExpanded}
@@ -3961,12 +3944,12 @@ export class ComponentsView extends LitElement {
       >
         <span slot="summary">
           <span class="hmr-title">HMR issues</span>
-          <wa-badge class="hmr-count" variant="danger" pill
-            >${this._session.hmrIncompatibilities.length}</wa-badge
+          <lit-badge appearance="accent" class="hmr-count" variant="danger" pill
+            >${this._session.hmrIncompatibilities.length}</lit-badge
           >
         </span>
-        <wa-icon slot="expand-icon" name="caret-right"></wa-icon>
-        <wa-icon slot="collapse-icon" name="caret-down"></wa-icon>
+        <lit-icon slot="expand-icon" name="caret-right"></lit-icon>
+        <lit-icon slot="collapse-icon" name="caret-down"></lit-icon>
         ${
           this._hmrExpanded
             ? html`
@@ -4004,7 +3987,7 @@ export class ComponentsView extends LitElement {
               `
             : nothing
         }
-      </wa-details>
+      </lit-details>
     `;
   }
 
@@ -4016,7 +3999,7 @@ export class ComponentsView extends LitElement {
     icon: TemplateResult,
     label: string
   ): TemplateResult {
-    return html`<wa-button
+    return html`<lit-button
       class="${kind} ${on ? 'active' : ''}"
       size="s"
       variant=${on ? 'brand' : 'neutral'}
@@ -4025,7 +4008,7 @@ export class ComponentsView extends LitElement {
       @click=${onClick}
     >
       ${icon} ${label}
-    </wa-button>`;
+    </lit-button>`;
   }
 
   override render() {
@@ -4046,12 +4029,12 @@ export class ComponentsView extends LitElement {
                 this._session.picking,
                 'Pick an element on the page (Meta+Shift+E)',
                 this._togglePick,
-                html`<wa-icon slot="start" name="crosshair"></wa-icon>`,
+                html`<lit-icon slot="start" name="crosshair"></lit-icon>`,
                 'Pick'
               )
             : nothing
         }
-        <wa-input
+        <lit-input
           class="tree-filter"
           size="s"
           type="text"
@@ -4065,7 +4048,7 @@ export class ComponentsView extends LitElement {
           @wa-clear=${() => (this._treeQuery = '')}
           @keydown=${this._onTreeFilterKeydown}
         >
-          <wa-icon slot="start" name="magnifying-glass"></wa-icon>
+          <lit-icon slot="start" name="magnifying-glass"></lit-icon>
           ${
             treeFilter === undefined
               ? nothing
@@ -4076,8 +4059,8 @@ export class ComponentsView extends LitElement {
                   >${treeFilter.matched.size}</span
                 >`
           }
-          <wa-icon slot="clear-icon" name="x"></wa-icon>
-        </wa-input>
+          <lit-icon slot="clear-icon" name="x"></lit-icon>
+        </lit-input>
         <span class="spacer"></span>
         ${this._renderToggle(
           'live',
@@ -4086,10 +4069,10 @@ export class ComponentsView extends LitElement {
             ? 'Pause: stop updating the tree as the page changes'
             : 'Resume updating the tree as the page changes',
           this._toggleLive,
-          html`<wa-icon
+          html`<lit-icon
             slot="start"
             name=${this._session.live ? 'eye' : 'eye-slash'}
-          ></wa-icon>`,
+          ></lit-icon>`,
           'Live'
         )}
         ${this._renderToggle(
@@ -4097,7 +4080,7 @@ export class ComponentsView extends LitElement {
           this._flash,
           'Flash elements on the page when they update',
           this._toggleFlash,
-          html`<wa-icon slot="start" name="lightning"></wa-icon>`,
+          html`<lit-icon slot="start" name="lightning"></lit-icon>`,
           'Flash'
         )}
         ${
@@ -4108,13 +4091,13 @@ export class ComponentsView extends LitElement {
                 this._anatomy,
                 "Draw the selected element's slots and parts on the page",
                 this._toggleAnatomy,
-                html`<wa-icon slot="start" name="bounding-box"></wa-icon>`,
+                html`<lit-icon slot="start" name="bounding-box"></lit-icon>`,
                 'Anatomy'
               )
         }
       </div>
       ${this._renderRuntimesBanner()}${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
-      <wa-split-panel
+      <lit-split-panel
         primary="end"
         position-in-pixels=${this._detailsWidth}
         @wa-reposition=${this._saveDetailsWidth}
@@ -4141,7 +4124,7 @@ export class ComponentsView extends LitElement {
           }
         </div>
         <div slot="end" class="details">${this._renderDetails()}</div>
-      </wa-split-panel>
+      </lit-split-panel>
     `;
   }
 }

@@ -165,7 +165,7 @@ const exercise = async (app) => {
 
 /** Records a short session on the panel's Timeline tab, then stops. */
 const record = async (app, panel) => {
-  const button = panel.locator('timeline-view wa-button.record');
+  const button = panel.locator('timeline-view lit-button.record');
   await button.waitFor();
   // Off by default; the cause rails start from the click and the cart event.
   const chips = panel.locator('timeline-layers .chip');
@@ -232,7 +232,7 @@ const SHOTS = [
     async capture({app, openPanel}) {
       const panel = await openPanel('components');
       await panel.locator('components-view .row').first().waitFor();
-      await panel.locator('components-view wa-button.pick').click();
+      await panel.locator('components-view lit-button.pick').click();
       await sleep(300);
       const {x, y} = await cardText(app, 0);
       await app.mouse.move(x, y);

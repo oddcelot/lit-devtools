@@ -16,8 +16,9 @@ import {PanelLocation} from './panel-location.js';
 import type {DeepLinkTab} from './deep-link.js';
 import './devtools-settings.js';
 import '../../packages/lit-components/src/segmented-tabs.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/callout/callout.js';
+import '../../packages/lit-components/src/button.js';
+import '../../packages/lit-components/src/icon-button.js';
+import '../../packages/lit-components/src/callout.js';
 import './wa-icons.js';
 import type {SegmentedTabItem} from '../../packages/lit-components/src/segmented-tabs.js';
 import type {IconName} from './wa-icons.js';
@@ -281,28 +282,25 @@ export class LitDevtoolsPanel extends LitElement {
       ${
         this._pageChange === null
           ? nothing
-          : html`<wa-callout
+          : html`<lit-callout
               class="page-changed"
               variant="warning"
               size="s"
               role="status"
             >
-              <wa-icon slot="icon" name="warning"></wa-icon>
+              <lit-icon slot="icon" name="warning"></lit-icon>
               <span
                 >Another page connected at
                 ${new Date(this._pageChange.at).toLocaleTimeString()} — the
                 panel now follows it. The earlier recording was cleared.</span
               >
-              <wa-button
-                appearance="plain"
-                size="s"
-                aria-label="Dismiss"
+              <lit-icon-button
                 data-tip="Dismiss"
                 @click=${() => (this._pageChange = null)}
-              >
-                <wa-icon name="x" label="Dismiss"></wa-icon>
-              </wa-button>
-            </wa-callout>`
+                icon="x"
+                label="Dismiss"
+              ></lit-icon-button>
+            </lit-callout>`
       }
       <div class="view" @inspect-element=${this._onInspectElement}>
         <timeline-view

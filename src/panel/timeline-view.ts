@@ -1,13 +1,13 @@
 import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import {ref, createRef} from 'lit/directives/ref.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
+import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
-import '@awesome.me/webawesome/dist/components/input/input.js';
+import '../../packages/lit-components/src/input.js';
 import '@awesome.me/webawesome/dist/components/option/option.js';
-import '@awesome.me/webawesome/dist/components/select/select.js';
-import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
-import type WaSelect from '@awesome.me/webawesome/dist/components/select/select.js';
+import '../../packages/lit-components/src/select.js';
+import type {LitInput} from '../../packages/lit-components/src/input.js';
+import type {LitSelect} from '../../packages/lit-components/src/select.js';
 import {tokens} from '../lib/tokens.js';
 import type {
   TimelineEvent,
@@ -143,7 +143,7 @@ export class TimelineView extends LitElement {
         color: var(--lit-devtools-text-muted);
         font-size: var(--lit-devtools-text-2xs);
       }
-      .record:not(.active) wa-icon {
+      .record:not(.active) lit-icon {
         color: var(--wa-color-danger-fill-loud);
       }
       /* A compact segmented control: a second tier under the panel's tabs,
@@ -180,10 +180,10 @@ export class TimelineView extends LitElement {
         outline: 2px solid var(--lit-devtools-accent-ring);
         outline-offset: 1px;
       }
-      .toolbar wa-button::part(base),
-      .filterbar wa-button::part(base),
-      .filterbar wa-input::part(base),
-      .filterbar wa-select::part(combobox) {
+      .toolbar lit-button::part(base),
+      .filterbar lit-button::part(base),
+      .filterbar lit-input::part(base),
+      .filterbar lit-select::part(combobox) {
         height: var(--lit-devtools-control-height, 28px);
         min-height: 0;
       }
@@ -200,8 +200,8 @@ export class TimelineView extends LitElement {
       }
       /* The inputs carry a \`label\` for their accessible name; WA renders it
          visibly, and the placeholder or the text beside them already says it. */
-      wa-input[label]::part(form-control-label),
-      wa-select[label]::part(form-control-label) {
+      lit-input[label]::part(form-control-label),
+      lit-select[label]::part(form-control-label) {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -217,15 +217,15 @@ export class TimelineView extends LitElement {
       .filterbar timeline-layers {
         margin-left: auto;
       }
-      .filterbar wa-select {
+      .filterbar lit-select {
         min-width: 160px;
         font-family: var(--lit-devtools-font-mono);
       }
-      .filterbar wa-input.regex {
+      .filterbar lit-input.regex {
         min-width: 140px;
         font-family: var(--lit-devtools-font-mono);
       }
-      .filterbar wa-input.regex.invalid {
+      .filterbar lit-input.regex.invalid {
         --wa-form-control-border-color: var(--wa-color-danger-border-loud);
       }
       timeline-event-list,
@@ -595,13 +595,13 @@ export class TimelineView extends LitElement {
   }
 
   private _onElementSelect(e: Event) {
-    const v = (e.target as WaSelect).value as string;
+    const v = (e.target as LitSelect).value as string;
     this._model.setFilter({elementId: v === '' ? null : Number(v)});
     this.requestUpdate();
   }
 
   private _onRegexInput(e: Event) {
-    this._model.setFilter({regex: (e.target as WaInput).value ?? ''});
+    this._model.setFilter({regex: (e.target as LitInput).value ?? ''});
     this.requestUpdate();
   }
 
@@ -702,7 +702,8 @@ export class TimelineView extends LitElement {
         <span class="spacer"></span>
         ${
           this._canExport
-            ? html`<wa-button
+            ? html`<lit-button
+                variant="neutral"
                 class="export"
                 size="s"
                 appearance="outlined"
@@ -710,25 +711,26 @@ export class TimelineView extends LitElement {
                 data-tip="Write this session to a static panel directory you can attach to a bug report"
                 @click=${this._exportSnapshot}
               >
-                <wa-icon slot="start" name="export"></wa-icon>
+                <lit-icon slot="start" name="export"></lit-icon>
                 Export snapshot
-              </wa-button>`
+              </lit-button>`
             : nothing
         }
-        <wa-button
+        <lit-button
+          variant="neutral"
           size="s"
           appearance="outlined"
           data-tip="Delete every recorded event"
           @click=${this._clear}
         >
-          <wa-icon slot="start" name="trash"></wa-icon>
+          <lit-icon slot="start" name="trash"></lit-icon>
           Clear
-        </wa-button>
+        </lit-button>
         ${
           // A frozen session has nothing to record and no server to tell.
           this._snapshot
             ? nothing
-            : html`<wa-button
+            : html`<lit-button
                 class="record ${this._recording ? 'active' : ''}"
                 size="s"
                 variant=${this._recording ? 'danger' : 'neutral'}
@@ -736,12 +738,12 @@ export class TimelineView extends LitElement {
                 data-tip=${this._recording ? 'Stop recording' : 'Start recording'}
                 @click=${this._toggleRecord}
               >
-                <wa-icon
+                <lit-icon
                   slot="start"
                   name=${this._recording ? 'stop' : 'record'}
-                ></wa-icon>
+                ></lit-icon>
                 ${this._recording ? 'Stop' : 'Record'}
-              </wa-button>`
+              </lit-button>`
         }
       </div>
       <timeline-layers
@@ -757,7 +759,7 @@ export class TimelineView extends LitElement {
                   ? html`
                       <span class="field">
                         Element
-                        <wa-select
+                        <lit-select
                           size="s"
                           label="Filter by element"
                           .value=${
@@ -775,12 +777,12 @@ export class TimelineView extends LitElement {
                               </wa-option>
                             `
                           )}
-                        </wa-select>
+                        </lit-select>
                       </span>
                     `
                   : nothing
               }
-              <wa-input
+              <lit-input
                 class="regex ${model.regexInvalid ? 'invalid' : ''}"
                 size="s"
                 type="text"
@@ -790,11 +792,12 @@ export class TimelineView extends LitElement {
                 data-tip="Case-insensitive regex matched against element tag, title and subtitle"
                 .value=${filter.regex}
                 @input=${this._onRegexInput}
-              ></wa-input>
+              ></lit-input>
               ${
                 filter.range === null
                   ? nothing
-                  : html`<wa-button
+                  : html`<lit-button
+                      variant="neutral"
                       class="range-chip"
                       size="s"
                       appearance="outlined"
@@ -802,8 +805,8 @@ export class TimelineView extends LitElement {
                       @click=${this._clearRangeFilter}
                     >
                       Time ${describeRange(filter.range)}
-                      <wa-icon slot="end" name="x"></wa-icon>
-                    </wa-button>`
+                      <lit-icon slot="end" name="x"></lit-icon>
+                    </lit-button>`
               }
               ${
                 tracks

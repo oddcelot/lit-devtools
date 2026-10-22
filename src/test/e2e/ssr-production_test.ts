@@ -133,7 +133,7 @@ test('the page hydrates, and the panel says where hydration stands', async () =>
 
   const panel = await browser.newPage();
   await panel.goto(`${devOrigin}/#tab=components`);
-  const chips = panel.locator('components-view wa-badge.ssr');
+  const chips = panel.locator('components-view lit-badge.ssr');
   await expect
     .poll(() => chips.allInnerTexts(), {timeout: 15_000})
     .toEqual(['hydrated', 'deferred', 'hydrated']);

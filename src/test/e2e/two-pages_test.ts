@@ -52,7 +52,7 @@ test('a second tab takes over, says so, and the first one is ignored', async () 
     await new Promise((resolve) => setTimeout(resolve, 1000));
     expect(await counterRows.count()).toBe(before);
 
-    await page.locator('.page-changed wa-button').click();
+    await page.locator('.page-changed lit-icon-button').click();
     expect(await banner.count()).toBe(0);
   } finally {
     await second.close();

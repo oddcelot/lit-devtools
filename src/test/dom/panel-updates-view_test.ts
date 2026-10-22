@@ -228,7 +228,7 @@ test('shows old and new values and flags a new reference with equal content', as
     list.row.querySelector('.redundant')?.getAttribute('data-tip')
   ).toContain('items ×1');
   expect(
-    list.row.querySelector('.redundant wa-icon[name="equals"]')
+    list.row.querySelector('.redundant lit-icon[name="equals"]')
   ).not.toBeNull();
   expect(
     rows()
@@ -241,7 +241,7 @@ test('shows old and new values and flags a new reference with equal content', as
   const change = root.querySelector('.cycles .change')!;
   const values = [...change.querySelectorAll('.value')];
   expect(values.map((v) => v.textContent)).toEqual(['[1, 2]', '[1, 2]']);
-  const arrow = change.querySelector('wa-icon[name="arrow-right"]')!;
+  const arrow = change.querySelector('lit-icon[name="arrow-right"]')!;
   expect(arrow).not.toBeNull();
   expect(arrow.previousElementSibling).toBe(values[0]);
   expect(arrow.nextElementSibling).toBe(values[1]);
@@ -290,7 +290,7 @@ describe('rendered at', () => {
       [...stamped(1, 'x-counter', 1, 0), ...tick(2, 'x-clock', 1, 20)],
       '<x-counter>'
     );
-    const link = root.querySelector<HTMLElement>('wa-button.call-site')!;
+    const link = root.querySelector<HTMLElement>('lit-button.call-site')!;
     expect(link.textContent).toContain('Rendered at src/app.ts:30');
     link.click();
     await settle();
@@ -316,7 +316,7 @@ describe('rendered at', () => {
         })),
         '<x-counter>'
       );
-      const link = root.querySelector<HTMLElement>('wa-button.link')!;
+      const link = root.querySelector<HTMLElement>('lit-button.link')!;
       expect(link.dataset['tip']).toBe('Open in Sources');
       link.click();
       await settle();
@@ -330,7 +330,7 @@ describe('rendered at', () => {
   test('is plain text where the host has no editor', async () => {
     meta.capabilities.openInEditor = false;
     const {root} = await select(stamped(1, 'x-counter', 1, 0), '<x-counter>');
-    expect(root.querySelector('wa-button.call-site')).toBeNull();
+    expect(root.querySelector('lit-button.call-site')).toBeNull();
     expect(root.querySelector('.call-site')!.textContent).toBe(
       'Rendered at src/app.ts:30'
     );

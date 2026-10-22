@@ -174,7 +174,7 @@ test('open, it leaves room to scroll the page’s end above it', async () => {
 test('a pick on the page selects in the dock, with no new tab', async () => {
   let popups = 0;
   app.on('popup', () => popups++);
-  await panel(app).locator('components-view wa-button.pick').click();
+  await panel(app).locator('components-view lit-button.pick').click();
   await expect
     .poll(() =>
       app.evaluate(() =>

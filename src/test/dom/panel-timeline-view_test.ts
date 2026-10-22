@@ -1,5 +1,5 @@
 import {afterEach, beforeAll, expect, test, vi} from 'vite-plus/test';
-import type WaSelect from '@awesome.me/webawesome/dist/components/select/select.js';
+import type {LitSelect} from '../../../packages/lit-components/src/select.js';
 import type {TimelineView} from '../../panel/timeline-view.js';
 import {
   DEFAULT_LAYERS_STATE,
@@ -78,7 +78,7 @@ const mount = async (recording = false) => {
   await flush(el);
   const root = el.shadowRoot!;
   const button = (text: string) =>
-    [...root.querySelectorAll('wa-button')].find((b) =>
+    [...root.querySelectorAll('lit-button')].find((b) =>
       b.textContent!.includes(text)
     )!;
   return {
@@ -179,7 +179,7 @@ test('the element filter reaches the tracks, and Clear drops it', async () => {
   const {el, root, button, tracks} = await mount();
   setEvents(events);
   await flush(el);
-  const select = root.querySelector<WaSelect>('.filterbar wa-select')!;
+  const select = root.querySelector<LitSelect>('.filterbar lit-select')!;
   select.value = '2';
   select.dispatchEvent(new Event('change'));
   await flush(el);
@@ -194,12 +194,14 @@ test('the element filter reaches the tracks, and Clear drops it', async () => {
 });
 
 test('offers Export snapshot only where the host can write one', async () => {
-  expect((await mount()).root.querySelector('wa-button.export')).not.toBeNull();
+  expect(
+    (await mount()).root.querySelector('lit-button.export')
+  ).not.toBeNull();
   document.body.replaceChildren();
   meta.capabilities.exportSnapshot = false;
   // Another host: the panel reads it afresh.
   resetHostInfo();
-  expect((await mount()).root.querySelector('wa-button.export')).toBeNull();
+  expect((await mount()).root.querySelector('lit-button.export')).toBeNull();
 });
 
 /** One `lit-lifecycle` event with no render event beside it. */
@@ -303,7 +305,7 @@ test('Filter to range narrows both views and the chip clears it', async () => {
   await drawRange(el, tracks(), {start: 9, end: 20});
   tracks()
     .shadowRoot!.querySelector('timeline-range-summary')!
-    .shadowRoot!.querySelector<HTMLElement>('wa-button.filter')!
+    .shadowRoot!.querySelector<HTMLElement>('lit-button.filter')!
     .click();
   await flush(el);
   expect(tracks().spans.map((s) => s.meta?.elementId)).toEqual([2]);
@@ -332,7 +334,7 @@ test('the summary inspects and filters a component by its element', async () => 
   const summary = tracks().shadowRoot!.querySelector('timeline-range-summary')!;
   summary.shadowRoot!.querySelector<HTMLElement>('.filter-link')!.click();
   await flush(el);
-  expect(root.querySelector('wa-select')!.value).toBe('2');
+  expect(root.querySelector('lit-select')!.value).toBe('2');
 });
 
 test('Esc typed in the filter box keeps the range', async () => {
@@ -340,7 +342,7 @@ test('Esc typed in the filter box keeps the range', async () => {
   setEvents(events);
   await flush(el);
   await drawRange(el, tracks(), {start: 9, end: 20});
-  const input = root.querySelector('wa-input.regex')!;
+  const input = root.querySelector('lit-input.regex')!;
   input.dispatchEvent(
     new KeyboardEvent('keydown', {key: 'Escape', bubbles: true, composed: true})
   );
@@ -486,13 +488,13 @@ test('Copy link puts the range link on the clipboard', async () => {
   await drawRange(el, tracks(), {start: 9, end: 20});
   const summary = tracks().shadowRoot!.querySelector('timeline-range-summary')!;
   summary
-    .shadowRoot!.querySelector<HTMLElement>('wa-button.copy-link')!
+    .shadowRoot!.querySelector<HTMLElement>('lit-button.copy-link')!
     .click();
   await flush(el);
   const [text] = writeText.mock.calls[0] as unknown as [string];
   expect(text).toContain('#tab=timeline&range=9-20');
   expect(
-    summary.shadowRoot!.querySelector('wa-button.copy-link')!.textContent
+    summary.shadowRoot!.querySelector('lit-button.copy-link')!.textContent
   ).toContain('Copied');
 });
 

@@ -11,8 +11,8 @@ import {
   getTimelineEvents,
   subscribeTimeline,
 } from './timeline-store.js';
-import '@awesome.me/webawesome/dist/components/badge/badge.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
+import '../../packages/lit-components/src/badge.js';
+import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
 import {LocationController} from './location-controller.js';
 import {PanelLocation} from './panel-location.js';
@@ -112,7 +112,7 @@ export class UpdatesView extends LitElement {
         font-weight: var(--lit-devtools-weight-semibold);
         font-family: var(--lit-devtools-font-mono);
       }
-      .head.detail wa-button.link::part(base) {
+      .head.detail lit-button.link::part(base) {
         color: var(--lit-devtools-text-link);
       }
       .head.detail .src-text {
@@ -440,52 +440,50 @@ export class UpdatesView extends LitElement {
         >
         ${
           entry.redundantChanges
-            ? html`<wa-badge
+            ? html`<lit-badge
                 class="redundant"
                 variant="warning"
                 data-tip=${`Changed to a new reference with equal content in these updates: ${entry.redundantChanges
                   .map((c) => `${c.key} ×${c.count}`)
                   .join(', ')}`}
               >
-                <wa-icon name="equals"></wa-icon>
+                <lit-icon name="equals"></lit-icon>
                 ${entry.redundantChanges.length}
-              </wa-badge>`
+              </lit-badge>`
             : nothing
         }
         ${
           entry.skipped
-            ? html`<wa-badge
+            ? html`<lit-badge
                 class="skipped"
                 variant="warning"
-                appearance="outlined"
                 data-tip="Updates shouldUpdate vetoed; the component did not re-render"
               >
                 ${entry.skipped} skipped
-              </wa-badge>`
+              </lit-badge>`
             : nothing
         }
         ${
           entry.selfCaused
-            ? html`<wa-badge
+            ? html`<lit-badge
                 class="self-caused"
                 variant="warning"
-                appearance="outlined"
                 data-tip="Updates the component scheduled itself, rendering twice for one change; usually a property set in updated()"
               >
                 ${entry.selfCaused} re-rendered
-              </wa-badge>`
+              </lit-badge>`
             : nothing
         }
         ${
           entry.errors > 0
-            ? html`<wa-badge
+            ? html`<lit-badge
                 class="errors"
                 variant="danger"
                 data-tip="Updates in which a phase threw or rejected, or a task failed"
               >
-                <wa-icon name="warning"></wa-icon>
+                <lit-icon name="warning"></lit-icon>
                 ${entry.errors}
-              </wa-badge>`
+              </lit-badge>`
             : nothing
         }
         <span class="num primary" data-tip="Updates recorded"
@@ -544,7 +542,7 @@ export class UpdatesView extends LitElement {
           }
           ${
             source && (this._canOpen || sourceOpener(source))
-              ? html`<wa-button
+              ? html`<lit-button
                   class="link"
                   appearance="plain"
                   size="s"
@@ -556,8 +554,8 @@ export class UpdatesView extends LitElement {
                   }}
                 >
                   ${sourceText(source.file, source.line)}
-                  <wa-icon slot="end" name="arrow-square-out"></wa-icon>
-                </wa-button>`
+                  <lit-icon slot="end" name="arrow-square-out"></lit-icon>
+                </lit-button>`
               : nothing
           }
           ${
@@ -571,7 +569,7 @@ export class UpdatesView extends LitElement {
           }
           ${
             site && this._canOpen
-              ? html`<wa-button
+              ? html`<lit-button
                   class="link call-site"
                   appearance="plain"
                   size="s"
@@ -579,8 +577,8 @@ export class UpdatesView extends LitElement {
                   @click=${() => openInEditor(site.file, site.line, site.column)}
                 >
                   Rendered at ${sourceText(site.file, site.line)}
-                  <wa-icon slot="end" name="arrow-square-out"></wa-icon>
-                </wa-button>`
+                  <lit-icon slot="end" name="arrow-square-out"></lit-icon>
+                </lit-button>`
               : nothing
           }
           <span class="count">${cycles.length}</span>
@@ -603,29 +601,27 @@ export class UpdatesView extends LitElement {
                 <span class="cause">${renderCause(cycle)}</span>
                 ${
                   cycle.skipped
-                    ? html`<wa-badge
+                    ? html`<lit-badge
                         class="skipped"
                         variant="warning"
-                        appearance="outlined"
                         data-tip="shouldUpdate returned false, so nothing re-rendered"
-                        >skipped</wa-badge
+                        >skipped</lit-badge
                       >`
                     : nothing
                 }
                 ${
                   cycle.selfCaused
-                    ? html`<wa-badge
+                    ? html`<lit-badge
                         class="self-caused"
                         variant="warning"
-                        appearance="outlined"
                         data-tip="Its own previous update scheduled this one, so it rendered twice; usually a property set in updated()"
-                        >re-rendered</wa-badge
+                        >re-rendered</lit-badge
                       >`
                     : nothing
                 }
                 ${
                   cycle.error
-                    ? html`<wa-badge
+                    ? html`<lit-badge
                         class="threw"
                         variant="danger"
                         title=${cycle.error.message}
@@ -636,17 +632,17 @@ export class UpdatesView extends LitElement {
                               ? `rejected in ${cycle.error.phase}:`
                               : `threw in ${cycle.error.phase}:`
                         }
-                        ${cycle.error.name}</wa-badge
+                        ${cycle.error.name}</lit-badge
                       >`
                     : nothing
                 }
-                <wa-button
+                <lit-button
                   class="link"
                   appearance="plain"
                   size="s"
                   data-tip="Open this instance in the Components tab"
                   @click=${() => this._inspect(cycle.elementId)}
-                  >#${cycle.elementId}</wa-button
+                  >#${cycle.elementId}</lit-button
                 >
               </div>
               ${
@@ -656,22 +652,18 @@ export class UpdatesView extends LitElement {
                         (c) => html`<div class="change">
                           <span class="key">${c.key}</span>
                           <span class="value" title=${c.prev}>${c.prev}</span>
-                          <wa-icon name="arrow-right"></wa-icon>
+                          <lit-icon name="arrow-right"></lit-icon>
                           <span class="value" title=${c.next}>${c.next}</span>
                           ${
                             c.sameRef
-                              ? html`<wa-badge
-                                  class="badge"
-                                  appearance="outlined"
-                                  variant="neutral"
-                                  >same reference</wa-badge
+                              ? html`<lit-badge class="badge" variant="neutral"
+                                  >same reference</lit-badge
                                 >`
                               : c.equal
-                                ? html`<wa-badge
+                                ? html`<lit-badge
                                     class="badge"
-                                    appearance="outlined"
                                     variant="neutral"
-                                    >new reference, same value</wa-badge
+                                    >new reference, same value</lit-badge
                                   >`
                                 : nothing
                           }
