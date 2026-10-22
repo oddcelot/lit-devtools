@@ -28,11 +28,15 @@ import {onDeepLink, writeHashLink} from './deep-link.js';
 import {PanelLocation} from './panel-location.js';
 import type {DeepLinkTab} from './deep-link.js';
 import './devtools-settings.js';
-import './segmented-tabs.js';
+import '../../packages/lit-components/src/segmented-tabs.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 import './wa-icons.js';
-import type {TabItem} from './segmented-tabs.js';
+import type {SegmentedTabItem} from '../../packages/lit-components/src/segmented-tabs.js';
+import type {IconName} from './wa-icons.js';
+
+/** A header tab, its icon one the panel registers. */
+type TabItem = SegmentedTabItem & {icon?: IconName};
 
 /**
  * Tabs hosted by the panel. The Timeline is the first; this list is the
@@ -281,11 +285,11 @@ export class LitDevtoolsPanel extends LitElement {
     return html`
       <header>
         ${this._renderBrand()}
-        <segmented-tabs
+        <lit-segmented-tabs
           .items=${this._tabs}
           .value=${this._location.tab}
           @change=${this._onTabChange}
-        ></segmented-tabs>
+        ></lit-segmented-tabs>
       </header>
       ${
         this._pageChange === null

@@ -261,16 +261,16 @@ test('the Components tab counts warned components in a warning badge', async () 
       children: [{id: 2, tagName: 'x-app', warnings: 1, children: []}],
     },
   ]);
-  const badge = root.querySelector('segmented-tabs')!.shadowRoot!;
-  const warning = badge.querySelector('wa-badge[variant="warning"]');
+  const badge = root.querySelector('lit-segmented-tabs')!.shadowRoot!;
+  const warning = badge.querySelector('lit-badge[variant="warning"]');
   expect(warning?.textContent?.trim()).toBe('1');
-  expect(badge.querySelector('wa-badge[variant="danger"]')).toBeNull();
+  expect(badge.querySelector('lit-badge[variant="danger"]')).toBeNull();
 });
 
 test('no warning badge without warned components', async () => {
   const {root} = await mount();
-  const tabs = root.querySelector('segmented-tabs')!.shadowRoot!;
-  expect(tabs.querySelector('wa-badge[variant="warning"]')).toBeNull();
+  const tabs = root.querySelector('lit-segmented-tabs')!.shadowRoot!;
+  expect(tabs.querySelector('lit-badge[variant="warning"]')).toBeNull();
 });
 
 test('a page change drops the Components tree and HMR history, and asks the new page', async () => {
