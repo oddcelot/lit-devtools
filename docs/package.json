@@ -12,6 +12,7 @@
     "worker:deploy": "pnpm dlx --allow-build=workerd --allow-build=esbuild wrangler@4 deploy --config worker/wrangler.jsonc"
   },
   "dependencies": {
+    "@awesome.me/webawesome": "^3.14.0",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/starlight": "^0.42.5",
     "@phosphor-icons/core": "^2.1.1",
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@oddsquad/vite-plugin-lit": "workspace:*",
+    "@oddsquad/webawesome-theme-lit": "workspace:*",
     "hast-util-select": "^6.0.4",
     "rehype-parse": "^9.0.1",
     "rehype-remark": "^10.0.1",

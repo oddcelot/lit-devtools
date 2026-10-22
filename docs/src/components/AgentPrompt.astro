@@ -1,7 +1,8 @@
 ---
 /**
  * A setup prompt to paste into a coding agent: a copy button, with the prompt
- * itself folded away underneath for anyone who wants to read it first. The
+ * itself folded away underneath (Web Awesome's button and details, themed by
+ * the theme package astro.config.mjs loads) for anyone who wants to read it first. The
  * prompt points at the agent skill rather than repeating its steps, so the
  * skill stays the one place they're written down.
  */
@@ -21,20 +22,24 @@ Don't enable the DevTools panel or the source overlay unless I ask. When you're 
 <div class="agent-prompt not-content">
   <div class="bar">
     <span class="label agent-prompt-label">Set it up with a coding agent</span>
-    <button type="button" class="copy" data-prompt={prompt}>
-      <span class="idle">Copy prompt</span>
-      <span class="done" aria-hidden="true">Copied</span>
-    </button>
+    <wa-button variant="brand" size="s" class="copy" data-prompt={prompt}>
+      <span class="labels">
+        <span class="idle">Copy prompt</span>
+        <span class="done" aria-hidden="true">Copied</span>
+      </span>
+    </wa-button>
     <span class="status sr-only" role="status"></span>
   </div>
-  <details>
-    <summary>Show the prompt</summary>
+  <wa-details summary="Show the prompt" appearance="plain">
     <pre>{prompt}</pre>
-  </details>
+  </wa-details>
 </div>
 
 <script>
-  for (const button of document.querySelectorAll<HTMLButtonElement>(
+  import '@awesome.me/webawesome/dist/components/button/button.js';
+  import '@awesome.me/webawesome/dist/components/details/details.js';
+
+  for (const button of document.querySelectorAll<HTMLElement>(
     '.agent-prompt .copy'
   )) {
     const status = button.parentElement?.querySelector('.status');
@@ -69,28 +74,13 @@ Don't enable the DevTools panel or the source overlay unless I ask. When you're 
     color: var(--sl-color-white);
   }
   .copy {
-    display: inline-grid;
-    padding: 0.375rem 0.875rem;
-    border: 1px solid var(--sl-color-accent);
-    border-radius: 0.375rem;
-    background: var(--sl-color-accent);
-    color: var(--sl-color-text-invert);
-    font: inherit;
-    font-size: var(--sl-text-sm);
-    font-weight: 600;
-    white-space: nowrap;
     flex-shrink: 0;
-    cursor: pointer;
-  }
-  .copy:hover {
-    filter: brightness(1.15);
-  }
-  .copy:focus-visible {
-    outline: 2px solid var(--sl-color-accent-high);
-    outline-offset: 2px;
   }
   /* Both labels share one grid cell, so the button keeps its width. */
-  .copy > span {
+  .labels {
+    display: inline-grid;
+  }
+  .labels > span {
     grid-area: 1 / 1;
   }
   .copy .done,
@@ -100,14 +90,16 @@ Don't enable the DevTools panel or the source overlay unless I ask. When you're 
   .copy.copied .done {
     visibility: visible;
   }
-  details {
+  wa-details {
     border-top: 1px solid var(--sl-color-gray-5);
   }
-  summary {
+  wa-details::part(header) {
     padding: 0.5rem 1rem;
     font-size: var(--sl-text-sm);
     color: var(--sl-color-gray-2);
-    cursor: pointer;
+  }
+  wa-details::part(content) {
+    padding: 0;
   }
   pre {
     margin: 0;

@@ -40,9 +40,9 @@ const query = (extra: Record<string, string>) => {
 <figure class="stackblitz-embed">
   <stackblitz-embed data-src={query({embed: '1', hideExplorer: '1'})}>
     <div class="start">
-      <button type="button" class="run" data-title={title}>
+      <wa-button variant="brand" class="run" data-title={title} pill>
         Run this demo
-      </button>
+      </wa-button>
       <p class="notice">
         Runs on StackBlitz: starting it connects to stackblitz.com, which
         installs and runs this project in your browser (<a
@@ -53,14 +53,17 @@ const query = (extra: Record<string, string>) => {
     </div>
   </stackblitz-embed>
   <figcaption>
-    <button type="button" class="reload" hidden>
+    <wa-button appearance="plain" size="s" class="reload" hidden>
       Stuck? Reload the demo
-    </button>
+    </wa-button>
     <a href={query({})}>Open in StackBlitz</a>
   </figcaption>
 </figure>
 
 <script>
+  import '@awesome.me/webawesome/dist/components/button/button.js';
+  import type WaButton from '@awesome.me/webawesome/dist/components/button/button.js';
+
   // A WebContainer embed runs only on a cross-origin isolated page, in a
   // `credentialless` iframe; otherwise StackBlitz shows "Unable to run
   // Embedded Project". Only Chromium has `credentialless` iframes. The
@@ -80,10 +83,10 @@ const query = (extra: Record<string, string>) => {
 
   class StackBlitzEmbed extends HTMLElement {
     connectedCallback() {
-      const run = this.querySelector<HTMLButtonElement>('.run');
+      const run = this.querySelector<WaButton>('.run');
       const startArea = this.querySelector<HTMLElement>('.start');
       const reload =
-        this.closest('figure')?.querySelector<HTMLButtonElement>('.reload');
+        this.closest('figure')?.querySelector<WaButton>('.reload');
       if (
         run === null ||
         startArea === null ||
@@ -179,16 +182,6 @@ const query = (extra: Record<string, string>) => {
     color: var(--sl-color-gray-2);
     text-wrap: balance;
   }
-  .run {
-    padding: 0.5rem 1.25rem;
-    border: 0;
-    border-radius: 999rem;
-    background: var(--sl-color-accent);
-    color: var(--sl-color-black);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-  }
   stackblitz-embed :global(.unsupported) {
     max-width: 28rem;
     margin: 0;
@@ -201,14 +194,5 @@ const query = (extra: Record<string, string>) => {
     align-items: center;
     margin-top: 0.5rem;
     font-size: var(--sl-text-sm);
-  }
-  .reload {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: var(--sl-color-text-accent);
-    font: inherit;
-    text-decoration: underline;
-    cursor: pointer;
   }
 </style>
