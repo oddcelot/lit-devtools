@@ -1,0 +1,39 @@
+---
+/**
+ * The page the live panel inspects (src/panel/figures/live/demo-page.ts):
+ * three playground components and the page runtime, in a frame of
+ * /live-panel/.
+ */
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Live panel demo</title>
+    <style is:global>
+      :root {
+        color-scheme: light dark;
+      }
+      body {
+        margin: 0;
+        padding: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-start;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <hmr-counter></hmr-counter>
+    <hmr-lifecycle></hmr-lifecycle>
+    <hmr-properties></hmr-properties>
+    <script>
+      import '../../../../src/panel/figures/live/demo-page.ts';
+    </script>
+  </body>
+</html>

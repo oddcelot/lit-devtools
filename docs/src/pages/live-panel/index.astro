@@ -1,0 +1,48 @@
+---
+/**
+ * The live panel (src/panel/figures/live/panel-page.ts): the DevTools panel
+ * inspecting the demo frame above it, all in the browser. Not a docs page of
+ * its own; the guides embed it through LivePanel.astro.
+ */
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Lit DevTools, live</title>
+    <style is:global>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: minmax(10rem, 40%) 1fr;
+      }
+      iframe.demo {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--lit-devtools-border);
+        background: var(--lit-devtools-bg);
+      }
+      lit-devtools-panel {
+        min-height: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe class="demo" title="Demo page the panel inspects" data-src="demo/"
+    ></iframe>
+    <lit-devtools-panel></lit-devtools-panel>
+    <script>
+      import '../../../../src/panel/figures/live/panel-page.ts';
+    </script>
+  </body>
+</html>

@@ -209,6 +209,7 @@ export default defineConfig({
         }),
       ],
     }),
-    sitemap(),
+    // The live panel's pages are only ever framed by a guide.
+    sitemap({filter: (page) => !page.includes('/live-panel/')}),
   ],
 });
