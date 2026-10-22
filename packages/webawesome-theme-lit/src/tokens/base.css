@@ -93,14 +93,14 @@
   --space-14: 80px;
   --space-16: 96px;
 
-  /* ---- Radius ---- */
-  --radius-xs: 3px;
-  --radius-sm: 5px;
-  --radius-md: 8px; /* default control / card */
-  --radius-lg: 12px; /* panels, active nav pill */
-  --radius-xl: 16px;
-  --radius-2xl: 22px; /* DevTools window shell */
-  --radius-pill: 999px;
+  /* ---- Radius · square corners throughout ---- */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0; /* default control / card */
+  --radius-lg: 0; /* panels, active nav pill */
+  --radius-xl: 0;
+  --radius-2xl: 0; /* DevTools window shell */
+  --radius-pill: 0;
 
   --border-width: 1px;
   --border-width-thick: 2px;

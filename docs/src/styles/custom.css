@@ -135,12 +135,12 @@
 
 /* ------------------------------------------------------------ Controls ---- */
 
-/* The design system puts controls on an 8px radius (--radius-md) and reserves
-   true pills for badges. Starlight ships its buttons as full pills, and leaves
-   their label at regular weight where the system asks for semibold. */
+/* The design system gives controls its control radius (--radius-md, square).
+   Starlight ships its buttons as full pills, and leaves their label at
+   regular weight where the system asks for semibold. */
 
 .sl-link-button {
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-weight: 600;
 }
 
