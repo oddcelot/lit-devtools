@@ -62,7 +62,7 @@ test('the color scheme is adopted from the store and written back to it', async 
   await expect.poll(rootClass).toContain('color-scheme-dark');
 
   await page
-    .locator('devtools-settings wa-select')
+    .locator('devtools-settings lit-select')
     .filter({has: page.locator('wa-option[value="light"]')})
     .click();
   await page.locator('devtools-settings wa-option[value="light"]').click();

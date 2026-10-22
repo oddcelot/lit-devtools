@@ -1,4 +1,6 @@
 import WaButton from '@awesome.me/webawesome/dist/components/button/button.js';
+import {css} from 'lit';
+import {extendCss} from './styles.js';
 import './icons.js';
 
 /**
@@ -14,6 +16,16 @@ import './icons.js';
  * Importing this module also registers `wa-button`, which the class defines.
  */
 export class LitButton extends WaButton {
+  // WA centres a slotted `wa-icon` in the label; the same for `lit-icon`.
+  static override css = extendCss(
+    WaButton.css,
+    css`
+      .label::slotted(lit-icon) {
+        align-self: center;
+      }
+    `
+  );
+
   constructor() {
     super();
     this.variant = 'brand';

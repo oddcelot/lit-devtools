@@ -1,17 +1,19 @@
 import {LitElement, html, css, nothing} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
-import '@awesome.me/webawesome/dist/components/badge/badge.js';
-import '@awesome.me/webawesome/dist/components/button/button.js';
-import '@awesome.me/webawesome/dist/components/callout/callout.js';
-import '@awesome.me/webawesome/dist/components/card/card.js';
-import '@awesome.me/webawesome/dist/components/input/input.js';
+import '../../packages/lit-components/src/badge.js';
+import '../../packages/lit-components/src/button.js';
+import '../../packages/lit-components/src/icon.js';
+import '../../packages/lit-components/src/icon-button.js';
+import '../../packages/lit-components/src/callout.js';
+import '../../packages/lit-components/src/card.js';
+import '../../packages/lit-components/src/input.js';
 import './wa-icons.js';
 import '@awesome.me/webawesome/dist/components/option/option.js';
-import '@awesome.me/webawesome/dist/components/select/select.js';
-import '@awesome.me/webawesome/dist/components/switch/switch.js';
-import type WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
-import type WaSelect from '@awesome.me/webawesome/dist/components/select/select.js';
-import type WaSwitch from '@awesome.me/webawesome/dist/components/switch/switch.js';
+import '../../packages/lit-components/src/select.js';
+import '../../packages/lit-components/src/switch.js';
+import type {LitInput} from '../../packages/lit-components/src/input.js';
+import type {LitSelect} from '../../packages/lit-components/src/select.js';
+import type {LitSwitch} from '../../packages/lit-components/src/switch.js';
 import {tokens} from '../lib/tokens.js';
 import type {ColorSchemePreference} from '../lib/color-scheme.js';
 import {
@@ -78,10 +80,10 @@ export class DevtoolsSettings extends LitElement {
       section {
         margin-bottom: var(--lit-devtools-space-5);
       }
-      wa-card {
+      lit-card {
         --spacing: 0;
       }
-      wa-card::part(header) {
+      lit-card::part(header) {
         padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
       }
       h3 {
@@ -154,12 +156,12 @@ export class DevtoolsSettings extends LitElement {
         font-family: var(--lit-devtools-font-mono);
         font-size: var(--lit-devtools-text-2xs);
       }
-      wa-badge.env {
+      lit-badge.env {
         font-family: var(--lit-devtools-font-mono);
         vertical-align: middle;
       }
       /* An origin tag, "(option)" or "(env)": muted text, not a button. */
-      wa-badge.env:not(.ovr) {
+      lit-badge.env:not(.ovr) {
         border: 0;
         background: var(--lit-devtools-surface-container);
         color: var(--lit-devtools-text-muted);
@@ -185,20 +187,20 @@ export class DevtoolsSettings extends LitElement {
         margin-top: var(--lit-devtools-space-2);
         font-size: var(--lit-devtools-text-2xs);
       }
-      wa-switch,
-      wa-select {
+      lit-switch,
+      lit-select {
         vertical-align: middle;
       }
-      wa-select {
+      lit-select {
         display: inline-block;
         min-width: 9em;
         font-family: var(--lit-devtools-font-mono);
       }
-      wa-select::part(combobox) {
+      lit-select::part(combobox) {
         min-height: var(--lit-devtools-control-height);
         height: var(--lit-devtools-control-height);
       }
-      wa-switch::part(base) {
+      lit-switch::part(base) {
         align-items: center;
       }
       .row-disabled {
@@ -220,13 +222,13 @@ export class DevtoolsSettings extends LitElement {
         gap: var(--lit-devtools-space-2);
         align-items: center;
       }
-      .manifest wa-input {
+      .manifest lit-input {
         flex: 1;
         min-width: 0;
       }
       /* The label names the input for assistive tech; the key cell beside it
          already says it on screen. */
-      .manifest wa-input::part(form-control-label) {
+      .manifest lit-input::part(form-control-label) {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -402,11 +404,11 @@ export class DevtoolsSettings extends LitElement {
   }
 
   private _pill(on: boolean) {
-    return html`<wa-badge
+    return html`<lit-badge
       class="pill ${on ? 'on' : ''}"
       size="s"
       variant=${on ? 'success' : 'neutral'}
-      >${on ? 'enabled' : 'disabled'}</wa-badge
+      >${on ? 'enabled' : 'disabled'}</lit-badge
     >`;
   }
 
@@ -446,38 +448,27 @@ export class DevtoolsSettings extends LitElement {
     const {override} = row;
     if (!override) {
       return row.origin && row.origin !== 'default'
-        ? html`<wa-badge
-            class="env src"
-            size="s"
-            appearance="outlined"
-            variant="neutral"
-            >(${row.origin})</wa-badge
+        ? html`<lit-badge class="env src" size="s" variant="neutral"
+            >(${row.origin})</lit-badge
           >`
         : nothing;
     }
     const key = row.key as OverridableKey;
     const src = override.source;
     const s = this._settings;
-    return html`<wa-badge
-        class="env src ovr"
-        size="s"
-        appearance="outlined"
-        variant="brand"
-        >${src}: ${override.baseline}</wa-badge
+    return html`<lit-badge class="env src ovr" size="s" variant="brand"
+        >${src}: ${override.baseline}</lit-badge
       >
-      <wa-button
+      <lit-icon-button
         class="row-reset"
-        appearance="plain"
-        size="s"
-        aria-label="Reset to the ${src} value"
+        icon="x"
+        label="Reset to the ${src} value"
         data-tip="Reset to the ${src} value"
         @click=${() => this._resetKey(key)}
-      >
-        <wa-icon name="x" label="Reset to the ${src} value"></wa-icon>
-      </wa-button>
+      ></lit-icon-button>
       ${
         override.moved
-          ? html`<wa-callout
+          ? html`<lit-callout
               class="nudge"
               data-nudge=${key}
               variant="warning"
@@ -487,20 +478,24 @@ export class DevtoolsSettings extends LitElement {
                 >Config changed since you overrode this: was
                 ${override.moved.was}, now ${override.moved.now}</span
               >
-              <wa-button
+              <lit-button
                 size="s"
+                variant="neutral"
+                appearance="outlined"
                 data-tip="Discard your override and use the new ${src} value"
                 @click=${() => this._resetKey(key)}
-                >Reset</wa-button
+                >Reset</lit-button
               >
-              <wa-button
+              <lit-button
                 size="s"
+                variant="neutral"
+                appearance="outlined"
                 data-tip="Keep your override and stop flagging the config change"
                 @click=${() => s !== null && overrides.keep(key, s)}
               >
                 Keep
-              </wa-button>
-            </wa-callout>`
+              </lit-button>
+            </lit-callout>`
           : nothing
       }`;
   }
@@ -511,20 +506,20 @@ export class DevtoolsSettings extends LitElement {
       this._set(row.key as keyof SettingsOverride, value as never);
     switch (row.definition.kind) {
       case 'switch':
-        return html`<wa-switch
+        return html`<lit-switch
           size="s"
           .checked=${row.value === true}
           ?disabled=${row.disabled}
-          @change=${(e: Event) => set((e.target as WaSwitch).checked)}
+          @change=${(e: Event) => set((e.target as LitSwitch).checked)}
         >
           ${row.text}
-        </wa-switch>`;
+        </lit-switch>`;
       case 'select':
-        return html`<wa-select
+        return html`<lit-select
           size="s"
           .value=${String(row.value)}
           ?disabled=${row.disabled}
-          @change=${(e: Event) => set((e.target as WaSelect).value)}
+          @change=${(e: Event) => set((e.target as LitSelect).value)}
         >
           ${row.options?.map(
             (option) =>
@@ -540,7 +535,7 @@ export class DevtoolsSettings extends LitElement {
                 }</wa-option
               >`
           )}
-        </wa-select>`;
+        </lit-select>`;
       default:
         return html`${row.text}`;
     }
@@ -560,7 +555,7 @@ export class DevtoolsSettings extends LitElement {
   private _renderAppearance() {
     return html`
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">Appearance</h3>
           <table>
             <tr>
@@ -571,12 +566,12 @@ export class DevtoolsSettings extends LitElement {
                 color scheme
               </td>
               <td class="val">
-                <wa-select
+                <lit-select
                   size="s"
                   .value=${this._colorScheme}
                   @change=${(e: Event) =>
                     this._setColorScheme(
-                      (e.target as WaSelect).value as ColorSchemePreference
+                      (e.target as LitSelect).value as ColorSchemePreference
                     )}
                 >
                   ${(
@@ -597,11 +592,11 @@ export class DevtoolsSettings extends LitElement {
                         }</wa-option
                       >`
                   )}
-                </wa-select>
+                </lit-select>
               </td>
             </tr>
           </table>
-        </wa-card>
+        </lit-card>
       </section>
     `;
   }
@@ -631,9 +626,9 @@ export class DevtoolsSettings extends LitElement {
       <tr>
         <td class="key" tabindex="0" data-tip=${row.tip}>${row.label}</td>
         <td class="val">
-          <wa-select size="s" disabled .value=${'custom'}>
+          <lit-select size="s" disabled .value=${'custom'}>
             <wa-option value="custom" disabled>Custom</wa-option>
-          </wa-select>
+          </lit-select>
           ${this._badge(row)}
         </td>
       </tr>
@@ -666,8 +661,9 @@ export class DevtoolsSettings extends LitElement {
       <table>
         ${this._row(
           'chromeTracks',
-          html`<wa-button
+          html`<lit-button
             class="docs-link"
+            variant="neutral"
             appearance="plain"
             size="s"
             href=${userTiming ? USER_TIMING_DOCS : CHROME_TRACKS_DOCS}
@@ -678,9 +674,9 @@ export class DevtoolsSettings extends LitElement {
                 : 'Open the guide with a screenshot of the Lit tracks in Chrome'
             }
           >
-            <wa-icon slot="end" name="arrow-square-out"></wa-icon>
+            <lit-icon slot="end" name="arrow-square-out"></lit-icon>
             Where to find them
-          </wa-button>`
+          </lit-button>`
         )}
       </table>
       ${
@@ -701,7 +697,9 @@ export class DevtoolsSettings extends LitElement {
    */
   private async _addManifest(e: Event): Promise<void> {
     e.preventDefault();
-    const input = this.renderRoot.querySelector<WaInput>('.manifest wa-input');
+    const input = this.renderRoot.querySelector<LitInput>(
+      '.manifest lit-input'
+    );
     const error = await manifestSetting()?.add(String(input?.value ?? ''));
     this._manifestError = error ?? '';
     if (error === undefined && input !== null) input.value = '';
@@ -721,7 +719,7 @@ export class DevtoolsSettings extends LitElement {
       url.startsWith(`${m.site}/`) ? url.slice(m.site.length) : url;
     const last = m.entries.length - 1;
     return html`<section>
-      <wa-card>
+      <lit-card>
         <h3 slot="header">Component docs</h3>
         ${
           m.entries.length > 1
@@ -735,56 +733,48 @@ export class DevtoolsSettings extends LitElement {
           ${m.entries.map(
             (entry, i) => html`<tr class="manifest-row">
               <td class="val manifest-entry">
-                <wa-switch
+                <lit-switch
                   size="s"
                   .checked=${entry.enabled}
                   @change=${(e: Event) =>
                     void setting.toggle(
                       entry.url,
-                      (e.target as WaSwitch).checked
+                      (e.target as LitSwitch).checked
                     )}
-                  ><code>${path(entry.url)}</code></wa-switch
+                  ><code>${path(entry.url)}</code></lit-switch
                 >
                 ${
                   entry.linked
-                    ? html`<wa-badge
+                    ? html`<lit-badge
                         variant="neutral"
-                        appearance="outlined"
                         title="The page links it with rel=custom-elements-manifest"
-                        >linked by page</wa-badge
+                        >linked by page</lit-badge
                       >`
                     : nothing
                 }
                 ${this._renderAccess(setting, entry)}
                 <span class="spacer"></span>
-                <wa-button
-                  size="s"
-                  appearance="plain"
+                <lit-icon-button
+                  icon="caret-up"
+                  label="Move ${path(entry.url)} up"
                   ?disabled=${i === 0}
                   @click=${() => void setting.move(entry.url, -1)}
-                  ><wa-icon
-                    name="caret-up"
-                    label="Move ${path(entry.url)} up"
-                  ></wa-icon
-                ></wa-button>
-                <wa-button
-                  size="s"
-                  appearance="plain"
+                ></lit-icon-button>
+                <lit-icon-button
+                  icon="caret-down"
+                  label="Move ${path(entry.url)} down"
                   ?disabled=${i === last}
                   @click=${() => void setting.move(entry.url, 1)}
-                  ><wa-icon
-                    name="caret-down"
-                    label="Move ${path(entry.url)} down"
-                  ></wa-icon
-                ></wa-button>
+                ></lit-icon-button>
                 ${
                   entry.linked
                     ? nothing
-                    : html`<wa-button
+                    : html`<lit-button
                         size="s"
+                        variant="neutral"
                         appearance="plain"
                         @click=${() => void setting.remove(entry.url)}
-                        >Remove</wa-button
+                        >Remove</lit-button
                       >`
                 }
               </td>
@@ -801,13 +791,13 @@ export class DevtoolsSettings extends LitElement {
             </td>
             <td class="val">
               <form class="manifest" @submit=${this._addManifest}>
-                <wa-input
+                <lit-input
                   size="s"
                   label="Custom Elements Manifest URL"
                   placeholder="Path or URL on this site"
                   spellcheck="false"
-                ></wa-input>
-                <wa-button size="s" type="submit">Add</wa-button>
+                ></lit-input>
+                <lit-button size="s" type="submit">Add</lit-button>
               </form>
               ${
                 this._manifestError === ''
@@ -825,7 +815,7 @@ export class DevtoolsSettings extends LitElement {
         ${m.ignored.map((url) =>
           this._renderFoundManifest(setting, path(url), url, true)
         )}
-      </wa-card>
+      </lit-card>
     </section>`;
   }
 
@@ -843,12 +833,12 @@ export class DevtoolsSettings extends LitElement {
         DevTools</span
       >`;
     }
-    return html`<wa-button
+    return html`<lit-button
       size="s"
       @click=${async () => {
         this._manifestError = (await setting.allow(entry.url)) ?? '';
       }}
-      >Allow access to ${host}</wa-button
+      >Allow access to ${host}</lit-button
     >`;
   }
 
@@ -869,22 +859,24 @@ export class DevtoolsSettings extends LitElement {
         }
         beside the page's scripts.</span
       >
-      <wa-button size="s" @click=${() => void setting.use(url)}
-        >Use it</wa-button
+      <lit-button size="s" @click=${() => void setting.use(url)}
+        >Use it</lit-button
       >
       ${
         ignored
-          ? html`<wa-button
+          ? html`<lit-button
               size="s"
+              variant="neutral"
               appearance="plain"
               @click=${() => void setting.reset(url)}
-              >Reset</wa-button
+              >Reset</lit-button
             >`
-          : html`<wa-button
+          : html`<lit-button
               size="s"
+              variant="neutral"
               appearance="plain"
               @click=${() => void setting.ignore(url)}
-              >Always ignore</wa-button
+              >Always ignore</lit-button
             >`
       }
     </div>`;
@@ -898,7 +890,7 @@ export class DevtoolsSettings extends LitElement {
     );
     return html`
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">About</h3>
           <table>
             <tr>
@@ -939,7 +931,7 @@ export class DevtoolsSettings extends LitElement {
             then default. An explicit <code>timeline: false</code> in the plugin
             options is final.
           </p>
-        </wa-card>
+        </lit-card>
       </section>
     `;
   }
@@ -967,16 +959,16 @@ export class DevtoolsSettings extends LitElement {
         ${
           offPlugin
             ? html`<section>
-                  <wa-card>
+                  <lit-card>
                     <h3 slot="header">Components</h3>
                     ${this._renderComponents()}
-                  </wa-card>
+                  </lit-card>
                 </section>
                 <section>
-                  <wa-card>
+                  <lit-card>
                     <h3 slot="header">Timeline</h3>
                     ${this._renderTimelinePrefs()}
-                  </wa-card>
+                  </lit-card>
                 </section>`
             : nothing
         }
@@ -990,16 +982,20 @@ export class DevtoolsSettings extends LitElement {
         config and restart).
         ${
           hasOverride
-            ? html`<wa-button
+            ? html`<lit-button
                 class="reset"
+                variant="neutral"
                 size="s"
                 appearance="outlined"
                 data-tip="Discard every override and use the configured values"
                 @click=${this._reset}
               >
-                <wa-icon slot="start" name="arrow-counter-clockwise"></wa-icon>
+                <lit-icon
+                  slot="start"
+                  name="arrow-counter-clockwise"
+                ></lit-icon>
                 Reset overrides
-              </wa-button>`
+              </lit-button>`
             : nothing
         }
       </p>
@@ -1007,14 +1003,14 @@ export class DevtoolsSettings extends LitElement {
       ${appearance}
 
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">HMR ${this._feature('hmr')}</h3>
           ${this._renderHmr(s)}
-        </wa-card>
+        </lit-card>
       </section>
 
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">
             Source Overlay ${this._feature('sourceOverlay')}
           </h3>
@@ -1026,11 +1022,11 @@ export class DevtoolsSettings extends LitElement {
                 </table>`
               : this._enableHint('sourceOverlay')
           }
-        </wa-card>
+        </lit-card>
       </section>
 
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">Components ${this._feature('timeline')}</h3>
           ${
             s.timeline
@@ -1040,17 +1036,17 @@ export class DevtoolsSettings extends LitElement {
                   'Needs the timeline runtime: enable with'
                 )
           }
-        </wa-card>
+        </lit-card>
       </section>
 
       <section>
-        <wa-card>
+        <lit-card>
           <h3 slot="header">Timeline ${this._feature('timeline')}</h3>
           <p class="empty">
             Layers and recording are controlled in the Timeline tab.
           </p>
           ${s.timeline ? this._renderTimelinePrefs() : nothing}
-        </wa-card>
+        </lit-card>
       </section>
 
       ${this._renderManifest()} ${this._renderAbout()}

@@ -65,14 +65,14 @@ test('About flags duplicate lit copies', async () => {
   );
 });
 
-test('the color scheme wa-select writes the choice through the settings store', async () => {
+test('the color scheme lit-select writes the choice through the settings store', async () => {
   const el = document.createElement('devtools-settings') as DevtoolsSettings;
   document.body.append(el);
   for (let i = 0; i < 5; i++) {
     await new Promise((resolve) => setTimeout(resolve, 0));
     await el.updateComplete;
   }
-  const select = el.shadowRoot!.querySelector('wa-select') as HTMLElement & {
+  const select = el.shadowRoot!.querySelector('lit-select') as HTMLElement & {
     value: string;
   };
   expect(
@@ -136,7 +136,7 @@ test('origin badges skip defaults, and the open select marks the baseline', asyn
 test('the chrome tracks row links to the guide on where the tracks appear', async () => {
   meta.features = toFeatureSettings(resolveOptions({timeline: true}, {}));
   const root = await mount();
-  const link = root.querySelector('wa-button.docs-link')!;
+  const link = root.querySelector('lit-button.docs-link')!;
   expect(link.getAttribute('href')).toMatch(
     /\/guides\/devtools\/timeline\/#see-it-in-chromes-performance-panel$/
   );
@@ -146,7 +146,7 @@ test('the chrome tracks row links to the guide on where the tracks appear', asyn
 test('without custom tracks, the docs link points at the Firefox section', async () => {
   meta.capabilities.pluginSettings = false;
   meta.runtime = {...meta.runtime, ready: true, chromeTracks: false};
-  const link = (await mount()).querySelector('wa-button.docs-link')!;
+  const link = (await mount()).querySelector('lit-button.docs-link')!;
   expect(link.getAttribute('href')).toMatch(
     /\/guides\/devtools\/timeline\/#in-firefox-and-older-chrome$/
   );
@@ -167,7 +167,7 @@ test('keeps the plain message when the plugin simply sent no settings', async ()
   expect(root.querySelector('.empty')!.textContent!.trim()).toBe(
     'Settings unavailable.'
   );
-  expect(root.querySelector('wa-switch')).toBeNull();
+  expect(root.querySelector('lit-switch')).toBeNull();
 });
 
 test('off the Vite plugin, the page-side preferences still switch on', async () => {
@@ -178,7 +178,7 @@ test('off the Vite plugin, the page-side preferences still switch on', async () 
       (tr) => tr.querySelector('.key')?.textContent?.trim() === key
     );
   expect(row('flash updates')).toBeDefined();
-  const tracks = row('performance tracks')!.querySelector('wa-switch')!;
+  const tracks = row('performance tracks')!.querySelector('lit-switch')!;
   tracks.checked = true;
   tracks.dispatchEvent(new Event('change'));
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -195,7 +195,7 @@ test('a feature header says where the feature was switched, and how to turn it o
   );
   const root = await mount();
   const card = (title: string) =>
-    [...root.querySelectorAll('wa-card')].find((c) =>
+    [...root.querySelectorAll('lit-card')].find((c) =>
       c.querySelector('h3')?.textContent?.trim().startsWith(title)
     )!;
   const badge = (title: string) =>
@@ -272,7 +272,7 @@ describe('Component docs', () => {
   };
 
   const buttons = (el: Element) =>
-    [...el.querySelectorAll('wa-button')].map(
+    [...el.querySelectorAll('lit-button, lit-icon-button')].map(
       (b) => [b.textContent!.trim(), b as HTMLElement] as const
     );
 
@@ -300,19 +300,19 @@ describe('Component docs', () => {
     ]);
     expect(section.textContent).toContain('Read in this order');
     const [linked, mine] = rows as [Element, Element];
-    expect(linked.querySelector('wa-badge')?.textContent).toContain(
+    expect(linked.querySelector('lit-badge')?.textContent).toContain(
       'linked by page'
     );
-    expect(mine.querySelector('wa-badge')).toBeNull();
+    expect(mine.querySelector('lit-badge')).toBeNull();
     const switches = rows.map(
-      (r) => r.querySelector('wa-switch') as HTMLElement & {checked: boolean}
+      (r) => r.querySelector('lit-switch') as HTMLElement & {checked: boolean}
     );
     expect(switches.map((sw) => sw.checked)).toEqual([true, false]);
 
     // A link moves and switches but has no Remove; the ends can't move out.
     const labels = (row: Element) =>
       buttons(row).map(
-        ([text, b]) => text || b.querySelector('wa-icon')!.getAttribute('label')
+        ([text, b]) => text || (b as HTMLElement & {label: string}).label
       );
     expect(labels(linked)).toEqual([
       'Move /linked.json up',
@@ -384,7 +384,7 @@ describe('Component docs', () => {
     const {setting, asked} = fakeSetting(empty);
     useManifestSetting(setting);
     const section = docsSection(await mount())!;
-    const input = section.querySelector('wa-input') as HTMLElement & {
+    const input = section.querySelector('lit-input') as HTMLElement & {
       value: string;
     };
     input.value = 'https://elsewhere.test/cem.json';

@@ -191,3 +191,28 @@ test('lit-button opens a wa-dropdown as its trigger', async () => {
     .poll(() => page.$eval('#dd', (el) => (el as {open?: boolean}).open))
     .toBe(true);
 });
+
+test('lit-icon gets the spacing and colour Web Awesome gives wa-icon', async () => {
+  // wa-tab spaces a slotted wa-icon from its label by 0.5em.
+  const margin = await page.$eval(
+    '#lit-segmented-tabs lit-segmented-tabs',
+    (el) => {
+      const icon = el.shadowRoot!.querySelector('wa-tab > lit-icon')!;
+      const style = getComputedStyle(icon);
+      return {end: style.marginInlineEnd, size: style.fontSize};
+    }
+  );
+  expect(parseFloat(margin.end)).toBeCloseTo(parseFloat(margin.size) / 2, 1);
+  // wa-input mutes an icon in its start slot.
+  await mount(`<lit-input id="muted"><lit-icon slot="start" name="magnifying-glass"></lit-icon></lit-input>
+    <wa-input id="ref"><lit-icon slot="start" name="magnifying-glass"></lit-icon></wa-input>`);
+  const colours = await page.evaluate(() => {
+    const colour = (id: string) =>
+      getComputedStyle(document.querySelector(`#${id} lit-icon`)!).color;
+    const quiet = getComputedStyle(
+      document.querySelector('#muted')!
+    ).getPropertyValue('--wa-color-neutral-on-quiet');
+    return {muted: colour('muted'), plain: colour('ref'), quiet: quiet.trim()};
+  });
+  expect(colours.muted).not.toBe(colours.plain);
+});
