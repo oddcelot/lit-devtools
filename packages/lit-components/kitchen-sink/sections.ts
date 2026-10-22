@@ -8,6 +8,12 @@ import '../src/all.js';
 // change can be checked on the panel itself, in both schemes.
 import '../../../src/panel/figures/timeline-figure.js';
 import './devtools-specimens.js';
+import {
+  layerChips,
+  layerChipsCompact,
+  rangeSummary,
+  spanDetail,
+} from './panel-specimens.js';
 import {iconNames} from '../src/icons.js';
 import type {Variants} from './generated.js';
 
@@ -559,7 +565,36 @@ export const SECTIONS: Section[] = [
     group: 'Panel views',
     variants: false,
     summary:
-      'src/panel/figures · the Timeline tracks over a recorded session, as in the docs · zoom, pan, select',
-    render: () => html`<timeline-figure></timeline-figure>`,
+      'src/panel/figures · the Timeline over a recorded session, as in the docs · mode="tracks|list" · zoom, pan, select',
+    render: () => html`
+      ${row('tracks', html`<timeline-figure></timeline-figure>`)}
+      ${row('list', html`<timeline-figure mode="list"></timeline-figure>`)}
+    `,
+  },
+  {
+    tag: 'timeline-layers',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      'src/panel/timeline-layers.ts · which layers to record, or (compact) which to draw as tracks · layers, caption, compact',
+    render: () => html`
+      ${row('record', layerChips())} ${row('compact', layerChipsCompact())}
+    `,
+  },
+  {
+    tag: 'timeline-span-detail',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      'src/panel/timeline-span-detail.ts · a selected span under the list or the tracks · span, causeSpan, layers, filterable, inspectable',
+    render: spanDetail,
+  },
+  {
+    tag: 'timeline-range-summary',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      'src/panel/timeline-range-summary.ts · what happened in a range drawn on the tracks · summary, layers',
+    render: rangeSummary,
   },
 ];
