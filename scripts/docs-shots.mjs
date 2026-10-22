@@ -714,7 +714,7 @@ const SHOTS = [
       // light run's is still there when the dark one starts.
       const flash = settings
         .locator('css=tr', {hasText: 'flash updates'})
-        .locator('css=wa-switch');
+        .locator('css=lit-switch');
       if (!(await flash.evaluate((el) => el.checked))) await flash.click();
       await sleep(400);
       await blur(panel);
@@ -729,7 +729,7 @@ const SHOTS = [
       await sleep(500);
       await ctx.shot(panel);
       // Drop it again, so the shots after this one start from the defaults.
-      await settings.locator('css=wa-button.reset').click();
+      await settings.locator('css=lit-button.reset').click();
       await sleep(300);
     },
   },
