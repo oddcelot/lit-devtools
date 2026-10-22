@@ -20,6 +20,11 @@
      the Head override. Starlight appends its own system stack after each. */
   --sl-font: var(--font-manrope);
   --sl-font-mono: var(--font-roboto-mono);
+
+  /* Web Awesome's controls in the same fonts as the page around them. */
+  --wa-font-family-body: var(--sl-font);
+  --wa-font-family-heading: var(--sl-font);
+  --wa-font-family-code: var(--sl-font-mono);
 }
 
 /* The design system runs extrabold with tight tracking at display sizes and

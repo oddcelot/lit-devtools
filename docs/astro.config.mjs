@@ -114,7 +114,8 @@ export default defineConfig({
       // Adds each page's generated Open Graph image to its head.
       routeMiddleware: './src/routeData.ts',
       customCss: [
-        '@oddsquad/webawesome-theme-lit/tokens.css',
+        // The Lit theme for Web Awesome, which brings the design tokens.
+        '@oddsquad/webawesome-theme-lit/lit.css',
         './src/styles/custom.css',
       ],
       components: {
