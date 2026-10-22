@@ -1,0 +1,18 @@
+{
+  "name": "@oddsquad/webawesome-theme-lit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Lit Design System as design tokens and a Web Awesome theme",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./tokens.css",
+    "./lit.css": "./src/lit.css"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.mjs"
+  },
+  "dependencies": {
+    "@awesome.me/webawesome": "^3.14.0"
+  }
+}

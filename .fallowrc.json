@@ -42,7 +42,9 @@
     "src/lib/runtime/inspector/{install,persist}.ts",
     // src/astro.ts hands Astro this file's path as a dev toolbar app, and
     // the renderer's entrypoints and page script by package export.
-    "src/lib/astro/{toolbar-app,server,client,boot}.ts"
+    "src/lib/astro/{toolbar-app,server,client,boot}.ts",
+    // The theme package's generator reads its token sources by path.
+    "packages/webawesome-theme-lit/src/tokens/*.css"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`

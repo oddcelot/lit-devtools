@@ -1,0 +1,58 @@
+/*
+ * Web Awesome theme for the Lit Design System: `.wa-theme-lit`, and the
+ * default on `:root` once this file loads.
+ *
+ * WA's default theme stays underneath for every token not set here, so a
+ * WA upgrade that adds one never leaves it undefined. Everything this file
+ * sets is a `var()` onto ../tokens.css; no colour is written here. The
+ * tokens switch schemes on their own (see scripts/generate.mjs), so one
+ * mapping serves dark and light, and WA's `.wa-light` / `.wa-dark` blocks
+ * are overridden from the `wa-theme-overrides` layer rather than repeated.
+ */
+@import '@awesome.me/webawesome/dist/styles/themes/default.css';
+@import '../tokens.css';
+
+@layer wa-theme-overrides {
+  :where(:root),
+  .wa-theme-lit,
+  .wa-light,
+  .wa-dark {
+    --wa-color-brand-95: var(--lit-blue-95);
+    --wa-color-brand-90: var(--lit-blue-90);
+    --wa-color-brand-80: var(--lit-blue-80);
+    --wa-color-brand-70: var(--lit-blue-70);
+    --wa-color-brand-60: var(--lit-blue-60);
+    --wa-color-brand-50: var(--lit-blue-50);
+    --wa-color-brand-40: var(--lit-blue-40);
+    --wa-color-brand-30: var(--lit-blue-30);
+    --wa-color-brand-20: var(--lit-blue-20);
+    --wa-color-brand-10: var(--lit-blue-10);
+    --wa-color-brand-05: var(--lit-blue-05);
+    --wa-color-brand: var(--lit-blue);
+    --wa-color-brand-on: var(--on-accent);
+
+    --wa-color-surface-default: var(--surface);
+    --wa-color-surface-raised: var(--surface-elevated);
+    --wa-color-surface-lowered: var(--surface-low);
+    --wa-color-surface-border: var(--border);
+    --wa-color-text-normal: var(--text);
+    --wa-color-text-quiet: var(--text-secondary);
+    --wa-color-text-link: var(--text-link);
+    --wa-color-focus: var(--accent);
+
+    --wa-font-family-body: var(--font-sans);
+    --wa-font-family-heading: var(--font-sans);
+    --wa-font-family-code: var(--font-mono);
+
+    /* Controls and cards at 8px, as the design system specifies. */
+    --wa-border-radius-s: var(--radius-sm);
+    --wa-border-radius-m: var(--radius-md);
+    --wa-border-radius-l: var(--radius-lg);
+    --wa-border-radius-pill: var(--radius-pill);
+
+    --wa-transition-easing: var(--ease-standard);
+    --wa-transition-fast: var(--dur-instant);
+    --wa-transition-normal: var(--dur-fast);
+    --wa-transition-slow: var(--dur-normal);
+  }
+}

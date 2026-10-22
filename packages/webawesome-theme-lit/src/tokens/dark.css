@@ -1,0 +1,56 @@
+/* Lit Design System: semantic tokens, DARK (the DevTools theme and the
+   default). Where a value differs from the design system's colors.css it is
+   a contrast fix the DevTools shipped first; the comment says so. */
+
+:root {
+  --accent: var(--lit-blue-bright);
+  --accent-hover: #6478ff;
+  --accent-pressed: #3d54f0;
+  --accent-soft: hsla(232 100% 65% / 0.16);
+  --accent-ring: hsla(232 100% 65% / 0.45);
+  --on-accent: #ffffff;
+  --accent-cyan: var(--lit-dark-cyan);
+
+  --bg: var(--ink-0);
+  --surface: var(--ink-2);
+  --surface-low: var(--ink-1);
+  --surface-container: var(--ink-4);
+  --surface-container-high: var(--ink-5);
+  --surface-elevated: var(--ink-6);
+  --surface-hover: hsl(0 0% 100% / 0.04);
+  --surface-active: hsl(0 0% 100% / 0.07);
+
+  --text: var(--ink-12);
+  --text-strong: var(--ink-13);
+  /* ink-10 / ink-8 in the design system; one step lighter for 4.5:1. */
+  --text-secondary: var(--ink-11);
+  --text-muted: var(--ink-9);
+  /* Lighter than the brand blue (4.2:1 on ink-1): 6.5:1, so links read as text. */
+  --text-link: oklch(0.72 0.15 268);
+
+  --border: var(--ink-6);
+  --border-strong: var(--ink-7);
+  --border-subtle: hsl(0 0% 100% / 0.06);
+
+  --success: hsl(158 74% 53%);
+  --success-soft: hsl(158 74% 53% / 0.15);
+  --warning: #f4bf4f;
+  --warning-soft: hsl(43 88% 63% / 0.15);
+  --error: #ff6b6b;
+  --error-soft: hsl(0 100% 71% / 0.15);
+  --info: var(--lit-dark-cyan);
+  --info-soft: hsl(187 100% 47% / 0.15);
+
+  --selection-bg: var(--accent);
+  --on-selection: #ffffff;
+
+  /* Code / value syntax: Material-ish, on dark. */
+  --code-default: #eeffff;
+  --code-keyword: #c792ea;
+  --code-string: #c3e88d;
+  --code-number: #f78c6c;
+  --code-property: #b2ccd6;
+  --code-tag: #89ddff;
+  --code-comment: #616161;
+  --code-callee: #82aaff;
+}

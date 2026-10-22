@@ -1,0 +1,56 @@
+/* Lit Design System: semantic tokens, LIGHT (the lit.dev website theme).
+   Where a value differs from the design system's colors.css it is a
+   contrast fix the DevTools shipped first; the comment says so. */
+
+:root {
+  --accent: var(--lit-blue);
+  --accent-hover: #1f3bff;
+  --accent-pressed: #2a2c9d;
+  --accent-soft: hsla(232 100% 60% / 0.12);
+  --accent-ring: hsla(232 100% 60% / 0.4);
+  --on-accent: #ffffff;
+  --accent-cyan: var(--lit-dark-cyan);
+
+  --bg: #f4f4f4;
+  --surface: #ffffff;
+  --surface-low: #f3f3f3;
+  --surface-container: #ffffff;
+  --surface-container-high: #e8e8e8;
+  --surface-elevated: #ffffff;
+  --surface-hover: hsl(0 0% 0% / 0.04);
+  --surface-active: hsl(0 0% 0% / 0.07);
+
+  --text: #242424;
+  --text-strong: #000000;
+  /* #6e6e6e / #949494 in the design system; darkened for 4.5:1 on white. */
+  --text-secondary: #595959;
+  --text-muted: #6f6f6f;
+  --text-link: #005dc7;
+
+  --border: #e2e2e2;
+  --border-strong: #c6c6c6;
+  --border-subtle: hsl(0 0% 0% / 0.07);
+
+  --success: #00865b;
+  --success-soft: hsl(158 100% 26% / 0.1);
+  --warning: #b26a00;
+  --warning-soft: hsl(40 100% 35% / 0.1);
+  --error: #ba1a1a;
+  --error-soft: hsl(0 75% 42% / 0.1);
+  --info: #005dc7;
+  --info-soft: hsl(210 100% 39% / 0.1);
+
+  --selection-bg: var(--accent);
+  --on-selection: #ffffff;
+
+  /* Code / value syntax: the dark hues darkened to hold contrast on white
+     (the design system's GitHub-like set for keyword through callee). */
+  --code-default: #24292e;
+  --code-keyword: #8839b5;
+  --code-string: #3c7a0b;
+  --code-number: #b8470f;
+  --code-property: #4a5d68;
+  --code-tag: #00779a;
+  --code-comment: #6a737d;
+  --code-callee: #2b56c9;
+}
