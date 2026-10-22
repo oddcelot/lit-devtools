@@ -3,8 +3,8 @@ import {readFileSync} from 'node:fs';
 import {describe, expect, test} from 'vite-plus/test';
 import {
   definedNames,
+  outputs,
   readTokens,
-  renderTokensCss,
 } from '../../../packages/webawesome-theme-lit/scripts/generate.mjs';
 
 const pkg = new URL('../../../packages/webawesome-theme-lit/', import.meta.url);
@@ -21,8 +21,10 @@ describe('@oddsquad/webawesome-theme-lit', () => {
   const dark = definedNames(tokens.dark);
   const light = definedNames(tokens.light);
 
-  test('tokens.css is what the generator writes', () => {
-    expect(read('tokens.css')).toBe(renderTokensCss());
+  test('tokens.css and src/lib/design-tokens.ts are what the generator writes', () => {
+    for (const {path, text} of outputs()) {
+      expect(readFileSync(path, 'utf8'), path).toBe(text);
+    }
   });
 
   test('dark and light define the same semantic tokens', () => {
