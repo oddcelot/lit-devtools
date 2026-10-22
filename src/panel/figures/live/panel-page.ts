@@ -16,10 +16,15 @@
  *    already in the page;
  * 4. the demo frame loads and gets the other end, and its runtime announces
  *    itself.
+ *
+ * `?scheme=light|dark` pins both documents to a scheme, for a frame that
+ * sits in a page of a known one (the kitchen sink's halves); without it they
+ * follow the OS, or the panel's saved preference.
  */
 import {version} from '../../../../package.json';
 import {createLocalLitHost} from '../../../lib/devframe/port-link.js';
 import {useLocalClient} from '../../client.js';
+import {applyColorScheme} from '../../../lib/color-scheme.js';
 import {LIVE_PORT_MESSAGE, messagePortLike} from './message-port.js';
 
 const channel = new MessageChannel();
@@ -29,6 +34,10 @@ const client = await createLocalLitHost({
 });
 useLocalClient(client);
 await import('../../main.js');
+
+const scheme = new URLSearchParams(location.search).get('scheme');
+const pinned = scheme === 'light' || scheme === 'dark' ? scheme : null;
+if (pinned !== null) applyColorScheme(pinned);
 
 const frame = document.querySelector<HTMLIFrameElement>('iframe.demo');
 if (frame !== null) {
@@ -42,5 +51,7 @@ if (frame !== null) {
       ),
     {once: true}
   );
-  frame.src = frame.dataset['src'] ?? '';
+  const src = new URL(frame.dataset['src'] ?? '', location.href);
+  if (pinned !== null) src.searchParams.set('scheme', pinned);
+  frame.src = src.href;
 }

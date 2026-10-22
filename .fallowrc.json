@@ -20,6 +20,9 @@
     "extension/src/{background,content,page,snapshot-stub}.ts",
     // Served by bench/run.mjs.
     "bench/index.html",
+    // The kitchen sink's pages, which `vp dev` in packages/lit-components
+    // serves: index.html, and the live panel it frames.
+    "packages/lit-components/*.html",
     // docs/astro.config.mjs passes it to Starlight as routeMiddleware.
     "docs/src/routeData.ts",
     // docs/worker/wrangler.jsonc names it as the Worker's main module.
@@ -71,6 +74,7 @@
     // Bundled into dist/client by `vp build src/panel`, so users never install
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
+    "@fontsource-variable/lilex",
     "@phosphor-icons/core",
     "sugar-high"
   ],

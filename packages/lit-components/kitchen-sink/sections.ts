@@ -36,7 +36,7 @@ export interface Section {
   /** What it is built on, and its main attributes. */
   summary: string;
   /** Hand-picked uses of the component; rendered once per scheme. */
-  render?: () => TemplateResult;
+  render?: (scheme: 'dark' | 'light') => TemplateResult;
   /** What the generated variant grid varies; `false` for none. */
   variants: Variants | false;
 }
@@ -605,5 +605,17 @@ export const SECTIONS: Section[] = [
     summary:
       'src/panel/updates-view.ts · the Updates tab: what updated, how often and why, from the recording · click a component',
     render: updates,
+  },
+  {
+    tag: 'lit-devtools-panel',
+    group: 'Panel views',
+    variants: false,
+    summary:
+      "src/panel/figures/live · the whole panel, live, inspecting a demo page above it, as on the docs' setup guide · every tab",
+    render: (scheme) => html`<iframe
+      class="live-panel"
+      title="Lit DevTools panel inspecting a demo page"
+      src=${`live-panel.html?scheme=${scheme}#tab=components`}
+    ></iframe>`,
   },
 ];
