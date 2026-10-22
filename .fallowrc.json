@@ -71,6 +71,7 @@
     // Bundled into dist/client by `vp build src/panel`, so users never install
     // them; fallow sees src/panel importing them and expects dependencies.
     "@awesome.me/webawesome",
+    "@fontsource-variable/lilex",
     "@phosphor-icons/core",
     "sugar-high"
   ],
