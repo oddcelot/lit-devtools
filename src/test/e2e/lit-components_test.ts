@@ -2,7 +2,6 @@
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {createServer, type ViteDevServer} from 'vite';
-import {litPlugin} from '../../index.js';
 
 /**
  * packages/lit-components in a real browser: its kitchen sink, served the way
@@ -21,10 +20,10 @@ const errors: string[] = [];
 beforeAll(async () => {
   server = await createServer({
     root: ROOT,
-    configFile: false,
+    // The package's own config: the plugin and the kitchen sink's docs.
+    configFile: `${ROOT}vite.config.ts`,
     logLevel: 'silent',
     server: {host: '127.0.0.1', port: 0},
-    plugins: [litPlugin()],
   });
   await server.listen();
   const address = server.httpServer!.address();
@@ -109,6 +108,34 @@ test('the kitchen sink renders every element with no errors', async () => {
   );
   expect(inert).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('the generated sections come from each element API', async () => {
+  // lit-button's grid is WA's variants × appearances (5 × 5), per scheme.
+  const grid = await page.$$eval(
+    '#lit-button .half .matrix lit-button',
+    (els) => els.length
+  );
+  expect(grid).toBe(50);
+  // A compound's grid comes from its own source: one row per `type`.
+  const types = await page.$$eval(
+    '#lit-state-row .half.wa-dark .row lit-state-row',
+    (els) => els.map((e) => e.getAttribute('type'))
+  );
+  expect(types).toEqual([
+    'string',
+    'number',
+    'boolean',
+    'ref',
+    'object',
+    'function',
+    'null',
+  ]);
+  // The API table marks the defaults the package changed from WA's.
+  const changed = await page.$$eval('#lit-badge .api td.changed code', (els) =>
+    els.map((e) => e.textContent)
+  );
+  expect(changed).toEqual(["'neutral'", "'filled-outlined'"]);
 });
 
 test('lit-button type=submit submits its form', async () => {

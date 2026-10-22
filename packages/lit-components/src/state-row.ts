@@ -3,15 +3,6 @@ import {property} from 'lit/decorators.js';
 import './badge.js';
 import './icon.js';
 
-export type StateRowType =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'ref'
-  | 'object'
-  | 'function'
-  | 'null';
-
 /**
  * One `name: value` line of a state inspector, its value coloured by `type`
  * with the design system's code colours. An `expandable` row toggles its
@@ -98,7 +89,14 @@ export class LitStateRow extends LitElement {
 
   @property() name = '';
   @property() value = '';
-  @property({reflect: true}) type: StateRowType = 'object';
+  @property({reflect: true}) type:
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'ref'
+    | 'object'
+    | 'function'
+    | 'null' = 'object';
   @property({type: Number}) depth = 0;
   @property({type: Boolean}) expandable = false;
   @property({type: Boolean, reflect: true}) expanded = false;
@@ -147,6 +145,9 @@ export class LitStateRow extends LitElement {
 }
 
 customElements.define('lit-state-row', LitStateRow);
+
+/** What a row's value is, which picks its colour. */
+export type StateRowType = LitStateRow['type'];
 
 declare global {
   interface HTMLElementTagNameMap {

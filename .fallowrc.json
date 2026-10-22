@@ -129,7 +129,16 @@
     // Each playground demo and each example stands alone on purpose (they are
     // opened one at a time, often on StackBlitz), so their shared boilerplate
     // is not a refactoring target.
-    "ignore": ["playground/**", "examples/**"]
+    // tokens.css and design-tokens.ts are written by the theme package's
+    // generator from src/tokens/*.css, so they repeat their source by design
+    // (tokens.css twice: the light block under the media query and the
+    // scheme classes).
+    "ignore": [
+      "playground/**",
+      "examples/**",
+      "packages/webawesome-theme-lit/tokens.css",
+      "src/lib/design-tokens.ts"
+    ]
   },
   "health": {
     // Build, release and docs tooling, demos and the benchmark harness: run by
