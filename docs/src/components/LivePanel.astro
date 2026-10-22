@@ -1,0 +1,40 @@
+---
+/**
+ * The whole DevTools panel, live, inspecting a demo page above it, with no
+ * dev server (docs/src/pages/live-panel/). A frame of its own, so the panel
+ * owns its document: its tokens, its Lit and its deep links stay out of the
+ * docs page. Loads when it scrolls near the viewport.
+ */
+interface Props {
+  /** The tab the panel opens on. */
+  tab?: 'components' | 'updates' | 'timeline' | 'settings';
+  /** What the reader can try, under the frame. */
+  caption: string;
+}
+const {tab = 'components', caption} = Astro.props;
+---
+
+<figure class="live-panel not-content">
+  <iframe
+    src={`/live-panel/#tab=${tab}`}
+    title="Lit DevTools panel inspecting a demo page"
+    loading="lazy"></iframe>
+  <figcaption>{caption}</figcaption>
+</figure>
+
+<style>
+  .live-panel {
+    margin-block: 1.5rem;
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    height: 46rem;
+    border: 1px solid var(--sl-color-gray-5);
+  }
+  figcaption {
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+</style>
