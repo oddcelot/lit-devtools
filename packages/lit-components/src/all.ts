@@ -11,6 +11,7 @@ import './icon-button.js';
 import './input.js';
 import './segmented-tabs.js';
 import './select.js';
+import './split-panel.js';
 import './stat-card.js';
 import './state-row.js';
 import './switch.js';

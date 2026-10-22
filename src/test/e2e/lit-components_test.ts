@@ -89,6 +89,7 @@ test('the kitchen sink renders every element with no errors', async () => {
       'lit-input',
       'lit-switch',
       'lit-select',
+      'lit-split-panel',
       'lit-card',
       'lit-details',
       'lit-icon',

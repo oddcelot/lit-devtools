@@ -292,6 +292,33 @@ export const SECTIONS: Section[] = [
       ></lit-copy-prompt>`,
   },
   {
+    tag: 'lit-split-panel',
+    group: 'Layout',
+    variants: false,
+    summary:
+      'extends WaSplitPanel · position, position-in-pixels, primary, snap, orientation · wa-reposition',
+    render: () => html`
+      ${row(
+        'horizontal, primary="end"',
+        html`<lit-split-panel class="split" primary="end" position="35">
+          <div slot="start" class="pane">Tree</div>
+          <div slot="end" class="pane">Details</div>
+        </lit-split-panel>`
+      )}
+      ${row(
+        'vertical, snap="50%"',
+        html`<lit-split-panel
+          class="split tall"
+          orientation="vertical"
+          snap="50%"
+        >
+          <div slot="start" class="pane">Timeline</div>
+          <div slot="end" class="pane">Span detail</div>
+        </lit-split-panel>`
+      )}
+    `,
+  },
+  {
     tag: 'lit-segmented-tabs',
     group: 'Layout',
     variants: false,
