@@ -162,6 +162,11 @@ section > header p {
   grid-template-columns: 1fr 1fr;
   gap: var(--space-5);
 }
+.tabs-bar {
+  display: flex;
+  height: 40px;
+  border-bottom: var(--border-width) solid var(--border);
+}
 .icons {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
