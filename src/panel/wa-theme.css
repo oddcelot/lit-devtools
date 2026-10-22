@@ -1,26 +1,12 @@
 /*
  * The panel's Web Awesome theme: the Lit Design System theme from
- * packages/webawesome-theme-lit, set to DevTools density. The theme maps WA's
- * tokens onto the design tokens; this file keeps what only the panel wants:
- * 13px body text, the toolbar control height and system fonts instead of the
- * design system's webfonts (`--lit-devtools-*`, see src/lib/token-text.ts).
+ * packages/webawesome-theme-lit. The panel's density (13px body text, the
+ * toolbar control height, system fonts) is not here: `injectTokens()` sets it
+ * (`webAwesome`, see src/lib/token-text.ts), on `:root` in the panel and on a
+ * wrapper where a page embeds panel views.
  *
  * Only the panel document loads this. The in-page UI (src/lib/runtime) never
  * does: registering `wa-*` or WA's `:root` tokens in the user's app would
  * collide with apps that use Web Awesome themselves.
  */
 @import '../../packages/webawesome-theme-lit/src/lit.css';
-
-@layer wa-theme-overrides {
-  :root,
-  .wa-light,
-  .wa-dark {
-    --wa-font-family-body: var(--lit-devtools-font-sans);
-    --wa-font-family-heading: var(--lit-devtools-font-sans);
-    --wa-font-family-code: var(--lit-devtools-font-mono);
-    /* 13px body (WA's `m`), 12px `s` for small controls — DevTools density. */
-    --wa-font-size-scale: 0.8125;
-
-    --wa-form-control-height: var(--lit-devtools-control-height);
-  }
-}

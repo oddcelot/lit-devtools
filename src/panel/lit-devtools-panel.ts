@@ -1,10 +1,6 @@
 import {LitElement, html, css, nothing} from 'lit';
 import {customElement, property, query, state} from 'lit/decorators.js';
-import {tokens, injectTokens} from '../lib/tokens.js';
-import {
-  applyColorScheme,
-  readColorSchemePreference,
-} from '../lib/color-scheme.js';
+import {tokens} from '../lib/tokens.js';
 import './timeline-view.js';
 import {panelBrand} from './brand.js';
 import {litRpc} from './client.js';
@@ -12,15 +8,6 @@ import {hostInfo} from './host.js';
 import {clearTimelineEvents} from './timeline-store.js';
 import type {PageChangedEvent} from '../lib/devframe/protocol.js';
 
-// Install the shared design tokens on the panel iframe's :root before the
-// views render. Panel components inherit the semantic aliases from :root.
-// The panel owns this document, so it also declares `color-scheme` (host-page
-// injections must not — see `injectTokens`).
-injectTokens({colorScheme: true});
-// Own the color-scheme class once the panel module is live: re-assert the
-// saved preference (the Settings tab mounts lazily, so it can't). `auto` needs
-// no JS — the tokens' `prefers-color-scheme` @media rule resolves it live.
-applyColorScheme(readColorSchemePreference());
 import './components-view.js';
 import type {ComponentsView} from './components-view.js';
 import './updates-view.js';
