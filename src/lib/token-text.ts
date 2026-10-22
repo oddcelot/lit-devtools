@@ -16,7 +16,9 @@
  *    runtime elements (indicator, source-overlay) that build their shadow DOM
  *    via `innerHTML` and Lit panel components that inherit from `:root`.
  *    The injected stylesheet reacts to `prefers-color-scheme` and to
- *    `.color-scheme-light` / `.color-scheme-dark` classes on `:root`.
+ *    `.color-scheme-light` / `.color-scheme-dark` classes on `:root`. A page
+ *    that shows panel views among its own content (the docs) passes a
+ *    {@link InjectTokensOptions.scope} instead, so only that wrapper gets them.
  *
  * The values come from packages/webawesome-theme-lit through the generated
  * `design-tokens.ts`; this file only adds the DevTools' own sizes, fonts and
@@ -51,7 +53,20 @@ const lightThemeCSS = designLightCSS;
 
 const lightSchemeCSS = `color-scheme: light;`;
 
-let _injected = false;
+const _injected = new Set<string>();
+
+/**
+ * The panel's Web Awesome density: 13px body (WA's `m`), 12px `s` for small
+ * controls, the toolbar control height, and the DevTools fonts. Set unlayered
+ * so it outranks the Lit theme's `wa-theme-overrides` layer.
+ */
+const webAwesomeDensityCSS = `
+  --wa-font-family-body: var(--lit-devtools-font-sans);
+  --wa-font-family-heading: var(--lit-devtools-font-sans);
+  --wa-font-family-code: var(--lit-devtools-font-mono);
+  --wa-font-size-scale: 0.8125;
+  --wa-form-control-height: var(--lit-devtools-control-height);
+`;
 
 /**
  * Options for {@link injectTokens} / {@link tokenStyleText}.
@@ -65,6 +80,20 @@ export interface InjectTokensOptions {
    * an opaque background. Defaults to `false`.
    */
   colorScheme?: boolean;
+  /**
+   * The selector that gets the tokens. Defaults to `:root`. Anything else
+   * (say `.lit-devtools-root`) confines them to that element, for a page
+   * that shows panel views among its own content. A scoped sheet follows
+   * the page's scheme from `.color-scheme-*` classes or `data-theme` on
+   * `:root`, falling back to `prefers-color-scheme`.
+   */
+  scope?: string;
+  /**
+   * Also set Web Awesome's tokens to the panel's density. Only where the
+   * panel's controls are the `wa-*` on the page (the panel document) or
+   * under a {@link scope}: the in-page UI must not touch an app's own WA.
+   */
+  webAwesome?: boolean;
 }
 
 /**
@@ -77,6 +106,8 @@ export interface InjectTokensOptions {
  */
 export const tokenStyleText = ({
   colorScheme = false,
+  scope = ':root',
+  webAwesome = false,
 }: InjectTokensOptions = {}): string => {
   const dark = colorScheme
     ? `${darkThemeCSS}\n  ${darkSchemeCSS}`
@@ -84,27 +115,33 @@ export const tokenStyleText = ({
   const light = colorScheme
     ? `${lightThemeCSS}\n  ${lightSchemeCSS}`
     : lightThemeCSS;
+  const forced = (scheme: 'light' | 'dark'): string =>
+    scope === ':root'
+      ? `:root.color-scheme-${scheme}`
+      : `:root.color-scheme-${scheme} ${scope}, :root[data-theme='${scheme}'] ${scope}`;
   return `
-    :root {
+    ${scope} {
       ${baseTokenCSS}
+      ${webAwesome ? webAwesomeDensityCSS : ''}
       ${dark}
     }
     @media (prefers-color-scheme: light) {
-      :root {
+      ${scope} {
         ${light}
       }
     }
-    :root.color-scheme-light {
+    ${forced('light')} {
       ${light}
     }
-    :root.color-scheme-dark {
+    ${forced('dark')} {
       ${dark}
     }
   `;
 };
 
 /**
- * Injects `:root { … }` into the page `<head>` once.
+ * Injects `:root { … }` (or the {@link InjectTokensOptions.scope}) into the
+ * page `<head>`, once per scope.
  *
  * CSS custom properties defined on `:root` cascade through shadow DOM
  * boundaries, so this makes every `var(--lit-devtools-accent)` etc. resolve inside both
@@ -116,8 +153,9 @@ export const tokenStyleText = ({
  * {@link InjectTokensOptions.colorScheme} for its own document.
  */
 export const injectTokens = (options?: InjectTokensOptions): void => {
-  if (_injected) return;
-  _injected = true;
+  const scope = options?.scope ?? ':root';
+  if (_injected.has(scope)) return;
+  _injected.add(scope);
   const style = document.createElement('style');
   style.setAttribute('data-lit-devtools-tokens', '');
   style.textContent = tokenStyleText(options);

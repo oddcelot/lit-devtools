@@ -31,4 +31,22 @@ describe('tokenStyleText', () => {
     expect(text).toContain('color-scheme: dark;');
     expect(text).toContain('color-scheme: light;');
   });
+
+  test('a scope confines the tokens to that element', () => {
+    const text = tokenStyleText({scope: '.lit-devtools-root'});
+    expect(text).not.toContain(':root {');
+    expect(text).toMatch(/^\s*\.lit-devtools-root \{/);
+    // The page's own scheme switch reaches the scoped element.
+    expect(text).toContain(":root[data-theme='dark'] .lit-devtools-root");
+    expect(text).toContain(':root.color-scheme-light .lit-devtools-root');
+  });
+
+  test('Web Awesome density only on request', () => {
+    expect(tokenStyleText()).not.toContain('--wa-');
+    const text = tokenStyleText({webAwesome: true});
+    expect(text).toContain('--wa-font-size-scale: 0.8125;');
+    expect(text).toContain(
+      '--wa-form-control-height: var(--lit-devtools-control-height);'
+    );
+  });
 });
