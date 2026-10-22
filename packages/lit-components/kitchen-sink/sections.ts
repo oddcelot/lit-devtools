@@ -5,6 +5,7 @@ import '@awesome.me/webawesome/dist/components/dropdown-item/dropdown-item.js';
 import '@awesome.me/webawesome/dist/components/option/option.js';
 import '../src/all.js';
 import {iconNames} from '../src/icons.js';
+import type {Variants} from './generated.js';
 
 export const GROUPS = [
   'Actions',
@@ -21,12 +22,13 @@ export interface Section {
   group: (typeof GROUPS)[number];
   /** What it is built on, and its main attributes. */
   summary: string;
-  /** The component in its variants; rendered once per scheme. */
-  render: () => TemplateResult;
+  /** Hand-picked uses of the component; rendered once per scheme. */
+  render?: () => TemplateResult;
+  /** What the generated variant grid varies; `false` for none. */
+  variants: Variants | false;
 }
 
 const VARIANTS = ['brand', 'neutral', 'success', 'warning', 'danger'] as const;
-const SIZES = ['xs', 's', 'm', 'l', 'xl'] as const;
 const CALLOUT_ICON = {
   brand: 'info',
   neutral: 'gear',
@@ -34,22 +36,6 @@ const CALLOUT_ICON = {
   warning: 'warning',
   danger: 'warning',
 } as const;
-
-const matrix = (
-  rows: readonly string[],
-  cols: readonly string[],
-  cell: (row: string, col: string) => TemplateResult
-) =>
-  html`<div
-    class="matrix"
-    style="grid-template-columns: auto repeat(${cols.length}, auto)"
-  >
-    <span></span>
-    ${cols.map((c) => html`<span class="label">${c}</span>`)}
-    ${rows.map(
-      (r) => html`<span class="label">${r}</span>${cols.map((c) => cell(r, c))}`
-    )}
-  </div>`;
 
 const row = (label: string, content: TemplateResult) =>
   html`<div class="row"><span class="label">${label}</span>${content}</div>`;
@@ -61,32 +47,11 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-button',
     group: 'Actions',
+    variants: {booleans: ['disabled', 'loading', 'pill', 'with-caret']},
     summary:
       'extends WaButton · defaults variant="brand" size="s" · variant, appearance, size, pill, disabled, loading, href',
     render: () => html`
-      ${matrix(
-        VARIANTS,
-        ['accent', 'filled', 'outlined', 'filled-outlined', 'plain'],
-        (variant, appearance) =>
-          html`<lit-button variant=${variant} appearance=${appearance}
-            >Button</lit-button
-          >`
-      )}
-      ${row(
-        'sizes',
-        html`${SIZES.map(
-          (size) => html`<lit-button size=${size}>${size}</lit-button>`
-        )}`
-      )}
-      ${row(
-        'states',
-        html`<lit-button>Default</lit-button>
-          <lit-button disabled>Disabled</lit-button>
-          <lit-button loading>Loading</lit-button>
-          <lit-button pill>Pill</lit-button>
-          <lit-button with-caret>Caret</lit-button>
-          <lit-button href="#lit-button">Link</lit-button>`
-      )}
+      ${row('as a link', html`<lit-button href="#lit-button">Link</lit-button>`)}
       ${row(
         'icons',
         html`<lit-button
@@ -138,31 +103,14 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-icon-button',
     group: 'Actions',
+    variants: {
+      fixed: {icon: 'gear', label: 'Settings'},
+      content: '',
+      booleans: ['disabled'],
+    },
     summary:
       'extends WaButton · adds icon, label · defaults variant="neutral" appearance="plain" size="s"',
     render: () => html`
-      ${matrix(
-        ['neutral', 'brand'],
-        ['plain', 'outlined', 'filled', 'accent'],
-        (variant, appearance) =>
-          html`<lit-icon-button
-            icon="gear"
-            label="Settings"
-            variant=${variant}
-            appearance=${appearance}
-          ></lit-icon-button>`
-      )}
-      ${row(
-        'sizes',
-        html`${SIZES.map(
-          (size) =>
-            html`<lit-icon-button
-              icon="magnifying-glass"
-              label="Search"
-              size=${size}
-            ></lit-icon-button>`
-        )}`
-      )}
       ${row(
         'toolbar',
         html`<lit-icon-button icon="play" label="Record"></lit-icon-button>
@@ -175,6 +123,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-copy-button',
     group: 'Actions',
+    variants: false,
     summary: 'extends WaCopyButton · value, from, tooltip, disabled',
     render: () =>
       row(
@@ -189,17 +138,13 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-badge',
     group: 'Feedback',
+    variants: {
+      attributes: ['variant', 'appearance', 'attention'],
+      booleans: ['pill'],
+    },
     summary:
       'extends WaBadge · defaults variant="neutral" appearance="filled-outlined" · variant, appearance, pill, attention',
     render: () => html`
-      ${matrix(
-        VARIANTS,
-        ['filled-outlined', 'filled', 'outlined', 'accent'],
-        (variant, appearance) =>
-          html`<lit-badge variant=${variant} appearance=${appearance}
-            >${variant}</lit-badge
-          >`
-      )}
       ${row(
         'uses',
         html`<lit-badge>v3.2.1</lit-badge>
@@ -212,6 +157,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-callout',
     group: 'Feedback',
+    variants: {content: 'A callout.'},
     summary:
       'extends WaCallout · defaults size="s" · variant, appearance, size; icon slot',
     render: () =>
@@ -223,18 +169,17 @@ export const SECTIONS: Section[] = [
               ><strong>${variant}</strong> The panel reconnected after the dev
               server restarted.</lit-callout
             >`
-        )}
-        ${['filled', 'outlined', 'plain'].map(
-          (appearance) =>
-            html`<lit-callout variant="brand" appearance=${appearance}
-              >appearance="${appearance}"</lit-callout
-            >`
         )}`
       ),
   },
   {
     tag: 'lit-input',
     group: 'Forms',
+    variants: {
+      fixed: {placeholder: 'Placeholder'},
+      content: '',
+      booleans: ['pill', 'with-clear', 'disabled'],
+    },
     summary:
       'extends WaInput · defaults size="s" · type, appearance, with-clear, pill, label, hint, validation',
     render: () =>
@@ -249,48 +194,25 @@ export const SECTIONS: Section[] = [
             type="number"
             value="50"
           ></lit-input>
-          <lit-input appearance="filled" placeholder="Filled"></lit-input>
-          <lit-input pill placeholder="Pill"></lit-input>
-          <lit-input disabled value="Disabled"></lit-input>
           <form>
             <lit-input
               required
               label="Required"
               placeholder="Empty"
             ></lit-input>
-          </form>
-          ${row(
-            'sizes',
-            html`${SIZES.map(
-              (size) =>
-                html`<lit-input size=${size} placeholder=${size}></lit-input>`
-            )}`
-          )}`
+          </form> `
       ),
   },
   {
     tag: 'lit-switch',
     group: 'Forms',
+    variants: {booleans: ['checked', 'disabled']},
     summary: 'extends WaSwitch · defaults size="s" · checked, disabled, size',
-    render: () => html`
-      ${row(
-        'states',
-        html`<lit-switch>off</lit-switch>
-          <lit-switch checked>on</lit-switch>
-          <lit-switch disabled>disabled</lit-switch>
-          <lit-switch checked disabled>on, disabled</lit-switch>`
-      )}
-      ${row(
-        'sizes',
-        html`${SIZES.map(
-          (size) => html`<lit-switch size=${size} checked>${size}</lit-switch>`
-        )}`
-      )}
-    `,
   },
   {
     tag: 'lit-select',
     group: 'Forms',
+    variants: false,
     summary:
       'extends WaSelect · defaults size="s" · wa-option children · multiple, with-clear, appearance, label',
     render: () =>
@@ -318,6 +240,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-card',
     group: 'Layout',
+    variants: {attributes: ['appearance'], content: 'Card content'},
     summary:
       'extends WaCard · appearance, with-header, with-footer, header-actions; slots',
     render: () => html`<div class="cards">
@@ -337,31 +260,30 @@ export const SECTIONS: Section[] = [
           >Cancel</lit-button
         >
       </lit-card>
-      <lit-card appearance="plain">appearance="plain"</lit-card>
     </div>`,
   },
   {
     tag: 'lit-details',
     group: 'Layout',
+    variants: {
+      attributes: ['appearance', 'icon-placement'],
+      fixed: {summary: 'Summary'},
+      content: 'Content',
+      booleans: ['open', 'disabled'],
+    },
     summary:
       'extends WaDetails · summary, open, disabled, appearance, icon-placement',
     render: () =>
       stack(
         html`<lit-details summary="Show the prompt" open
-            >Set up @oddsquad/vite-plugin-lit in this project…</lit-details
-          >
-          <lit-details summary="appearance=filled" appearance="filled"
-            >Content</lit-details
-          >
-          <lit-details summary="appearance=plain" appearance="plain"
-            >Content</lit-details
-          >
-          <lit-details summary="Disabled" disabled>Content</lit-details>`
+          >Set up @oddsquad/vite-plugin-lit in this project…</lit-details
+        >`
       ),
   },
   {
     tag: 'lit-copy-prompt',
     group: 'Actions',
+    variants: false,
     summary: 'compound · label, text, summary · lit-button + lit-details',
     render: () =>
       html`<lit-copy-prompt
@@ -372,6 +294,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-segmented-tabs',
     group: 'Layout',
+    variants: false,
     summary:
       'compound over wa-tab-group · items [{id, label, icon, badge, warnings}], value, size · change',
     render: () => html`
@@ -408,6 +331,11 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-stat-card',
     group: 'DevTools',
+    variants: {
+      fixed: {icon: 'cube', value: '24', label: 'custom elements'},
+      content: '',
+      booleans: ['accent'],
+    },
     summary: 'compound · icon, value, label, accent',
     render: () => html`<div class="cards">
       <lit-stat-card
@@ -426,6 +354,11 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-state-row',
     group: 'DevTools',
+    variants: {
+      attributes: ['type'],
+      fixed: {name: 'value', value: 'sample'},
+      content: '',
+    },
     summary:
       'compound · name, value, type, depth, expandable, expanded, badge · toggle',
     render: () => html`<div>
@@ -472,6 +405,11 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-tree-node',
     group: 'DevTools',
+    variants: {
+      fixed: {tag: 'my-element'},
+      content: '',
+      booleans: ['selected', 'expandable'],
+    },
     summary:
       'compound · tag, depth, expandable, expanded, selected, badge · select, toggle',
     render: () => html`<div role="tree">
@@ -488,6 +426,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-icon',
     group: 'Icons',
+    variants: false,
     summary:
       'extends WaIcon · Phosphor, inlined by icons.ts · registerIcons() adds more',
     render: () =>

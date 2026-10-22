@@ -42,8 +42,11 @@ body {
 .top .meta {
   color: var(--text-secondary);
 }
-.top .density {
+.top .filter {
   margin-left: auto;
+  width: 220px;
+}
+.top .density {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -161,6 +164,52 @@ section > header p {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-5);
+}
+.halves + .halves {
+  margin-top: var(--space-5);
+}
+.cell {
+  display: inline-grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.cell > code {
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+.api {
+  margin-top: var(--space-5);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+.api summary {
+  padding: var(--space-4) var(--space-6);
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+.api table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-xs);
+}
+.api :is(th, td) {
+  padding: var(--space-3) var(--space-6);
+  border-top: var(--border-width) solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+.api th {
+  color: var(--text-muted);
+  font-weight: var(--weight-semibold);
+}
+.api code {
+  font-family: var(--font-mono);
+}
+/* A default the package changed from Web Awesome's. */
+.api td.changed code {
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
 }
 .tabs-bar {
   display: flex;
