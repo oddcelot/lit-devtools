@@ -280,6 +280,9 @@ importers:
       '@oddsquad/vite-plugin-lit':
         specifier: workspace:*
         version: link:..
+      '@oddsquad/webawesome-theme-lit':
+        specifier: workspace:*
+        version: link:../packages/webawesome-theme-lit
       hast-util-select:
         specifier: ^6.0.4
         version: 6.0.4

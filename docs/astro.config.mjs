@@ -106,7 +106,10 @@ export default defineConfig({
       lastUpdated: true,
       // Adds each page's generated Open Graph image to its head.
       routeMiddleware: './src/routeData.ts',
-      customCss: ['./src/styles/custom.css'],
+      customCss: [
+        '@oddsquad/webawesome-theme-lit/tokens.css',
+        './src/styles/custom.css',
+      ],
       components: {
         // Adds the font tags; see the file for why this override exists.
         Head: './src/components/Head.astro',
