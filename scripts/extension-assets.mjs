@@ -36,6 +36,7 @@ import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {chromium} from 'playwright-core';
 import {preview} from 'vite';
+import {resolvedValues} from '../packages/webawesome-theme-lit/scripts/generate.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const EXTENSION = path.join(ROOT, 'extension');
@@ -59,14 +60,12 @@ const TILES = [
   {name: 'promo-marquee-1400x560.png', width: 1400, height: 560},
 ];
 
-/** Brand values (the lit-design tokens), dark DevTools theme. */
+/** Brand values from the design tokens, dark DevTools theme. */
+const token = resolvedValues();
 const BRAND = {
-  void: 'hsl(0 0% 1%)',
-  surface: 'hsl(0 0% 7%)',
-  border: 'hsl(0 0% 21%)',
-  text: 'hsl(0 0% 100%)',
-  blue: '#324fff',
-  cyan: '#00e8ff',
+  void: token.get('--bg'),
+  border: token.get('--border'),
+  text: token.get('--text-strong'),
 };
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
