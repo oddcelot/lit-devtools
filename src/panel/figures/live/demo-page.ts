@@ -22,6 +22,11 @@ import {portPageTransport} from '../../../lib/devframe/port-link.js';
 import {LIVE_PORT_MESSAGE, messagePortLike} from './message-port.js';
 
 joinPage('extension');
+// The scheme the panel page pinned, if any (see `panel-page.ts`).
+const scheme = new URLSearchParams(location.search).get('scheme');
+if (scheme === 'light' || scheme === 'dark') {
+  document.documentElement.style.colorScheme = scheme;
+}
 installDefineSites();
 installTemplateSites();
 forgetOwnLit();
