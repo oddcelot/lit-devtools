@@ -1,0 +1,25 @@
+{
+  "name": "@oddsquad/lit-components",
+  "version": "0.0.0",
+  "private": true,
+  "description": "lit-* elements for the Lit Design System, built on Web Awesome",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "exports": {
+    "./*.js": "./src/*.ts"
+  },
+  "scripts": {
+    "dev": "vp dev"
+  },
+  "dependencies": {
+    "@awesome.me/webawesome": "^3.14.0",
+    "@oddsquad/webawesome-theme-lit": "workspace:*",
+    "@phosphor-icons/core": "^2.1.1",
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "workspace:*",
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

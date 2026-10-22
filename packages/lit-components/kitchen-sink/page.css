@@ -1,0 +1,161 @@
+/*
+ * The kitchen sink's own chrome. Everything on it comes from the Lit theme;
+ * the halves under each section are `.wa-dark` and `.wa-light`, which
+ * tokens.css and the theme both switch on, so both schemes show at once.
+ */
+@import '@oddsquad/webawesome-theme-lit/lit.css';
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+}
+
+.shell {
+  display: grid;
+  grid-template: 'top top' auto 'nav main' 1fr / 200px 1fr;
+  min-height: 100vh;
+}
+.top {
+  grid-area: top;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-5) var(--space-8);
+  border-bottom: var(--border-width) solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.top h1 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+}
+.top .meta {
+  color: var(--text-secondary);
+}
+.top .density {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+}
+
+nav {
+  grid-area: nav;
+  padding: var(--space-6);
+  border-right: var(--border-width) solid var(--border);
+  position: sticky;
+  top: 57px;
+  align-self: start;
+}
+nav h2 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+nav h2:first-child {
+  margin-top: 0;
+}
+nav a {
+  display: block;
+  padding: var(--space-1) 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+nav a:hover {
+  color: var(--text-link);
+}
+
+main {
+  grid-area: main;
+  padding: var(--space-8);
+  display: grid;
+  gap: var(--space-10);
+  align-content: start;
+}
+section > header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+section > header h2 {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+}
+section > header p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+.halves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-6);
+}
+.half {
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+}
+.half > .scheme {
+  margin-bottom: var(--space-5);
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* A row/column grid of variants: a label column, then one per value. */
+.matrix {
+  display: grid;
+  gap: var(--space-4) var(--space-5);
+  align-items: center;
+  justify-items: start;
+}
+.matrix .label {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.row > .label {
+  width: 100%;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* DevTools density: what the panel's src/panel/wa-theme.css sets. On the
+   halves themselves, because Web Awesome redeclares its tokens on every
+   .wa-dark / .wa-light element. */
+.density-devtools :is(.wa-dark, .wa-light) {
+  --wa-font-size-scale: 0.8125;
+  --wa-form-control-height: 28px;
+  --wa-font-family-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --wa-font-family-heading: var(--wa-font-family-body);
+  --wa-font-family-code: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-family: var(--wa-font-family-body);
+}
