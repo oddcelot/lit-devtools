@@ -43,7 +43,8 @@ export const designBaseCSS = `
   --lit-devtools-ink-13: hsl(0 0% 100%);
 
   /* ---- Typography ---- */
-  --lit-devtools-font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --lit-devtools-font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --lit-devtools-font-mono:
     'Lilex Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 

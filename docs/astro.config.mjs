@@ -39,24 +39,16 @@ export default defineConfig({
       },
     },
   },
-  // The two families the Lit Design System specifies, pulled from Fontsource
-  // at build time. Astro downloads, subsets and fingerprints them into the
-  // build, and generates fallback metrics so swapping in the real face does
-  // not shift the layout. Nothing is fetched from a CDN at runtime.
+  // Font files pulled from Fontsource at build time. Astro downloads, subsets
+  // and fingerprints them into the build, and generates fallback metrics so
+  // swapping in the real face does not shift the layout. Nothing is fetched
+  // from a CDN at runtime. Body text uses the system sans stack and needs no
+  // entry here.
   fonts: [
-    {
-      name: 'Manrope',
-      cssVariable: '--font-manrope',
-      provider: fontProviders.fontsource(),
-      // Manrope is a variable font; one file covers the 400-800 the design
-      // system uses (regular body through extrabold display).
-      weights: ['400 800'],
-      styles: ['normal'],
-      subsets: ['latin'],
-    },
-    // Manrope again, for the Open Graph cards only (src/pages/og/). Satori
-    // reads neither woff2 nor variable fonts, so this entry asks for static
-    // TTF instances of the two weights a card uses. No <Font> tag renders it,
+    // Manrope, for the Open Graph cards only (src/pages/og/). Satori renders
+    // without system fonts, so a card needs a font file; it reads neither
+    // woff2 nor variable fonts, so this entry asks for static TTF instances
+    // of the two weights a card uses. No <Font> tag renders it,
     // so browsers never download these files.
     {
       name: 'Manrope',
