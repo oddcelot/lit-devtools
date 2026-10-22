@@ -289,7 +289,7 @@ export class TimelineTracks extends LitElement {
   @property({type: Boolean}) canRecord = false;
   /** The drawn time range, kept by the view; null for none. */
   @property({attribute: false}) range: TimeRange | null = null;
-  /** Let the detail pane offer **inspect** (see `timeline-span-detail`). */
+  /** Let the detail pane and the range summary offer **inspect**. */
   @property({attribute: false}) inspectable = true;
 
   /** Multiple of "fit"; 1 shows the whole recording. */
@@ -676,6 +676,7 @@ export class TimelineTracks extends LitElement {
       : html`<timeline-range-summary
           .summary=${this._summary}
           .layers=${this.layers}
+          .inspectable=${this.inspectable}
           @range-zoom=${this.zoomToRange}
           @range-clear=${() => this._emitRange(null)}
         ></timeline-range-summary>`;

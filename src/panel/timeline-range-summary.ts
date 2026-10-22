@@ -116,6 +116,8 @@ export class TimelineRangeSummary extends LitElement {
 
   @property({attribute: false}) summary: RangeSummary | undefined;
   @property({attribute: false}) layers: LayerState[] = [];
+  /** Offer **inspect**: off where no Components tab can take it. */
+  @property({attribute: false}) inspectable = true;
 
   /** Shows "Copied" on the button for a moment after a copy. */
   @state() private _copied = false;
@@ -232,7 +234,7 @@ export class TimelineRangeSummary extends LitElement {
                           >`
                         : nothing
                     }${
-                      first !== undefined
+                      first !== undefined && this.inspectable
                         ? html`<lit-button
                             class="inspect-link"
                             size="s"
