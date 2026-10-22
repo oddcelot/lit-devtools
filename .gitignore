@@ -4,7 +4,6 @@
 /astro.*
 /lib/
 /types/
-/panel/
 /standalone/
 /dist/
 /examples/*/dist/

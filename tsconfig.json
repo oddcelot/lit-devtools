@@ -25,5 +25,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*.ts", "client.d.ts"],
-  "exclude": ["src/test/**"]
+  "exclude": ["src/test/**", "src/panel/**"]
 }
