@@ -12,17 +12,26 @@
  * The iframe is only created on first open, so a dock nobody opens costs
  * the page nothing but the button.
  *
+ * In a frame (a cloud IDE's preview) devframe cannot prompt for the one-time
+ * code, so the dock asks for it: the button carries a dot, and the drawer
+ * holds a field for the code instead of the panel until the server trusts the
+ * page. The panel then loads with the token the page stored.
+ *
  * A full page load takes the panel with it. The dock keeps what it can
  * across one: open or not, its height, and the panel's tab, read off the
  * panel's hash as the page goes. Not the selection: its ids name elements
  * of the page that is leaving, and on the next one could name others.
  */
 
+import type {CodeRequest} from './rpc-transport.js';
+
 export interface Dock {
   /** Open the drawer, on `href` when given (a hash change keeps the panel). */
   show(href?: string): void;
   hide(): void;
   toggle(): void;
+  /** Ask the reader for the one-time code, for a page that cannot prompt. */
+  askForCode(auth: CodeRequest): void;
 }
 
 const STORAGE_KEY = 'lit-devtools:dock';
@@ -111,6 +120,68 @@ const STYLES = `
   :host([resizing]) iframe {
     pointer-events: none;
   }
+  :host([needs-code]) .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #e8590c;
+    box-shadow: 0 0 0 2px #fff;
+  }
+  :host([needs-code]) iframe {
+    display: none;
+  }
+  .auth {
+    display: none;
+    height: 100%;
+    place-content: center;
+    gap: 0.6rem;
+    font: 14px/1.4 system-ui, sans-serif;
+    color: #1f2335;
+    text-align: center;
+  }
+  :host([needs-code]) .auth {
+    display: grid;
+  }
+  .auth p {
+    margin: 0;
+  }
+  .auth form {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+  .auth input {
+    width: 9ch;
+    font: 600 16px ui-monospace, monospace;
+    letter-spacing: 0.15em;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid #c3c8da;
+    border-radius: 6px;
+  }
+  .auth button {
+    font: 600 14px system-ui, sans-serif;
+    padding: 0.4rem 0.9rem;
+    border: 0;
+    border-radius: 6px;
+    background: #324fff;
+    color: #fff;
+    cursor: pointer;
+  }
+  .auth .link {
+    background: none;
+    color: #324fff;
+    padding: 0;
+    font-weight: 400;
+    text-decoration: underline;
+  }
+  .auth [role='alert'] {
+    min-height: 1.4em;
+    color: #c92a2a;
+  }
 `;
 
 const load = (): DockState => {
@@ -149,11 +220,25 @@ export const createDock = (panelUrl: string): Dock => {
   const root = host.attachShadow({mode: 'open'});
   root.innerHTML = `<style>${STYLES}</style>
     <button class="toggle" type="button" title="Lit DevTools" aria-label="Lit DevTools" aria-expanded="false">${FLAME}</button>
-    <div class="drawer"><div class="handle"></div></div>`;
+    <div class="drawer"><div class="handle"></div>
+      <div class="auth">
+        <p><strong>Lit DevTools</strong> needs the code your dev server printed.</p>
+        <form>
+          <input name="code" inputmode="numeric" autocomplete="one-time-code" aria-label="Code" required />
+          <button type="submit">Connect</button>
+        </form>
+        <p role="alert"></p>
+        <p><button class="link" type="button">Print a new code</button></p>
+      </div>
+    </div>`;
   const toggle = root.querySelector('button')!;
   const drawer = root.querySelector<HTMLElement>('.drawer')!;
   const handle = root.querySelector<HTMLElement>('.handle')!;
   let frame: HTMLIFrameElement | undefined;
+  /** Waiting for the code: the panel would not be trusted either. */
+  let needsCode = false;
+  /** Where to open the panel once the code is in. */
+  let pending: string | undefined;
   // `?dock` tells the panel someone reads its hash, so it keeps it current.
   const framed = (hash: string) => {
     const url = new URL(panelUrl);
@@ -171,7 +256,10 @@ export const createDock = (panelUrl: string): Dock => {
 
   const dock: Dock = {
     show(href) {
-      if (frame === undefined) {
+      if (needsCode) {
+        pending = href ?? pending;
+        root.querySelector('input')!.focus();
+      } else if (frame === undefined) {
         frame = document.createElement('iframe');
         frame.title = 'Lit DevTools';
         frame.src = framed(
@@ -199,6 +287,34 @@ export const createDock = (panelUrl: string): Dock => {
     toggle() {
       if (state.open) dock.hide();
       else dock.show();
+    },
+    askForCode(auth) {
+      needsCode = true;
+      host.toggleAttribute('needs-code', true);
+      const form = root.querySelector('form')!;
+      const input = root.querySelector('input')!;
+      const alert = root.querySelector('[role="alert"]')!;
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        alert.textContent = '';
+        if (!(await auth.submit(input.value))) {
+          alert.textContent =
+            'That code did not work. Check it, or print a new one.';
+          return;
+        }
+        needsCode = false;
+        host.toggleAttribute('needs-code', false);
+        // A panel loaded while the page was untrusted asked for trust in vain.
+        frame?.remove();
+        frame = undefined;
+        if (state.open) dock.show(pending);
+      });
+      root.querySelector('.link')!.addEventListener('click', async () => {
+        await auth.reissue();
+        alert.textContent = "A new code is in your dev server's output.";
+        input.value = '';
+        input.focus();
+      });
     },
   };
 

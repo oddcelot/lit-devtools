@@ -153,10 +153,10 @@ test('the dock opens the panel in the page, on the page’s components', async (
   await app.goto(origin);
 
   // Closed, it is a button and no panel.
-  await dock(app).locator('button').waitFor();
+  await dock(app).locator('button.toggle').waitFor();
   expect(await app.locator('iframe').count()).toBe(0);
 
-  await dock(app).locator('button').click();
+  await dock(app).locator('button.toggle').click();
   await panel(app)
     .getByText('<page-one>', {exact: true})
     .waitFor({timeout: 15_000});
@@ -238,7 +238,7 @@ test('four docked tabs all load: the RPC holds no HTTP connection open', async (
     for (let n = 0; n < 4; n++) {
       const tab = await context.newPage();
       await tab.goto(origin, {timeout: 10_000});
-      if (n === 0) await dock(tab).locator('button').click();
+      if (n === 0) await dock(tab).locator('button.toggle').click();
       await panel(tab)
         .getByText('<page-one>', {exact: true})
         .waitFor({timeout: 10_000});

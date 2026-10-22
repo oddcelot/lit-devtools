@@ -1,4 +1,4 @@
-import {afterEach, describe, expect, test} from 'vite-plus/test';
+import {afterEach, describe, expect, test, vi} from 'vite-plus/test';
 import {createDock} from '../../lib/runtime/dock.js';
 
 // A real panel URL would make happy-dom fetch it for the iframe.
@@ -60,6 +60,40 @@ describe('createDock', () => {
 
     createDock(PANEL);
     expect(frame()?.src).toBe(`${DOCKED}#tab=timeline`);
+  });
+
+  test('asks for the code in place of the panel, and loads the panel after', async () => {
+    const dock = createDock(PANEL);
+    const submit = vi.fn(async (code: string) => code === '123456');
+    const reissue = vi.fn(async () => {});
+    dock.askForCode({submit, reissue});
+    toggle().click();
+
+    expect(host().hasAttribute('needs-code')).toBe(true);
+    expect(frame()).toBeNull();
+
+    const shadow = host().shadowRoot!;
+    const input = shadow.querySelector<HTMLInputElement>('input[name=code]')!;
+    const form = shadow.querySelector('form')!;
+    const settle = () => new Promise((resolve) => setTimeout(resolve));
+
+    input.value = '000000';
+    form.requestSubmit();
+    await settle();
+    expect(shadow.querySelector('[role=alert]')!.textContent).toMatch(
+      /did not work/
+    );
+    expect(host().hasAttribute('needs-code')).toBe(true);
+
+    shadow.querySelector<HTMLButtonElement>('.link')!.click();
+    await settle();
+    expect(reissue).toHaveBeenCalledOnce();
+
+    input.value = '123456';
+    form.requestSubmit();
+    await settle();
+    expect(host().hasAttribute('needs-code')).toBe(false);
+    expect(frame()?.src).toBe(DOCKED);
   });
 
   test('is not a custom element, so it is never counted as the page’s', () => {

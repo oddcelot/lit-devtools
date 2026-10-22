@@ -118,10 +118,12 @@ element opens it there. The page remembers whether the drawer was open and how
 tall. It is also its own page at `/__lit-devtools/`; pass `base` to move it,
 or `dock: false` to leave the page alone.
 
-- **Auth.** On by default: the page and the panel ask for a one-time code
-  that the server prints. `createLitDevtools({auth: false})` skips it; only do
-  that on a server bound to loopback, since the RPC can open files in your
-  editor.
+- **Auth.** On by default: the page asks for a one-time code that the server
+  prints, once per browser. In a frame, such as a cloud IDE's preview, the
+  browser cannot prompt, so the dock asks instead: its button carries a dot,
+  and the drawer holds a field for the code. `createLitDevtools({auth: false})`
+  skips the code; only do that on a server bound to loopback, since the RPC
+  can open files in your editor.
 - **Transport.** The RPC runs over a WebSocket that devframe serves on a spare
   local port of its own, so the host needs no upgrade wiring. The browser
   dials it on the page's hostname: pass `host: '127.0.0.1'` if your pages are

@@ -130,9 +130,10 @@ starts the dev server with `PREVIEW_ORIGIN='https://*.csb.app'`.
 The preview gives each port its own `https://<id>-<port>.csb.app` origin, so
 with `PREVIEW_ORIGIN` set [`src/dev.ts`](src/dev.ts) listens on every
 interface, and the DevTools keep their RPC on the page's origin
-(`transport: 'sse'`), admit the preview's origin, and keep the code gate on:
-the first time the page or panel connects it asks for a code, which the
-**Guestbook** task prints in its terminal.
+(`transport: 'sse'`), admit the preview's origin, and keep the code gate on.
+CodeSandbox shows the preview in a frame, where the page cannot prompt, so the
+Lit button carries a dot: open the drawer and enter the code the **Guestbook**
+task printed in its terminal. The browser remembers it after that.
 
 It installs `@oddsquad/vite-plugin-lit` from npm, and needs a release with
 `createLitDevtools()` (0.22.0 or later).
