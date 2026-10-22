@@ -7,6 +7,7 @@ import '../src/all.js';
 // Not a lit-* component: a panel view over a recording, shown so a theme
 // change can be checked on the panel itself, in both schemes.
 import '../../../src/panel/figures/timeline-figure.js';
+import './devtools-specimens.js';
 import {iconNames} from '../src/icons.js';
 import type {Variants} from './generated.js';
 
@@ -17,6 +18,7 @@ export const GROUPS = [
   'Layout',
   'Icons',
   'DevTools',
+  'In-page UI',
   'Panel views',
 ] as const;
 
@@ -470,6 +472,34 @@ export const SECTIONS: Section[] = [
             >`
         )}
       </div>`,
+  },
+  {
+    tag: 'hmr-indicator-specimen',
+    group: 'In-page UI',
+    variants: false,
+    summary:
+      'src/lib/runtime/indicator-template.ts · the HMR indicator in the page corner, drawn in place · state, count · click to replay the pulse',
+    render: () => html`
+      ${row(
+        'at rest, with the count',
+        html`<hmr-indicator-specimen count="3"></hmr-indicator-specimen>`
+      )}
+      ${row(
+        'after an update',
+        html`<hmr-indicator-specimen state="update"></hmr-indicator-specimen
+          ><hmr-indicator-specimen
+            state="update"
+            count="4"
+          ></hmr-indicator-specimen>`
+      )}
+      ${row(
+        'after a style swap',
+        html`<hmr-indicator-specimen
+          state="style-swap"
+          count="4"
+        ></hmr-indicator-specimen>`
+      )}
+    `,
   },
   {
     tag: 'timeline-figure',
