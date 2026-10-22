@@ -15,9 +15,15 @@ import devtoolsPanelDockedDark from '../../../../assets/shots/devtools-panel-doc
 import devtoolsSettingsTabLight from '../../../../assets/shots/devtools-settings-tab.light.png';
 import devtoolsSettingsTabDark from '../../../../assets/shots/devtools-settings-tab.dark.png';
 import Since from '../../../../components/Since.astro';
+import LivePanel from '../../../../components/LivePanel.astro';
 
 Add two plugins and a Lit panel appears inside Vite DevTools with a timeline, a
 component tree and an update explainer. Dev-only and off by default.
+
+This is the panel itself, inspecting three playground components above it,
+running in this page with no dev server:
+
+<LivePanel caption="Click a row to inspect a component, hover one to outline it, or press Pick and click the page. On the Timeline tab, press Record and click the counter." />
 
 <Aside type="tip" title="Not on Vite, or inspecting production?">
   The Lit Inspector extension puts the same panel in Chrome and Firefox DevTools
