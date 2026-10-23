@@ -229,7 +229,7 @@
    the <video-skin> inside it. */
 video-player {
   --media-accent-color: var(--sl-color-accent);
-  --media-border-radius: 0.5rem;
+  --media-border-radius: var(--radius-md);
   --media-border-color: var(--sl-color-hairline);
   --media-font-family: var(--sl-font);
 }
