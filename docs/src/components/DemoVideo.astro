@@ -13,7 +13,7 @@ interface Props {
   /** What the video shows, for screen readers. */
   label: string;
   /** File stem in `public/demo/`: `<name>.mp4` and `<name>-poster.jpg`. */
-  name?: string;
+  name: string;
   width?: number;
   height?: number;
   /** Muted looping autoplay (a demo) or play on request (a film). */
@@ -22,7 +22,7 @@ interface Props {
 
 const {
   label,
-  name = 'hmr-demo',
+  name,
   width = 1440,
   height = 902,
   autoplay = true,
