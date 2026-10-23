@@ -90,7 +90,10 @@ nav h2:first-child {
   margin-top: 0;
 }
 nav a {
-  display: block;
+  /* 24px tall at least: WCAG 2.5.8's target size. */
+  display: flex;
+  align-items: center;
+  min-height: var(--space-8);
   padding: var(--space-1) 0;
   color: var(--text-secondary);
   text-decoration: none;
