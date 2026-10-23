@@ -61,6 +61,11 @@ nav {
   position: sticky;
   top: 57px;
   align-self: start;
+  /* Sticky and longer than the window once every section is listed: it
+     scrolls on its own, under the top bar. */
+  max-height: calc(100vh - 57px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 nav h2 {
   margin: var(--space-6) 0 var(--space-3);
