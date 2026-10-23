@@ -32,8 +32,6 @@ const ALT = {
     'The Components tab: the element tree on the left, hmr-properties selected, its reactive properties on the right.',
   'devtools-flash':
     'The playground with flash on: fading outlines over the components that just updated.',
-  'devtools-updates-table':
-    'The Updates tab table: one row per component with update counts and total time.',
   'devtools-updates-detail':
     'One update expanded in the Updates tab, showing the changed property keys and the triggering input event.',
   'devtools-custom-layer':

@@ -619,16 +619,6 @@ const SHOTS = [
     },
   },
   {
-    name: 'devtools-updates-table',
-    capture: async (ctx) => {
-      const {panel} = await recordSession(ctx);
-      await ctx.tab(panel, 'updates');
-      await updatesView(panel).locator('css=.row').first().waitFor();
-      await sleep(300);
-      await ctx.shot(panel);
-    },
-  },
-  {
     name: 'devtools-updates-detail',
     capture: async (ctx) => {
       const {panel} = await recordSession(ctx);

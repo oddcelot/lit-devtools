@@ -10,8 +10,7 @@ import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import context from '../../../../../../playground/src/hmr-context.ts?raw';
 import {stripHeader} from '../../../../lib/fixture';
 import ThemedImage from '../../../../components/ThemedImage.astro';
-import devtoolsUpdatesTableLight from '../../../../assets/shots/devtools-updates-table.light.png';
-import devtoolsUpdatesTableDark from '../../../../assets/shots/devtools-updates-table.dark.png';
+import UpdatesFigure from '../../../../components/UpdatesFigure.astro';
 import devtoolsUpdatesDetailLight from '../../../../assets/shots/devtools-updates-detail.light.png';
 import devtoolsUpdatesDetailDark from '../../../../assets/shots/devtools-updates-detail.dark.png';
 import Since from '../../../../components/Since.astro';
@@ -33,11 +32,7 @@ re-zeroes its timeline clock each time.
 
 The upper pane holds one row per component **tag**, slowest first.
 
-<ThemedImage
-  light={devtoolsUpdatesTableLight}
-  dark={devtoolsUpdatesTableDark}
-  alt="The Updates tab table: one row per component with update counts and total time."
-/>
+<UpdatesFigure caption="A recorded session from the playground, live: click a component for each of its updates and what changed." />
 
 | Column          | Meaning                                                                                                                                                                                                                                                                                                                                         |
 | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
