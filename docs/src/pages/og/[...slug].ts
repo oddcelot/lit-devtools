@@ -67,18 +67,9 @@ export const getStaticPaths = (async () => {
       },
     ];
   });
-  // The landing page is not a docs entry (src/pages/index.astro).
-  const home = {
-    params: {slug: 'index.png'},
-    props: {
-      card: {
-        title: 'Edit a Lit component. Keep the page.',
-        description:
-          'True HMR for Lit in Vite, one shared stylesheet for every shadow root, and a DevTools panel that explains each re-render.',
-      },
-    },
-  };
-  return [home, ...docs, changelog, ...releases];
+  // The landing page's card is drawn by hand instead
+  // (assets/og-home/, rendered to public/og/index.png).
+  return [...docs, changelog, ...releases];
 }) satisfies GetStaticPaths;
 
 /** Longest card description, in characters: three lines at the card's 32px. */
