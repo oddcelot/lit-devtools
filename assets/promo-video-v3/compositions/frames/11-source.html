@@ -1,0 +1,753 @@
+<template id="s11-source-template">
+  <div
+    data-hf-id="hf-edx3"
+    id="s11-source"
+    data-composition-id="s11-source"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <style>
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        font-style: normal;
+        src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        font-style: italic;
+        src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+      }
+      #s11-source,
+      #s11-source * {
+        box-sizing: border-box;
+      }
+      #s11-source {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        color: #e3e3e3;
+        overflow: hidden;
+      }
+      #s11-wrap {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      #s11-wrap .ico {
+        display: block;
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+      }
+      .s11-mono {
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+      }
+      #s11-eyebrow {
+        position: absolute;
+        left: 96px;
+        top: 150px;
+        font-weight: 700;
+        font-size: 18px;
+        line-height: 22px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #af7a51;
+        white-space: nowrap;
+      }
+      .s11-h {
+        position: absolute;
+        left: 96px;
+        display: block;
+        font-weight: 800;
+        font-size: 68px;
+        line-height: 72px;
+        letter-spacing: -0.03em;
+        color: #fff;
+        white-space: nowrap;
+      }
+      .s11-shine {
+        padding-bottom: 0.16em;
+        margin-bottom: -0.16em;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+        background: linear-gradient(
+          100deg,
+          #4d63ff 10%,
+          #00ffff 55%,
+          #4d63ff 95%
+        );
+        background-size: 200% 100%;
+        background-position: 0% 0%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      /* key caps */
+      #s11-keys {
+        position: absolute;
+        left: 96px;
+        top: 410px;
+        display: flex;
+        gap: 14px;
+      }
+      .s11-key {
+        height: 68px;
+        min-width: 68px;
+        padding: 0 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #292929;
+        border: 1px solid #363636;
+        border-bottom-width: 4px;
+        font-size: 26px;
+        color: #919191;
+        white-space: nowrap;
+      }
+      /* page mock */
+      #s11-card {
+        position: absolute;
+        left: 760px;
+        top: 140px;
+        width: 540px;
+        height: 200px;
+        background: #121212;
+        border: 1px solid #363636;
+      }
+      #s11-title {
+        position: absolute;
+        left: 28px;
+        top: 26px;
+        font-weight: 600;
+        font-size: 44px;
+        line-height: 54px;
+        color: #fff;
+        white-space: nowrap;
+        letter-spacing: -0.01em;
+      }
+      #s11-btn {
+        position: absolute;
+        left: 28px;
+        top: 110px;
+        height: 58px;
+        padding: 0 22px;
+        border: 1px solid #4d63ff;
+        font-weight: 600;
+        font-size: 28px;
+        line-height: 56px;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #s11-renders {
+        position: absolute;
+        left: 226px;
+        top: 123px;
+        font-size: 20px;
+        line-height: 32px;
+        color: #a1a1a1;
+        white-space: nowrap;
+      }
+      /* source overlay (hovered element) */
+      #s11-ov {
+        position: absolute;
+        left: 752px;
+        top: 132px;
+        width: 556px;
+        height: 216px;
+        border: 2px solid #4d63ff;
+        background: rgba(50, 79, 255, 0.3);
+      }
+      /* tooltip card */
+      #s11-tip {
+        position: absolute;
+        left: 760px;
+        top: 372px;
+        background: #363636;
+        border: 1px solid #474747;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      }
+      .s11-trow {
+        position: relative;
+        display: flex;
+        align-items: stretch;
+      }
+      .s11-trow + .s11-trow {
+        border-top: 1px solid #474747;
+      }
+      .s11-ic {
+        width: 58px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #474747;
+        color: #c7c7c7;
+        font-size: 18px;
+      }
+      .s11-ic .s11-ci {
+        width: 22px;
+        height: 22px;
+      }
+      .s11-tx {
+        position: relative;
+        padding: 10px 16px;
+        line-height: 26px;
+        white-space: nowrap;
+      }
+      #s11-trow1 .s11-tx b {
+        display: block;
+        font-weight: 600;
+        color: #fff;
+        font-size: 20px;
+      }
+      #s11-trow1 .s11-tx i {
+        display: block;
+        font-style: normal;
+        color: #e3e3e3;
+        font-size: 17px;
+      }
+      #s11-trow2 .s11-tx {
+        padding: 12px 16px;
+        font-size: 17px;
+        color: #c7c7c7;
+      }
+      #s11-trow2 .s11-tx span {
+        color: #fff;
+      }
+      #s11-arm {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(77, 100, 255, 0.32);
+        opacity: 0;
+      }
+      /* editor code card */
+      #s11-ed {
+        position: absolute;
+        left: 1120px;
+        top: 300px;
+        width: 720px;
+        height: 232px;
+        background: #0d0d0d;
+        border: 1px solid #363636;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+      }
+      #s11-tabs {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 40px;
+        background: #121212;
+        border-bottom: 1px solid #363636;
+      }
+      .s11-tab {
+        position: absolute;
+        top: 0;
+        height: 40px;
+        padding: 0 18px;
+        font-size: 17px;
+        line-height: 40px;
+        color: #c7c7c7;
+        white-space: nowrap;
+        border-right: 1px solid #363636;
+      }
+      #s11-tab1 {
+        left: 0;
+      }
+      #s11-tab2 {
+        left: 175px;
+        opacity: 0;
+      }
+      .s11-ul {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 2px;
+        background: #324fff;
+      }
+      .s11-code {
+        position: absolute;
+        left: 0;
+        top: 58px;
+        width: 100%;
+        height: 150px;
+      }
+      .s11-ln {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 48px;
+        font-size: 24px;
+        line-height: 48px;
+        white-space: pre;
+        color: #eeffff;
+      }
+      .s11-num {
+        position: absolute;
+        left: 0;
+        width: 58px;
+        text-align: right;
+        color: #616161;
+      }
+      .s11-cd {
+        position: absolute;
+        left: 76px;
+      }
+      .s11-hl {
+        position: absolute;
+        left: 0;
+        top: 48px;
+        width: 100%;
+        height: 48px;
+        background: rgba(77, 100, 255, 0.16);
+        box-shadow: inset 3px 0 #4d63ff;
+      }
+      #s11-caret {
+        position: absolute;
+        left: 711px;
+        top: 57px;
+        width: 2px;
+        height: 30px;
+        background: #fff;
+      }
+      .s11-kw {
+        color: #c792ea;
+      }
+      .s11-fn {
+        color: #82aaff;
+      }
+      .s11-st {
+        color: #c3e88d;
+      }
+      .s11-nm {
+        color: #f78c6c;
+      }
+      .s11-pn {
+        color: #919191;
+      }
+      .s11-tg {
+        color: #89ddff;
+      }
+      .s11-pr {
+        color: #b2ccd6;
+      }
+      #s11-site {
+        position: absolute;
+        left: 1120px;
+        top: 548px;
+        height: 36px;
+        padding: 0 16px;
+        border: 1px solid #00e8ff;
+        background: #030303;
+        font-size: 18px;
+        line-height: 34px;
+        color: #00e8ff;
+        white-space: nowrap;
+      }
+      /* cursor + ripples */
+      #s11-cursor {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 26px;
+        height: 36px;
+        z-index: 9;
+      }
+      .s11-rip {
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        margin: -22px 0 0 -22px;
+        border-radius: 50%;
+        border: 3px solid #00e8ff;
+        opacity: 0;
+      }
+    </style>
+    <div data-hf-id="hf-4im7" id="s11-wrap">
+      <div data-hf-id="hf-s8z5" id="s11-eyebrow">Source</div>
+      <span data-hf-id="hf-9dfi" class="s11-h" id="s11-h1" style="top: 186px"
+        >Click.</span
+      >
+      <span data-hf-id="hf-jti9" class="s11-h" id="s11-h2" style="top: 258px"
+        ><span data-hf-id="hf-5f46" class="s11-shine" id="s11-shine"
+          >Land in code.</span
+        ></span
+      >
+      <div data-hf-id="hf-phsz" id="s11-keys" class="s11-mono">
+        <div data-hf-id="hf-e4cq" class="s11-key" id="s11-k1">Ctrl</div>
+        <div data-hf-id="hf-23dw" class="s11-key" id="s11-k2">Shift</div>
+        <div data-hf-id="hf-t0fi" class="s11-key" id="s11-k3">S</div>
+      </div>
+
+      <div data-hf-id="hf-tnj1" id="s11-card">
+        <div data-hf-id="hf-c0os" id="s11-title">Counter: edited live</div>
+        <div data-hf-id="hf-2er8" id="s11-btn">Count: 42</div>
+        <div data-hf-id="hf-aibx" id="s11-renders" class="s11-mono">
+          renders: 2
+        </div>
+      </div>
+      <div data-hf-id="hf-kb8o" id="s11-ov"></div>
+
+      <div data-hf-id="hf-reo2" id="s11-tip" class="s11-mono">
+        <div data-hf-id="hf-ja7b" class="s11-trow" id="s11-trow1">
+          <div data-hf-id="hf-iw3m" class="s11-ic">
+            <div data-hf-id="hf-rzwq" class="s11-ci">
+              <svg
+                data-hf-id="hf-mi62"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-xbf8"
+                  d="M223.68,66.15,135.68,18h0a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32h0l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm96,129.57V133.82L216,90v85.78Z"
+                />
+              </svg>
+            </div>
+          </div>
+          <div data-hf-id="hf-k6oi" class="s11-tx">
+            <b data-hf-id="hf-th07">&lt;hmr-counter&gt;</b
+            ><i data-hf-id="hf-2v2t">src/hmr-counter.ts:7</i>
+          </div>
+        </div>
+        <div data-hf-id="hf-8epo" class="s11-trow" id="s11-trow2">
+          <div data-hf-id="hf-drjr" id="s11-arm"></div>
+          <div data-hf-id="hf-tssj" class="s11-ic">&lt;/&gt;</div>
+          <div data-hf-id="hf-9raw" class="s11-tx">
+            rendered at <span data-hf-id="hf-3r3p">index.html:120</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-vx74" id="s11-ed" class="s11-mono">
+        <div data-hf-id="hf-1ew7" id="s11-tabs">
+          <div data-hf-id="hf-m030" class="s11-tab" id="s11-tab1">
+            hmr-counter.ts<i
+              data-hf-id="hf-tobj"
+              class="s11-ul"
+              id="s11-ul1"
+            ></i>
+          </div>
+          <div data-hf-id="hf-7ikp" class="s11-tab" id="s11-tab2">
+            index.html<i
+              data-hf-id="hf-lugl"
+              class="s11-ul"
+              id="s11-ul2"
+              style="opacity: 0"
+            ></i>
+          </div>
+        </div>
+        <div data-hf-id="hf-qv4i" class="s11-code" id="s11-ts">
+          <div data-hf-id="hf-iqlz" class="s11-hl" id="s11-hl1"></div>
+          <div data-hf-id="hf-m4o3" class="s11-ln" style="top: 0">
+            <span data-hf-id="hf-44c5" class="s11-num">6</span
+            ><span data-hf-id="hf-jkk6" class="s11-cd"
+              ><span data-hf-id="hf-iuhq" class="s11-fn">@customElement</span
+              ><span data-hf-id="hf-1wyb" class="s11-pn">(</span
+              ><span data-hf-id="hf-alew" class="s11-st">"hmr-counter"</span
+              ><span data-hf-id="hf-2b9c" class="s11-pn">)</span></span
+            >
+          </div>
+          <div data-hf-id="hf-zwnp" class="s11-ln" style="top: 48px">
+            <span data-hf-id="hf-6g30" class="s11-num" style="color: #c7c7c7"
+              >7</span
+            ><span data-hf-id="hf-ct2g" class="s11-cd"
+              ><span data-hf-id="hf-e7bf" class="s11-kw">export class</span>
+              HmrCounter
+              <span data-hf-id="hf-487a" class="s11-kw">extends</span>
+              LitElement
+              <span data-hf-id="hf-5q52" class="s11-pn">{</span></span
+            >
+          </div>
+          <div data-hf-id="hf-o4l4" class="s11-ln" style="top: 96px">
+            <span data-hf-id="hf-3bq3" class="s11-num">8</span
+            ><span data-hf-id="hf-tb5m" class="s11-cd">
+              <span data-hf-id="hf-4d7i" class="s11-fn">@state</span
+              ><span data-hf-id="hf-iwjy" class="s11-pn">()</span>
+              <span data-hf-id="hf-2m1w" class="s11-pr">count</span>
+              <span data-hf-id="hf-ud4s" class="s11-pn">=</span>
+              <span data-hf-id="hf-hfla" class="s11-nm">42</span
+              ><span data-hf-id="hf-v5qu" class="s11-pn">;</span></span
+            >
+          </div>
+          <div data-hf-id="hf-pnpc" id="s11-caret"></div>
+        </div>
+        <div
+          data-hf-id="hf-gosn"
+          class="s11-code"
+          id="s11-html"
+          style="opacity: 0"
+        >
+          <div data-hf-id="hf-7v4c" class="s11-hl" id="s11-hl2"></div>
+          <div data-hf-id="hf-fu3n" class="s11-ln" style="top: 0">
+            <span data-hf-id="hf-5wf2" class="s11-num">119</span
+            ><span data-hf-id="hf-tpgn" class="s11-cd"
+              ><span data-hf-id="hf-tytr" class="s11-pn">&lt;</span
+              ><span data-hf-id="hf-q4hf" class="s11-tg">section</span>
+              <span data-hf-id="hf-t9yn" class="s11-pr">class</span
+              ><span data-hf-id="hf-ir90" class="s11-pn">=</span
+              ><span data-hf-id="hf-jieb" class="s11-st">"demo"</span
+              ><span data-hf-id="hf-t67p" class="s11-pn">&gt;</span></span
+            >
+          </div>
+          <div data-hf-id="hf-hwzt" class="s11-ln" style="top: 48px">
+            <span data-hf-id="hf-cdvo" class="s11-num" style="color: #c7c7c7"
+              >120</span
+            ><span data-hf-id="hf-u3ro" class="s11-cd">
+              <span data-hf-id="hf-jcfj" class="s11-pn">&lt;</span
+              ><span data-hf-id="hf-cw2a" class="s11-tg">hmr-counter</span>
+              <span data-hf-id="hf-k2r1" class="s11-pr">label</span
+              ><span data-hf-id="hf-hkbx" class="s11-pn">=</span
+              ><span data-hf-id="hf-r8pv" class="s11-st">"demo"</span
+              ><span data-hf-id="hf-guz0" class="s11-pn">&gt;&lt;/</span
+              ><span data-hf-id="hf-ft06" class="s11-tg">hmr-counter</span
+              ><span data-hf-id="hf-nvu1" class="s11-pn">&gt;</span></span
+            >
+          </div>
+          <div data-hf-id="hf-d1jk" class="s11-ln" style="top: 96px">
+            <span data-hf-id="hf-91x1" class="s11-num">121</span
+            ><span data-hf-id="hf-ui2p" class="s11-cd"
+              ><span data-hf-id="hf-sijk" class="s11-pn">&lt;/</span
+              ><span data-hf-id="hf-18yb" class="s11-tg">section</span
+              ><span data-hf-id="hf-p2r4" class="s11-pn">&gt;</span></span
+            >
+          </div>
+        </div>
+      </div>
+      <div data-hf-id="hf-tsou" id="s11-site" class="s11-mono">
+        the call site
+      </div>
+
+      <div
+        data-hf-id="hf-29ru"
+        class="s11-rip"
+        id="s11-rip1"
+        style="left: 1150px; top: 270px"
+      ></div>
+      <div
+        data-hf-id="hf-qc1d"
+        class="s11-rip"
+        id="s11-rip2"
+        style="left: 1150px; top: 270px"
+      ></div>
+      <div
+        data-hf-id="hf-tk4h"
+        class="s11-rip"
+        id="s11-rip3"
+        style="left: 880px; top: 450px"
+      ></div>
+      <svg data-hf-id="hf-xp2y" id="s11-cursor" viewBox="0 0 22 30">
+        <path
+          data-hf-id="hf-yk69"
+          d="M1 1 L1 23 L7 18 L11 28 L15 26.5 L11 17 L19 17 Z"
+          fill="#fff"
+          stroke="#030308"
+          stroke-width="1.5"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        var slam = function (id, t) {
+          tl.fromTo(
+            id,
+            {opacity: 0, y: 24},
+            {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+            t
+          );
+        };
+        tl.fromTo(
+          '#s11-eyebrow',
+          {opacity: 0, y: 12},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          0.1
+        );
+        slam('#s11-h1', 0.1);
+        slam('#s11-h2', 0.96);
+        tl.fromTo(
+          '#s11-shine',
+          {backgroundPosition: '0% 0%'},
+          {backgroundPosition: '100% 0%', duration: 2.55, ease: 'none'},
+          0.96
+        );
+        // page-mock card is on stage from the start
+        tl.fromTo(
+          '#s11-card',
+          {opacity: 0, y: 14},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          0.1
+        );
+        // key caps light up
+        tl.fromTo(
+          '#s11-keys',
+          {opacity: 0, y: 12},
+          {opacity: 1, y: 0, duration: 0.2, ease: 'power3.out'},
+          0.1
+        );
+        [
+          ['#s11-k1', 0.24],
+          ['#s11-k2', 0.32],
+          ['#s11-k3', 0.4],
+        ].forEach(function (k) {
+          tl.to(
+            k[0],
+            {
+              color: '#ffffff',
+              borderColor: '#00e8ff',
+              boxShadow: '0 0 18px rgba(0,232,255,.55)',
+              duration: 0.1,
+              ease: 'power2.out',
+            },
+            k[1]
+          );
+        });
+        // source overlay hovers the card
+        tl.fromTo(
+          '#s11-ov',
+          {opacity: 0},
+          {opacity: 1, duration: 0.15, ease: 'power2.out'},
+          0.48
+        );
+        // tooltip
+        tl.fromTo(
+          '#s11-tip',
+          {opacity: 0, y: 12},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          0.72
+        );
+        // cursor travels to the card, clicks at 0.96
+        tl.set('#s11-cursor', {x: 1010, y: 560}, 0);
+        tl.fromTo(
+          '#s11-cursor',
+          {opacity: 0},
+          {opacity: 1, duration: 0.1},
+          0.3
+        );
+        tl.to(
+          '#s11-cursor',
+          {x: 1150, y: 270, duration: 0.6, ease: 'power3.out'},
+          0.34
+        );
+        tl.to(
+          '#s11-cursor',
+          {
+            scale: 0.85,
+            transformOrigin: '0px 0px',
+            duration: 0.06,
+            ease: 'power2.in',
+          },
+          0.96
+        );
+        tl.to(
+          '#s11-cursor',
+          {scale: 1, duration: 0.06, ease: 'power2.out'},
+          1.02
+        );
+        [
+          ['#s11-rip1', 0.96],
+          ['#s11-rip2', 1.06],
+          ['#s11-rip3', 1.92],
+        ].forEach(function (r) {
+          tl.fromTo(
+            r[0],
+            {opacity: 0.9, scale: 0.3},
+            {
+              opacity: 0,
+              scale: 2.4,
+              duration: 0.5,
+              ease: 'power2.out',
+              immediateRender: false,
+            },
+            r[1]
+          );
+        });
+        // click -> overlay deepens, the editor card morphs out of the click point
+        tl.to(
+          '#s11-ov',
+          {backgroundColor: 'rgba(50,79,255,.42)', duration: 0.1},
+          0.96
+        );
+        tl.fromTo(
+          '#s11-ed',
+          {opacity: 0, scale: 0.15, transformOrigin: '30px -30px'},
+          {opacity: 1, scale: 1, duration: 0.4, ease: 'power3.out'},
+          0.96
+        );
+        // caret blinks (finite, deterministic)
+        for (var i = 0; i < 4; i++) {
+          tl.set('#s11-caret', {opacity: 0}, 1.4 + i * 0.5);
+          tl.set('#s11-caret', {opacity: 1}, 1.65 + i * 0.5);
+        }
+        // cursor to the tooltip's "rendered at" row, second click at 1.92
+        tl.to(
+          '#s11-cursor',
+          {x: 880, y: 450, duration: 0.42, ease: 'power2.inOut'},
+          1.46
+        );
+        tl.to(
+          '#s11-cursor',
+          {scale: 0.85, duration: 0.06, ease: 'power2.in'},
+          1.92
+        );
+        tl.to(
+          '#s11-cursor',
+          {scale: 1, duration: 0.06, ease: 'power2.out'},
+          1.98
+        );
+        tl.fromTo('#s11-arm', {opacity: 0}, {opacity: 1, duration: 0.1}, 1.92);
+        // index.html takes the front
+        tl.set('#s11-caret', {opacity: 0}, 1.92);
+        tl.fromTo(
+          '#s11-tab2',
+          {opacity: 0, x: -10},
+          {opacity: 1, x: 0, duration: 0.2, ease: 'power3.out'},
+          1.92
+        );
+        tl.to('#s11-ul1', {opacity: 0, duration: 0.1}, 1.92);
+        tl.to('#s11-tab1', {color: '#919191', duration: 0.1}, 1.92);
+        tl.fromTo('#s11-ul2', {opacity: 0}, {opacity: 1, duration: 0.1}, 1.96);
+        tl.to('#s11-ts', {opacity: 0, duration: 0.12}, 1.92);
+        tl.to('#s11-html', {opacity: 1, duration: 0.12}, 1.98);
+        tl.fromTo(
+          '#s11-hl2',
+          {scaleX: 0, transformOrigin: '0% 50%'},
+          {scaleX: 1, duration: 0.25, ease: 'power3.out'},
+          2.0
+        );
+        tl.fromTo(
+          '#s11-site',
+          {opacity: 0, y: 8},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          2.4
+        );
+        tl.to('#s11-tip', {opacity: 0.55, duration: 0.2}, 2.3);
+        // snap shut
+        tl.set('#s11-wrap', {transformOrigin: '960px 664px'}, 0);
+        tl.to(
+          '#s11-wrap',
+          {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+          3.51
+        );
+        window.__timelines['s11-source'] = tl;
+      })();
+    </script>
+  </div>
+</template>

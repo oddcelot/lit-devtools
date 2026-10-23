@@ -1,0 +1,1419 @@
+<template id="s03-edit-template">
+  <style>
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: italic;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+
+    #s03-edit {
+      overflow: hidden;
+      background: transparent;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    }
+    #s03-edit * {
+      box-sizing: border-box;
+    }
+    #s03-edit svg.s03-edit-ic {
+      display: block;
+      fill: currentColor;
+      flex: none;
+    }
+    /* stage clip: x 40-1880, y 100-664 */
+    #s03-edit-clip {
+      position: absolute;
+      inset: 0;
+      clip-path: inset(100px 40px 416px 40px);
+    }
+    #s03-edit-stage {
+      position: absolute;
+      inset: 0;
+      transform-origin: 50% 664px;
+    }
+
+    .s03-edit-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7bff;
+      line-height: 24px;
+      white-space: nowrap;
+    }
+    .s03-edit-line {
+      position: absolute;
+      left: 96px;
+      width: 604px;
+      font-weight: 800;
+      font-size: 68px;
+      letter-spacing: -0.03em;
+      line-height: 72px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .s03-edit-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      display: inline-block;
+      padding-right: 4px;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 0%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    /* panel fragment */
+    #s03-edit-panel {
+      position: absolute;
+      left: 740px;
+      top: 124px;
+      width: 1100px;
+      height: 516px;
+      background: #030303;
+      border: 1px solid #363636;
+      overflow: hidden;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      color: #e3e3e3;
+    }
+    #s03-edit-toolbar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 66px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #363636;
+      z-index: 3;
+    }
+    .s03-edit-btn {
+      position: absolute;
+      top: 10px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: 1px solid #717584;
+      color: #9194a2;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-weight: 500;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+    .s03-edit-btn.on {
+      background: #0f1d67;
+      border-color: transparent;
+      color: #82a5ff;
+    }
+    #s03-edit-filter {
+      position: absolute;
+      left: 150px;
+      top: 10px;
+      width: 320px;
+      height: 45px;
+      border: 1px solid #717584;
+      background: #121212;
+      display: flex;
+      align-items: center;
+      padding: 0 19px;
+      gap: 16px;
+      font-size: 19px;
+      color: #717584;
+    }
+
+    /* overrides bar (slides in at 1.44) */
+    #s03-edit-obar {
+      position: absolute;
+      left: 0;
+      top: 66px;
+      width: 100%;
+      height: 0;
+      overflow: hidden;
+      z-index: 2;
+    }
+    #s03-edit-obar-in {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 59px;
+      background: rgba(77, 100, 255, 0.16);
+      border-bottom: 1px solid #363636;
+      display: flex;
+      align-items: center;
+      padding: 0 19px;
+      gap: 10px;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .s03-edit-switch {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      background: #324fff;
+      flex: none;
+    }
+    .s03-edit-switch i {
+      position: absolute;
+      right: 3px;
+      top: 3px;
+      width: 16px;
+      height: 16px;
+      background: #121212;
+    }
+    .s03-edit-tri {
+      width: 0;
+      height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 10px solid #e3e3e3;
+      margin: 0 0 0 8px;
+    }
+    #s03-edit-clear {
+      margin-left: auto;
+      color: #c7c7c7;
+    }
+
+    /* split: tree | details */
+    #s03-edit-split {
+      position: absolute;
+      left: 0;
+      top: 66px;
+      width: 100%;
+      height: 450px;
+    }
+    #s03-edit-tree {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 440px;
+      height: 100%;
+      padding-top: 13px;
+      border-right: 1px solid #363636;
+    }
+    .s03-edit-row {
+      position: relative;
+      height: 35px;
+      display: flex;
+      align-items: center;
+      padding-left: 38px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .s03-edit-row .tw {
+      position: absolute;
+      left: 14px;
+      top: 13px;
+      width: 8px;
+      height: 8px;
+      border-right: 1.6px solid #919191;
+      border-bottom: 1.6px solid #919191;
+      transform: rotate(-45deg);
+    }
+    .s03-edit-row .br {
+      color: #919191;
+    }
+    .s03-edit-row.sel {
+      background: #181d3d;
+      box-shadow: inset 3px 0 0 #324fff;
+    }
+
+    #s03-edit-details {
+      position: absolute;
+      left: 441px;
+      top: 0;
+      width: 659px;
+      height: 100%;
+    }
+    .s03-edit-blk {
+      position: absolute;
+      left: 19px;
+      right: 19px;
+    }
+    #s03-edit-head {
+      top: 16px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+    }
+    #s03-edit-head .br {
+      color: #919191;
+    }
+    .s03-edit-hbtn {
+      position: absolute;
+      top: 0;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9194a2;
+    }
+    .s03-edit-hbtn .hov {
+      position: absolute;
+      inset: 0;
+      background: #212121;
+      opacity: 0;
+    }
+    .s03-edit-hbtn svg {
+      position: relative;
+    }
+    .s03-edit-meta {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      font-size: 19px;
+      color: #c7c7c7;
+      white-space: nowrap;
+    }
+    .s03-edit-meta .l {
+      width: 174px;
+      color: #919191;
+      flex: none;
+    }
+    .s03-edit-meta .link {
+      color: #7c9fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .s03-edit-sec {
+      border-top: 1px solid #363636;
+      padding-top: 10px;
+    }
+    .s03-edit-sh {
+      height: 26px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #919191;
+      white-space: nowrap;
+    }
+    .s03-edit-sh .cv {
+      width: 8px;
+      height: 8px;
+      border-right: 1.5px solid #919191;
+      border-bottom: 1.5px solid #919191;
+      transform: rotate(45deg);
+      margin: -4px 4px 0 3px;
+    }
+    .s03-edit-sh .n {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      letter-spacing: 0;
+    }
+    .s03-edit-sh .org {
+      margin-left: auto;
+      color: #919191;
+    }
+    .s03-edit-prose {
+      height: 28px;
+      line-height: 28px;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-size: 19px;
+      color: #c7c7c7;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .s03-edit-prose code {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 18px;
+      background: #212121;
+      padding: 0 3px;
+      color: #e3e3e3;
+    }
+    .s03-edit-ent {
+      position: relative;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+    .s03-edit-ent .nm {
+      position: absolute;
+      left: 0;
+      top: 0;
+      line-height: 30px;
+      color: #e3e3e3;
+    }
+    .s03-edit-ent .vl {
+      position: absolute;
+      left: 174px;
+      top: 0;
+      line-height: 30px;
+    }
+    .s03-edit-str {
+      color: #c3e88d;
+    }
+    .s03-edit-num {
+      color: #f78c6c;
+    }
+    .s03-edit-badge {
+      font-size: 18px;
+      line-height: 22px;
+      padding: 0 6px;
+      background: #212121;
+      color: #919191;
+      margin-left: 42px;
+    }
+    .s03-edit-hovbg {
+      position: absolute;
+      left: -19px;
+      right: -19px;
+      top: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.04);
+      opacity: 0;
+    }
+    .s03-edit-flash {
+      position: absolute;
+      left: -19px;
+      right: -19px;
+      top: 0;
+      bottom: 0;
+      background: rgba(77, 99, 255, 0.35);
+      opacity: 0;
+    }
+    .s03-edit-act {
+      position: absolute;
+      top: 2px;
+      width: 27px;
+      height: 27px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 2px;
+      color: #919191;
+    }
+    .s03-edit-act.edge {
+      width: 40px;
+      background: #030303;
+    }
+    .s03-edit-swap {
+      position: absolute;
+      left: 174px;
+      top: 0;
+      line-height: 30px;
+    }
+    .s03-edit-swap span {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    /* inline editor */
+    #s03-edit-input {
+      position: absolute;
+      left: 172px;
+      right: -4px;
+      top: -2px;
+      height: 34px;
+      background: #121212;
+      border: 1px solid #4d63ff;
+      box-shadow: 0 0 0 2px rgba(77, 100, 255, 0.45);
+      opacity: 0;
+    }
+    #s03-edit-input .txt {
+      position: absolute;
+      left: 10px;
+      top: 0;
+      line-height: 32px;
+      color: #e3e3e3;
+    }
+    #s03-edit-input .selv {
+      position: absolute;
+      left: 8px;
+      top: 5px;
+      width: 15px;
+      height: 22px;
+      background: #4d63ff;
+    }
+    #s03-edit-input .caret {
+      position: absolute;
+      left: 22px;
+      top: 6px;
+      width: 2px;
+      height: 20px;
+      background: #e3e3e3;
+      opacity: 0;
+    }
+
+    /* override row bits */
+    #s03-edit-chk {
+      position: absolute;
+      left: 0;
+      top: 5px;
+      width: 21px;
+      height: 21px;
+      background: #4d63ff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+    }
+    #s03-edit-ovr {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 30px;
+      opacity: 0;
+    }
+    #s03-edit-ovr .intr {
+      position: absolute;
+      left: 228px;
+      top: 0;
+      line-height: 30px;
+      color: #919191;
+      text-decoration: line-through;
+    }
+    #s03-edit-pin {
+      color: #919191;
+    }
+
+    /* tooltips */
+    .s03-edit-tip {
+      position: absolute;
+      padding: 6px 13px;
+      background: #363636;
+      border: 1px solid #363636;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-size: 19px;
+      line-height: 27px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      opacity: 0;
+      z-index: 5;
+    }
+
+    /* cursor */
+    #s03-edit-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 40px;
+      z-index: 10;
+      opacity: 0;
+    }
+    #s03-edit-cursor svg {
+      display: block;
+      filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.5));
+    }
+    .s03-edit-ripple {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      margin: -22px 0 0 -22px;
+      border-radius: 50%;
+      border: 2px solid #82a5ff;
+      opacity: 0;
+      z-index: 9;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-rtxf"
+    id="s03-edit"
+    data-composition-id="s03-edit"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <div data-hf-id="hf-ek5r" id="s03-edit-clip">
+      <div data-hf-id="hf-owud" id="s03-edit-stage">
+        <div
+          data-hf-id="hf-2m8m"
+          class="s03-edit-eyebrow"
+          id="s03-edit-eyebrow"
+        >
+          Components
+        </div>
+        <div
+          data-hf-id="hf-22iy"
+          class="s03-edit-line"
+          id="s03-edit-l1"
+          style="top: 186px"
+        >
+          Inspect it.
+        </div>
+        <div
+          data-hf-id="hf-kfjw"
+          class="s03-edit-line"
+          id="s03-edit-l2"
+          style="top: 258px"
+        >
+          <span
+            style="line-height: 79px"
+            data-hf-id="hf-zbri"
+            class="s03-edit-shine"
+            id="s03-edit-shine"
+            >Change it.</span
+          >
+        </div>
+
+        <div data-hf-id="hf-uc9d" id="s03-edit-panel">
+          <div data-hf-id="hf-6tbi" id="s03-edit-toolbar">
+            <div
+              data-hf-id="hf-xdi7"
+              class="s03-edit-btn"
+              style="left: 19px; width: 118px"
+            >
+              <svg
+                data-hf-id="hf-r1xq"
+                class="s03-edit-ic"
+                width="19"
+                height="19"
+                viewBox="0 0 256 256"
+                aria-hidden="true"
+              >
+                <path
+                  data-hf-id="hf-6whb"
+                  d="M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z"
+                /></svg
+              >Pick
+            </div>
+            <div data-hf-id="hf-64vj" id="s03-edit-filter">
+              <svg
+                data-hf-id="hf-ztsi"
+                class="s03-edit-ic"
+                width="19"
+                height="19"
+                viewBox="0 0 256 256"
+                aria-hidden="true"
+              >
+                <path
+                  data-hf-id="hf-89p3"
+                  d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                /></svg
+              ><span data-hf-id="hf-hfx0">Filter tags</span>
+            </div>
+            <div
+              data-hf-id="hf-cjxc"
+              class="s03-edit-btn on"
+              style="right: 337px; width: 117px"
+            >
+              <svg
+                data-hf-id="hf-083j"
+                class="s03-edit-ic"
+                width="19"
+                height="19"
+                viewBox="0 0 256 256"
+                aria-hidden="true"
+              >
+                <path
+                  data-hf-id="hf-fa2e"
+                  d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"
+                /></svg
+              >Live
+            </div>
+            <div
+              data-hf-id="hf-kx13"
+              class="s03-edit-btn"
+              style="right: 194px; width: 130px"
+            >
+              <svg
+                data-hf-id="hf-0mek"
+                class="s03-edit-ic"
+                width="19"
+                height="19"
+                viewBox="0 0 256 256"
+                aria-hidden="true"
+              >
+                <path
+                  data-hf-id="hf-sdy6"
+                  d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"
+                /></svg
+              >Flash
+            </div>
+            <div
+              data-hf-id="hf-xifj"
+              class="s03-edit-btn"
+              style="right: 19px; width: 162px"
+            >
+              <svg
+                data-hf-id="hf-10pl"
+                class="s03-edit-ic"
+                width="19"
+                height="19"
+                viewBox="0 0 256 256"
+                aria-hidden="true"
+              >
+                <path
+                  data-hf-id="hf-t97l"
+                  d="M208,96a16,16,0,0,0,16-16V48a16,16,0,0,0-16-16H176a16,16,0,0,0-16,16v8H96V48A16,16,0,0,0,80,32H48A16,16,0,0,0,32,48V80A16,16,0,0,0,48,96h8v64H48a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16v-8h64v8a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16h-8V96ZM176,48h32V80H176ZM48,48H80V63.9a.51.51,0,0,0,0,.2V80H48ZM80,208H48V176H80v15.9a.51.51,0,0,0,0,.2V208Zm128,0H176V176h32Zm-24-48h-8a16,16,0,0,0-16,16v8H96v-8a16,16,0,0,0-16-16H72V96h8A16,16,0,0,0,96,80V72h64v8a16,16,0,0,0,16,16h8Z"
+                /></svg
+              >Anatomy
+            </div>
+          </div>
+
+          <div data-hf-id="hf-0dij" id="s03-edit-obar">
+            <div data-hf-id="hf-zvpd" id="s03-edit-obar-in">
+              <span data-hf-id="hf-1kpd" class="s03-edit-switch"
+                ><i data-hf-id="hf-wt6k"></i></span
+              ><span data-hf-id="hf-c1pm">Apply overrides</span
+              ><span data-hf-id="hf-ypa4" class="s03-edit-tri"></span
+              ><span data-hf-id="hf-ssn4">1 override</span
+              ><span data-hf-id="hf-pr17" id="s03-edit-clear">Clear all</span>
+            </div>
+          </div>
+
+          <div data-hf-id="hf-bu2r" id="s03-edit-split">
+            <div data-hf-id="hf-ofdp" id="s03-edit-tree">
+              <div data-hf-id="hf-9g6a" class="s03-edit-row">
+                <span data-hf-id="hf-bvyx"
+                  ><span data-hf-id="hf-lgm3" class="br">&lt;</span
+                  >hmr-counter<span data-hf-id="hf-ko01" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-lkw6" class="s03-edit-row">
+                <i data-hf-id="hf-r8xj" class="tw"></i
+                ><span data-hf-id="hf-2zjd"
+                  ><span data-hf-id="hf-wsrf" class="br">&lt;</span
+                  >hmr-lifecycle<span data-hf-id="hf-da51" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-lz77" class="s03-edit-row">
+                <i data-hf-id="hf-w5pz" class="tw"></i
+                ><span data-hf-id="hf-j1dj"
+                  ><span data-hf-id="hf-wege" class="br">&lt;</span
+                  >hmr-parent<span data-hf-id="hf-eh24" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-sx86" class="s03-edit-row sel">
+                <span data-hf-id="hf-lm9a"
+                  ><span data-hf-id="hf-w05d" class="br">&lt;</span
+                  >hmr-properties<span data-hf-id="hf-e2r3" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-mdi8" class="s03-edit-row">
+                <span data-hf-id="hf-w9t2"
+                  ><span data-hf-id="hf-vluc" class="br">&lt;</span
+                  >hmr-static-props<span data-hf-id="hf-f9o6" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-jld1" class="s03-edit-row">
+                <span data-hf-id="hf-vpb2"
+                  ><span data-hf-id="hf-v7jb" class="br">&lt;</span
+                  >hmr-task<span data-hf-id="hf-evd5" class="br"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+            </div>
+
+            <div data-hf-id="hf-yfi9" id="s03-edit-details">
+              <div data-hf-id="hf-xt8f" class="s03-edit-blk" id="s03-edit-head">
+                <span data-hf-id="hf-iw36"
+                  ><span data-hf-id="hf-ut8a" class="br">&lt;</span
+                  >hmr-properties<span data-hf-id="hf-g2a8" class="br"
+                    >&gt;</span
+                  ></span
+                >
+                <div
+                  data-hf-id="hf-jqif"
+                  class="s03-edit-hbtn"
+                  id="s03-edit-ru"
+                  style="left: 500px"
+                >
+                  <i data-hf-id="hf-gf1b" class="hov"></i
+                  ><svg
+                    data-hf-id="hf-1f0m"
+                    class="s03-edit-ic"
+                    width="19"
+                    height="19"
+                    viewBox="0 0 256 256"
+                    aria-hidden="true"
+                  >
+                    <path
+                      data-hf-id="hf-z1pj"
+                      d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"
+                    />
+                  </svg>
+                </div>
+                <div
+                  data-hf-id="hf-djvt"
+                  class="s03-edit-hbtn"
+                  style="left: 576px"
+                >
+                  <svg
+                    data-hf-id="hf-1tbn"
+                    class="s03-edit-ic"
+                    width="19"
+                    height="19"
+                    viewBox="0 0 256 256"
+                    aria-hidden="true"
+                  >
+                    <path
+                      data-hf-id="hf-tst6"
+                      d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                data-hf-id="hf-mjvb"
+                class="s03-edit-blk s03-edit-meta"
+                style="top: 66px"
+              >
+                <span data-hf-id="hf-qjbg" class="l">defined</span
+                ><span data-hf-id="hf-4zf7" class="link"
+                  >src/hmr-properties.ts:10<svg
+                    data-hf-id="hf-ipa8"
+                    class="s03-edit-ic"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 256 256"
+                    aria-hidden="true"
+                  >
+                    <path
+                      data-hf-id="hf-sk62"
+                      d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"
+                    /></svg
+                ></span>
+              </div>
+              <div
+                data-hf-id="hf-r3i0"
+                class="s03-edit-blk s03-edit-meta"
+                style="top: 94px"
+              >
+                <span data-hf-id="hf-ivam" class="l">rendered</span
+                ><span data-hf-id="hf-sqll" class="link"
+                  >index.html:173<svg
+                    data-hf-id="hf-i8oo"
+                    class="s03-edit-ic"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 256 256"
+                    aria-hidden="true"
+                  >
+                    <path
+                      data-hf-id="hf-3nem"
+                      d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"
+                    /></svg
+                ></span>
+              </div>
+
+              <div
+                data-hf-id="hf-8qx1"
+                class="s03-edit-blk s03-edit-sec"
+                style="top: 132px"
+              >
+                <div data-hf-id="hf-qn6g" class="s03-edit-sh">
+                  <i data-hf-id="hf-iqvn" class="cv"></i>About<span
+                    data-hf-id="hf-631d"
+                    class="org"
+                    ><svg
+                      data-hf-id="hf-2gtw"
+                      class="s03-edit-ic"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 256 256"
+                      aria-hidden="true"
+                    >
+                      <path
+                        data-hf-id="hf-mlpa"
+                        d="M181.66,146.34a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L164.69,152l-18.35-18.34a8,8,0,0,1,11.32-11.32Zm-72-24a8,8,0,0,0-11.32,0l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L91.31,152l18.35-18.34A8,8,0,0,0,109.66,122.34ZM216,88V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-56-8h28.69L160,51.31Zm40,136V96H152a8,8,0,0,1-8-8V40H56V216H200Z"
+                      /></svg
+                  ></span>
+                </div>
+                <div data-hf-id="hf-03op" class="s03-edit-prose">
+                  Wider reactive-property surface: a reflected
+                  <code data-hf-id="hf-kfit">@property</code>, a numeric …
+                </div>
+              </div>
+
+              <div
+                data-hf-id="hf-gi5t"
+                class="s03-edit-blk s03-edit-sec"
+                style="top: 208px"
+              >
+                <div data-hf-id="hf-461u" class="s03-edit-sh">
+                  <i data-hf-id="hf-trlf" class="cv"></i>Properties<span
+                    data-hf-id="hf-cx0x"
+                    class="n"
+                    >2</span
+                  >
+                </div>
+                <div data-hf-id="hf-uh71" class="s03-edit-ent">
+                  <span data-hf-id="hf-5n3o" class="nm">label</span
+                  ><span data-hf-id="hf-khlj" class="vl"
+                    ><span data-hf-id="hf-2ug6" class="s03-edit-str"
+                      >"initial"</span
+                    ><span data-hf-id="hf-ootw" class="s03-edit-badge"
+                      >label</span
+                    ></span
+                  >
+                </div>
+                <div
+                  data-hf-id="hf-2coi"
+                  class="s03-edit-ent"
+                  id="s03-edit-factor"
+                >
+                  <span
+                    data-hf-id="hf-eg2a"
+                    class="s03-edit-hovbg"
+                    id="s03-edit-fhov"
+                  ></span>
+                  <span data-hf-id="hf-q3c0" id="s03-edit-chk"
+                    ><svg
+                      data-hf-id="hf-07xi"
+                      class="s03-edit-ic"
+                      width="15"
+                      height="15"
+                      viewBox="0 0 256 256"
+                      aria-hidden="true"
+                    >
+                      <path
+                        data-hf-id="hf-g0e0"
+                        d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
+                      /></svg
+                  ></span>
+                  <span data-hf-id="hf-os42" class="nm" id="s03-edit-fname"
+                    >factor</span
+                  >
+                  <span data-hf-id="hf-l70k" class="s03-edit-swap"
+                    ><span
+                      data-hf-id="hf-wyth"
+                      class="s03-edit-num"
+                      id="s03-edit-f2"
+                      >2</span
+                    ><span
+                      data-hf-id="hf-o99e"
+                      class="s03-edit-num"
+                      id="s03-edit-f4"
+                      style="opacity: 0"
+                      >4</span
+                    ></span
+                  >
+                  <span
+                    data-hf-id="hf-tlnp"
+                    class="s03-edit-act"
+                    id="s03-edit-pen"
+                    style="left: 198px; opacity: 0"
+                    ><svg
+                      data-hf-id="hf-h1rl"
+                      class="s03-edit-ic"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 256 256"
+                      aria-hidden="true"
+                    >
+                      <path
+                        data-hf-id="hf-0k6s"
+                        d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
+                      /></svg
+                  ></span>
+                  <span data-hf-id="hf-0vxf" id="s03-edit-ovr">
+                    <span data-hf-id="hf-yf20" class="intr">2</span>
+                    <span
+                      data-hf-id="hf-2rtk"
+                      class="s03-edit-act"
+                      id="s03-edit-pin"
+                      style="left: 252px"
+                      ><svg
+                        data-hf-id="hf-hg2m"
+                        class="s03-edit-ic"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 256 256"
+                        aria-hidden="true"
+                      >
+                        <path
+                          data-hf-id="hf-cbxe"
+                          d="M235.32,81.37,174.63,20.69a16,16,0,0,0-22.63,0L98.37,74.49c-10.66-3.34-35-7.37-60.4,13.14a16,16,0,0,0-1.29,23.78L85,159.71,42.34,202.34a8,8,0,0,0,11.32,11.32L96.29,171l48.29,48.29A16,16,0,0,0,155.9,224c.38,0,.75,0,1.13,0a15.93,15.93,0,0,0,11.64-6.33c19.64-26.1,17.75-47.32,13.19-60L235.33,104A16,16,0,0,0,235.32,81.37ZM224,92.69h0l-57.27,57.46a8,8,0,0,0-1.49,9.22c9.46,18.93-1.8,38.59-9.34,48.62L48,100.08c12.08-9.74,23.64-12.31,32.48-12.31A40.13,40.13,0,0,1,96.81,91a8,8,0,0,0,9.25-1.51L163.32,32,224,92.68Z"
+                        /></svg
+                    ></span>
+                    <span
+                      data-hf-id="hf-a791"
+                      class="s03-edit-act"
+                      style="left: 288px; color: #919191"
+                      ><svg
+                        data-hf-id="hf-g95j"
+                        class="s03-edit-ic"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 256 256"
+                        aria-hidden="true"
+                      >
+                        <path
+                          data-hf-id="hf-7b8c"
+                          d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+                        /></svg
+                    ></span>
+                  </span>
+                  <span data-hf-id="hf-0vr8" id="s03-edit-input"
+                    ><span
+                      data-hf-id="hf-v1br"
+                      class="selv"
+                      id="s03-edit-selv"
+                    ></span
+                    ><span data-hf-id="hf-4ctn" class="txt" id="s03-edit-t2"
+                      >2</span
+                    ><span
+                      data-hf-id="hf-fp0w"
+                      class="txt"
+                      id="s03-edit-t4"
+                      style="opacity: 0"
+                      >4</span
+                    ><span
+                      data-hf-id="hf-f1gv"
+                      class="caret"
+                      id="s03-edit-caret"
+                    ></span
+                  ></span>
+                  <span
+                    data-hf-id="hf-fz3l"
+                    class="s03-edit-act edge"
+                    id="s03-edit-term"
+                    style="left: 541px; opacity: 0"
+                    ><svg
+                      data-hf-id="hf-gngk"
+                      class="s03-edit-ic"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 256 256"
+                      aria-hidden="true"
+                    >
+                      <path
+                        data-hf-id="hf-prc9"
+                        d="M117.31,134l-72,64a8,8,0,1,1-10.63-12L100,128,34.69,70A8,8,0,1,1,45.32,58l72,64a8,8,0,0,1,0,12ZM216,184H120a8,8,0,0,0,0,16h96a8,8,0,0,0,0-16Z"
+                      /></svg
+                  ></span>
+                  <span
+                    data-hf-id="hf-7q8i"
+                    class="s03-edit-act edge"
+                    id="s03-edit-copy"
+                    style="left: 581px; opacity: 0"
+                    ><svg
+                      data-hf-id="hf-fgjh"
+                      class="s03-edit-ic"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 256 256"
+                      aria-hidden="true"
+                    >
+                      <path
+                        data-hf-id="hf-yp2r"
+                        d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"
+                      /></svg
+                  ></span>
+                </div>
+              </div>
+
+              <div
+                data-hf-id="hf-c5sl"
+                class="s03-edit-blk s03-edit-sec"
+                style="top: 316px"
+              >
+                <div data-hf-id="hf-ric8" class="s03-edit-sh">
+                  <i data-hf-id="hf-tdae" class="cv"></i>Instance<span
+                    data-hf-id="hf-e3y0"
+                    class="n"
+                    >1</span
+                  >
+                </div>
+                <div
+                  data-hf-id="hf-3tza"
+                  class="s03-edit-ent"
+                  id="s03-edit-renders"
+                >
+                  <span
+                    data-hf-id="hf-9jpz"
+                    class="s03-edit-flash"
+                    id="s03-edit-rflash"
+                  ></span>
+                  <span data-hf-id="hf-4mab" class="nm">renders</span>
+                  <span data-hf-id="hf-ipks" class="s03-edit-swap"
+                    ><span
+                      data-hf-id="hf-7lq1"
+                      class="s03-edit-num"
+                      id="s03-edit-r3"
+                      >3</span
+                    ><span
+                      data-hf-id="hf-29ty"
+                      class="s03-edit-num"
+                      id="s03-edit-r4"
+                      style="opacity: 0"
+                      >4</span
+                    ><span
+                      data-hf-id="hf-eowm"
+                      class="s03-edit-num"
+                      id="s03-edit-r5"
+                      style="opacity: 0"
+                      >5</span
+                    ></span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          data-hf-id="hf-5lpf"
+          class="s03-edit-tip"
+          id="s03-edit-tip-pin"
+          style="left: 1370px; top: 563px"
+        >
+          Kept across reloads
+        </div>
+        <div
+          data-hf-id="hf-78p2"
+          class="s03-edit-tip"
+          id="s03-edit-tip-ru"
+          data-layout-allow-overlap=""
+          style="left: 1420px; top: 316px"
+        >
+          Call requestUpdate() on this element
+        </div>
+
+        <div
+          data-hf-id="hf-ght2"
+          class="s03-edit-ripple"
+          id="s03-edit-rip1"
+        ></div>
+        <div
+          data-hf-id="hf-cjp1"
+          class="s03-edit-ripple"
+          id="s03-edit-rip2"
+        ></div>
+        <div
+          data-hf-id="hf-bs18"
+          class="s03-edit-ripple"
+          id="s03-edit-rip3"
+        ></div>
+        <div
+          data-hf-id="hf-z9ir"
+          class="s03-edit-ripple"
+          id="s03-edit-rip4"
+        ></div>
+        <div data-hf-id="hf-irr7" id="s03-edit-cursor">
+          <svg data-hf-id="hf-5k3a" width="28" height="40" viewBox="0 0 28 40">
+            <path
+              data-hf-id="hf-uulk"
+              d="M2 2 L2 31 L9 24.5 L13.6 35.5 L18.6 33.4 L14 22.6 L23.5 22.6 Z"
+              fill="#ffffff"
+              stroke="#030303"
+              stroke-width="2"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        var slam = function (sel, at) {
+          tl.fromTo(
+            sel,
+            {y: 24, opacity: 0},
+            {y: 0, opacity: 1, duration: 0.3, ease: 'power3.out'},
+            at
+          );
+        };
+        var PUSH = 59;
+
+        // eyebrow + headline
+        tl.fromTo(
+          '#s03-edit-eyebrow',
+          {opacity: 0},
+          {opacity: 1, duration: 0.2, ease: 'power2.out'},
+          0
+        );
+        slam('#s03-edit-l1', 0.1);
+        slam('#s03-edit-l2', 1.44);
+        tl.fromTo(
+          '#s03-edit-shine',
+          {backgroundPosition: '0% 0%'},
+          {backgroundPosition: '100% 0%', duration: 2.07, ease: 'none'},
+          1.44
+        );
+
+        // 0.00 -> 0.30 panel fragment appears
+        tl.fromTo(
+          '#s03-edit-panel',
+          {opacity: 0, y: 12},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          0
+        );
+
+        // cursor: in at 0.24, onto the factor value by 0.48
+        tl.fromTo(
+          '#s03-edit-cursor',
+          {x: 1560, y: 600, opacity: 0},
+          {x: 1390, y: 486, opacity: 1, duration: 0.24, ease: 'power2.out'},
+          0.24
+        );
+        // 0.48 hover: row actions fade in
+        tl.fromTo(
+          '#s03-edit-fhov',
+          {opacity: 0},
+          {opacity: 1, duration: 0.12},
+          0.48
+        );
+        tl.fromTo(
+          '#s03-edit-pen, #s03-edit-term, #s03-edit-copy',
+          {opacity: 0},
+          {opacity: 1, duration: 0.14, ease: 'power2.out'},
+          0.48
+        );
+
+        // 0.96 double-click -> inline input
+        var ripple = function (id, x, y, at) {
+          tl.set(id, {left: x, top: y}, at);
+          tl.fromTo(
+            id,
+            {scale: 0.3, opacity: 0.9},
+            {
+              scale: 1.2,
+              opacity: 0,
+              duration: 0.3,
+              ease: 'power2.out',
+              immediateRender: false,
+            },
+            at
+          );
+        };
+        ripple('#s03-edit-rip1', 1382, 484, 0.84);
+        ripple('#s03-edit-rip2', 1382, 484, 0.96);
+        tl.set('#s03-edit-pen, #s03-edit-f2', {opacity: 0}, 0.96);
+        tl.set('#s03-edit-input', {opacity: 1}, 0.96);
+        tl.set('#s03-edit-selv, #s03-edit-t2', {opacity: 0}, 1.2);
+        tl.set('#s03-edit-t4, #s03-edit-caret', {opacity: 1}, 1.2);
+        tl.fromTo(
+          '#s03-edit-t4',
+          {y: -6},
+          {y: 0, duration: 0.1, ease: 'power2.out'},
+          1.2
+        );
+
+        // 1.44 HIT (Enter): overrides bar slides in, split pushes down 59 px
+        tl.fromTo(
+          '#s03-edit-obar',
+          {height: 0},
+          {height: PUSH, duration: 0.24, ease: 'power3.out'},
+          1.44
+        );
+        tl.fromTo(
+          '#s03-edit-split',
+          {y: 0},
+          {y: PUSH, duration: 0.24, ease: 'power3.out'},
+          1.44
+        );
+        tl.to(
+          '#s03-edit-cursor',
+          {y: 486 + PUSH, duration: 0.24, ease: 'power3.out'},
+          1.44
+        );
+        tl.set('#s03-edit-input', {opacity: 0}, 1.44);
+        tl.set('#s03-edit-f4, #s03-edit-pen', {opacity: 1}, 1.44);
+        tl.fromTo(
+          '#s03-edit-f4',
+          {scale: 1.6},
+          {scale: 1, duration: 0.25, ease: 'power3.out'},
+          1.44
+        );
+        tl.fromTo(
+          '#s03-edit-chk, #s03-edit-ovr',
+          {opacity: 0},
+          {opacity: 1, duration: 0.16, ease: 'power2.out'},
+          1.44
+        );
+        tl.fromTo(
+          '#s03-edit-fname',
+          {x: 0},
+          {x: 27, duration: 0.2, ease: 'power3.out'},
+          1.44
+        );
+        tl.set('#s03-edit-r3', {opacity: 0}, 1.44);
+        tl.set('#s03-edit-r4', {opacity: 1}, 1.44);
+        tl.fromTo(
+          '#s03-edit-r4',
+          {scale: 1.6},
+          {scale: 1, duration: 0.25, ease: 'power3.out'},
+          1.44
+        );
+        tl.fromTo(
+          '#s03-edit-rflash',
+          {opacity: 1},
+          {
+            opacity: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          1.44
+        );
+
+        // 1.92 -> 2.40 cursor to the push-pin, click on the HIT
+        tl.to(
+          '#s03-edit-cursor',
+          {x: 1474, y: 548, duration: 0.3, ease: 'power2.inOut'},
+          2.02
+        );
+        ripple('#s03-edit-rip3', 1464, 538, 2.4);
+        tl.to('#s03-edit-pin', {color: '#4d63ff', duration: 0.08}, 2.4);
+        tl.fromTo(
+          '#s03-edit-pin',
+          {scale: 1.5},
+          {
+            scale: 1,
+            duration: 0.25,
+            ease: 'back.out(2)',
+            immediateRender: false,
+          },
+          2.4
+        );
+        tl.fromTo(
+          '#s03-edit-tip-pin',
+          {opacity: 0, y: -4},
+          {opacity: 1, y: 0, duration: 0.14, ease: 'power2.out'},
+          2.46
+        );
+
+        // 2.88 cursor to the head's arrows-clockwise button
+        tl.to(
+          '#s03-edit-cursor',
+          {x: 1730, y: 296, duration: 0.3, ease: 'power2.inOut'},
+          2.58
+        );
+        tl.to('#s03-edit-tip-pin', {opacity: 0, duration: 0.1}, 2.62);
+        tl.to(
+          '#s03-edit-fhov, #s03-edit-term, #s03-edit-copy',
+          {opacity: 0, duration: 0.12},
+          2.62
+        );
+        tl.fromTo(
+          '#s03-edit-ru .hov',
+          {opacity: 0},
+          {opacity: 1, duration: 0.1},
+          2.84
+        );
+        tl.to('#s03-edit-ru', {color: '#e3e3e3', duration: 0.1}, 2.84);
+        tl.fromTo(
+          '#s03-edit-tip-ru',
+          {opacity: 0, y: -4},
+          {opacity: 1, y: 0, duration: 0.14, ease: 'power2.out'},
+          2.88
+        );
+        // 3.12 click -> requestUpdate, renders 4 -> 5
+        ripple('#s03-edit-rip4', 1722, 287, 3.12);
+        tl.fromTo(
+          '#s03-edit-ru svg',
+          {rotation: 0},
+          {rotation: 180, duration: 0.3, ease: 'power2.out'},
+          3.12
+        );
+        tl.set('#s03-edit-r4', {opacity: 0}, 3.12);
+        tl.set('#s03-edit-r5', {opacity: 1}, 3.12);
+        tl.fromTo(
+          '#s03-edit-r5',
+          {scale: 1.6},
+          {scale: 1, duration: 0.25, ease: 'power3.out'},
+          3.12
+        );
+        tl.fromTo(
+          '#s03-edit-rflash',
+          {opacity: 1},
+          {
+            opacity: 0,
+            duration: 0.36,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          3.12
+        );
+
+        // snap shut 3.51 -> 3.69
+        tl.to(
+          '#s03-edit-stage',
+          {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+          3.51
+        );
+
+        window.__timelines['s03-edit'] = tl;
+      })();
+    </script>
+  </div>
+</template>

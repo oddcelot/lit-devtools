@@ -1,0 +1,1582 @@
+<template id="s10-astro-template">
+  <div
+    data-hf-id="hf-3y2x"
+    id="s10-astro"
+    data-composition-id="s10-astro"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <style>
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        font-style: normal;
+        src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        font-style: italic;
+        src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+      }
+      #s10-astro,
+      #s10-astro * {
+        box-sizing: border-box;
+      }
+      #s10-astro {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        color: #e3e3e3;
+        overflow: hidden;
+      }
+      #s10-wrap {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      .s10-fl {
+        display: block;
+        width: 19px;
+        height: 24px;
+        flex: none;
+      }
+      .s10-am {
+        display: block;
+        width: 18px;
+        height: 22px;
+      }
+      .s10-logo-svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      #s10-wrap .ico {
+        display: block;
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+      }
+      .s10-mono {
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+      }
+      #s10-logo {
+        position: absolute;
+        left: 96px;
+        top: 118px;
+        width: 51px;
+        height: 64px;
+        display: block;
+      }
+      #s10-eyebrow {
+        position: absolute;
+        left: 163px;
+        top: 141px;
+        font-weight: 700;
+        font-size: 18px;
+        line-height: 22px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #4d63ff;
+        white-space: nowrap;
+      }
+      .s10-h {
+        position: absolute;
+        left: 96px;
+        display: block;
+        font-weight: 800;
+        font-size: 68px;
+        line-height: 72px;
+        letter-spacing: -0.03em;
+        color: #fff;
+        white-space: nowrap;
+      }
+      .s10-shine {
+        padding-bottom: 0.16em;
+        margin-bottom: -0.16em;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+        background: linear-gradient(
+          100deg,
+          #4d63ff 10%,
+          #00ffff 55%,
+          #4d63ff 95%
+        );
+        background-size: 200% 100%;
+        background-position: 0% 0%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      /* code chip (left column) */
+      #s10-code {
+        position: absolute;
+        left: 96px;
+        top: 420px;
+        width: 628px;
+        background: #0d0d0d;
+        border: 1px solid #363636;
+      }
+      #s10-code .s10-tabs {
+        height: 40px;
+        background: #121212;
+        border-bottom: 1px solid #363636;
+        position: relative;
+      }
+      #s10-code .s10-ftab {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 40px;
+        padding: 0 16px;
+        line-height: 40px;
+        font-size: 17px;
+        color: #c7c7c7;
+        border-bottom: 2px solid #324fff;
+        white-space: nowrap;
+      }
+      #s10-code .s10-cbody {
+        padding: 12px 16px 14px;
+      }
+      .s10-cl {
+        display: block;
+        font-size: 20px;
+        line-height: 34px;
+        white-space: pre;
+        color: #eeffff;
+      }
+      .s10-kw {
+        color: #c792ea;
+      }
+      .s10-st {
+        color: #c3e88d;
+      }
+      .s10-pr {
+        color: #b2ccd6;
+      }
+      .s10-fn {
+        color: #82aaff;
+      }
+      .s10-pn {
+        color: #919191;
+      }
+
+      /* Astro example page */
+      #s10-page {
+        position: absolute;
+        left: 740px;
+        top: 124px;
+        width: 1100px;
+        height: 516px;
+        background: #0b0b0c;
+        border: 1px solid #363636;
+        overflow: hidden;
+      }
+      #s10-side {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 200px;
+        height: 100%;
+        background: #121214;
+        border-right: 1px solid #1f1f1f;
+      }
+      #s10-side .s10-brand {
+        position: absolute;
+        left: 16px;
+        top: 16px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        font-size: 19px;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #s10-side .s10-brand img {
+        height: 24px;
+        width: auto;
+        display: block;
+      }
+      .s10-nav {
+        position: absolute;
+        left: 12px;
+        width: 176px;
+        height: 28px;
+        padding-left: 10px;
+        font-weight: 500;
+        font-size: 15px;
+        line-height: 28px;
+        color: #c7c7c7;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .s10-nav.s10-cur {
+        background: #1a1f3d;
+        color: #fff;
+        box-shadow: inset 2px 0 #324fff;
+      }
+      #s10-visits {
+        position: absolute;
+        left: 12px;
+        top: 446px;
+        width: 176px;
+        height: 50px;
+        border: 1px solid #2a2a2e;
+        background: #161618;
+        padding: 0 12px;
+        font-size: 14px;
+        line-height: 48px;
+        color: #c7c7c7;
+        white-space: nowrap;
+      }
+      #s10-visits b {
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        margin-right: 4px;
+      }
+      #s10-ph {
+        position: absolute;
+        left: 240px;
+        top: 12px;
+        font-weight: 800;
+        font-size: 42px;
+        line-height: 50px;
+        letter-spacing: -0.02em;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #s10-pp {
+        position: absolute;
+        left: 240px;
+        top: 66px;
+        font-size: 17px;
+        line-height: 22px;
+        color: #a1a1a1;
+        white-space: nowrap;
+      }
+
+      /* Astro dev toolbar */
+      #s10-bar {
+        position: absolute;
+        left: 1160px;
+        top: 594px;
+        width: 260px;
+        height: 42px;
+        border-radius: 9999px;
+        background: #13151a;
+        border: 1px solid #343841;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      }
+      .s10-app {
+        position: absolute;
+        top: 0;
+        width: 50px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #c7c7c7;
+      }
+      .s10-app img {
+        height: 22px;
+        width: auto;
+        display: block;
+      }
+      .s10-app .s10-ib {
+        width: 22px;
+        height: 22px;
+      }
+      .s10-sep {
+        position: absolute;
+        top: 9px;
+        width: 1px;
+        height: 22px;
+        background: #343841;
+      }
+      #s10-hi {
+        position: absolute;
+        left: 61px;
+        top: 5px;
+        width: 44px;
+        height: 30px;
+        border-radius: 9999px;
+        background: rgba(77, 99, 255, 0.32);
+        box-shadow: 0 0 0 1px rgba(77, 99, 255, 0.6);
+      }
+      #s10-dot {
+        position: absolute;
+        left: 80px;
+        top: 35px;
+        width: 6px;
+        height: 3px;
+        border-radius: 9999px;
+        background: #82a5ff;
+      }
+
+      /* floating Lit DevTools window */
+      #s10-win {
+        position: absolute;
+        left: 966px;
+        top: 216px;
+        width: 866px;
+        height: 372px;
+        background: #030303;
+        border: 1px solid #363636;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+        overflow: hidden;
+      }
+      #s10-wt {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 38px;
+        background: #121212;
+        border-bottom: 1px solid #363636;
+      }
+      #s10-wt .s10-wtt {
+        position: absolute;
+        left: 16px;
+        top: 0;
+        line-height: 38px;
+        font-weight: 600;
+        font-size: 17px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      #s10-wt .s10-links {
+        position: absolute;
+        right: 36px;
+        top: 0;
+        line-height: 38px;
+        font-size: 16px;
+        color: #e3e3e3;
+        white-space: nowrap;
+        display: flex;
+        gap: 16px;
+      }
+      #s10-wt .s10-links span {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      #s10-grip {
+        position: absolute;
+        right: 8px;
+        top: 7px;
+        width: 16px;
+        height: 16px;
+      }
+      #s10-hd {
+        position: absolute;
+        left: 0;
+        top: 38px;
+        width: 100%;
+        height: 54px;
+        background: #0d0d0d;
+        border-bottom: 1px solid #363636;
+      }
+      #s10-hd .s10-lb {
+        position: absolute;
+        left: 14px;
+        top: 0;
+        height: 53px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 0.06em;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #s10-hd .s10-lb img {
+        height: 24px;
+        width: auto;
+        display: block;
+      }
+      .s10-tab {
+        position: absolute;
+        top: 0;
+        height: 53px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+        font-size: 19px;
+        color: #9194a2;
+        white-space: nowrap;
+      }
+      .s10-tab .s10-ti {
+        width: 20px;
+        height: 20px;
+      }
+      .s10-tab.s10-act {
+        color: #567eff;
+        box-shadow: inset 0 -3px #324fff;
+      }
+      #s10-tb {
+        position: absolute;
+        left: 0;
+        top: 92px;
+        width: 100%;
+        height: 66px;
+        background: #0d0d0d;
+        border-bottom: 1px solid #363636;
+      }
+      .s10-btn {
+        position: absolute;
+        top: 10px;
+        height: 45px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid #717584;
+        font-weight: 500;
+        font-size: 18px;
+        color: #9194a2;
+        white-space: nowrap;
+      }
+      .s10-btn .s10-bi {
+        width: 18px;
+        height: 18px;
+      }
+      .s10-btn.s10-live {
+        background: #0f1d67;
+        border-color: transparent;
+        color: #82a5ff;
+      }
+      #s10-filter {
+        position: absolute;
+        left: 120px;
+        top: 10px;
+        width: 232px;
+        height: 45px;
+        border: 1px solid #717584;
+        background: #121212;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        font-size: 18px;
+        color: #717584;
+        white-space: nowrap;
+      }
+      #s10-filter .s10-bi {
+        width: 18px;
+        height: 18px;
+        color: #919191;
+      }
+      #s10-body {
+        position: absolute;
+        left: 0;
+        top: 158px;
+        width: 100%;
+        height: 214px;
+      }
+      #s10-tree {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 384px;
+        height: 100%;
+        border-right: 1px solid #363636;
+      }
+      .s10-row {
+        position: absolute;
+        left: 0;
+        width: 383px;
+        height: 35px;
+        padding-left: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 19px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      .s10-row .s10-br {
+        color: #919191;
+      }
+      #s10-sel {
+        position: absolute;
+        left: 0;
+        top: 8px;
+        width: 383px;
+        height: 35px;
+        background: #181d3d;
+        box-shadow: inset 3px 0 #324fff;
+      }
+      .s10-pw {
+        position: relative;
+        display: block;
+        height: 30px;
+      }
+      .s10-pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 30px;
+        padding: 0 11px 0 5px;
+        border-radius: 9999px;
+        border: 1px solid #18269e;
+        background: #0f1d67;
+        color: #82a5ff;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 16px;
+        line-height: 16px;
+        white-space: nowrap;
+      }
+      .s10-pill .s10-pi {
+        width: 17px;
+        height: 17px;
+      }
+      .s10-pill.s10-def {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border-color: #6f3601;
+        background: #532600;
+        color: #ef9d00;
+      }
+      #s10-det {
+        position: absolute;
+        left: 385px;
+        top: 0;
+        width: 479px;
+        height: 100%;
+      }
+      #s10-empty {
+        position: absolute;
+        left: 0;
+        top: 34px;
+        width: 100%;
+        text-align: center;
+        font-size: 19px;
+        color: #919191;
+        white-space: nowrap;
+      }
+      #s10-dc {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        padding: 10px 19px 0;
+      }
+      #s10-dh {
+        position: relative;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      #s10-dh .s10-tag {
+        font-weight: 600;
+        font-size: 24px;
+        color: #fff;
+        white-space: nowrap;
+      }
+      #s10-dh .s10-tag i {
+        font-style: normal;
+        color: #919191;
+      }
+      .s10-hb {
+        position: absolute;
+        top: 11px;
+        width: 22px;
+        height: 22px;
+        color: #9194a2;
+      }
+      .s10-dl {
+        position: relative;
+        display: flex;
+        font-size: 19px;
+        line-height: 26px;
+        margin-top: 6px;
+      }
+      .s10-dl .s10-dt {
+        width: 120px;
+        flex: none;
+        color: #919191;
+      }
+      .s10-dl .s10-dd {
+        color: #7c9fff;
+        white-space: nowrap;
+      }
+      .s10-dl .s10-dd span {
+        display: block;
+      }
+      .s10-dl .s10-dd .s10-ai {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        vertical-align: -2px;
+        margin-left: 5px;
+      }
+      .s10-dl .s10-dd.s10-plain {
+        color: #c7c7c7;
+      }
+      #s10-tip {
+        position: absolute;
+        left: 1352px;
+        top: 432px;
+        padding: 7px 13px;
+        background: #363636;
+        border: 1px solid #363636;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        font-size: 19px;
+        line-height: 27px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+
+      #s10-cursor {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 26px;
+        height: 36px;
+      }
+      .s10-rip {
+        position: absolute;
+        width: 44px;
+        height: 44px;
+        margin: -22px 0 0 -22px;
+        border-radius: 50%;
+        border: 3px solid #00e8ff;
+        opacity: 0;
+      }
+    </style>
+    <div data-hf-id="hf-61gc" id="s10-wrap">
+      <img
+        data-hf-id="hf-c2xp"
+        id="s10-logo"
+        src="assets/logos/astro-on-dark.svg"
+        alt=""
+      />
+      <div data-hf-id="hf-c8vh" id="s10-eyebrow">Astro &middot; SSR</div>
+      <span data-hf-id="hf-znq9" class="s10-h" id="s10-h1" style="top: 186px"
+        >Server-rendered.</span
+      >
+      <span data-hf-id="hf-mi13" class="s10-h" id="s10-h2" style="top: 258px"
+        ><span data-hf-id="hf-al64" class="s10-shine" id="s10-shine"
+          >Still lit.</span
+        ></span
+      >
+
+      <div data-hf-id="hf-ywok" id="s10-code" class="s10-mono">
+        <div data-hf-id="hf-ilk5" class="s10-tabs">
+          <div data-hf-id="hf-1v8t" class="s10-ftab">astro.config.mjs</div>
+        </div>
+        <div data-hf-id="hf-iwe8" class="s10-cbody">
+          <span
+            data-hf-id="hf-po9z"
+            class="s10-cl"
+            id="s10-c1"
+            style="opacity: 0.5"
+            ><span data-hf-id="hf-s7q3" class="s10-kw">import</span> lit
+            <span data-hf-id="hf-yhv6" class="s10-kw">from</span>
+            <span data-hf-id="hf-5o67" class="s10-st"
+              >'@oddsquad/vite-plugin-lit/astro'</span
+            ></span
+          >
+          <span data-hf-id="hf-tx1l" class="s10-cl" id="s10-c2"
+            ><span data-hf-id="hf-yvcl" class="s10-pr">integrations</span
+            ><span data-hf-id="hf-ofnh" class="s10-pn">: [</span
+            ><span data-hf-id="hf-pgjh" class="s10-fn">lit</span
+            ><span data-hf-id="hf-bxv8" class="s10-pn">()]</span></span
+          >
+        </div>
+      </div>
+
+      <div data-hf-id="hf-4emp" id="s10-page">
+        <div data-hf-id="hf-tn81" id="s10-side">
+          <div data-hf-id="hf-ncin" class="s10-brand">
+            <span data-hf-id="hf-9zcm" class="s10-fl"
+              ><svg
+                data-hf-id="hf-devp"
+                class="s10-logo-svg"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 160 200"
+              >
+                <path
+                  data-hf-id="hf-wpkb"
+                  fill="#00e8ff"
+                  d="M40 120l20-60l90 90l-30 50l-40-40h-20"
+                ></path>
+                <path
+                  data-hf-id="hf-j8o2"
+                  fill="#283198"
+                  d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"
+                ></path>
+                <path
+                  data-hf-id="hf-b7r7"
+                  fill="#324fff"
+                  d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"
+                ></path>
+                <path
+                  data-hf-id="hf-oxa1"
+                  fill="#0ff"
+                  d="M40 200v-80l40 40"
+                ></path></svg></span
+            >Lit in Astro
+          </div>
+          <div data-hf-id="hf-a8pe" class="s10-nav" style="top: 62px">
+            Server rendering
+          </div>
+          <div data-hf-id="hf-p92p" class="s10-nav" style="top: 93px">
+            Islands
+          </div>
+          <div data-hf-id="hf-slpu" class="s10-nav" style="top: 124px">
+            Props
+          </div>
+          <div data-hf-id="hf-dh11" class="s10-nav" style="top: 155px">
+            Slots
+          </div>
+          <div data-hf-id="hf-4vc8" class="s10-nav" style="top: 186px">
+            Nested elements
+          </div>
+          <div data-hf-id="hf-heag" class="s10-nav" style="top: 217px">
+            View transitions
+          </div>
+          <div data-hf-id="hf-0q04" class="s10-nav" style="top: 248px">
+            Next to Preact
+          </div>
+          <div data-hf-id="hf-xspi" class="s10-nav" style="top: 279px">
+            Web Awesome
+          </div>
+          <div data-hf-id="hf-6awd" class="s10-nav" style="top: 310px">
+            On demand
+          </div>
+          <div data-hf-id="hf-xbqw" class="s10-nav s10-cur" style="top: 341px">
+            DevTools and HMR
+          </div>
+          <div data-hf-id="hf-hns9" id="s10-visits">
+            <b data-hf-id="hf-t4n0">1</b>page without a reload
+          </div>
+        </div>
+        <div data-hf-id="hf-2ikg" id="s10-ph">DevTools and HMR</div>
+        <div data-hf-id="hf-4p4g" id="s10-pp">
+          In dev, the plugin patches edited components in place and puts the Lit
+          panel in Astro&rsquo;s dev toolbar.
+        </div>
+      </div>
+
+      <div data-hf-id="hf-5567" id="s10-bar">
+        <div data-hf-id="hf-c8xz" class="s10-app" style="left: 4px">
+          <span data-hf-id="hf-50i6" class="s10-am"
+            ><svg
+              data-hf-id="hf-os53"
+              class="s10-logo-svg"
+              aria-hidden="true"
+              viewBox="0 0 85 107"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                data-hf-id="hf-o5xs"
+                d="M27.5894 91.1365C22.7555 86.7178 21.3444 77.4335 23.3583 70.7072C26.8503 74.948 31.6888 76.2914 36.7005 77.0497C44.4375 78.2199 52.0359 77.7822 59.2232 74.2459C60.0454 73.841 60.8052 73.3027 61.7036 72.7574C62.378 74.714 62.5535 76.6892 62.318 78.6996C61.7452 83.5957 59.3086 87.3778 55.4332 90.2448C53.8835 91.3916 52.2437 92.4167 50.6432 93.4979C45.7262 96.8213 44.3959 100.718 46.2435 106.386C46.2874 106.525 46.3267 106.663 46.426 107C43.9155 105.876 42.0817 104.24 40.6845 102.089C39.2087 99.8193 38.5066 97.3081 38.4696 94.5909C38.4511 93.2686 38.4511 91.9345 38.2733 90.6309C37.8391 87.4527 36.3471 86.0297 33.5364 85.9478C30.6518 85.8636 28.37 87.6469 27.7649 90.4554C27.7187 90.6707 27.6517 90.8837 27.5847 91.1341L27.5894 91.1365Z"
+                fill="white"
+              />
+              <path
+                data-hf-id="hf-88co"
+                d="M27.5894 91.1365C22.7555 86.7178 21.3444 77.4335 23.3583 70.7072C26.8503 74.948 31.6888 76.2914 36.7005 77.0497C44.4375 78.2199 52.0359 77.7822 59.2232 74.2459C60.0454 73.841 60.8052 73.3027 61.7036 72.7574C62.378 74.714 62.5535 76.6892 62.318 78.6996C61.7452 83.5957 59.3086 87.3778 55.4332 90.2448C53.8835 91.3916 52.2437 92.4167 50.6432 93.4979C45.7262 96.8213 44.3959 100.718 46.2435 106.386C46.2874 106.525 46.3267 106.663 46.426 107C43.9155 105.876 42.0817 104.24 40.6845 102.089C39.2087 99.8193 38.5066 97.3081 38.4696 94.5909C38.4511 93.2686 38.4511 91.9345 38.2733 90.6309C37.8391 87.4527 36.3471 86.0297 33.5364 85.9478C30.6518 85.8636 28.37 87.6469 27.7649 90.4554C27.7187 90.6707 27.6517 90.8837 27.5847 91.1341L27.5894 91.1365Z"
+                fill="url(#s10-bar-paint0_linear_1_59)"
+              />
+              <path
+                data-hf-id="hf-1o9p"
+                d="M0 69.5866C0 69.5866 14.3139 62.6137 28.6678 62.6137L39.4901 29.1204C39.8953 27.5007 41.0783 26.3999 42.4139 26.3999C43.7495 26.3999 44.9325 27.5007 45.3377 29.1204L56.1601 62.6137C73.1601 62.6137 84.8278 69.5866 84.8278 69.5866C84.8278 69.5866 60.5145 3.35233 60.467 3.21944C59.7692 1.2612 58.5911 0 57.0029 0H27.8274C26.2392 0 25.1087 1.2612 24.3634 3.21944C24.3108 3.34983 0 69.5866 0 69.5866Z"
+                fill="white"
+              />
+              <defs data-hf-id="hf-mh0t">
+                <linearGradient
+                  data-hf-id="hf-gqx2"
+                  id="s10-bar-paint0_linear_1_59"
+                  x1="22.4702"
+                  y1="107"
+                  x2="69.1451"
+                  y2="84.9468"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop data-hf-id="hf-12og" stop-color="#D83333" />
+                  <stop data-hf-id="hf-954c" offset="1" stop-color="#F041FF" />
+                </linearGradient>
+              </defs></svg
+          ></span>
+        </div>
+        <div data-hf-id="hf-69yl" class="s10-sep" style="left: 56px"></div>
+        <div data-hf-id="hf-sufd" id="s10-hi"></div>
+        <div data-hf-id="hf-a1wi" class="s10-app" style="left: 58px">
+          <span data-hf-id="hf-f3x6" class="s10-fl"
+            ><svg
+              data-hf-id="hf-y4eh"
+              class="s10-logo-svg"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 160 200"
+            >
+              <path
+                data-hf-id="hf-c9cb"
+                fill="#00e8ff"
+                d="M40 120l20-60l90 90l-30 50l-40-40h-20"
+              ></path>
+              <path
+                data-hf-id="hf-fvk6"
+                fill="#283198"
+                d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"
+              ></path>
+              <path
+                data-hf-id="hf-hxtv"
+                fill="#324fff"
+                d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"
+              ></path>
+              <path
+                data-hf-id="hf-ifrh"
+                fill="#0ff"
+                d="M40 200v-80l40 40"
+              ></path></svg
+          ></span>
+        </div>
+        <div data-hf-id="hf-kist" id="s10-dot"></div>
+        <div data-hf-id="hf-tzzm" class="s10-app" style="left: 108px">
+          <div data-hf-id="hf-5p48" class="s10-ib">
+            <svg
+              data-hf-id="hf-mi62"
+              class="ico"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-6whb"
+                d="M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div data-hf-id="hf-96zp" class="s10-app" style="left: 154px">
+          <div data-hf-id="hf-rdcw" class="s10-ib">
+            <svg
+              data-hf-id="hf-urku"
+              class="ico"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-fa2e"
+                d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div data-hf-id="hf-f2k0" class="s10-sep" style="left: 206px"></div>
+        <div data-hf-id="hf-quxb" class="s10-app" style="left: 206px">
+          <div data-hf-id="hf-q6ft" class="s10-ib">
+            <svg
+              data-hf-id="hf-v5vv"
+              class="ico"
+              aria-hidden="true"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-anl6"
+                d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"
+              />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-e8ju" id="s10-win">
+        <div data-hf-id="hf-vrsp" id="s10-wt">
+          <div data-hf-id="hf-ffbx" class="s10-wtt">Lit DevTools</div>
+          <div data-hf-id="hf-cfn4" class="s10-links">
+            <span data-hf-id="hf-0fw1">Enter a new code</span
+            ><span data-hf-id="hf-96d0">Open in a tab</span>
+          </div>
+          <svg data-hf-id="hf-gcug" id="s10-grip" viewBox="0 0 16 16">
+            <path
+              data-hf-id="hf-7da4"
+              d="M15 3 L3 15 M15 8 L8 15 M15 12.5 L12.5 15"
+              stroke="#919191"
+              stroke-width="1.4"
+              fill="none"
+            />
+          </svg>
+        </div>
+        <div data-hf-id="hf-4org" id="s10-hd">
+          <div data-hf-id="hf-izta" class="s10-lb">
+            <span data-hf-id="hf-fi87" class="s10-fl"
+              ><svg
+                data-hf-id="hf-zbbk"
+                class="s10-logo-svg"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 160 200"
+              >
+                <path
+                  data-hf-id="hf-bv1a"
+                  fill="#00e8ff"
+                  d="M40 120l20-60l90 90l-30 50l-40-40h-20"
+                ></path>
+                <path
+                  data-hf-id="hf-g9v7"
+                  fill="#283198"
+                  d="M80 160v-80l40-40v80M0 160l40 40l20-40l-20-40h-20"
+                ></path>
+                <path
+                  data-hf-id="hf-hjiu"
+                  fill="#324fff"
+                  d="M40 120v-80l40-40v80M120 200v-80l40-40v80M0 160v-80l40 40"
+                ></path>
+                <path
+                  data-hf-id="hf-jmok"
+                  fill="#0ff"
+                  d="M40 200v-80l40 40"
+                ></path></svg></span
+            >LIT DEVTOOLS
+          </div>
+          <div data-hf-id="hf-akym" class="s10-tab s10-act" style="left: 192px">
+            <div data-hf-id="hf-u8p4" class="s10-ti">
+              <svg
+                data-hf-id="hf-vk6w"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-xbf8"
+                  d="M223.68,66.15,135.68,18h0a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32h0l80.34,44L128,120,47.66,76ZM40,90l80,43.78v85.79L40,175.82Zm96,129.57V133.82L216,90v85.78Z"
+                />
+              </svg>
+            </div>
+            Components
+          </div>
+          <div data-hf-id="hf-cse4" class="s10-tab" style="left: 360px">
+            <div data-hf-id="hf-t0qo" class="s10-ti">
+              <svg
+                data-hf-id="hf-ss1p"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-3bmt"
+                  d="M216,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V56A16,16,0,0,1,48,40h80a8,8,0,0,1,0,16H48V208H200V128a8,8,0,0,1,16,0Zm16-68a36,36,0,1,1-36-36A36,36,0,0,1,232,60Zm-16,0a20,20,0,1,0-20,20A20,20,0,0,0,216,60Z"
+                />
+              </svg>
+            </div>
+            Updates
+          </div>
+          <div data-hf-id="hf-os2f" class="s10-tab" style="left: 494px">
+            <div data-hf-id="hf-rttl" class="s10-ti">
+              <svg
+                data-hf-id="hf-t6cq"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-g4ad"
+                  d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm64-88a8,8,0,0,1-8,8H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48A8,8,0,0,1,192,128Z"
+                />
+              </svg>
+            </div>
+            Timeline
+          </div>
+          <div data-hf-id="hf-00n1" class="s10-tab" style="left: 630px">
+            <div data-hf-id="hf-s84m" class="s10-ti">
+              <svg
+                data-hf-id="hf-tknr"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-l1gu"
+                  d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z"
+                />
+              </svg>
+            </div>
+            Settings
+          </div>
+        </div>
+        <div data-hf-id="hf-f5km" id="s10-tb">
+          <div data-hf-id="hf-vlei" class="s10-btn" style="left: 14px">
+            <div data-hf-id="hf-sgo6" class="s10-bi">
+              <svg
+                data-hf-id="hf-tyys"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-1s0f"
+                  d="M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z"
+                />
+              </svg>
+            </div>
+            Pick
+          </div>
+          <div data-hf-id="hf-28b4" id="s10-filter" class="s10-mono">
+            <div data-hf-id="hf-owru" class="s10-bi">
+              <svg
+                data-hf-id="hf-xjq1"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-89p3"
+                  d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                />
+              </svg>
+            </div>
+            Filter tags
+          </div>
+          <div
+            data-hf-id="hf-cgsa"
+            class="s10-btn s10-live"
+            style="left: 476px"
+          >
+            <div data-hf-id="hf-pb2v" class="s10-bi">
+              <svg
+                data-hf-id="hf-xy12"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-9vru"
+                  d="M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z"
+                />
+              </svg>
+            </div>
+            Live
+          </div>
+          <div data-hf-id="hf-i6fg" class="s10-btn" style="left: 576px">
+            <div data-hf-id="hf-ppdw" class="s10-bi">
+              <svg
+                data-hf-id="hf-i99m"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-sdy6"
+                  d="M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z"
+                />
+              </svg>
+            </div>
+            Flash
+          </div>
+          <div data-hf-id="hf-qkhn" class="s10-btn" style="left: 684px">
+            <div data-hf-id="hf-q3ox" class="s10-bi">
+              <svg
+                data-hf-id="hf-huyl"
+                class="ico"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-t97l"
+                  d="M208,96a16,16,0,0,0,16-16V48a16,16,0,0,0-16-16H176a16,16,0,0,0-16,16v8H96V48A16,16,0,0,0,80,32H48A16,16,0,0,0,32,48V80A16,16,0,0,0,48,96h8v64H48a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16v-8h64v8a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16h-8V96ZM176,48h32V80H176ZM48,48H80V63.9a.51.51,0,0,0,0,.2V80H48ZM80,208H48V176H80v15.9a.51.51,0,0,0,0,.2V208Zm128,0H176V176h32Zm-24-48h-8a16,16,0,0,0-16,16v8H96v-8a16,16,0,0,0-16-16H72V96h8A16,16,0,0,0,96,80V72h64v8a16,16,0,0,0,16,16h8Z"
+                />
+              </svg>
+            </div>
+            Anatomy
+          </div>
+        </div>
+        <div data-hf-id="hf-k33g" id="s10-body">
+          <div data-hf-id="hf-c25j" id="s10-tree" class="s10-mono">
+            <div data-hf-id="hf-e8wg" id="s10-sel"></div>
+            <div data-hf-id="hf-gcog" class="s10-row" style="top: 8px">
+              <span data-hf-id="hf-szzd"
+                ><span data-hf-id="hf-8kug" class="s10-br">&lt;</span
+                >visit-counter<span data-hf-id="hf-7s8e" class="s10-br"
+                  >&gt;</span
+                ></span
+              >
+              <span
+                data-hf-id="hf-vb2k"
+                class="s10-pw"
+                id="s10-pw1"
+                data-layout-allow-overlap
+                ><span data-hf-id="hf-n79k" class="s10-pill"
+                  ><span data-hf-id="hf-wmbd" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-gdsd"
+                      class="ico"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        data-hf-id="hf-x3wj"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75Z"
+                      /></svg></span
+                  >hydrated</span
+                ><span data-hf-id="hf-0zvy" class="s10-pill s10-def" id="s10-d1"
+                  ><span data-hf-id="hf-lz2l" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-j1vo"
+                      class="ico"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 256 256"
+                      fill="currentColor"
+                    >
+                      <path
+                        data-hf-id="hf-kydz"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75ZM128,216a72.08,72.08,0,0,1-72-72c0-57.23,55.47-105,72-118,16.53,13,72,60.75,72,118A72.08,72.08,0,0,1,128,216Zm55.89-62.66a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"
+                      /></svg></span
+                  >deferred</span
+                ></span
+              >
+            </div>
+            <div data-hf-id="hf-6xhb" class="s10-row" style="top: 43px">
+              <span data-hf-id="hf-1hse"
+                ><span data-hf-id="hf-5d6o" class="s10-br">&lt;</span
+                >edit-me<span data-hf-id="hf-g62a" class="s10-br"
+                  >&gt;</span
+                ></span
+              >
+              <span
+                data-hf-id="hf-66k7"
+                class="s10-pw"
+                id="s10-pw2"
+                data-layout-allow-overlap
+                ><span data-hf-id="hf-3ugw" class="s10-pill"
+                  ><span data-hf-id="hf-n5zo" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-usjl"
+                      class="ico"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        data-hf-id="hf-owoz"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75Z"
+                      /></svg></span
+                  >hydrated</span
+                ><span data-hf-id="hf-0d61" class="s10-pill s10-def" id="s10-d2"
+                  ><span data-hf-id="hf-mron" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-inkn"
+                      class="ico"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 256 256"
+                      fill="currentColor"
+                    >
+                      <path
+                        data-hf-id="hf-8krb"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75ZM128,216a72.08,72.08,0,0,1-72-72c0-57.23,55.47-105,72-118,16.53,13,72,60.75,72,118A72.08,72.08,0,0,1,128,216Zm55.89-62.66a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"
+                      /></svg></span
+                  >deferred</span
+                ></span
+              >
+            </div>
+            <div data-hf-id="hf-fhz1" class="s10-row" style="top: 78px">
+              <span data-hf-id="hf-tb7v"
+                ><span data-hf-id="hf-469l" class="s10-br">&lt;</span
+                >tick-clock<span data-hf-id="hf-gkdb" class="s10-br"
+                  >&gt;</span
+                ></span
+              >
+              <span
+                data-hf-id="hf-28g6"
+                class="s10-pw"
+                id="s10-pw3"
+                data-layout-allow-overlap
+                ><span data-hf-id="hf-2njt" class="s10-pill"
+                  ><span data-hf-id="hf-nylq" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-vzgo"
+                      class="ico"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        data-hf-id="hf-oidy"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75Z"
+                      /></svg></span
+                  >hydrated</span
+                ><span data-hf-id="hf-apz8" class="s10-pill s10-def" id="s10-d3"
+                  ><span data-hf-id="hf-nkap" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-juhq"
+                      class="ico"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 256 256"
+                      fill="currentColor"
+                    >
+                      <path
+                        data-hf-id="hf-86ga"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75ZM128,216a72.08,72.08,0,0,1-72-72c0-57.23,55.47-105,72-118,16.53,13,72,60.75,72,118A72.08,72.08,0,0,1,128,216Zm55.89-62.66a57.6,57.6,0,0,1-46.56,46.55A8.75,8.75,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"
+                      /></svg></span
+                  >deferred</span
+                ></span
+              >
+            </div>
+          </div>
+          <div data-hf-id="hf-3ain" id="s10-det">
+            <div data-hf-id="hf-978a" id="s10-empty">
+              Select a component to inspect.
+            </div>
+            <div data-hf-id="hf-ycxs" id="s10-dc" class="s10-mono">
+              <div data-hf-id="hf-tuac" id="s10-dh">
+                <span data-hf-id="hf-kfle" class="s10-tag"
+                  ><i data-hf-id="hf-ea2o">&lt;</i>visit-counter<i
+                    data-hf-id="hf-dhgm"
+                    >&gt;</i
+                  ></span
+                >
+                <span data-hf-id="hf-31uu" class="s10-pill"
+                  ><span data-hf-id="hf-or7s" class="s10-pi"
+                    ><svg
+                      data-hf-id="hf-vl5n"
+                      class="ico"
+                      viewBox="0 0 256 256"
+                    >
+                      <path
+                        data-hf-id="hf-o42x"
+                        d="M174,47.75a254.19,254.19,0,0,0-41.45-38.3,8,8,0,0,0-9.18,0A254.19,254.19,0,0,0,82,47.75C54.51,79.32,40,112.6,40,144a88,88,0,0,0,176,0C216,112.6,201.49,79.32,174,47.75Z"
+                      /></svg></span
+                  >hydrated</span
+                >
+                <div data-hf-id="hf-y647" class="s10-hb" style="right: 46px">
+                  <svg
+                    data-hf-id="hf-jg6p"
+                    class="ico"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 256 256"
+                    fill="currentColor"
+                  >
+                    <path
+                      data-hf-id="hf-z1pj"
+                      d="M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z"
+                    />
+                  </svg>
+                </div>
+                <div data-hf-id="hf-zj0z" class="s10-hb" style="right: 4px">
+                  <svg
+                    data-hf-id="hf-kn3s"
+                    class="ico"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 256 256"
+                    fill="currentColor"
+                  >
+                    <path
+                      data-hf-id="hf-tst6"
+                      d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div data-hf-id="hf-14g5" class="s10-dl">
+                <span data-hf-id="hf-e9ct" class="s10-dt">defined</span
+                ><span data-hf-id="hf-y98g" class="s10-dd"
+                  ><span data-hf-id="hf-j7g7">src/components/</span
+                  ><span data-hf-id="hf-ruf8"
+                    >visit-counter.ts:11<span
+                      data-hf-id="hf-ju3u"
+                      class="s10-ai"
+                      ><svg
+                        data-hf-id="hf-k8sr"
+                        class="ico"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 256 256"
+                        fill="currentColor"
+                      >
+                        <path
+                          data-hf-id="hf-sk62"
+                          d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"
+                        /></svg></span></span
+                ></span>
+              </div>
+              <div data-hf-id="hf-9wd5" class="s10-dl">
+                <span data-hf-id="hf-9wu9" class="s10-dt">rendered</span
+                ><span data-hf-id="hf-v5tk" class="s10-dd"
+                  ><span data-hf-id="hf-ovs2">src/layouts/</span
+                  ><span data-hf-id="hf-cwis"
+                    >Demo.astro:49<span data-hf-id="hf-yb5a" class="s10-ai"
+                      ><svg
+                        data-hf-id="hf-lfpu"
+                        class="ico"
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 256 256"
+                        fill="currentColor"
+                      >
+                        <path
+                          data-hf-id="hf-3nem"
+                          d="M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z"
+                        /></svg></span></span
+                ></span>
+              </div>
+              <div data-hf-id="hf-b3a8" class="s10-dl">
+                <span data-hf-id="hf-xyx4" class="s10-dt">root</span
+                ><span data-hf-id="hf-mzsr" class="s10-dd s10-plain"
+                  >shadow, open</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-hf-id="hf-ulkl" id="s10-tip" data-layout-allow-overlap>
+        Rendered on the server and hydrated in the browser
+      </div>
+
+      <div
+        data-hf-id="hf-89i5"
+        class="s10-rip"
+        id="s10-rip1"
+        style="left: 1243px; top: 614px"
+      ></div>
+      <div
+        data-hf-id="hf-dw9u"
+        class="s10-rip"
+        id="s10-rip2"
+        style="left: 1062px; top: 400px"
+      ></div>
+      <svg data-hf-id="hf-dzc9" id="s10-cursor" viewBox="0 0 22 30">
+        <path
+          data-hf-id="hf-yk69"
+          d="M1 1 L1 23 L7 18 L11 28 L15 26.5 L11 17 L19 17 Z"
+          fill="#fff"
+          stroke="#030308"
+          stroke-width="1.5"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        var slam = function (id, t) {
+          tl.fromTo(
+            id,
+            {opacity: 0, y: 24},
+            {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+            t
+          );
+        };
+        // 0.00 HIT: Astro mark slams in, eyebrow beside it
+        tl.fromTo(
+          '#s10-logo',
+          {opacity: 0, scale: 1.6},
+          {opacity: 1, scale: 1, duration: 0.25, ease: 'back.out(2)'},
+          0
+        );
+        tl.fromTo(
+          '#s10-eyebrow',
+          {opacity: 0, x: -12},
+          {opacity: 1, x: 0, duration: 0.25, ease: 'power3.out'},
+          0.05
+        );
+        slam('#s10-h1', 0.1);
+        // 0.24: the Astro page and its dev toolbar
+        tl.fromTo(
+          '#s10-page',
+          {opacity: 0, y: 16},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          0.24
+        );
+        tl.fromTo(
+          '#s10-bar',
+          {opacity: 0, y: 20},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          0.24
+        );
+        // cursor travels to the Lit app icon
+        tl.set('#s10-cursor', {x: 1420, y: 520}, 0);
+        tl.fromTo(
+          '#s10-cursor',
+          {opacity: 0},
+          {opacity: 1, duration: 0.1},
+          0.24
+        );
+        tl.to(
+          '#s10-cursor',
+          {x: 1243, y: 614, duration: 0.22, ease: 'power3.out'},
+          0.26
+        );
+        // 0.48: click (ripple), the window springs open
+        tl.to(
+          '#s10-cursor',
+          {
+            scale: 0.85,
+            transformOrigin: '0px 0px',
+            duration: 0.06,
+            ease: 'power2.in',
+          },
+          0.48
+        );
+        tl.to(
+          '#s10-cursor',
+          {scale: 1, duration: 0.06, ease: 'power2.out'},
+          0.54
+        );
+        tl.fromTo(
+          '#s10-rip1',
+          {opacity: 0.9, scale: 0.3},
+          {
+            opacity: 0,
+            scale: 2.4,
+            duration: 0.5,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          0.48
+        );
+        tl.fromTo('#s10-hi', {opacity: 0}, {opacity: 1, duration: 0.1}, 0.48);
+        tl.fromTo('#s10-dot', {opacity: 0}, {opacity: 1, duration: 0.1}, 0.48);
+        tl.fromTo(
+          '#s10-win',
+          {opacity: 0, scale: 0.92, transformOrigin: '324px 400px'},
+          {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.7)'},
+          0.48
+        );
+        // pills: deferred -> hydrated, one per beat
+        [
+          ['#s10-pw1', '#s10-d1', 0.96],
+          ['#s10-pw2', '#s10-d2', 1.2],
+          ['#s10-pw3', '#s10-d3', 1.44],
+        ].forEach(function (p) {
+          tl.to(p[1], {opacity: 0, duration: 0.08, ease: 'none'}, p[2]);
+          tl.fromTo(
+            p[0],
+            {scale: 1.35, transformOrigin: '0% 50%'},
+            {
+              scale: 1,
+              duration: 0.24,
+              ease: 'back.out(2.5)',
+              immediateRender: false,
+            },
+            p[2]
+          );
+        });
+        // 0.96: line 2 + shine sweep
+        slam('#s10-h2', 0.96);
+        tl.fromTo(
+          '#s10-shine',
+          {backgroundPosition: '0% 0%'},
+          {backgroundPosition: '100% 0%', duration: 2.55, ease: 'none'},
+          0.96
+        );
+        // 1.92: the integration chip
+        tl.fromTo(
+          '#s10-code',
+          {opacity: 0, y: 16},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          1.92
+        );
+        tl.fromTo(
+          '#s10-c2',
+          {opacity: 0, x: -10},
+          {opacity: 1, x: 0, duration: 0.25, ease: 'power3.out'},
+          2.04
+        );
+        // cursor to <visit-counter>, select on 2.40
+        tl.to(
+          '#s10-cursor',
+          {x: 1062, y: 400, duration: 0.5, ease: 'power2.inOut'},
+          1.86
+        );
+        tl.to(
+          '#s10-cursor',
+          {scale: 0.85, duration: 0.06, ease: 'power2.in'},
+          2.4
+        );
+        tl.to(
+          '#s10-cursor',
+          {scale: 1, duration: 0.06, ease: 'power2.out'},
+          2.46
+        );
+        tl.fromTo(
+          '#s10-rip2',
+          {opacity: 0.9, scale: 0.3},
+          {
+            opacity: 0,
+            scale: 2.4,
+            duration: 0.5,
+            ease: 'power2.out',
+            immediateRender: false,
+          },
+          2.4
+        );
+        tl.fromTo(
+          '#s10-sel',
+          {opacity: 0},
+          {opacity: 1, duration: 0.1, ease: 'none'},
+          2.4
+        );
+        tl.fromTo(
+          '#s10-empty',
+          {opacity: 1},
+          {opacity: 0, duration: 0.1, ease: 'none'},
+          2.4
+        );
+        tl.fromTo(
+          '#s10-dc',
+          {opacity: 0, y: 8},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          2.42
+        );
+        tl.fromTo(
+          '#s10-tip',
+          {opacity: 0, y: 6},
+          {opacity: 1, y: 0, duration: 0.2, ease: 'power3.out'},
+          2.6
+        );
+        // snap shut toward the strip
+        tl.set('#s10-wrap', {transformOrigin: '960px 664px'}, 0);
+        tl.to(
+          '#s10-wrap',
+          {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+          3.51
+        );
+        window.__timelines['s10-astro'] = tl;
+      })();
+    </script>
+  </div>
+</template>
