@@ -191,52 +191,6 @@
   color: var(--on-accent);
 }
 
-/* ---------------------------------------------------------- Hero wash ---- */
-
-/* The design system allows one piece of imagery on a hero: a soft flame glow.
-   Starlight sets `data-has-hero` on splash pages, so this only touches the
-   landing page. Kept faint — the system calls for flat surfaces everywhere
-   else, and no gradients on components. */
-
-[data-has-hero] .page {
-  background:
-    radial-gradient(
-        ellipse 80rem 40rem at 50% -10rem,
-        hsl(232 100% 65% / 0.14),
-        transparent 70%
-      )
-      no-repeat,
-    radial-gradient(
-        ellipse 50rem 25rem at 85% 0,
-        hsl(186 100% 50% / 0.06),
-        transparent 70%
-      )
-      no-repeat;
-}
-
-[data-has-hero] header {
-  border-bottom: 1px solid transparent;
-  background-color: transparent;
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-}
-
-:root[data-theme='light'] [data-has-hero] .page {
-  background:
-    radial-gradient(
-        ellipse 80rem 40rem at 50% -10rem,
-        hsl(232 100% 60% / 0.1),
-        transparent 70%
-      )
-      no-repeat,
-    radial-gradient(
-        ellipse 50rem 25rem at 85% 0,
-        hsl(186 100% 45% / 0.05),
-        transparent 70%
-      )
-      no-repeat;
-}
-
 /* -------------------------------------------------------------- Video ---- */
 
 /* Every self-hosted video plays in Video.js's packaged skin (see

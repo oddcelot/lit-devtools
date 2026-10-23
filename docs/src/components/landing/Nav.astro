@@ -1,0 +1,192 @@
+---
+/**
+ * The landing page's header: the mark, the main ways into the docs, and a
+ * theme switch. The switch writes the key Starlight reads
+ * (`starlight-theme`), so the choice carries into the docs and the demo
+ * frames, and mirrors it onto `.wa-dark` for the Web Awesome controls, as
+ * WaScheme.astro does on the docs pages.
+ */
+import flame from '../../assets/lit-flame.svg';
+import {phosphor} from '../../lib/phosphor';
+
+const links = [
+  ['Docs', '/start/installation/'],
+  ['Guides', '/guides/hmr/'],
+  ['DevTools', '/guides/devtools/'],
+  ['Changelog', '/reference/changelog/'],
+];
+---
+
+<nav class="nav" aria-label="Main">
+  <div class="inner">
+    <a class="brand" href="/">
+      <img src={flame.src} alt="" width="22" height="28" />
+      <span>vite-plugin-lit</span>
+    </a>
+    <ul class="links">
+      {
+        links.map(([text, href]) => (
+          <li>
+            <a href={href}>{text}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="end">
+      <div class="theme" role="group" aria-label="Theme">
+        <button type="button" data-theme-choice="" aria-label="System theme">
+          <Fragment set:html={phosphor('monitor')} />
+        </button>
+        <button type="button" data-theme-choice="light" aria-label="Light theme">
+          <Fragment set:html={phosphor('sun')} />
+        </button>
+        <button type="button" data-theme-choice="dark" aria-label="Dark theme">
+          <Fragment set:html={phosphor('moon')} />
+        </button>
+      </div>
+      <a
+        class="icon"
+        href="https://github.com/oddcelot/vite-plugin-lit"
+        aria-label="vite-plugin-lit on GitHub"
+      >
+        <Fragment set:html={phosphor('github-logo', '1.25rem')} />
+      </a>
+      <a class="start" href="/start/installation/">Get started</a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const KEY = 'starlight-theme';
+  const buttons = document.querySelectorAll<HTMLButtonElement>(
+    '[data-theme-choice]'
+  );
+  const show = () => {
+    const stored = localStorage.getItem(KEY) ?? '';
+    for (const b of buttons) {
+      b.setAttribute('aria-pressed', String(b.dataset.themeChoice === stored));
+    }
+  };
+  const apply = () => {
+    const stored = localStorage.getItem(KEY);
+    const theme =
+      stored === 'light' || stored === 'dark'
+        ? stored
+        : matchMedia('(prefers-color-scheme: light)').matches
+          ? 'light'
+          : 'dark';
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.classList.toggle('wa-dark', theme === 'dark');
+    show();
+  };
+  for (const b of buttons) {
+    b.addEventListener('click', () => {
+      localStorage.setItem(KEY, b.dataset.themeChoice ?? '');
+      apply();
+    });
+  }
+  matchMedia('(prefers-color-scheme: light)').addEventListener('change', apply);
+  show();
+</script>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(14px) saturate(1.4);
+    background: color-mix(in srgb, var(--bg) 72%, transparent);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .inner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    max-width: var(--landing-width);
+    margin-inline: auto;
+    padding: 0.8rem var(--landing-gutter);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+  .links {
+    display: flex;
+    gap: 1.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.92rem;
+    font-weight: 500;
+  }
+  .links a:hover {
+    color: var(--text-strong);
+  }
+  .end {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-left: auto;
+  }
+  .theme {
+    display: flex;
+    padding: 0.15rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+  }
+  .theme button {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.6rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .theme button[aria-pressed='true'] {
+    background: var(--surface-container);
+    color: var(--text-strong);
+  }
+  .icon {
+    display: grid;
+    color: var(--text-secondary);
+  }
+  .icon:hover {
+    color: var(--text-strong);
+  }
+  .start {
+    padding: 0.45rem 0.9rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+  }
+  .start:hover {
+    background: var(--accent-hover);
+  }
+  @media (max-width: 52rem) {
+    .links {
+      display: none;
+    }
+  }
+  @media (max-width: 30rem) {
+    .theme {
+      display: none;
+    }
+  }
+</style>

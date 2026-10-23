@@ -1,0 +1,922 @@
+---
+/**
+ * The landing page: the product page for the plugin, outside Starlight so it
+ * can run full-bleed sections, its own header and live demos. Everything a
+ * visitor is asked to believe, they can try on the page: the HMR demo runs
+ * the plugin's own patcher, the stylesheet demo counts real renders, and the
+ * DevTools section is the panel itself. The docs start at
+ * /start/installation/; every link out of here goes into them.
+ */
+import {Font} from 'astro:assets';
+import '@oddsquad/webawesome-theme-lit/lit.css';
+import '../styles/custom.css';
+import Nav from '../components/landing/Nav.astro';
+import InstallCommand from '../components/landing/InstallCommand.astro';
+import DemoFrame from '../components/landing/DemoFrame.astro';
+import StoreButtons from '../components/StoreButtons.astro';
+import AgentPrompt from '../components/AgentPrompt.astro';
+import DemoVideo from '../components/DemoVideo.astro';
+import Logo from '../components/Logo.astro';
+import WebMcpTools from '../components/WebMcpTools.astro';
+import inspectorIcon from '../../../extension/public/icon.svg';
+import flame from '../assets/lit-flame.svg';
+import changelog from '../../../CHANGELOG.md?raw';
+import {latestRelease} from '../lib/latest-release.mjs';
+import {phosphor, type IconName} from '../lib/phosphor';
+
+const title = 'vite-plugin-lit: edit a Lit component, keep the page';
+const description =
+  'True HMR for Lit components in Vite: edits patch the running page in place and keep its state. One shared stylesheet for every shadow root, and a DevTools panel that explains each re-render.';
+const release = latestRelease(changelog);
+const ogImage = new URL('/og/index.png', Astro.site).href;
+
+const features: Array<{icon: IconName; title: string; text: string; href: string}> = [
+  {
+    icon: 'cursor-click',
+    title: 'Click to open the source',
+    text: 'Point at any element on the page and jump to the file and line that renders it, in the editor you use.',
+    href: '/guides/source-overlay/',
+  },
+  {
+    icon: 'chart-bar-horizontal',
+    title: 'A timeline of every update',
+    text: 'Record a session and read each render, property change and patch on one time axis, with what triggered it.',
+    href: '/guides/devtools/timeline/',
+  },
+  {
+    icon: 'robot',
+    title: 'Answers for your coding agent',
+    text: 'The component tree and the timeline as MCP tools, so an agent reads the running page instead of guessing.',
+    href: '/guides/devtools/agents/',
+  },
+  {
+    icon: 'plugs-connected',
+    title: 'Signals, context, tasks',
+    text: 'The Lit ecosystem libraries keep working across a hot patch, with the shape that works spelled out for each.',
+    href: '/guides/ecosystem/',
+  },
+  {
+    icon: 'hard-drives',
+    title: 'Server rendering and Astro',
+    text: 'Hot patches on hydrated components with @lit-labs/ssr, and an Astro integration that runs the panel in its toolbar.',
+    href: '/guides/ssr/',
+  },
+  {
+    icon: 'shield-check',
+    title: 'Nothing in your production build',
+    text: 'Patching, the indicator and the panel are dev-server only. The build ships your components and nothing of ours.',
+    href: '/start/installation/',
+  },
+];
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL('/', Astro.site).href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={new URL('/', Astro.site).href} />
+    <meta property="og:site_name" content="vite-plugin-lit" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="ai-catalog" href="/.well-known/ai-catalog.json" />
+    <Font cssVariable="--font-lilex" />
+    <script is:inline>
+      // The theme before the first paint, from the key Starlight keeps.
+      (() => {
+        const t = localStorage.getItem('starlight-theme');
+        const theme =
+          t === 'light' || t === 'dark'
+            ? t
+            : matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark';
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.classList.toggle('wa-dark', theme === 'dark');
+      })();
+    </script>
+    <WebMcpTools />
+  </head>
+  <body>
+    <Nav />
+
+    <main>
+      <section class="hero">
+        <div class="backdrop" aria-hidden="true"></div>
+        <div class="wrap hero-copy">
+          <a class="release" href={release.path}>
+            <span class="version">v{release.version}</span>
+            <span>What's new</span>
+            <Fragment set:html={phosphor('arrow-right')} />
+          </a>
+          <h1>
+            Edit a Lit component.<br /><span class="shine">Keep the page.</span>
+          </h1>
+          <p class="lede">
+            vite-plugin-lit patches your components in place when you save. The
+            count, the half-typed input, the open menu and the scroll position
+            all stay where they were. One line in your Vite config.
+          </p>
+          <div class="actions">
+            <a class="button primary" href="/start/installation/">Get started</a>
+            <a class="button" href="/start/first-component/"
+              >Build your first component</a
+            >
+          </div>
+          <InstallCommand />
+        </div>
+        <div class="wrap wide reveal">
+          <DemoFrame
+            src="/demo/hmr/"
+            title="HMR demo: the same component with and without vite-plugin-lit"
+            height="31rem"
+            narrowHeight="46rem"
+            caption="<strong>This is the plugin's own patcher, running in your browser.</strong> Click the counter, type in a box, then make an edit."
+            eager
+          />
+        </div>
+        <ul class="wrap facts" aria-label="Works with">
+          <li><Logo name="vite" size="1.1em" />Vite 7 and 8</li>
+          <li><img src={flame.src} alt="" width="14" height="18" />Lit 3</li>
+          <li>Astro</li>
+          <li>Vite DevTools</li>
+          <li><Logo name="chrome" size="1.1em" /><Logo name="firefox" size="1.1em" />Chrome and Firefox</li>
+          <li>MCP</li>
+        </ul>
+      </section>
+
+      <section class="section split" id="stylesheets">
+        <div class="wrap split-grid">
+          <div class="copy reveal">
+            <p class="eyebrow">
+              <Fragment set:html={phosphor('paint-brush')} /> Stylesheets
+            </p>
+            <h2>One sheet.<br />A thousand shadow roots.</h2>
+            <p>
+              Import a CSS file with <code>?css-sheet</code> and every component
+              adopts the same <code>CSSStyleSheet</code>. Edit the file and every
+              shadow root restyles at once, without a single component
+              re-rendering.
+            </p>
+            <pre class="snippet"><code><span class="k">import</span> sheet <span class="k">from</span> <span class="s">'./theme.css?css-sheet'</span>;
+
+<span class="k">static</span> styles = [sheet];</code></pre>
+            <a class="more" href="/guides/stylesheets/css-sheet/"
+              >Share one stylesheet <Fragment set:html={phosphor('arrow-right')} /></a
+            >
+          </div>
+          <div class="reveal">
+            <DemoFrame
+              src="/demo/sheets/"
+              title="Stylesheet demo: a thousand shadow roots recoloured"
+              height="25rem"
+              narrowHeight="30rem"
+              caption="Recolour them, then switch to a <code>&lt;style&gt;</code> in each and recolour again. Watch the re-render count."
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="devtools">
+        <div class="wrap center reveal">
+          <p class="eyebrow">
+            <Fragment set:html={phosphor('tree-structure')} /> DevTools
+          </p>
+          <h2>See why it re-rendered.</h2>
+          <p class="sub">
+            A Lit panel inside Vite DevTools: the live component tree with
+            properties you can edit, every update with its cause and its cost,
+            and a timeline of the whole session.
+          </p>
+          <div class="tabs" role="group" aria-label="Open the panel on">
+            <button
+              type="button"
+              data-tab="components"
+              data-caption="The real panel, inspecting the demo page above it. Click a component in the tree, then change one of its properties."
+              aria-pressed="true">Components</button
+            >
+            <button
+              type="button"
+              data-tab="updates"
+              data-caption="Press the counter on the demo page a few times. Each update lands here with what changed and how long it took."
+              aria-pressed="false">Updates</button
+            >
+            <button
+              type="button"
+              data-tab="timeline"
+              data-caption="Press Record, click around the demo page, then Stop. Every render and property change lands on one time axis."
+              aria-pressed="false">Timeline</button
+            >
+          </div>
+        </div>
+        <div class="wrap wide reveal">
+          <DemoFrame
+            id="live-panel"
+            src="/live-panel/"
+            scripted
+            title="Lit DevTools panel inspecting a demo page"
+            height="44rem"
+            narrowHeight="38rem"
+            caption="The real panel, inspecting the demo page above it. Click a component in the tree, then change one of its properties."
+          />
+        </div>
+      </section>
+
+      <section class="section" id="more">
+        <div class="wrap">
+          <h2 class="center reveal">Everything else you'd want.</h2>
+          <div class="features">
+            {
+              features.map((f) => (
+                <a class="feature reveal" href={f.href}>
+                  <span class="icon" set:html={phosphor(f.icon, '1.4rem')} />
+                  <h3>{f.title}</h3>
+                  <p>{f.text}</p>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="two-ways">
+        <div class="wrap duo">
+          <div class="card reveal">
+            <p class="eyebrow"><Fragment set:html={phosphor('robot')} /> Set up</p>
+            <h3>Let your coding agent do it</h3>
+            <p>
+              Copy the prompt into Claude Code, Cursor or Codex. It installs the
+              plugin, edits your Vite config and tsconfig, and checks the
+              indicator shows.
+            </p>
+            <AgentPrompt />
+          </div>
+          <div class="card reveal">
+            <p class="eyebrow">
+              <img src={inspectorIcon.src} alt="" width="18" height="18" /> Lit Inspector
+            </p>
+            <h3>No Vite? Inspect any Lit site</h3>
+            <p>
+              The same panel as a browser extension, for production builds and
+              sites you don't serve.
+            </p>
+            <StoreButtons />
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="setup">
+        <div class="wrap">
+          <h2 class="center reveal">Set up in a minute.</h2>
+          <ol class="steps">
+            <li class="reveal">
+              <span class="n">1</span>
+              <h3>Install</h3>
+              <pre><code>npm i -D @oddsquad/vite-plugin-lit</code></pre>
+            </li>
+            <li class="reveal">
+              <span class="n">2</span>
+              <h3>Add one line</h3>
+              <pre><code><span class="c">// vite.config.ts</span>
+<span class="k">import</span> {'{'}litPlugin{'}'} <span class="k">from</span> <span class="s">'@oddsquad/vite-plugin-lit'</span>;
+
+<span class="k">export default</span> defineConfig({'{'}
+  plugins: [<mark>litPlugin()</mark>],
+{'}'});</code></pre>
+            </li>
+            <li class="reveal">
+              <span class="n">3</span>
+              <h3>Save a component</h3>
+              <p>
+                The indicator in the corner pulses, the page stays put, and your
+                state is still there.
+              </p>
+              <a class="more" href="/start/first-component/"
+                >Follow the tutorial <Fragment set:html={phosphor('arrow-right')} /></a
+              >
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="section" id="tour">
+        <div class="wrap wide reveal">
+          <h2 class="center">Take the tour.</h2>
+          <DemoVideo
+            name="promo"
+            width={1920}
+            height={1080}
+            autoplay={false}
+            label="The vite-plugin-lit promo: a tour inside the Lit DevTools panel, from HMR that keeps a counter at 42, through one stylesheet recolouring a thousand shadow roots and the Timeline explaining each update, to the litPlugin() setup line"
+          />
+        </div>
+      </section>
+
+      <section class="section closing">
+        <div class="backdrop" aria-hidden="true"></div>
+        <div class="wrap center reveal">
+          <h2>Stop losing your place.</h2>
+          <p class="sub">Free and open source, under the BSD-3-Clause licence.</p>
+          <div class="actions">
+            <a class="button primary" href="/start/installation/">Get started</a>
+            <a class="button" href="https://github.com/oddcelot/vite-plugin-lit"
+              ><Fragment set:html={phosphor('github-logo')} /> Star on GitHub</a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div>
+          <a class="brand" href="/">
+            <img src={flame.src} alt="" width="18" height="23" /> vite-plugin-lit
+          </a>
+          <p>True HMR, shared stylesheets and DevTools for Lit in Vite.</p>
+        </div>
+        <nav aria-label="Docs">
+          <h4>Start</h4>
+          <a href="/start/installation/">Installation</a>
+          <a href="/start/first-component/">First component</a>
+          <a href="/start/demos/">Demos</a>
+        </nav>
+        <nav aria-label="Guides">
+          <h4>Guides</h4>
+          <a href="/guides/hmr/">Keep state across edits</a>
+          <a href="/guides/stylesheets/">Stylesheets</a>
+          <a href="/guides/devtools/">DevTools</a>
+        </nav>
+        <nav aria-label="Project">
+          <h4>Project</h4>
+          <a href="/reference/changelog/">Changelog</a>
+          <a href="https://github.com/oddcelot/vite-plugin-lit">GitHub</a>
+          <a href="https://www.npmjs.com/package/@oddsquad/vite-plugin-lit">npm</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      // The live panel takes the page's theme in its URL (`?scheme=`) and
+      // its tab in its own deep link, so both are set from here: on load, on
+      // a tab button, and when the theme switch changes the scheme.
+      const panel = document.querySelector<HTMLIFrameElement>('#live-panel');
+      const tabs = document.querySelectorAll<HTMLButtonElement>('[data-tab]');
+      let tab = 'components';
+      let scheme = '';
+      const loadPanel = () => {
+        if (!panel) return;
+        const next = document.documentElement.dataset.theme ?? 'dark';
+        const url = `${panel.dataset.src}?scheme=${next}#tab=${tab}`;
+        if (next === scheme) {
+          // Same document: only the hash changes, and the panel follows it.
+          panel.contentWindow?.location.replace(url);
+        } else {
+          scheme = next;
+          panel.src = url;
+        }
+      };
+      for (const button of tabs) {
+        button.addEventListener('click', () => {
+          for (const t of tabs) t.setAttribute('aria-pressed', String(t === button));
+          tab = button.dataset.tab!;
+          const caption = panel?.closest('figure')?.querySelector('figcaption');
+          if (caption) caption.textContent = button.dataset.caption ?? '';
+          loadPanel();
+        });
+      }
+      new MutationObserver(loadPanel).observe(document.documentElement, {
+        attributeFilter: ['data-theme'],
+      });
+      loadPanel();
+
+      // Sections rise in as they scroll into view.
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('in');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          {rootMargin: '0px 0px -8% 0px'}
+        );
+        document.documentElement.classList.add('rise');
+        for (const el of document.querySelectorAll('.reveal')) io.observe(el);
+      }
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    --landing-width: 72rem;
+    --landing-wide: 80rem;
+    --landing-gutter: clamp(1rem, 4vw, 2rem);
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+  .rise .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.7s var(--ease-out),
+      transform 0.7s var(--ease-out);
+  }
+  .rise .reveal.in {
+    opacity: 1;
+    transform: none;
+  }
+</style>
+
+<style>
+  .wrap {
+    max-width: var(--landing-width);
+    margin-inline: auto;
+    padding-inline: var(--landing-gutter);
+    box-sizing: content-box;
+  }
+  .wrap.wide {
+    max-width: var(--landing-wide);
+  }
+  .center {
+    text-align: center;
+  }
+  a {
+    color: var(--text-link);
+  }
+  code {
+    font-family: var(--font-lilex, ui-monospace, monospace);
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-xs);
+    background: var(--surface-container);
+  }
+  h1,
+  h2,
+  h3 {
+    color: var(--text-strong);
+    margin: 0;
+  }
+  h2 {
+    font-size: clamp(2rem, 4.2vw, 3rem);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    padding-block: clamp(3rem, 8vw, 6rem) 3rem;
+    overflow: hidden;
+  }
+  .backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        40rem 26rem at 22% 8%,
+        color-mix(in srgb, var(--lit-blue-bright) 26%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        34rem 24rem at 84% 22%,
+        color-mix(in srgb, var(--lit-cyan) 16%, transparent),
+        transparent 70%
+      );
+  }
+  .backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border-subtle) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 70% 55% at 50% 20%, black, transparent);
+  }
+  :global([data-theme='light']) .backdrop::after {
+    background-image:
+      linear-gradient(hsl(230 40% 50% / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(230 40% 50% / 0.08) 1px, transparent 1px);
+  }
+  .hero-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.4rem;
+    margin-bottom: 3rem;
+  }
+  .release {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.25rem 0.75rem 0.25rem 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface) 70%, transparent);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  .release:hover {
+    border-color: var(--accent);
+    color: var(--text-strong);
+  }
+  .version {
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: 700 0.75rem/1.2 var(--font-lilex, ui-monospace, monospace);
+  }
+  h1 {
+    font-size: clamp(2.6rem, 7vw, 5.2rem);
+    line-height: 1.02;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+  }
+  .shine {
+    background: linear-gradient(
+      100deg,
+      var(--lit-blue-bright) 10%,
+      var(--lit-cyan) 55%,
+      var(--lit-blue-bright) 95%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shine 8s ease-in-out infinite alternate;
+  }
+  @keyframes shine {
+    to {
+      background-position: 100% 0;
+    }
+  }
+  .lede {
+    max-width: 40rem;
+    margin: 0;
+    font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+    color: var(--text-secondary);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.3rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border-strong);
+    color: var(--text-strong);
+    font-weight: 700;
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-standard),
+      transform var(--dur-fast) var(--ease-standard);
+  }
+  .button:hover {
+    background: var(--surface-hover);
+    transform: translateY(-1px);
+  }
+  .button.primary {
+    border-color: transparent;
+    background: var(--accent);
+    color: var(--on-accent);
+    box-shadow: 0 8px 30px -8px var(--accent-ring);
+  }
+  .button.primary:hover {
+    background: var(--accent-hover);
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.6rem 2rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0;
+    list-style: none;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .facts li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .facts :global(.brand-logo) {
+    margin: 0;
+  }
+
+  /* Sections */
+  .section {
+    position: relative;
+    padding-block: clamp(3.5rem, 7vw, 5.5rem);
+  }
+  .section + .section {
+    border-top: 1px solid var(--border-subtle);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.9rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--lit-cyan);
+  }
+  :global([data-theme='light']) .eyebrow {
+    color: var(--accent);
+  }
+  .sub {
+    max-width: 38rem;
+    margin: 1rem auto 0;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+  }
+  .more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .more:hover {
+    text-decoration: underline;
+  }
+
+  .split-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(2rem, 5vw, 4rem);
+    align-items: center;
+  }
+  .copy p {
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+  }
+  .copy h2 {
+    margin-bottom: 1rem;
+  }
+  .snippet,
+  .steps pre {
+    margin: 1.2rem 0;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-low);
+    font: 0.85rem/1.65 var(--font-lilex, ui-monospace, monospace);
+    color: var(--code-default);
+    overflow-x: auto;
+  }
+  .snippet code,
+  .steps pre code {
+    padding: 0;
+    background: none;
+    font-size: inherit;
+  }
+  .k {
+    color: var(--code-keyword);
+  }
+  .s {
+    color: var(--code-string);
+  }
+  .c {
+    color: var(--code-comment);
+  }
+  mark {
+    padding: 0.05em 0.2em;
+    border-radius: var(--radius-xs);
+    background: var(--accent-soft);
+    color: var(--text-strong);
+  }
+
+  .tabs {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin: 2rem 0 2.5rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+  }
+  .tabs button {
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-secondary);
+    font: 600 0.9rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .tabs button[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+  .feature {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    text-decoration: none;
+    transition:
+      border-color var(--dur-normal) var(--ease-standard),
+      transform var(--dur-normal) var(--ease-standard);
+  }
+  .feature:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .feature .icon {
+    display: grid;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .feature p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+
+  .duo {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1.25rem;
+  }
+  .card {
+    padding: 2rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--surface);
+  }
+  .card h3 {
+    font-size: 1.4rem;
+  }
+  .card p {
+    color: var(--text-secondary);
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: 1.25rem;
+    margin: 3rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .steps li {
+    position: relative;
+    padding: 1.5rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .steps li p {
+    color: var(--text-secondary);
+  }
+  .n {
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    margin-bottom: 0.9rem;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: var(--on-accent);
+    font: 700 0.9rem/1 var(--font-lilex, ui-monospace, monospace);
+  }
+
+  #tour h2 {
+    margin-bottom: 2rem;
+  }
+
+  .closing {
+    overflow: hidden;
+  }
+  .closing .backdrop {
+    background: radial-gradient(
+      40rem 20rem at 50% 100%,
+      color-mix(in srgb, var(--lit-blue-bright) 24%, transparent),
+      transparent 70%
+    );
+  }
+  .closing .actions {
+    margin-top: 2rem;
+  }
+
+  .footer {
+    padding-block: 3rem;
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.9rem;
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .footer p {
+    color: var(--text-muted);
+  }
+  .footer .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 800;
+    color: var(--text-strong);
+    text-decoration: none;
+  }
+  .footer nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .footer h4 {
+    margin: 0 0 0.3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .footer nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+  }
+  .footer nav a:hover {
+    color: var(--text-strong);
+  }
+
+  @media (max-width: 56rem) {
+    .split-grid,
+    .steps {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .features {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .footer-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  @media (max-width: 36rem) {
+    .features,
+    .footer-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shine {
+      animation: none;
+    }
+  }
+</style>

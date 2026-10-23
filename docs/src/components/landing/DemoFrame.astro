@@ -1,0 +1,89 @@
+---
+/**
+ * One of the live demos (src/pages/demo/, or the live panel) framed on the
+ * landing page, with a caption that says what to try. The frame loads when
+ * it nears the viewport, so the hero's is the only one on first paint.
+ */
+interface Props {
+  src: string;
+  title: string;
+  /** Any CSS length. */
+  height: string;
+  /** The height on a phone, where the demos stack; `height` by default. */
+  narrowHeight?: string;
+  /** What the visitor can try, under the frame. */
+  caption?: string;
+  /** The hero's frame loads at once. */
+  eager?: boolean;
+  id?: string;
+  /** Leave `src` for a script to set, for a frame that needs the theme in its URL. */
+  scripted?: boolean;
+}
+
+const {
+  src,
+  title,
+  height,
+  narrowHeight = height,
+  caption,
+  eager = false,
+  id,
+  scripted = false,
+} = Astro.props;
+---
+
+<figure class="demo-frame">
+  <div class="glow">
+    <iframe
+      id={id}
+      src={scripted ? undefined : src}
+      data-src={scripted ? src : undefined}
+      title={title}
+      loading={eager ? 'eager' : 'lazy'}
+      style={{'--height': height, '--narrow-height': narrowHeight}}></iframe>
+  </div>
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<style>
+  .demo-frame {
+    margin: 0;
+  }
+  .glow {
+    position: relative;
+    padding: 1px;
+    border-radius: calc(var(--radius-xl) + 1px);
+    background: linear-gradient(
+      140deg,
+      color-mix(in srgb, var(--lit-blue-bright) 70%, transparent),
+      var(--border) 35%,
+      var(--border) 65%,
+      color-mix(in srgb, var(--lit-cyan) 60%, transparent)
+    );
+    box-shadow:
+      0 30px 80px -30px color-mix(in srgb, var(--lit-blue-bright) 45%, transparent),
+      var(--shadow-window);
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+    height: var(--height);
+  }
+  @media (max-width: 40rem) {
+    iframe {
+      height: var(--narrow-height);
+    }
+  }
+  figcaption {
+    margin-top: 0.85rem;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+  figcaption :global(strong) {
+    color: var(--text-secondary);
+  }
+</style>
