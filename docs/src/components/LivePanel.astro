@@ -12,15 +12,20 @@
 interface Props {
   /** The tab the panel opens on. */
   tab?: 'components' | 'updates' | 'timeline' | 'settings';
+  /** What the panel inspects: three playground components, or the demo
+   *  cart, whose components are documented by a manifest it links. */
+  app?: 'playground' | 'cart';
   /** What the reader can try, under the frame. */
   caption: string;
 }
-const {tab = 'components', caption} = Astro.props;
+const {tab = 'components', app = 'playground', caption} = Astro.props;
+const path = app === 'cart' ? '/live-panel/showcase/' : '/live-panel/';
 ---
 
 <figure class="live-panel not-content">
   <iframe
     data-tab={tab}
+    data-path={path}
     title="Lit DevTools panel inspecting a demo page"
     loading="lazy"></iframe>
   <figcaption>{caption}</figcaption>
@@ -35,7 +40,7 @@ const {tab = 'components', caption} = Astro.props;
     for (const frame of frames) {
       if (frame.dataset.scheme === scheme) continue;
       frame.dataset.scheme = scheme;
-      frame.src = `/live-panel/?scheme=${scheme}#tab=${frame.dataset.tab}`;
+      frame.src = `${frame.dataset.path}?scheme=${scheme}#tab=${frame.dataset.tab}`;
     }
   };
   load();

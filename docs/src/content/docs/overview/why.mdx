@@ -39,7 +39,7 @@ Try it below. Both panes run the same component; make an edit and compare.
   caption="The plugin's own patcher, running in this page. Click the counter, type in a box, then make an edit."
 />
 
-## Two more things you get
+## Three more things you get
 
 **One stylesheet for every shadow root.** Each shadow root normally carries
 its own copy of a component's CSS. Import a file with `?css-sheet` and every
@@ -50,6 +50,11 @@ restyles every instance at once, and no component re-renders.
 component tree, each update with what triggered it and how long it took, and
 a timeline of the whole session. Your coding agent can read the same data
 over MCP.
+
+**Every component's docs where you debug.** Select an element and the panel
+shows its summary, what each property is for and the events it fires. Your
+own components are read from their JSDoc; a library's come from the Custom
+Elements Manifest it ships, so Web Awesome is documented with no setup.
 
 The [feature tour](/overview/tour/) shows each of these running.
 

@@ -13,6 +13,7 @@ import UpdatesFigure from '../../../components/UpdatesFigure.astro';
 import TimelineFigure from '../../../components/TimelineFigure.astro';
 import LivePanel from '../../../components/LivePanel.astro';
 import StoreButtons from '../../../components/StoreButtons.astro';
+import DocsSources from '../../../components/landing/DocsSources.astro';
 
 See every feature of the plugin running, each next to the guide that sets it
 up. Everything on this page is live: the figures are the plugin's own UI, not
@@ -68,11 +69,29 @@ Turn on: `sourceOverlay` option. Guide: [Open a component in your editor from th
 
 The DevTools panel lists every Lit element on the page as a tree. Select one
 to read and edit its properties, state and controllers while it runs. This
-is the whole panel, inspecting the demo page above it.
+is the whole panel, inspecting a small cart above it.
 
-<LivePanel caption="Click a component in the tree, then change one of its properties." />
+<LivePanel
+  app="cart"
+  caption="Expand demo-cart, select a cart-item, then change its qty or price. The total follows, and the item's docs show above its properties."
+/>
 
 Turn on: the `timeline` option, with Vite DevTools. Guide: [Set up the DevTools panel](/guides/devtools/), then [Inspect live components](/guides/devtools/components/).
+
+## Read every component's documentation
+
+Select an element and the details pane shows what its author wrote: a
+summary, what each property is for, the events it fires, its slots, parts
+and CSS custom properties. The cart above is documented by a Custom Elements
+Manifest it links. Your own components need none: their JSDoc is read from
+source as you edit.
+
+<DocsSources />
+
+The same docs reach Lit Inspector and, through the `lit_component-docs` MCP
+tool, your coding agent.
+
+Guide: [Read a component's documentation](/guides/devtools/components/#read-a-components-documentation).
 
 ## See every update and its cause
 

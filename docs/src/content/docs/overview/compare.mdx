@@ -14,17 +14,18 @@ the current state.
 
 ## At a glance
 
-|                                        | Plain Vite            | [Open WC HMR][owc]            | [Gracile HMR][gracile]                        | vite-plugin-lit                  |
-| -------------------------------------- | --------------------- | ----------------------------- | --------------------------------------------- | -------------------------------- |
-| Dev server                             | Vite                  | Web Dev Server only           | Vite                                          | Vite 7 and 8                     |
-| On a component edit                    | Reloads the page      | Updates the class in place    | Updates templates and styles without a reload | Patches the class in place       |
-| Changes to your base class             | None                  | Needs a `hotReplacedCallback` | Lit preset                                    | None                             |
-| Element state                          | Lost                  | Kept                          | Not stated                                    | Kept                             |
-| Unchanged sibling DOM                  | Rebuilt by the reload | Not stated                    | Not stated                                    | Kept, through template interning |
-| State of re-created child elements     | Lost                  | Not stated                    | Not stated                                    | Transferred by default           |
-| Shared stylesheets across shadow roots | No                    | Not in scope                  | Not in scope                                  | `?css-sheet`, `urlSheet()`       |
-| DevTools panel and MCP tools           | No                    | Not in scope                  | Not in scope                                  | Yes                              |
-| Status                                 | Stable                | Marked experimental           | Only the core and Lit preset are tested       | Pre-1.0, released often          |
+|                                                         | Plain Vite            | [Open WC HMR][owc]            | [Gracile HMR][gracile]                        | vite-plugin-lit                          |
+| ------------------------------------------------------- | --------------------- | ----------------------------- | --------------------------------------------- | ---------------------------------------- |
+| Dev server                                              | Vite                  | Web Dev Server only           | Vite                                          | Vite 7 and 8                             |
+| On a component edit                                     | Reloads the page      | Updates the class in place    | Updates templates and styles without a reload | Patches the class in place               |
+| Changes to your base class                              | None                  | Needs a `hotReplacedCallback` | Lit preset                                    | None                                     |
+| Element state                                           | Lost                  | Kept                          | Not stated                                    | Kept                                     |
+| Unchanged sibling DOM                                   | Rebuilt by the reload | Not stated                    | Not stated                                    | Kept, through template interning         |
+| State of re-created child elements                      | Lost                  | Not stated                    | Not stated                                    | Transferred by default                   |
+| Shared stylesheets across shadow roots                  | No                    | Not in scope                  | Not in scope                                  | `?css-sheet`, `urlSheet()`               |
+| DevTools panel and MCP tools                            | No                    | Not in scope                  | Not in scope                                  | Yes                                      |
+| Component docs from JSDoc and Custom Elements Manifests | No                    | Not in scope                  | Not in scope                                  | In the panel, Lit Inspector and over MCP |
+| Status                                                  | Stable                | Marked experimental           | Only the core and Lit preset are tested       | Pre-1.0, released often                  |
 
 [owc]: https://open-wc.org/docs/development/hot-module-replacement/
 [gracile]: https://gracile.js.org/docs/add-ons/hmr/
@@ -64,7 +65,8 @@ The plugin targets Lit on Vite and goes further than swapping the class:
   literal's DOM. Siblings keep focus, selection and scroll.
 - It carries state onto child elements an edited template re-creates.
 - It adds what a Lit project needs around HMR: shared stylesheets, a source
-  overlay, and a DevTools panel your coding agent can read.
+  overlay, and a DevTools panel your coding agent can read, which shows each
+  component's docs from its JSDoc or a Custom Elements Manifest.
 
 It shares one limit with the others: a changed `observedAttributes` list
 cannot be applied in place. The [limitations page](/reference/limitations/)
