@@ -7,7 +7,10 @@ import '../src/all.js';
 // Not a lit-* component: a panel view over a recording, shown so a theme
 // change can be checked on the panel itself, in both schemes.
 import '../../../src/panel/figures/timeline-figure.js';
-import './devtools-specimens.js';
+// The DevTools' in-page UI, drawn in place from the runtime's own markup,
+// as the docs show it.
+import '../../../src/panel/figures/hmr-indicator.js';
+import '../../../src/panel/figures/source-overlay.js';
 import {
   layerChips,
   layerChipsCompact,

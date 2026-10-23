@@ -1,13 +1,12 @@
 /**
- * The DevTools' in-page UI, drawn in place for the kitchen sink. On a real
- * page these sit fixed over the app and show only while something happens;
- * here each one is a specimen in a chosen state, from the same markup the
- * runtime uses, so a theme change shows on them as it would on a page. The
- * HMR indicator's specimen is shared with the docs, in src/panel/figures.
+ * The source overlay, drawn in place for pages outside the app: the docs'
+ * source overlay guide and the kitchen sink. On a real page it sits fixed
+ * over the app while the picker is armed; here it wraps its slotted content,
+ * from the same template the runtime renders, so a theme change shows on it
+ * as it would on a page.
  */
-import '../../../src/panel/figures/hmr-indicator.js';
-import {renderOverlay} from '../../../src/lib/runtime/source-overlay/template.js';
-import {injectTokens} from '../../../src/lib/token-text.js';
+import {renderOverlay} from '../../lib/runtime/source-overlay/template.js';
+import {injectTokens} from '../../lib/token-text.js';
 
 injectTokens({scope: 'source-overlay-specimen'});
 
@@ -20,7 +19,7 @@ injectTokens({scope: 'source-overlay-specimen'});
  * the row a click would open with Cmd/Ctrl (`source`) or Cmd/Ctrl+Shift
  * (`site`) held.
  */
-class SourceOverlaySpecimen extends HTMLElement {
+export class SourceOverlaySpecimen extends HTMLElement {
   static observedAttributes = ['tag', 'path', 'site', 'step', 'armed'];
   #root: ShadowRoot;
 
