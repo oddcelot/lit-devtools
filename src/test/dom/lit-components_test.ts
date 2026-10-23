@@ -92,6 +92,20 @@ describe('lit-* leaves', () => {
       el.shadowRoot!.querySelector('button')?.hasAttribute('disabled')
     ).toBe(true);
   });
+
+  test('lit-button moves ARIA state from its host to its button', async () => {
+    // The host has no role, so assistive tech ignores aria-pressed there.
+    const el = await mount<LitButton>(
+      '<lit-button aria-pressed="true">Docs</lit-button>'
+    );
+    const button = el.shadowRoot!.querySelector('button')!;
+    expect(el.hasAttribute('aria-pressed')).toBe(false);
+    expect(button.getAttribute('aria-pressed')).toBe('true');
+    el.setAttribute('aria-pressed', 'false');
+    await el.updateComplete;
+    expect(el.hasAttribute('aria-pressed')).toBe(false);
+    expect(button.getAttribute('aria-pressed')).toBe('false');
+  });
 });
 
 describe('lit-icon-button', () => {

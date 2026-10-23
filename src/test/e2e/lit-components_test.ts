@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {createServer, type ViteDevServer} from 'vite';
-import {checkPage} from 'lintapple';
+import {expectUI} from 'lintapple/playwright';
 
 /**
  * packages/lit-components in a real browser: its kitchen sink, served the way
@@ -128,17 +128,11 @@ test('the kitchen sink passes its lintapple policy at each viewport', async () =
     await design.waitForFunction(
       () => document.querySelectorAll('section').length > 0
     );
-    const found: string[] = [];
     for (const viewport of policy.viewports) {
       await design.setViewportSize(viewport);
-      const {findings} = await checkPage(design, policy);
-      found.push(
-        ...findings.map(
-          (f) => `${viewport.width}px ${f.rule} ${f.selector}: ${f.message}`
-        )
-      );
+      // Throws with each finding and its fix; nothing to attach them to here.
+      await expectUI(design, {attach: async () => {}}, policy);
     }
-    expect(found).toEqual([]);
   } finally {
     await design.close();
   }
@@ -223,6 +217,18 @@ test('lit-button opens a wa-dropdown as its trigger', async () => {
   await expect
     .poll(() => page.$eval('#dd', (el) => (el as {open?: boolean}).open))
     .toBe(true);
+  // wa-dropdown sets aria-expanded on a trigger that isn't a wa-button by
+  // its tag; lit-button hands it to the button inside.
+  await expect
+    .poll(() =>
+      page.$eval('#dd lit-button', (el) => ({
+        host: el.getAttribute('aria-expanded'),
+        button: el
+          .shadowRoot!.querySelector('button')!
+          .getAttribute('aria-expanded'),
+      }))
+    )
+    .toEqual({host: null, button: 'true'});
 });
 
 test('lit-icon gets the spacing and colour Web Awesome gives wa-icon', async () => {

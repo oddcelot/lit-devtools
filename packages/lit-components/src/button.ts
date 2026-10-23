@@ -3,6 +3,8 @@ import {css} from 'lit';
 import {extendCss} from './styles.js';
 import './icons.js';
 
+const FORWARDED_ARIA = ['aria-pressed', 'aria-expanded', 'aria-haspopup'];
+
 /**
  * A Web Awesome button with the Lit Design System's defaults: the brand
  * variant, small. Everything else is `wa-button`'s: attributes, slots,
@@ -26,10 +28,43 @@ export class LitButton extends WaButton {
     `
   );
 
+  // ARIA state set on the host, by a caller or by wa-dropdown (which only
+  // reaches into a trigger tagged wa-button): the host has no role, so it
+  // moves to the button inside, where assistive tech reads it.
+  static override get observedAttributes() {
+    return [...super.observedAttributes, ...FORWARDED_ARIA];
+  }
+
+  private readonly forwardedAria = new Map<string, string>();
+
   constructor() {
     super();
     this.variant = 'brand';
     this.size = 's';
+  }
+
+  override attributeChangedCallback(
+    name: string,
+    old: string | null,
+    value: string | null
+  ) {
+    if (!FORWARDED_ARIA.includes(name)) {
+      super.attributeChangedCallback(name, old, value);
+      return;
+    }
+    // null is the removal just below.
+    if (value === null) return;
+    this.forwardedAria.set(name, value);
+    this.removeAttribute(name);
+    this.requestUpdate();
+  }
+
+  protected override updated(changed: Map<PropertyKey, unknown>) {
+    super.updated(changed);
+    const base = this.shadowRoot?.querySelector('[part~="base"]');
+    for (const [name, value] of this.forwardedAria) {
+      base?.setAttribute(name, value);
+    }
   }
 }
 
