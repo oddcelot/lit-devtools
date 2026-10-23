@@ -217,6 +217,18 @@ test('lit-button opens a wa-dropdown as its trigger', async () => {
   await expect
     .poll(() => page.$eval('#dd', (el) => (el as {open?: boolean}).open))
     .toBe(true);
+  // wa-dropdown sets aria-expanded on a trigger that isn't a wa-button by
+  // its tag; lit-button hands it to the button inside.
+  await expect
+    .poll(() =>
+      page.$eval('#dd lit-button', (el) => ({
+        host: el.getAttribute('aria-expanded'),
+        button: el
+          .shadowRoot!.querySelector('button')!
+          .getAttribute('aria-expanded'),
+      }))
+    )
+    .toEqual({host: null, button: 'true'});
 });
 
 test('lit-icon gets the spacing and colour Web Awesome gives wa-icon', async () => {
