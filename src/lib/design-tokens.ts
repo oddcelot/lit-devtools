@@ -176,7 +176,8 @@ export const designDarkCSS = `
   --lit-devtools-code-number: #f78c6c;
   --lit-devtools-code-property: #b2ccd6;
   --lit-devtools-code-tag: #89ddff;
-  --lit-devtools-code-comment: #616161;
+  /* #616161 in the design system: 3:1 on ink-2, too faint for a null. */
+  --lit-devtools-code-comment: #8a8a8a;
   --lit-devtools-code-callee: #82aaff;
 `;
 
