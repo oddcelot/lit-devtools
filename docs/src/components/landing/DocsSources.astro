@@ -1,10 +1,10 @@
 ---
 /**
- * The landing page's figure for component docs: the three places the panel
+ * The figure for component docs, on the landing page and the Feature tour: the three places the panel
  * reads a component's documentation from, each with the line that makes it
  * work, and the three places it shows up. Drawn in HTML rather than as a
- * screenshot; the live panel in the DevTools section above is the real
- * thing, reading the cart's custom-elements.json.
+ * screenshot; the live panel beside it on either page is the real thing,
+ * reading the demo cart's custom-elements.json.
  */
 const sources = [
   {
@@ -35,7 +35,7 @@ const sources = [
 const targets = ['Components tab', 'Lit Inspector', 'Your coding agent'];
 ---
 
-<div class="docs-sources" aria-label="Where component docs come from and where they show">
+<div class="docs-sources not-content" aria-label="Where component docs come from and where they show">
   <ol class="sources">
     {
       sources.map((s) => (

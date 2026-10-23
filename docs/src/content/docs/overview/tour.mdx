@@ -1,0 +1,162 @@
+---
+title: Feature tour
+description: Every feature of vite-plugin-lit in one page, each running live, with the guide that sets it up.
+sidebar:
+  order: 2
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+import DemoFrame from '../../../components/landing/DemoFrame.astro';
+import HmrIndicator from '../../../components/HmrIndicator.astro';
+import SourceOverlay from '../../../components/SourceOverlay.astro';
+import UpdatesFigure from '../../../components/UpdatesFigure.astro';
+import TimelineFigure from '../../../components/TimelineFigure.astro';
+import LivePanel from '../../../components/LivePanel.astro';
+import StoreButtons from '../../../components/StoreButtons.astro';
+import DocsSources from '../../../components/landing/DocsSources.astro';
+
+See every feature of the plugin running, each next to the guide that sets it
+up. Everything on this page is live: the figures are the plugin's own UI, not
+screenshots.
+
+## Hot patching that keeps state
+
+Save a component and the page stays put. A hot patch is an edit applied to the
+running page without a reload: the plugin updates the class in place, so
+every element keeps its state. The indicator in the corner of the page pulses
+green when a patch lands. Click the figure to replay the pulse.
+
+<HmrIndicator
+  state="update"
+  count={3}
+  alt="The HMR indicator after a component patch: the dot green, the count at 3."
+/>
+
+On by default. Guide: [Keep state across edits](/guides/hmr/).
+
+## One stylesheet for every shadow root
+
+Import a CSS file with `?css-sheet` and every component that imports it
+adopts the same `CSSStyleSheet`. Save the file and the plugin swaps that
+sheet's text: every shadow root restyles in place, nothing re-renders, and
+the page keeps its state. Without it, saving the CSS reloads the page.
+
+<DemoFrame
+  src="/demo/sheets/"
+  title="Stylesheet demo: saving theme.css with and without vite-plugin-lit"
+  height="31rem"
+  narrowHeight="46rem"
+  caption="Select some tiles in both panes, then save an edit. The plugin pane runs replaceSync() on the shared sheet, as the dev server does on save; the counts and the restyle time are measured on the page."
+/>
+
+On by default. Guide: [Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
+
+## Open a component's source from the page
+
+Hold the shortcut and point at any element. The overlay outlines the
+component and names the file and line that declares it and the one that
+renders it. Click to open either in your editor.
+
+<SourceOverlay
+  tag="hmr-counter"
+  path="src/hmr-counter.ts:7"
+  site="index.html:120"
+  alt="The source overlay outlining hmr-counter, with its source file and the line that renders it."
+/>
+
+Turn on: `sourceOverlay` option. Guide: [Open a component in your editor from the page](/guides/source-overlay/).
+
+## Inspect live components
+
+The DevTools panel lists every Lit element on the page as a tree. Select one
+to read and edit its properties, state and controllers while it runs. This
+is the whole panel, inspecting a small cart above it.
+
+<LivePanel
+  app="cart"
+  caption="Expand demo-cart, select a cart-item, then change its qty or price. The total follows, and the item's docs show above its properties."
+/>
+
+Turn on: the `timeline` option, with Vite DevTools. Guide: [Set up the DevTools panel](/guides/devtools/), then [Inspect live components](/guides/devtools/components/).
+
+## Read every component's documentation
+
+Select an element and the details pane shows what its author wrote: a
+summary, what each property is for, the events it fires, its slots, parts
+and CSS custom properties. The cart above is documented by a Custom Elements
+Manifest it links. Your own components need none: their JSDoc is read from
+source as you edit.
+
+<DocsSources />
+
+The same docs reach Lit Inspector and, through the `lit_component-docs` MCP
+tool, your coding agent.
+
+Guide: [Read a component's documentation](/guides/devtools/components/#read-a-components-documentation).
+
+## See every update and its cause
+
+The Updates tab counts each component's updates and shows what changed in
+each, with the time it took.
+
+<UpdatesFigure caption="A recorded session in the Updates tab: one row per component, with its update count and timings." />
+
+Guide: [Updates](/guides/devtools/updates/).
+
+## Read a session on one timeline
+
+Record a session and the Timeline puts every render, property change, patch
+and custom event on one time axis, in tracks or as a list.
+
+<TimelineFigure
+  mode="tracks"
+  caption="A recorded session in Tracks mode: one lane per layer, events in time. Drag across the ruler to zoom."
+/>
+
+Guide: [Record and read the timeline](/guides/devtools/timeline/).
+
+## Give your coding agent the page
+
+The same component tree and timeline are MCP tools. An agent asks which
+components re-rendered and why, and reads the answer from the running page
+instead of guessing from the code.
+
+Guide: [Connect a coding agent](/guides/devtools/agents/).
+
+## Inspect sites you don't serve
+
+Lit Inspector is the same panel as a browser extension. It works on
+production builds and on any Lit site, with no Vite and no plugin.
+
+<StoreButtons />
+
+In Chrome it also adds a Lit tab to the Elements panel, beside Styles and
+Computed. Select any node there and the tab shows the Lit element at or
+around it. Below, the Elements tree is drawn from the cart's real DOM and
+the Lit tab is the real panel, following it.
+
+<DemoFrame
+  src="/live-panel/sidebar/"
+  title="The Lit tab in the Elements panel's sidebar, following the selected node"
+  height="36rem"
+  narrowHeight="46rem"
+  themed
+  caption="Select a node in the tree, or hover one to find it on the page."
+/>
+
+Guide: [Inspect any site with Lit Inspector](/guides/devtools/browser-extension/), and its section on [the browser's own panels](/guides/devtools/browser-extension/#open-in-the-browsers-own-panels).
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Installation"
+    description="Install the plugin and add it to your Vite config."
+    href="/start/installation/"
+  />
+  <LinkCard
+    title="Compared to alternatives"
+    description="Plain Vite, Open Web Components' HMR plugin, and a Vite fork of it."
+    href="/overview/compare/"
+  />
+</CardGrid>

@@ -44,6 +44,10 @@ phrasings:
 
 ## One page, one job (Diátaxis)
 
+- **Overview** pages make the case. They are the one place persuasion is
+  allowed, and they earn it by showing: a live demo or figure beats a claim.
+  Every claim about another tool links its source and names the month it was
+  checked. No setup steps; link to Start here and the Guides.
 - **Start here** pages are tutorials. Numbered steps; every step ends with a
   check the reader can see.
 - **Guides** do one task each. Imperative title ("Open a component in your
@@ -99,7 +103,15 @@ Never mix. When a guide starts explaining, cut the paragraph and link.
 
 Exactly two `LinkCard`s under `## Related`: one step deeper (a reference or
 concept page), one sideways (the next task). Tutorial pages link forward to
-Guides only.
+Guides only. Overview pages link to the next Overview page and to where
+setup starts.
+
+## The landing page
+
+`src/pages/index.astro` is not a docs page: it sits outside Starlight, so
+this file's page opener, aside and Related rules do not apply to it. The
+voice rules do. Its live demos are frames under `src/pages/demo/`, which the
+Overview pages embed too, through `DemoFrame.astro`.
 
 ## Screenshots
 
