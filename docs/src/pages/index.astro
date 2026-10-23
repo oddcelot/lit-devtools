@@ -21,6 +21,7 @@ import AgentPrompt from '../components/AgentPrompt.astro';
 import DemoVideo from '../components/DemoVideo.astro';
 import Logo from '../components/Logo.astro';
 import WebMcpTools from '../components/WebMcpTools.astro';
+import SiteIcons from '../components/SiteIcons.astro';
 import inspectorIcon from '../../../extension/public/icon.svg';
 import flame from '../assets/lit-flame.svg';
 import changelog from '../../../CHANGELOG.md?raw';
@@ -29,9 +30,25 @@ import {phosphor, type IconName} from '../lib/phosphor';
 
 const title = 'vite-plugin-lit: edit a Lit component, keep the page';
 const description =
-  'True HMR for Lit components in Vite: edits patch the running page in place and keep its state. One shared stylesheet for every shadow root, and a DevTools panel that explains each re-render.';
+  'True HMR for Lit in Vite: edits patch the running page and keep its state. Shared shadow-root stylesheets and a DevTools panel for every re-render.';
 const release = latestRelease(changelog);
 const ogImage = new URL('/og/index.png', Astro.site).href;
+const home = new URL('/', Astro.site).href;
+// Lets search engines read the page as the plugin's home, with its repo and
+// npm package as the same thing.
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareSourceCode',
+  name: '@oddsquad/vite-plugin-lit',
+  description,
+  url: home,
+  codeRepository: 'https://github.com/oddcelot/vite-plugin-lit',
+  programmingLanguage: 'TypeScript',
+  runtimePlatform: 'Vite',
+  license: 'https://opensource.org/license/bsd-3-clause',
+  version: release.version,
+  sameAs: ['https://www.npmjs.com/package/@oddsquad/vite-plugin-lit'],
+};
 
 const features: Array<{icon: IconName; title: string; text: string; href: string}> = [
   {
@@ -80,18 +97,22 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={new URL('/', Astro.site).href} />
+    <link rel="canonical" href={home} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <SiteIcons />
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={new URL('/', Astro.site).href} />
+    <meta property="og:url" content={home} />
     <meta property="og:site_name" content="vite-plugin-lit" />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
     <meta name="twitter:card" content="summary_large_image" />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <link rel="ai-catalog" href="/.well-known/ai-catalog.json" />
     <Font cssVariable="--font-lilex" />
     <script is:inline>

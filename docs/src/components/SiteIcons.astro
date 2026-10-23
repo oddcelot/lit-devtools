@@ -1,0 +1,16 @@
+---
+/**
+ * Icons, manifest and browser-chrome colour, shared by the landing page and
+ * every Starlight page (through Head.astro). The SVG favicon stays the one
+ * browsers pick; the ICO and PNGs exist for Google Search, which ignores SVG
+ * favicons, and for iOS and Android home screens. The PNGs were rendered once
+ * from public/favicon.svg; re-render them if it changes.
+ */
+---
+
+<link rel="icon" href="/favicon.ico" sizes="32x32" />
+<link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#030303" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f4f4f4" media="(prefers-color-scheme: light)" />
