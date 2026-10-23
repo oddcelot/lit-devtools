@@ -7,10 +7,8 @@ sidebar:
 
 import {PackageManagers} from 'starlight-package-managers';
 import {CardGrid, LinkCard} from '@astrojs/starlight/components';
-import ThemedImage from '../../../components/ThemedImage.astro';
+import HmrIndicator from '../../../components/HmrIndicator.astro';
 import AgentPrompt from '../../../components/AgentPrompt.astro';
-import indicatorIdleLight from '../../../assets/shots/indicator-idle.light.png';
-import indicatorIdleDark from '../../../assets/shots/indicator-idle.dark.png';
 
 Install the plugin, add one line to `vite.config.ts`, and register the ambient
 types. If you have never used the plugin, follow the tutorial instead; it
@@ -142,11 +140,7 @@ npm run dev
 A small indicator sits in the corner of the page. It is idle until an update
 arrives.
 
-<ThemedImage
-  light={indicatorIdleLight}
-  dark={indicatorIdleDark}
-  alt="The HMR indicator at rest in the corner of the page: a flame icon, a dot and a zero."
-/>
+<HmrIndicator alt="The HMR indicator at rest in the corner of the page: a flame icon, a dot and a zero." />
 
 Type into an input inside a component, then edit that component's template and
 save. The markup changes, what you typed stays, and the indicator pulses green.

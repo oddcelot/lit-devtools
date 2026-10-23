@@ -408,45 +408,6 @@ const SHOTS = [
     capture: chromePerformanceTracks,
   },
   {
-    name: 'indicator-idle',
-    capture: async (ctx) => {
-      const page = await ctx.openApp();
-      const box = ctx.indicator(page);
-      await box.waitFor();
-      await ctx.shot(page, {clip: await ctx.clip(page, box, 20)});
-    },
-  },
-  {
-    name: 'indicator-green',
-    capture: async (ctx) => {
-      const page = await ctx.openApp();
-      const box = ctx.indicator(page);
-      await box.waitFor();
-      await ctx.hmrEdit(page, 'src/hmr-counter.ts', (code) =>
-        code.replace('<h2>Counter: HELLO</h2>', '<h2>Counter: live edit</h2>')
-      );
-      // The pulse keyframes ramp to full opacity at 15% of 2.5s (375ms) and
-      // hold until 80% (2s); 500ms is comfortably inside the plateau.
-      await sleep(500);
-      await ctx.shot(page, {clip: await ctx.clip(page, box, 20)});
-    },
-  },
-  {
-    name: 'indicator-cyan',
-    capture: async (ctx) => {
-      const page = await ctx.openApp();
-      const box = ctx.indicator(page);
-      await box.waitFor();
-      // A `?css-sheet` stylesheet: the batch is a pure style swap, so the dot
-      // pulses in the info colour and the counter does not move.
-      await ctx.hmrEdit(page, 'src/hmr-vsheet.css', (code) =>
-        code.replace('rgb(59, 130, 246)', 'rgb(16, 185, 129)')
-      );
-      await sleep(500);
-      await ctx.shot(page, {clip: await ctx.clip(page, box, 20)});
-    },
-  },
-  {
     name: 'source-overlay-armed',
     capture: async (ctx) => {
       // Smaller viewport: the tooltip is pinned to the bottom edge, so a tall
@@ -965,10 +926,6 @@ const main = async () => {
         context,
         origin,
         root,
-
-        /** The indicator's inner box — the thing worth clipping to. */
-        indicator: (page) =>
-          page.locator('lit-devtools-hmr-indicator').locator('css=#container'),
 
         async openApp(options = {}) {
           const page = await context.newPage();

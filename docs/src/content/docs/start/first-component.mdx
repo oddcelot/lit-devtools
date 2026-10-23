@@ -8,13 +8,7 @@ sidebar:
 import {Code, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
 import myElement from '../../../../../examples/tutorial/src/my-element.ts?raw';
 import themeCss from '../../../../../examples/tutorial/src/theme.css?raw';
-import ThemedImage from '../../../components/ThemedImage.astro';
-import indicatorIdleLight from '../../../assets/shots/indicator-idle.light.png';
-import indicatorIdleDark from '../../../assets/shots/indicator-idle.dark.png';
-import indicatorGreenLight from '../../../assets/shots/indicator-green.light.png';
-import indicatorGreenDark from '../../../assets/shots/indicator-green.dark.png';
-import indicatorCyanLight from '../../../assets/shots/indicator-cyan.light.png';
-import indicatorCyanDark from '../../../assets/shots/indicator-cyan.dark.png';
+import HmrIndicator from '../../../components/HmrIndicator.astro';
 
 Build a small Lit app and watch its state survive every edit you make to it.
 Start here if the plugin is new to you; Installation is the short version for a
@@ -94,11 +88,7 @@ newer, an editor, and no knowledge of Vite plugins.
 
    **Check:** a small indicator in the corner of the page, showing a `0`.
 
-   <ThemedImage
-     light={indicatorIdleLight}
-     dark={indicatorIdleDark}
-     alt="The indicator at rest in the corner of the page, showing 0."
-   />
+   <HmrIndicator alt="The indicator at rest in the corner of the page, showing 0." />
 
 4. **Make the same kind of edit, and keep your clicks.** Click the button three
    times, then rename the label once more.
@@ -112,9 +102,9 @@ newer, an editor, and no knowledge of Vite plugins.
    reload, the count stays at 3, and the indicator pulses green and goes from
    `0` to `1`.
 
-   <ThemedImage
-     light={indicatorGreenLight}
-     dark={indicatorGreenDark}
+   <HmrIndicator
+     state="update"
+     count={1}
      alt="The indicator pulsing green after the label edit; the count reads 1."
    />
 
@@ -247,10 +237,10 @@ newer, an editor, and no knowledge of Vite plugins.
    **Check:** the note borders turn red. The indicator pulses cyan, and the
    count does not move.
 
-   <ThemedImage
-     light={indicatorCyanLight}
-     dark={indicatorCyanDark}
-     alt="The indicator pulsing cyan after the theme.css edit; the count has not moved."
+   <HmrIndicator
+     state="style-swap"
+     count={2}
+     alt="The indicator pulsing cyan after the theme.css edit; the count has not moved from 2."
    />
 
    Cyan means a shared stylesheet was swapped in place. One `CSSStyleSheet`

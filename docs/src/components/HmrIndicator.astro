@@ -1,0 +1,48 @@
+---
+/**
+ * The HMR indicator as the reader will see it, drawn live from the runtime's
+ * own markup (src/panel/figures/hmr-indicator.ts, shared with the kitchen
+ * sink) instead of a screenshot, so it follows the theme and every change to
+ * the indicator. It sits in the corner of a framed patch of page, where it
+ * sits on a real one; a click replays the pulse. It renders in the browser
+ * only, so the frame holds its height until the script runs.
+ */
+interface Props {
+  /** At rest, after a component patch (green), or a stylesheet swap (cyan). */
+  state?: 'idle' | 'update' | 'style-swap';
+  /** The running count of patches. */
+  count?: number;
+  /** What to notice, for screen readers; the figure is one image to them. */
+  alt: string;
+}
+const {state = 'idle', count = 0, alt} = Astro.props;
+---
+
+<figure class="hmr-indicator not-content" role="img" aria-label={alt}>
+  <hmr-indicator-specimen state={state} count={String(count)}
+  ></hmr-indicator-specimen>
+</figure>
+
+<script>
+  import '../../../src/panel/figures/hmr-indicator.ts';
+</script>
+
+<style>
+  .hmr-indicator {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    box-sizing: border-box;
+    width: min(100%, 16rem);
+    min-height: 5.5rem;
+    margin: 1.5rem 0;
+    padding: 0.75rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: var(--radius-md);
+    background: var(--sl-color-black);
+  }
+  hmr-indicator-specimen:not(:defined) {
+    display: block;
+    height: 2.25rem;
+  }
+</style>
