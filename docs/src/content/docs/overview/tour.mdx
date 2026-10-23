@@ -129,7 +129,21 @@ production builds and on any Lit site, with no Vite and no plugin.
 
 <StoreButtons />
 
-Guide: [Browser extension](/guides/devtools/browser-extension/).
+In Chrome it also adds a Lit tab to the Elements panel, beside Styles and
+Computed. Select any node there and the tab shows the Lit element at or
+around it. Below, the Elements tree is drawn from the cart's real DOM and
+the Lit tab is the real panel, following it.
+
+<DemoFrame
+  src="/live-panel/sidebar/"
+  title="The Lit tab in the Elements panel's sidebar, following the selected node"
+  height="36rem"
+  narrowHeight="46rem"
+  themed
+  caption="Select a node in the tree, or hover one to find it on the page."
+/>
+
+Guide: [Inspect any site with Lit Inspector](/guides/devtools/browser-extension/), and its section on [the browser's own panels](/guides/devtools/browser-extension/#open-in-the-browsers-own-panels).
 
 ## Related
 
