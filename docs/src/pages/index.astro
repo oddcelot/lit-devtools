@@ -242,6 +242,32 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
         </div>
       </section>
 
+      <section class="section" id="inspector">
+        <div class="wrap center reveal">
+          <p class="eyebrow">
+            <img src={inspectorIcon.src} alt="" width="18" height="18" /> Lit Inspector
+          </p>
+          <h2>No Vite? Inspect any Lit site.</h2>
+          <p class="sub">
+            The same panel as a browser extension, for production builds and
+            sites you don't serve. In Chrome it also adds a Lit tab to the
+            Elements panel, beside Styles and Computed, that follows whatever
+            you select there.
+          </p>
+          <div class="stores"><StoreButtons /></div>
+        </div>
+        <div class="wrap wide reveal">
+          <DemoFrame
+            src="/live-panel/sidebar/"
+            title="The Lit tab in the Elements panel's sidebar, following the selected node"
+            height="36rem"
+            narrowHeight="46rem"
+            themed
+            caption="Live: select a node in the Elements tree, or hover one to find it on the page. The Lit tab shows the Lit element at or around it, docs included."
+          />
+        </div>
+      </section>
+
       <section class="section" id="more">
         <div class="wrap">
           <h2 class="center reveal">Everything else you'd want.</h2>
@@ -255,32 +281,6 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
                 </a>
               ))
             }
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="two-ways">
-        <div class="wrap duo">
-          <div class="card reveal">
-            <p class="eyebrow"><Fragment set:html={phosphor('robot')} /> Set up</p>
-            <h3>Let your coding agent do it</h3>
-            <p>
-              Copy the prompt into Claude Code, Cursor or Codex. It installs the
-              plugin, edits your Vite config and tsconfig, and checks the
-              indicator shows.
-            </p>
-            <AgentPrompt />
-          </div>
-          <div class="card reveal">
-            <p class="eyebrow">
-              <img src={inspectorIcon.src} alt="" width="18" height="18" /> Lit Inspector
-            </p>
-            <h3>No Vite? Inspect any Lit site</h3>
-            <p>
-              The same panel as a browser extension, for production builds and
-              sites you don't serve.
-            </p>
-            <StoreButtons />
           </div>
         </div>
       </section>
@@ -316,6 +316,16 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
               >
             </li>
           </ol>
+          <div class="agent reveal">
+            <p class="eyebrow"><Fragment set:html={phosphor('robot')} /> Or skip the steps</p>
+            <h3>Let your coding agent set it up</h3>
+            <p>
+              Copy the prompt into Claude Code, Cursor or Codex. It installs the
+              plugin, edits your Vite config and tsconfig, and checks the
+              indicator shows.
+            </p>
+            <AgentPrompt />
+          </div>
         </div>
       </section>
 
@@ -749,21 +759,23 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     font-size: 0.95rem;
   }
 
-  .duo {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    gap: 1.25rem;
+  .stores {
+    display: flex;
+    justify-content: center;
+    margin: 1.5rem 0 2.5rem;
   }
-  .card {
-    padding: 2rem;
+  .agent {
+    max-width: 44rem;
+    margin: 3rem auto 0;
+    padding: 1.75rem 2rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     background: var(--surface);
   }
-  .card h3 {
-    font-size: 1.4rem;
+  .agent h3 {
+    font-size: 1.3rem;
   }
-  .card p {
+  .agent p:not(.eyebrow) {
     color: var(--text-secondary);
   }
 

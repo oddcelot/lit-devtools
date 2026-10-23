@@ -18,8 +18,9 @@ interface Props {
   /** The hero's frame loads at once. */
   eager?: boolean;
   id?: string;
-  /** Leave `src` for a script to set, for a frame that needs the theme in its URL. */
-  scripted?: boolean;
+  /** The frame takes the page's scheme in its URL (`?scheme=`, as the live
+   *  panel pages do), set here and again when the theme changes. */
+  themed?: boolean;
 }
 
 const {
@@ -30,7 +31,7 @@ const {
   caption,
   eager = false,
   id,
-  scripted = false,
+  themed = false,
 } = Astro.props;
 ---
 
@@ -38,14 +39,32 @@ const {
   <Glow>
     <iframe
       id={id}
-      src={scripted ? undefined : src}
-      data-src={scripted ? src : undefined}
+      src={themed ? undefined : src}
+      data-themed-src={themed ? src : undefined}
       title={title}
       loading={eager ? 'eager' : 'lazy'}
       style={{'--height': height, '--narrow-height': narrowHeight}}></iframe>
   </Glow>
   {caption && <figcaption set:html={caption} />}
 </figure>
+
+<script>
+  const themed = document.querySelectorAll<HTMLIFrameElement>(
+    'iframe[data-themed-src]'
+  );
+  const load = () => {
+    const scheme = document.documentElement.dataset.theme ?? 'dark';
+    for (const frame of themed) {
+      if (frame.dataset.scheme === scheme) continue;
+      frame.dataset.scheme = scheme;
+      frame.src = `${frame.dataset.themedSrc}?scheme=${scheme}`;
+    }
+  };
+  load();
+  new MutationObserver(load).observe(document.documentElement, {
+    attributeFilter: ['data-theme'],
+  });
+</script>
 
 <style>
   .demo-frame {
