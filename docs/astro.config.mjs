@@ -100,6 +100,11 @@ export default defineConfig({
           href: 'https://www.npmjs.com/package/@oddsquad/vite-plugin-lit',
         },
       ],
+      // Attributes shared cards to the account on X, without adding an X
+      // link to the header the way a `social` entry would.
+      head: [
+        {tag: 'meta', attrs: {name: 'twitter:site', content: '@oddcelot'}},
+      ],
       editLink: {
         baseUrl: 'https://github.com/oddcelot/vite-plugin-lit/edit/main/docs/',
       },
