@@ -14,26 +14,8 @@ const componentPath = resolve(here, '../src/components/ThemedImage.astro');
 
 // Alt text says what to notice, per STYLE.md.
 const ALT = {
-  'indicator-idle':
-    'The HMR indicator at rest in the corner of the page: a flame icon, a dot and a zero.',
-  'indicator-green':
-    'The indicator pulsing green after a component edit; the count reads 1.',
-  'indicator-cyan':
-    'The indicator pulsing cyan after a stylesheet swap; the count has not moved.',
-  'hmr-indicator-green':
-    'The indicator pulsing green after a component edit; the count reads 1.',
-  'hmr-indicator-cyan':
-    'The indicator pulsing cyan after a stylesheet swap; the count has not moved.',
-  'css-sheet-cyan-pulse':
-    'The indicator pulsing cyan after a shared stylesheet edit, with the count unchanged.',
-  'tutorial-indicator-idle':
-    'The indicator at rest in the corner of the page, showing 0.',
-  'tutorial-green-pulse':
-    'The indicator pulsing green after the label edit; the count reads 1.',
   'tutorial-state-survives':
     'The notes component after a header edit: both notes, the count and the half-typed input are still there.',
-  'tutorial-cyan-pulse':
-    'The indicator pulsing cyan after the theme.css edit; the count has not moved.',
   'source-overlay-armed':
     'The source overlay outlining a component, with a tooltip showing its tag name and source file.',
   'devtools-panel-docked':
@@ -74,12 +56,6 @@ const walk = async (dir) => {
 
 // Slot names that reuse an existing capture.
 const ALIAS = {
-  'hmr-indicator-green': 'indicator-green',
-  'hmr-indicator-cyan': 'indicator-cyan',
-  'css-sheet-cyan-pulse': 'indicator-cyan',
-  'tutorial-indicator-idle': 'indicator-idle',
-  'tutorial-green-pulse': 'indicator-green',
-  'tutorial-cyan-pulse': 'indicator-cyan',
   'landing-panel-docked': 'devtools-panel-docked',
 };
 

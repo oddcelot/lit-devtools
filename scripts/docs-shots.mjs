@@ -31,7 +31,7 @@
 
 import {createHash, randomUUID} from 'node:crypto';
 import {createReadStream} from 'node:fs';
-import {cp, mkdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {cp, mkdir, readFile, rm} from 'node:fs/promises';
 import {createServer as createHttpServer} from 'node:http';
 import {createRequire} from 'node:module';
 import * as path from 'node:path';
@@ -920,12 +920,10 @@ const main = async () => {
           await route.abort();
         }
       });
-      const edits = [];
       const ctx = {
         theme,
         context,
         origin,
-        root,
 
         async openApp(options = {}) {
           const page = await context.newPage();
@@ -983,22 +981,6 @@ const main = async () => {
           await sleep(400);
         },
 
-        /** Edit a source file in the copy and wait for the HMR round trip. */
-        async hmrEdit(page, rel, transform) {
-          const before = await page.evaluate(() => window.__hmr.updates);
-          const file = path.join(root, rel);
-          const original = await readFile(file, 'utf8');
-          const next = transform(original);
-          if (next === original) {
-            throw new Error(`edit of ${rel} changed nothing`);
-          }
-          edits.push({file, original});
-          await writeFile(file, next);
-          await page.waitForFunction((n) => window.__hmr.updates > n, before, {
-            timeout: 15_000,
-          });
-        },
-
         /** A viewport-clamped clip box around a locator. */
         async clip(page, locator, pad = 16) {
           const b = await locator.boundingBox();
@@ -1041,11 +1023,6 @@ const main = async () => {
         console.error(`  FAIL ${label}: ${error?.message ?? error}`);
       } finally {
         await context.close().catch(() => {});
-        // Roll back after the context is gone so the revert's own HMR pulse
-        // cannot land in a screenshot.
-        for (const {file, original} of edits.reverse()) {
-          await writeFile(file, original).catch(() => {});
-        }
       }
     }
   }
