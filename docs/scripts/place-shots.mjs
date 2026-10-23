@@ -20,8 +20,6 @@ const ALT = {
     'The Lit panel docked inside Vite DevTools, showing the Components tab.',
   'devtools-settings-tab':
     'The Settings tab listing the resolved options with live overrides and a Reset overrides button.',
-  'devtools-timeline-collapsed':
-    'The Timeline tab with collapsed lifecycle rows for hmr-counter, each showing its duration.',
   'devtools-timeline-raw':
     'The Timeline tab with Raw on: one row per recorded event, including custom Router events.',
   'devtools-timeline-row-details':

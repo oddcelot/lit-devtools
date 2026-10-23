@@ -1,20 +1,22 @@
 ---
 /**
- * The DevTools Timeline in Tracks mode, running in the page over a recorded
- * session (src/panel/figures/timeline-figure.ts, shared with the kitchen
- * sink). It renders in the browser only: the
+ * The DevTools Timeline, in Tracks or List mode, running in the page over a
+ * recorded session (src/panel/figures/timeline-figure.ts, shared with the
+ * kitchen sink). It renders in the browser only: the
  * panel's elements have no server rendering, so the figure holds its height
  * empty until the script runs.
  */
 interface Props {
   /** What the figure shows, under it. */
   caption: string;
+  /** The Timeline's presentation: lanes over time, or the collapsed list. */
+  mode?: 'tracks' | 'list';
 }
-const {caption} = Astro.props;
+const {caption, mode = 'tracks'} = Astro.props;
 ---
 
 <figure class="timeline-figure not-content">
-  <timeline-figure></timeline-figure>
+  <timeline-figure mode={mode}></timeline-figure>
   <figcaption>{caption}</figcaption>
 </figure>
 

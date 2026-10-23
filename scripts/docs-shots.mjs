@@ -470,17 +470,6 @@ const SHOTS = [
     },
   },
   {
-    name: 'devtools-timeline-collapsed',
-    capture: async (ctx) => {
-      const {panel} = await recordSession(ctx);
-      // The list follows the newest row; the counter's updates, with their
-      // changed `count`, are the first thing the recording did.
-      await scrollList(panel, 'top');
-      await blur(panel);
-      await ctx.shot(panel);
-    },
-  },
-  {
     name: 'devtools-timeline-raw',
     capture: async (ctx) => {
       const {panel} = await recordSession(ctx);

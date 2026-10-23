@@ -9,8 +9,6 @@ import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import lifecycle from '../../../../../../playground/src/hmr-lifecycle.ts?raw';
 import {stripHeader} from '../../../../lib/fixture';
 import ThemedImage from '../../../../components/ThemedImage.astro';
-import devtoolsTimelineCollapsedLight from '../../../../assets/shots/devtools-timeline-collapsed.light.png';
-import devtoolsTimelineCollapsedDark from '../../../../assets/shots/devtools-timeline-collapsed.dark.png';
 import devtoolsTimelineRawLight from '../../../../assets/shots/devtools-timeline-raw.light.png';
 import devtoolsTimelineRawDark from '../../../../assets/shots/devtools-timeline-raw.dark.png';
 import devtoolsTimelineRowDetailsLight from '../../../../assets/shots/devtools-timeline-row-details.light.png';
@@ -143,10 +141,9 @@ opens its update first. A filter that hides a `performUpdate` but matches one of
 its phases keeps the `performUpdate` row, showing only the matching phases, so
 the match still has its context.
 
-<ThemedImage
-  light={devtoolsTimelineCollapsedLight}
-  dark={devtoolsTimelineCollapsedDark}
-  alt="The Timeline list from the top of a recording: collapsed performUpdate rows for hmr-counter, hmr-properties and hmr-static-props, each with the properties it changed, its fold count and duration, between the separate render rows."
+<TimelineFigure
+  mode="list"
+  caption="The same recorded session as a list, live: each performUpdate row collapsed with the properties it changed. Click a row's arrow to open its phases."
 />
 
 Press **Raw** in the filter bar for one flat row per recorded event instead. Reach
