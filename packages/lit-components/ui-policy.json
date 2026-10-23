@@ -1,0 +1,39 @@
+{
+  "fonts": ["ui-sans-serif", "Lilex Variable"],
+  "fontSizes": [11, 12, 13, 14, 16, 18, 22, 28, 36, 48, 64],
+  "typeRules": [],
+  "viewports": [{"width": 1440, "height": 900}],
+  "colorSchemes": ["light"],
+  "exceptions": [
+    {
+      "selector": ".half, .half *",
+      "rules": ["text-contrast"],
+      "reason": "Specimens paint their background inside a shadow root, which axe can't see, so it measures their text against the page behind them (dark-scheme text came out at 1.16:1 on #f4f4f4)."
+    },
+    {
+      "selector": "main > section > header *, nav a",
+      "rules": ["text-contrast"],
+      "reason": "main and the side nav scroll inside the window, so axe can't sample the background behind text scrolled out of view."
+    },
+    {
+      "selector": "lit-icon",
+      "rules": ["font-size"],
+      "reason": "lit-icon sizes its glyph with font-size; it holds no text."
+    },
+    {
+      "selector": "lit-badge, [size=\"l\"], [size=\"xl\"]",
+      "rules": ["font-size"],
+      "reason": "lit-badge's 10.5px and Web Awesome's l/xl sizes (20px, 25px) sit off the theme's type scale; vpl-ok1h decides the scale."
+    },
+    {
+      "selector": "nav a",
+      "rules": ["target-size"],
+      "reason": "Side-nav links are 21px tall with 18px between them; vpl-0l9f brings them to 24px."
+    },
+    {
+      "selector": "lit-button[aria-pressed], lit-button[aria-expanded], wa-button-group",
+      "rules": ["control-state"],
+      "reason": "ARIA state sits on the host rather than the inner control; vpl-a0rr moves it."
+    }
+  ]
+}

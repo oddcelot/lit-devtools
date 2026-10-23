@@ -1,7 +1,9 @@
 /// <reference types="node" />
+import {readFile} from 'node:fs/promises';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {createServer, type ViteDevServer} from 'vite';
+import {checkPage} from 'lintapple';
 
 /**
  * packages/lit-components in a real browser: its kitchen sink, served the way
@@ -15,6 +17,7 @@ const ROOT = new URL('../../../packages/lit-components/', import.meta.url)
 let server: ViteDevServer;
 let browser: Browser;
 let page: Page;
+let url: string;
 const errors: string[] = [];
 
 beforeAll(async () => {
@@ -41,7 +44,8 @@ beforeAll(async () => {
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
-  await page.goto(`http://127.0.0.1:${address.port}/`);
+  url = `http://127.0.0.1:${address.port}/`;
+  await page.goto(url);
   // The first load can stop for a dependency re-optimization, which reloads.
   await page.waitForFunction(
     () => document.querySelectorAll('section').length > 0,
@@ -109,6 +113,35 @@ test('the kitchen sink renders every element with no errors', async () => {
   );
   expect(inert).toEqual([]);
   expect(errors).toEqual([]);
+});
+
+test('the kitchen sink passes its lintapple policy at each viewport', async () => {
+  // ui-policy.json holds the theme's fonts and type scale, and an exception,
+  // with its reason, for each finding lintapple can't measure through a
+  // shadow root or that a bead still has to fix.
+  const policy = JSON.parse(
+    await readFile(`${ROOT}ui-policy.json`, 'utf8')
+  ) as {viewports: {width: number; height: number}[]};
+  const design = await browser.newPage();
+  try {
+    await design.goto(url);
+    await design.waitForFunction(
+      () => document.querySelectorAll('section').length > 0
+    );
+    const found: string[] = [];
+    for (const viewport of policy.viewports) {
+      await design.setViewportSize(viewport);
+      const {findings} = await checkPage(design, policy);
+      found.push(
+        ...findings.map(
+          (f) => `${viewport.width}px ${f.rule} ${f.selector}: ${f.message}`
+        )
+      );
+    }
+    expect(found).toEqual([]);
+  } finally {
+    await design.close();
+  }
 });
 
 test('the generated sections come from each element API', async () => {

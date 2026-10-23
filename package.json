@@ -206,6 +206,7 @@
     "happy-dom": "^20.14.5",
     "jsr": "0.14.3",
     "lightningcss": "^1.33.0",
+    "lintapple": "^0.1.20",
     "lit": "^3.3.3",
     "playwright-core": "^1.63.0",
     "sugar-high": "^2.5.2",

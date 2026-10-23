@@ -222,6 +222,9 @@ importers:
       lightningcss:
         specifier: ^1.33.0
         version: 1.33.0
+      lintapple:
+        specifier: ^0.1.20
+        version: 0.1.20
       lit:
         specifier: ^3.3.3
         version: 3.3.3
@@ -3093,6 +3096,10 @@ packages:
       '@astrojs/markdown-remark':
         optional: true
 
+  axe-core@4.14.0:
+    resolution: {integrity: sha512-9WTZxEjsZ7b13TH8JPmbV2z8CHbl80/2hm3XPEG4JgNdQLK81IBRXmSxHfMAOkSqQeRxT/0dwNDz2GOm3zzpcQ==}
+    engines: {node: '>=4'}
+
   axobject-query@4.1.0:
     resolution: {integrity: sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ==}
     engines: {node: '>= 0.4'}
@@ -4035,6 +4042,11 @@ packages:
   linebreak@1.1.0:
     resolution: {integrity: sha512-MHp03UImeVhB7XZtjd0E4n6+3xr5Dq/9xI/5FptGk5FrbDR3zagPa2DS6U8ks/3HjbKWG9Q1M2ufOzxV2qLYSQ==}
 
+  lintapple@0.1.20:
+    resolution: {integrity: sha512-n5wXJQci3ygYTvTI5eyX4otVVkOzEpkZnH5b+PBtciivnROaH4ZhDmb4nBeJ8Nhbm+SXggRLrccIShmqOSHV8w==}
+    engines: {node: '>=22'}
+    hasBin: true
+
   lit-element@4.2.2:
     resolution: {integrity: sha512-aFKhNToWxoyhkNDmWZwEva2SlQia+jfG0fjIWV//YeTaWrVnOxD89dPKfigCUspXFmjzOEUQpOkejH5Ly6sG0w==}
 
@@ -4450,6 +4462,11 @@ packages:
 
   playwright-core@1.63.0:
     resolution: {integrity: sha512-rYCsBF/M5HjUch52bbtVONEFjv6Xu8sm8h72dNlR5bzIE1fvC/bxgspzkjSfU+MweEMmPM8KJebG6nnyxo5mCg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.63.0:
+    resolution: {integrity: sha512-+7ziBLidS4NaNCdt57SUDT+wYmmd5fmiQejUic/kb+YsYSCPyOOE9sebzMjNmQrsnNpDJqd4WHvV/8lfKfUDUg==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -7635,6 +7652,8 @@ snapshots:
       - uploadthing
       - yaml
 
+  axe-core@4.14.0: {}
+
   axobject-query@4.1.0: {}
 
   babel-plugin-transform-hook-names@1.0.2(@babel/core@7.29.7(supports-color@10.2.2)):
@@ -8514,6 +8533,11 @@ snapshots:
       base64-js: 0.0.8
       unicode-trie: 2.0.0
 
+  lintapple@0.1.20:
+    dependencies:
+      axe-core: 4.14.0
+      playwright: 1.63.0
+
   lit-element@4.2.2:
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.6.0
@@ -9252,6 +9276,10 @@ snapshots:
       pathe: 2.0.3
 
   playwright-core@1.63.0: {}
+
+  playwright@1.63.0:
+    dependencies:
+      playwright-core: 1.63.0
 
   pngjs@7.0.0: {}
 
