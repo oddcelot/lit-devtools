@@ -4,6 +4,10 @@
  * dev server (docs/src/pages/live-panel/). A frame of its own, so the panel
  * owns its document: its tokens, its Lit and its deep links stay out of the
  * docs page. Loads when it scrolls near the viewport.
+ *
+ * The panel follows the docs' theme, not the system's: its URL carries the
+ * page's scheme (`?scheme=`, which pins both of its documents), set here
+ * before the frame loads and again when the theme picker changes it.
  */
 interface Props {
   /** The tab the panel opens on. */
@@ -16,11 +20,29 @@ const {tab = 'components', caption} = Astro.props;
 
 <figure class="live-panel not-content">
   <iframe
-    src={`/live-panel/#tab=${tab}`}
+    data-tab={tab}
     title="Lit DevTools panel inspecting a demo page"
     loading="lazy"></iframe>
   <figcaption>{caption}</figcaption>
 </figure>
+
+<script>
+  const frames = document.querySelectorAll<HTMLIFrameElement>(
+    '.live-panel iframe'
+  );
+  const load = () => {
+    const scheme = document.documentElement.dataset.theme ?? 'dark';
+    for (const frame of frames) {
+      if (frame.dataset.scheme === scheme) continue;
+      frame.dataset.scheme = scheme;
+      frame.src = `/live-panel/?scheme=${scheme}#tab=${frame.dataset.tab}`;
+    }
+  };
+  load();
+  new MutationObserver(load).observe(document.documentElement, {
+    attributeFilter: ['data-theme'],
+  });
+</script>
 
 <style>
   .live-panel {
