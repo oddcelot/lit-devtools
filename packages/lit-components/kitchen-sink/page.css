@@ -104,6 +104,47 @@ nav a:hover {
   color: var(--text-link);
 }
 
+/* A phone: the top bar wraps, the subtitle goes, and the nav becomes one
+   strip of links under it that scrolls sideways. */
+@media (width < 720px) {
+  .shell {
+    grid-template:
+      'top' auto
+      'nav' auto
+      'main' minmax(0, 1fr) / minmax(0, 1fr);
+  }
+  .top {
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    padding: var(--space-5) var(--space-6);
+  }
+  .top h1 {
+    flex: 1 0 auto;
+  }
+  .top .meta {
+    display: none;
+  }
+  .top .filter {
+    flex: 1 1 100%;
+    order: 1;
+  }
+  nav {
+    display: flex;
+    gap: var(--space-6);
+    padding: 0 var(--space-6);
+    border-right: none;
+    border-bottom: var(--border-width) solid var(--border);
+    overflow: auto hidden;
+  }
+  nav h2 {
+    display: none;
+  }
+  nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
 main {
   grid-area: main;
   overflow-y: auto;
@@ -133,6 +174,12 @@ section > header h2 {
 section > header p {
   margin: 0;
   color: var(--text-secondary);
+}
+@media (width < 720px) {
+  section > header {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
 }
 .halves {
   display: grid;
