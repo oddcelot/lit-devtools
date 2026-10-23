@@ -44,6 +44,36 @@
     --wa-font-family-heading: var(--font-sans);
     --wa-font-family-code: var(--font-mono);
 
+    /* WA's sizes run 10, 11, 12, 14, 16, 20, 25, 32, 40, 51, 64px; 2xs to m
+       already sit on the design system's scale. The rest go to its nearest
+       step, still times WA's scale so a density (the DevTools' 0.8125)
+       shrinks them too. 3xs is lit-badge's floor: its 0.75em (10.5px)
+       becomes 11px. */
+    --wa-font-size-3xs: round(
+      calc(var(--text-2xs) * var(--wa-font-size-scale)),
+      1px
+    );
+    --wa-font-size-l: round(
+      calc(var(--text-xl) * var(--wa-font-size-scale)),
+      1px
+    );
+    --wa-font-size-xl: round(
+      calc(var(--text-2xl) * var(--wa-font-size-scale)),
+      1px
+    );
+    --wa-font-size-2xl: round(
+      calc(var(--text-3xl) * var(--wa-font-size-scale)),
+      1px
+    );
+    --wa-font-size-3xl: round(
+      calc(var(--text-3xl) * var(--wa-font-size-scale)),
+      1px
+    );
+    --wa-font-size-4xl: round(
+      calc(var(--text-4xl) * var(--wa-font-size-scale)),
+      1px
+    );
+
     /* The design system's radii, square throughout; circles (a switch
        thumb, a status dot) follow pills. */
     --wa-border-radius-s: var(--radius-sm);

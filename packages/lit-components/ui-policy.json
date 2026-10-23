@@ -24,11 +24,6 @@
       "reason": "lit-icon sizes its glyph with font-size; it holds no text."
     },
     {
-      "selector": "lit-badge, [size=\"l\"], [size=\"xl\"]",
-      "rules": ["font-size"],
-      "reason": "lit-badge's 10.5px and Web Awesome's l/xl sizes (20px, 25px) sit off the theme's type scale; vpl-ok1h decides the scale."
-    },
-    {
       "selector": "wa-button-group",
       "rules": ["control-state"],
       "reason": "Web Awesome's own: wa-button-group copies aria-orientation onto its host, which has no role; the role=group inside carries it too."
