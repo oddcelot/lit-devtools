@@ -157,35 +157,35 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
         </ul>
       </section>
 
-      <section class="section split" id="stylesheets">
-        <div class="wrap split-grid">
-          <div class="copy reveal">
-            <p class="eyebrow">
-              <Fragment set:html={phosphor('paint-brush')} /> Stylesheets
-            </p>
-            <h2>One sheet.<br />A thousand shadow roots.</h2>
-            <p>
-              Import a CSS file with <code>?css-sheet</code> and every component
-              adopts the same <code>CSSStyleSheet</code>. Edit the file and every
-              shadow root restyles at once, without a single component
-              re-rendering.
-            </p>
-            <pre class="snippet"><code><span class="k">import</span> sheet <span class="k">from</span> <span class="s">'./theme.css?css-sheet'</span>;
-
+      <section class="section" id="stylesheets">
+        <div class="wrap center reveal">
+          <p class="eyebrow">
+            <Fragment set:html={phosphor('paint-brush')} /> Stylesheets
+          </p>
+          <h2>One sheet.<br />A thousand shadow roots.</h2>
+          <p class="sub">
+            Import a CSS file with <code>?css-sheet</code> and every component
+            that imports it adopts the same <code>CSSStyleSheet</code>. Save the
+            file and the plugin swaps that sheet's text: every shadow root
+            restyles in place, nothing re-renders, and the page keeps its
+            state. Without it, saving the CSS reloads the page.
+          </p>
+          <pre class="snippet center-snippet"><code><span class="k">import</span> sheet <span class="k">from</span> <span class="s">'./theme.css?css-sheet'</span>;
 <span class="k">static</span> styles = [sheet];</code></pre>
+        </div>
+        <div class="wrap wide reveal">
+          <DemoFrame
+            src="/demo/sheets/"
+            title="Stylesheet demo: saving theme.css with and without vite-plugin-lit"
+            height="31rem"
+            narrowHeight="46rem"
+            caption="<strong>Select some tiles in both panes, then save an edit.</strong> The plugin pane runs <code>replaceSync()</code> on the shared sheet, as the dev server does on save; the counts and the restyle time are measured on this page."
+          />
+          <p class="more-row">
             <a class="more" href="/guides/stylesheets/css-sheet/"
               >Share one stylesheet <Fragment set:html={phosphor('arrow-right')} /></a
             >
-          </div>
-          <div class="reveal">
-            <DemoFrame
-              src="/demo/sheets/"
-              title="Stylesheet demo: a thousand shadow roots recoloured"
-              height="25rem"
-              narrowHeight="30rem"
-              caption="Recolour them, then switch to a <code>&lt;style&gt;</code> in each and recolour again. Watch the re-render count."
-            />
-          </div>
+          </p>
         </div>
       </section>
 
@@ -698,6 +698,17 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     font: 0.85rem/1.65 var(--font-lilex, ui-monospace, monospace);
     color: var(--code-default);
     overflow-x: auto;
+  }
+  .center-snippet {
+    display: inline-block;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 1.5rem auto 2.5rem;
+    text-align: left;
+  }
+  .more-row {
+    margin: 1.25rem 0 0;
+    text-align: center;
   }
   .snippet code,
   .steps pre code {

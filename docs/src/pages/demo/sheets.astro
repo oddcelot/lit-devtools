@@ -1,9 +1,10 @@
 ---
 /**
- * The stylesheet demo (src/lib/demos/sheets-demo.ts): a thousand shadow
- * roots, recoloured through one shared sheet or a `<style>` in each. A
- * frame of its own, so the thousand elements stay out of the landing
- * page's DOM.
+ * The stylesheet demo (src/lib/demos/sheets-demo.ts): theme.css in an
+ * editor, and a thousand shadow roots styled by it twice, once reloading on
+ * a save as plain Vite does and once restyled in place as `?css-sheet`
+ * does. A frame of its own, so the two thousand tiles stay out of the
+ * landing page's DOM.
  */
 import {Font} from 'astro:assets';
 import '@oddsquad/webawesome-theme-lit/tokens.css';
@@ -32,154 +33,74 @@ import '../../styles/demo-frame.css';
     </script>
   </head>
   <body>
-    <main class="sheets window">
-      <header class="bar controls">
-        <div class="segmented" role="group" aria-label="How the styles ship">
-          <button data-mode="shared" aria-pressed="true" type="button">
-            One shared sheet
+    <main class="split-demo">
+      <section class="editor window" aria-label="Stylesheet source">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="file">src/theme.css</span>
+        </header>
+        <pre id="code" class="code"></pre>
+        <footer class="edits">
+          <span class="label">Save an edit</span>
+          <button data-edit="colour" type="button">Change the colour</button>
+          <button data-edit="round" type="button">Round the tiles</button>
+          <button data-edit="fill" type="button">Restyle the selection</button>
+          <button id="restart" class="ghost" type="button" title="Start over">
+            Start over
           </button>
-          <button data-mode="inline" aria-pressed="false" type="button">
-            &lt;style&gt; in each
-          </button>
-        </div>
-        <div class="colours" role="group" aria-label="Recolour">
-          <button
-            data-colour="var(--lit-blue-bright)"
-            aria-pressed="true"
-            style="--c: var(--lit-blue-bright)"
-            type="button">Blue</button
-          >
-          <button
-            data-colour="var(--lit-cyan)"
-            aria-pressed="false"
-            style="--c: var(--lit-cyan)"
-            type="button">Cyan</button
-          >
-          <button
-            data-colour="hsl(268 90% 66%)"
-            aria-pressed="false"
-            style="--c: hsl(268 90% 66%)"
-            type="button">Violet</button
-          >
-          <button
-            data-colour="var(--warning)"
-            aria-pressed="false"
-            style="--c: var(--warning)"
-            type="button">Amber</button
-          >
-        </div>
-      </header>
-      <div id="grid" class="grid" aria-hidden="true"></div>
-      <footer class="stats">
-        <div><span data-stat="roots"></span><small>shadow roots</small></div>
-        <div><span data-stat="sheets"></span><small>stylesheets</small></div>
-        <div>
-          <span data-stat="renders" class="renders"></span><small
-            >re-renders</small
-          >
-        </div>
-        <div><span data-stat="time"></span><small>to recolour</small></div>
-      </footer>
+        </footer>
+      </section>
+
+      <section class="pane window cold-window" aria-labelledby="cold-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="cold-title" class="who">Plain Vite</span>
+          <span id="cold-counts" class="counts"></span>
+          <span class="tag">?inline · reload</span>
+        </header>
+        <div id="cold" class="stage tiles"></div>
+        <p id="cold-status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section class="pane window hot-window" aria-labelledby="hot-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="hot-title" class="who">With vite-plugin-lit</span>
+          <span id="hot-counts" class="counts"></span>
+          <span class="tag accent">?css-sheet · in place</span>
+        </header>
+        <div id="hot" class="stage tiles"></div>
+        <p id="hot-status" class="status" aria-live="polite"></p>
+      </section>
     </main>
+
     <script>
       import '../../lib/demos/sheets-demo.ts';
     </script>
   </body>
 </html>
 
-<style>
-  .sheets {
-    height: 100vh;
-    box-sizing: border-box;
-  }
-  .controls {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    row-gap: 0.5rem;
-  }
-  .segmented,
-  .colours {
-    display: flex;
-    gap: 0.3rem;
-  }
-  .segmented {
-    padding: 0.2rem;
-    border-radius: var(--radius-pill);
-    background: var(--surface-container);
-  }
-  button {
-    font: 600 0.78rem/1 var(--font-sans);
-    border: 0;
-    cursor: pointer;
-    color: var(--text-secondary);
-    background: none;
-    border-radius: var(--radius-pill);
-    padding: 0.4rem 0.7rem;
-  }
-  .segmented [aria-pressed='true'] {
-    background: var(--accent);
-    color: var(--on-accent);
-  }
-  .colours button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    border: 1px solid var(--border);
-  }
-  .colours button::before {
-    content: '';
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
-    background: var(--c);
-  }
-  .colours [aria-pressed='true'] {
-    border-color: var(--c);
-    color: var(--text-strong);
-  }
-  .grid {
-    flex: 1;
-    min-height: 0;
+<style is:global>
+  .tiles {
+    display: grid;
+    /* --cols comes from sheets-demo.ts, sized so all thousand fit. */
+    grid-template-columns: repeat(var(--cols, 50), minmax(0, 1fr));
+    align-content: center;
+    gap: 1px;
     overflow: hidden;
-    padding: 0.75rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(0.8rem, 1fr));
-    align-content: start;
-    gap: 3px;
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
   }
-  .stats {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--border);
-  }
-  .stats div {
-    display: grid;
-    padding: 0.55rem 0.9rem;
-  }
-  .stats div + div {
-    border-left: 1px solid var(--border-subtle);
-  }
-  .stats span {
-    font: 700 1.15rem/1.2 var(--font-lilex, ui-monospace, monospace);
-    color: var(--text-strong);
-  }
-  :root[data-mode='shared'] .renders {
-    color: var(--success);
-  }
-  :root[data-mode='inline'] .renders {
-    color: var(--warning);
-  }
-  .stats small {
-    font-size: 0.72rem;
+  .counts {
+    font: 0.7rem/1 var(--font-lilex, ui-monospace, monospace);
     color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .stats :global(.bump) {
-    animation: bump 0.6s var(--ease-out);
-  }
-  @keyframes bump {
-    from {
-      transform: translateY(-3px);
-      opacity: 0.4;
+  @media (max-width: 40rem) {
+    .counts {
+      display: none;
     }
   }
 </style>
