@@ -36,16 +36,17 @@ On by default. Guide: [Keep state across edits](/guides/hmr/).
 
 ## One stylesheet for every shadow root
 
-Import a CSS file with `?css-sheet` and every component adopts the same
-`CSSStyleSheet`. Recolour the thousand shadow roots below both ways and
-compare the re-render count.
+Import a CSS file with `?css-sheet` and every component that imports it
+adopts the same `CSSStyleSheet`. Save the file and the plugin swaps that
+sheet's text: every shadow root restyles in place, nothing re-renders, and
+the page keeps its state. Without it, saving the CSS reloads the page.
 
 <DemoFrame
   src="/demo/sheets/"
-  title="Stylesheet demo: a thousand shadow roots recoloured"
-  height="25rem"
-  narrowHeight="30rem"
-  caption="One shared sheet restyles all of them with no component rendering. A style element in each costs a thousand updates."
+  title="Stylesheet demo: saving theme.css with and without vite-plugin-lit"
+  height="31rem"
+  narrowHeight="46rem"
+  caption="Select some tiles in both panes, then save an edit. The plugin pane runs replaceSync() on the shared sheet, as the dev server does on save; the counts and the restyle time are measured on the page."
 />
 
 On by default. Guide: [Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).

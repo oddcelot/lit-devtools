@@ -41,10 +41,12 @@ Try it below. Both panes run the same component; make an edit and compare.
 
 ## Three more things you get
 
-**One stylesheet for every shadow root.** Each shadow root normally carries
-its own copy of a component's CSS. Import a file with `?css-sheet` and every
-component adopts one shared `CSSStyleSheet` instead. An edit to that file
-restyles every instance at once, and no component re-renders.
+**CSS edits that keep the page.** A component that takes its CSS from a
+file, imported with `?inline` and handed to `unsafeCSS()`, reloads the page
+on every save of that file too. Import it with `?css-sheet` instead and every component
+that imports it, of any class, adopts one shared `CSSStyleSheet`. A save
+swaps that sheet's text: every shadow root restyles in place, no component
+re-renders, and the page keeps its state.
 
 **A panel that explains re-renders.** The DevTools panel shows the live
 component tree, each update with what triggered it and how long it took, and
