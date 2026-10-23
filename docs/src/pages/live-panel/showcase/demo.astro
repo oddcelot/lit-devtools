@@ -1,0 +1,46 @@
+---
+/**
+ * The page the landing page's live panel inspects: the cart
+ * (src/lib/demos/cart-app.ts) behind the page runtime, styled with the
+ * design tokens and in the scheme the panel page pinned.
+ */
+import '@oddsquad/webawesome-theme-lit/tokens.css';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Live panel demo: a cart</title>
+    <script is:inline>
+      // The tokens switch on data-theme; the panel page passes its scheme.
+      (() => {
+        const s = new URLSearchParams(location.search).get('scheme');
+        document.documentElement.dataset.theme =
+          s === 'light' || s === 'dark'
+            ? s
+            : matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark';
+      })();
+    </script>
+    <style is:global>
+      body {
+        margin: 0;
+        padding: 1rem;
+        background: var(--bg);
+        font-family: var(--font-sans);
+      }
+    </style>
+  </head>
+  <body>
+    <demo-cart></demo-cart>
+    <script>
+      import {startDemoPage} from '../../../../../src/panel/figures/live/demo-runtime.ts';
+
+      await startDemoPage(() => import('../../../lib/demos/cart-app.ts'));
+    </script>
+  </body>
+</html>

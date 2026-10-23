@@ -13,6 +13,7 @@ import '../styles/custom.css';
 import Nav from '../components/landing/Nav.astro';
 import InstallCommand from '../components/landing/InstallCommand.astro';
 import DemoFrame from '../components/landing/DemoFrame.astro';
+import DevtoolsShowcase from '../components/landing/DevtoolsShowcase.astro';
 import StoreButtons from '../components/StoreButtons.astro';
 import AgentPrompt from '../components/AgentPrompt.astro';
 import DemoVideo from '../components/DemoVideo.astro';
@@ -198,37 +199,9 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             properties you can edit, every update with its cause and its cost,
             and a timeline of the whole session.
           </p>
-          <div class="tabs" role="group" aria-label="Open the panel on">
-            <button
-              type="button"
-              data-tab="components"
-              data-caption="The real panel, inspecting the demo page above it. Click a component in the tree, then change one of its properties."
-              aria-pressed="true">Components</button
-            >
-            <button
-              type="button"
-              data-tab="updates"
-              data-caption="Press the counter on the demo page a few times. Each update lands here with what changed and how long it took."
-              aria-pressed="false">Updates</button
-            >
-            <button
-              type="button"
-              data-tab="timeline"
-              data-caption="Press Record, click around the demo page, then Stop. Every render and property change lands on one time axis."
-              aria-pressed="false">Timeline</button
-            >
-          </div>
         </div>
         <div class="wrap wide reveal">
-          <DemoFrame
-            id="live-panel"
-            src="/live-panel/"
-            scripted
-            title="Lit DevTools panel inspecting a demo page"
-            height="44rem"
-            narrowHeight="38rem"
-            caption="The real panel, inspecting the demo page above it. Click a component in the tree, then change one of its properties."
-          />
+          <DevtoolsShowcase />
         </div>
       </section>
 
@@ -367,39 +340,6 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     </footer>
 
     <script>
-      // The live panel takes the page's theme in its URL (`?scheme=`) and
-      // its tab in its own deep link, so both are set from here: on load, on
-      // a tab button, and when the theme switch changes the scheme.
-      const panel = document.querySelector<HTMLIFrameElement>('#live-panel');
-      const tabs = document.querySelectorAll<HTMLButtonElement>('[data-tab]');
-      let tab = 'components';
-      let scheme = '';
-      const loadPanel = () => {
-        if (!panel) return;
-        const next = document.documentElement.dataset.theme ?? 'dark';
-        const url = `${panel.dataset.src}?scheme=${next}#tab=${tab}`;
-        if (next === scheme) {
-          // Same document: only the hash changes, and the panel follows it.
-          panel.contentWindow?.location.replace(url);
-        } else {
-          scheme = next;
-          panel.src = url;
-        }
-      };
-      for (const button of tabs) {
-        button.addEventListener('click', () => {
-          for (const t of tabs) t.setAttribute('aria-pressed', String(t === button));
-          tab = button.dataset.tab!;
-          const caption = panel?.closest('figure')?.querySelector('figcaption');
-          if (caption) caption.textContent = button.dataset.caption ?? '';
-          loadPanel();
-        });
-      }
-      new MutationObserver(loadPanel).observe(document.documentElement, {
-        attributeFilter: ['data-theme'],
-      });
-      loadPanel();
-
       // Sections rise in as they scroll into view.
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
         const io = new IntersectionObserver(
@@ -727,28 +667,6 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     border-radius: var(--radius-xs);
     background: var(--accent-soft);
     color: var(--text-strong);
-  }
-
-  .tabs {
-    display: inline-flex;
-    gap: 0.25rem;
-    margin: 2rem 0 2.5rem;
-    padding: 0.25rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-  }
-  .tabs button {
-    padding: 0.5rem 1rem;
-    border: 0;
-    border-radius: var(--radius-pill);
-    background: none;
-    color: var(--text-secondary);
-    font: 600 0.9rem/1 var(--font-sans);
-    cursor: pointer;
-  }
-  .tabs button[aria-pressed='true'] {
-    background: var(--accent);
-    color: var(--on-accent);
   }
 
   .features {

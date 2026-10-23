@@ -1,0 +1,31 @@
+---
+/**
+ * The landing page's frame for a live surface: a hairline that catches the
+ * flame's blue and cyan at two corners, over a soft blue glow. DemoFrame
+ * puts its iframe in one; the DevTools section puts its recorded figures in
+ * one, so all of them sit in the same frame.
+ */
+---
+
+<div class="glow"><slot /></div>
+
+<style>
+  .glow {
+    position: relative;
+    padding: 1px;
+    border-radius: calc(var(--radius-xl) + 1px);
+    background: linear-gradient(
+      140deg,
+      color-mix(in srgb, var(--lit-blue-bright) 70%, transparent),
+      var(--border) 35%,
+      var(--border) 65%,
+      color-mix(in srgb, var(--lit-cyan) 60%, transparent)
+    );
+    box-shadow:
+      0 30px 80px -30px color-mix(in srgb, var(--lit-blue-bright) 45%, transparent),
+      var(--shadow-window);
+  }
+  .glow > :global(*) {
+    border-radius: var(--radius-xl);
+  }
+</style>

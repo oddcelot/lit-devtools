@@ -4,6 +4,8 @@
  * landing page, with a caption that says what to try. The frame loads when
  * it nears the viewport, so the hero's is the only one on first paint.
  */
+import Glow from './Glow.astro';
+
 interface Props {
   src: string;
   title: string;
@@ -33,7 +35,7 @@ const {
 ---
 
 <figure class="demo-frame">
-  <div class="glow">
+  <Glow>
     <iframe
       id={id}
       src={scripted ? undefined : src}
@@ -41,28 +43,13 @@ const {
       title={title}
       loading={eager ? 'eager' : 'lazy'}
       style={{'--height': height, '--narrow-height': narrowHeight}}></iframe>
-  </div>
+  </Glow>
   {caption && <figcaption set:html={caption} />}
 </figure>
 
 <style>
   .demo-frame {
     margin: 0;
-  }
-  .glow {
-    position: relative;
-    padding: 1px;
-    border-radius: calc(var(--radius-xl) + 1px);
-    background: linear-gradient(
-      140deg,
-      color-mix(in srgb, var(--lit-blue-bright) 70%, transparent),
-      var(--border) 35%,
-      var(--border) 65%,
-      color-mix(in srgb, var(--lit-cyan) 60%, transparent)
-    );
-    box-shadow:
-      0 30px 80px -30px color-mix(in srgb, var(--lit-blue-bright) 45%, transparent),
-      var(--shadow-window);
   }
   iframe {
     display: block;
