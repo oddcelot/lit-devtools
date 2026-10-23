@@ -9,6 +9,7 @@ import './details.js';
 import './icon.js';
 import './icon-button.js';
 import './input.js';
+import './run-gate.js';
 import './segmented-tabs.js';
 import './select.js';
 import './split-panel.js';
