@@ -1,16 +1,16 @@
 /**
  * The app the landing page's live panel inspects: a cart of three items and
  * a summary, small enough to show whole above the panel. It is built to
- * give the panel something to explain. The cart owns the quantities and
- * passes them down, so a click on one item's stepper updates that item, the
- * cart and the summary, and the other two items stay put; the Components
- * tab shows the properties that flow down, and editing one there does what
- * the stepper does.
+ * give the panel something to explain. The cart owns the items and passes
+ * each one's properties down; an item reports a changed `qty` or `price`
+ * back up, whether its stepper changed it or someone edited it in the
+ * Components tab. So either way the item, the cart and the summary update,
+ * and the other two items stay put.
  *
  * Plain `static properties`, no decorators: the docs build runs without the
  * plugin's dev-server transforms.
  */
-import {LitElement, css, html} from 'lit';
+import {LitElement, css, html, type PropertyValues} from 'lit';
 
 interface Item {
   name: string;
@@ -49,9 +49,14 @@ class DemoCart extends LitElement {
     ];
   }
 
-  #setQty(name: string, qty: number) {
+  /** Takes an item's report; one that matches the cart's own copy is the
+   *  item echoing what the cart just passed down, and changes nothing. */
+  #setItem(name: string, {qty, price}: Pick<Item, 'qty' | 'price'>) {
+    const current = this.items.find((item) => item.name === name);
+    if (current === undefined) return;
+    if (current.qty === qty && current.price === price) return;
     this.items = this.items.map((item) =>
-      item.name === name ? {...item, qty: Math.max(0, qty)} : item
+      item === current ? {...item, qty, price} : item
     );
   }
 
@@ -66,8 +71,8 @@ class DemoCart extends LitElement {
             .price=${item.price}
             .qty=${item.qty}
             .hue=${item.hue}
-            @qty-change=${(e: CustomEvent<number>) =>
-              this.#setQty(item.name, e.detail)}
+            @item-change=${(e: CustomEvent<Pick<Item, 'qty' | 'price'>>) =>
+              this.#setItem(item.name, e.detail)}
           ></cart-item>
         `
       )}
@@ -152,7 +157,17 @@ class CartItem extends LitElement {
   }
 
   #change(qty: number) {
-    this.dispatchEvent(new CustomEvent('qty-change', {detail: qty}));
+    this.qty = Math.max(0, qty);
+  }
+
+  override updated(changed: PropertyValues<this>) {
+    if (changed.has('qty') || changed.has('price')) {
+      this.dispatchEvent(
+        new CustomEvent('item-change', {
+          detail: {qty: this.qty, price: this.price},
+        })
+      );
+    }
   }
 
   override render() {
