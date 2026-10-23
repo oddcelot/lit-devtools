@@ -8,12 +8,14 @@
 interface Props {
   /** What the figure shows, under it. */
   caption: string;
+  /** A tag name: open with that component's updates showing. */
+  component?: string;
 }
-const {caption} = Astro.props;
+const {caption, component} = Astro.props;
 ---
 
 <figure class="updates-figure not-content">
-  <updates-figure></updates-figure>
+  <updates-figure component={component}></updates-figure>
   <figcaption>{caption}</figcaption>
 </figure>
 

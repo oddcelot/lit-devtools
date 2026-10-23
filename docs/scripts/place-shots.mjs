@@ -20,20 +20,12 @@ const ALT = {
     'The Lit panel docked inside Vite DevTools, showing the Components tab.',
   'devtools-settings-tab':
     'The Settings tab listing the resolved options with live overrides and a Reset overrides button.',
-  'devtools-timeline-raw':
-    'The Timeline tab with Raw on: one row per recorded event, including custom Router events.',
-  'devtools-timeline-row-details':
-    'A timeline row expanded to show the element, instance id, changed properties and source link.',
   'devtools-export-snapshot':
     'An exported snapshot opened as a static page: the same timeline, read-only.',
   'devtools-components-tree':
     'The Components tab: the element tree on the left, hmr-properties selected, its reactive properties on the right.',
   'devtools-flash':
     'The playground with flash on: fading outlines over the components that just updated.',
-  'devtools-updates-detail':
-    'One update expanded in the Updates tab, showing the changed property keys and the triggering input event.',
-  'devtools-custom-layer':
-    'Timeline rows from a custom Router layer, in the layer colour, next to Lit lifecycle rows.',
   'landing-panel-docked':
     'A Lit app with the DevTools panel docked below it and the HMR indicator in the corner.',
 };

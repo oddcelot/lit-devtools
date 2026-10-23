@@ -9,10 +9,7 @@ sidebar:
 import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import context from '../../../../../../playground/src/hmr-context.ts?raw';
 import {stripHeader} from '../../../../lib/fixture';
-import ThemedImage from '../../../../components/ThemedImage.astro';
 import UpdatesFigure from '../../../../components/UpdatesFigure.astro';
-import devtoolsUpdatesDetailLight from '../../../../assets/shots/devtools-updates-detail.light.png';
-import devtoolsUpdatesDetailDark from '../../../../assets/shots/devtools-updates-detail.dark.png';
 import Since from '../../../../components/Since.astro';
 
 Answer "which component re-renders too much" and "why did this one update" from
@@ -62,10 +59,9 @@ instance has updated, a **Rendered at** link beside it opens the template tag
 that created that instance; with several instances there is no one place to
 name, so it is left out.
 
-<ThemedImage
-  light={devtoolsUpdatesDetailLight}
-  dark={devtoolsUpdatesDetailDark}
-  alt="hmr-counter selected in the Updates tab: its source and Rendered at links above a list of its updates, each with its time, duration and changed keys."
+<UpdatesFigure
+  component="hmr-counter"
+  caption="hmr-counter picked: its source and Rendered at links above a list of its updates, each with its time, duration and changed keys."
 />
 
 The changed-property keys are the actual answer to "why did this re-render".

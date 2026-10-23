@@ -9,12 +9,6 @@ import {Aside, CardGrid, Code, LinkCard} from '@astrojs/starlight/components';
 import lifecycle from '../../../../../../playground/src/hmr-lifecycle.ts?raw';
 import {stripHeader} from '../../../../lib/fixture';
 import ThemedImage from '../../../../components/ThemedImage.astro';
-import devtoolsTimelineRawLight from '../../../../assets/shots/devtools-timeline-raw.light.png';
-import devtoolsTimelineRawDark from '../../../../assets/shots/devtools-timeline-raw.dark.png';
-import devtoolsTimelineRowDetailsLight from '../../../../assets/shots/devtools-timeline-row-details.light.png';
-import devtoolsTimelineRowDetailsDark from '../../../../assets/shots/devtools-timeline-row-details.dark.png';
-import devtoolsTimelineTracksLight from '../../../../assets/shots/devtools-timeline-tracks.light.png';
-import devtoolsTimelineTracksDark from '../../../../assets/shots/devtools-timeline-tracks.dark.png';
 import devtoolsChromeTracksLight from '../../../../assets/shots/devtools-chrome-performance-tracks.light.png';
 import devtoolsChromeTracksDark from '../../../../assets/shots/devtools-chrome-performance-tracks.dark.png';
 import devtoolsExportSnapshotLight from '../../../../assets/shots/devtools-export-snapshot.light.png';
@@ -151,10 +145,11 @@ for it on ordering questions, and for
 [custom layers](/guides/devtools/custom-layers/), which have no
 pairs to collapse.
 
-<ThemedImage
-  light={devtoolsTimelineRawLight}
-  dark={devtoolsTimelineRawDark}
-  alt="The Timeline tab with Raw on: one row per recorded event, including custom Router events."
+<TimelineFigure
+  mode="list"
+  raw
+  event="mvk1zotj-16"
+  caption="Raw on, at the first route change: one row per recorded event, the Router's navigate /inbox among the Lit lifecycle events it caused."
 />
 
 Click any row to see the element tag name, its stable instance id, the
@@ -163,10 +158,10 @@ the file to open it in your editor. When the element was written in an `html`
 template or in `index.html`, a **rendered at** link opens the tag that created
 it instead.
 
-<ThemedImage
-  light={devtoolsTimelineRowDetailsLight}
-  dark={devtoolsTimelineRowDetailsDark}
-  alt="An hmr-counter update expanded in the Timeline list, its willUpdate and update rows marked count, and the selected update row's details: the element and instance id, its source and rendered at links, and count under changed."
+<TimelineFigure
+  mode="list"
+  event="mvk1zotj-30"
+  caption="An hmr-counter update opened in the list, its update row selected: the element and instance id, the source and rendered-at links, and count under changed."
 />
 
 An element row also carries two links. **filter** narrows the list and the tracks to
@@ -183,10 +178,10 @@ layer on a shared time axis, so you see what happened at the same time and how
 far apart things were. The list shows order and attribution instead. The
 panel remembers which view you left it in.
 
-<ThemedImage
-  light={devtoolsTimelineTracksLight}
-  dark={devtoolsTimelineTracksDark}
-  alt="The Timeline in Tracks mode zoomed to about a millisecond: lanes for Lit Lifecycle, Lit Render, Lit warnings and Router, a Router navigate tick and, at the same moment, the hmr-custom-layer performUpdate span it caused, selected, with its phases beneath it and its details in the pane below."
+<TimelineFigure
+  range="580.8-582.4"
+  event="mvk1zotj-17"
+  caption="A recorded session from the playground, zoomed to one route click: the Router's navigate tick and, at the same moment, the hmr-custom-layer update it caused, selected, with its phases beneath it. Double-click to see the whole session."
 />
 
 Each mark is one span, placed by its start and end. Overlapping spans stack
@@ -201,10 +196,9 @@ ended yet runs to the end of the recording.
 - **Double-click** fits the whole recording again. While you record, a fitted
   view follows the newest events.
 
-Try it on a recording from the playground: this is the panel's own Tracks
-view, running in the page.
-
-<TimelineFigure caption="A recorded session from the playground: counter, list and route clicks across the Lit Lifecycle, Lit Render and Router layers." />
+The figure above is the panel's own Tracks view, running in the page over a
+recording from the playground: counter, list and route clicks across the Lit
+Lifecycle, Lit Render and Router layers. Try the keys on it.
 
 Click a mark to select it. The same detail pane opens under the tracks, and
 the selection carries over: switch back to **List** and it scrolls to that
