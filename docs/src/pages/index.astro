@@ -807,30 +807,54 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     color: var(--text-secondary);
   }
 
+  /* The steps run down one column: a numbered marker per step on a rail
+     that joins them, the step's content beside its number. */
   .steps {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: 1.25rem;
-    margin: 3rem 0 0;
+    max-width: 44rem;
+    margin: 3rem auto 0;
     padding: 0;
     list-style: none;
   }
   .steps li {
     position: relative;
-    padding: 1.5rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    background: var(--surface);
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    column-gap: 1.25rem;
+    align-content: start;
+    padding-bottom: 2.25rem;
+  }
+  .steps li:last-child {
+    padding-bottom: 0;
+  }
+  .steps li > :not(.n) {
+    grid-column: 2;
+  }
+  .steps li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: calc(2.25rem / 2);
+    top: 2.75rem;
+    bottom: 0.5rem;
+    width: 1px;
+    background: var(--border-strong);
+  }
+  .steps h3 {
+    margin-top: 0.3rem;
   }
   .steps li p {
+    margin: 0.6rem 0;
     color: var(--text-secondary);
   }
+  .steps pre {
+    margin: 0.9rem 0 0;
+  }
   .n {
+    grid-row: 1 / span 3;
     display: grid;
     place-items: center;
-    width: 1.8rem;
-    height: 1.8rem;
-    margin-bottom: 0.9rem;
+    width: 2.25rem;
+    height: 2.25rem;
     border-radius: var(--radius-sm);
     background: var(--accent);
     color: var(--on-accent);
@@ -897,8 +921,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
   }
 
   @media (max-width: 56rem) {
-    .split-grid,
-    .steps {
+    .split-grid {
       grid-template-columns: minmax(0, 1fr);
     }
     .features {
