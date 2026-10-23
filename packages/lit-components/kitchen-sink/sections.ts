@@ -305,6 +305,35 @@ export const SECTIONS: Section[] = [
       ></lit-copy-prompt>`,
   },
   {
+    tag: 'lit-run-gate',
+    group: 'Actions',
+    variants: false,
+    summary:
+      'compound · label, busy, unsupported · run event · lit-button + slotted notice',
+    render: () => html`
+      ${row(
+        'waiting for a click',
+        html`<lit-run-gate
+          >Runs on StackBlitz: starting it connects to stackblitz.com, which
+          installs and runs this project in your browser.</lit-run-gate
+        >`
+      )}
+      ${row(
+        'starting',
+        html`<lit-run-gate busy
+          >Runs on StackBlitz: starting it connects to
+          stackblitz.com.</lit-run-gate
+        >`
+      )}
+      ${row(
+        'unsupported browser',
+        html`<lit-run-gate
+          unsupported="StackBlitz runs embedded demos only in Chromium-based browsers. Open this one in StackBlitz instead."
+        ></lit-run-gate>`
+      )}
+    `,
+  },
+  {
     tag: 'lit-split-panel',
     group: 'Layout',
     variants: false,

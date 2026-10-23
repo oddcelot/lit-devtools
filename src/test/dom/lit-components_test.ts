@@ -255,6 +255,31 @@ describe('lit-* compounds', () => {
     expect(root.querySelector('lit-icon')?.getAttribute('name')).toBe('cube');
   });
 
+  test('lit-run-gate fires run, waits while busy, and says when it cannot', async () => {
+    const gate = await mount<
+      HTMLElement & {
+        busy: boolean;
+        unsupported: string;
+        updateComplete: Promise<unknown>;
+      }
+    >('<lit-run-gate>Connects to example.com.</lit-run-gate>');
+    let runs = 0;
+    gate.addEventListener('run', () => runs++);
+    const button = () =>
+      gate.shadowRoot!.querySelector<LitButton>('lit-button');
+    button()!.click();
+    expect(runs).toBe(1);
+
+    gate.busy = true;
+    await gate.updateComplete;
+    expect(button()!.disabled).toBe(true);
+
+    gate.unsupported = 'Not in this browser.';
+    await gate.updateComplete;
+    expect(button()).toBeNull();
+    expect(gate.shadowRoot!.textContent).toContain('Not in this browser.');
+  });
+
   test('lit-copy-prompt copies its text and announces it', async () => {
     const copied: string[] = [];
     Object.defineProperty(navigator, 'clipboard', {
