@@ -170,7 +170,7 @@ export const SECTIONS: Section[] = [
   {
     tag: 'lit-callout',
     group: 'Feedback',
-    variants: {content: 'A callout.'},
+    variants: {content: 'Callout'},
     summary:
       'extends WaCallout · defaults size="s" · variant, appearance, size; icon slot',
     render: () =>
