@@ -56,7 +56,7 @@ body {
 
 nav {
   grid-area: nav;
-  padding: var(--space-6);
+  padding: var(--space-9) var(--space-6);
   border-right: var(--border-width) solid var(--border);
   position: sticky;
   top: 57px;
