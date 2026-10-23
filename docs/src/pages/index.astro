@@ -110,7 +110,10 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={title} />
+    <meta
+      property="og:image:alt"
+      content="Edit a Lit component, keep the page: a saved edit to my-counter.ts patches the live counter in 9 ms and its count of 42 stays."
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@oddcelot" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

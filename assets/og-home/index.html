@@ -1,0 +1,361 @@
+<!doctype html>
+<!--
+  The landing page's Open Graph card, 1200×630. Render it with
+  `node assets/og-home/render.mjs`, which writes docs/public/og/index.png.
+  Drawn in the promo video's look: near-black, white type, the cyan-to-blue
+  accent, a source edit on the left of the frame and the live component on
+  the right, still holding its state.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face {
+        font-family: 'Manrope';
+        src: url('fonts/manrope.woff2') format('woff2');
+        font-weight: 200 800;
+      }
+      @font-face {
+        font-family: 'Lilex';
+        src: url('fonts/lilex.woff2') format('woff2');
+        font-weight: 100 700;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+      }
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+        overflow: hidden;
+        background: #030304;
+      }
+      body {
+        position: relative;
+        font-family: 'Manrope', sans-serif;
+        color: #fff;
+      }
+
+      /* Backdrop: a field of shadow-root dots, lit from behind the demo. */
+      .dots {
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(
+          circle,
+          rgb(80 110 255 / 0.34) 1.6px,
+          transparent 2.2px
+        );
+        background-size: 26px 26px;
+        background-position: 13px 13px;
+        mask-image: radial-gradient(
+          ellipse 62% 78% at 80% 46%,
+          #000 0%,
+          rgb(0 0 0 / 0.35) 55%,
+          transparent 100%
+        );
+      }
+      .glow {
+        position: absolute;
+        width: 760px;
+        height: 760px;
+        right: -170px;
+        top: -120px;
+        background: radial-gradient(
+          circle,
+          rgb(50 79 255 / 0.42) 0%,
+          rgb(0 232 255 / 0.1) 38%,
+          transparent 66%
+        );
+      }
+      .edge {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #324fff, #00e8ff 60%, #0ff);
+      }
+
+      /* Left column: brand, headline, install. */
+      .copy {
+        position: absolute;
+        left: 64px;
+        top: 56px;
+        bottom: 56px;
+        width: 560px;
+        display: flex;
+        flex-direction: column;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .brand img {
+        height: 40px;
+      }
+      h1 {
+        margin-top: auto;
+        font-size: 74px;
+        font-weight: 800;
+        line-height: 1.02;
+        letter-spacing: -0.035em;
+      }
+      h1 .accent {
+        display: block;
+        background: linear-gradient(90deg, #00e8ff 0%, #4f8bff 55%, #6b7bff);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        padding-bottom: 6px;
+      }
+      .lede {
+        margin-top: 22px;
+        font-size: 25px;
+        font-weight: 500;
+        line-height: 1.38;
+        color: #b4bbd6;
+        max-width: 520px;
+      }
+      .lede b {
+        color: #fff;
+        font-weight: 700;
+      }
+      .install {
+        margin-top: 34px;
+        align-self: flex-start;
+        font-family: 'Lilex', monospace;
+        font-size: 19px;
+        color: #d6dbf0;
+        padding: 12px 18px;
+        border: 1px solid #2a2f45;
+        border-radius: 10px;
+        background: rgb(14 16 26 / 0.85);
+      }
+      .install .p {
+        color: #00e8ff;
+        margin-right: 10px;
+      }
+
+      /* Right column: the edit and the page it lands on. */
+      .stage {
+        position: absolute;
+        left: 660px;
+        top: 92px;
+        width: 488px;
+      }
+      .panel {
+        border: 1px solid #262b40;
+        border-radius: 14px;
+        background: rgb(10 11 18 / 0.94);
+        box-shadow:
+          0 30px 60px rgb(0 0 0 / 0.55),
+          0 0 0 1px rgb(255 255 255 / 0.02) inset;
+        overflow: hidden;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 38px;
+        padding: 0 14px;
+        border-bottom: 1px solid #1e2234;
+        font-family: 'Lilex', monospace;
+        font-size: 14px;
+        color: #8a91ad;
+      }
+      .bar .saved {
+        margin-left: auto;
+        color: #00e8ff;
+      }
+      .code {
+        font-family: 'Lilex', monospace;
+        font-size: 16.5px;
+        line-height: 1.75;
+        padding: 10px 0 12px;
+        color: #cfd5ee;
+      }
+      .ln {
+        display: block;
+        padding: 0 16px 0 14px;
+        white-space: nowrap;
+      }
+      .ln i {
+        display: inline-block;
+        width: 34px;
+        font-style: normal;
+        color: #4b5170;
+      }
+      .del {
+        background: rgb(255 80 110 / 0.12);
+        color: #ff8aa0;
+      }
+      .add {
+        background: rgb(0 232 255 / 0.12);
+        color: #9ff4ff;
+        box-shadow: inset 3px 0 #00e8ff;
+      }
+      .k {
+        color: #a48bff;
+      }
+      .s {
+        color: #c5f07a;
+      }
+      .add .s,
+      .del .s {
+        color: inherit;
+      }
+
+      .page {
+        position: absolute;
+        top: 226px;
+        left: 88px;
+        width: 400px;
+      }
+      .page .bar .dotset {
+        display: flex;
+        gap: 7px;
+      }
+      .page .bar .dotset span {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #2a2f45;
+      }
+      .page .bar .url {
+        margin-left: 8px;
+      }
+      .counter {
+        padding: 22px 24px 24px;
+      }
+      .counter .tag {
+        font-family: 'Lilex', monospace;
+        font-size: 14px;
+        color: #6f7697;
+      }
+      .counter .row {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .counter .label {
+        font-size: 24px;
+        font-weight: 700;
+        color: #00e8ff;
+      }
+      .counter .n {
+        margin-left: auto;
+        font-family: 'Lilex', monospace;
+        font-size: 44px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .counter .btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        background: #324fff;
+        display: grid;
+        place-items: center;
+        font-size: 28px;
+        font-weight: 800;
+      }
+      .toast {
+        position: absolute;
+        top: 404px;
+        left: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 16px;
+        border-radius: 999px;
+        background: #0b1d24;
+        border: 1px solid rgb(0 232 255 / 0.45);
+        font-family: 'Lilex', monospace;
+        font-size: 15.5px;
+        color: #c9f8ff;
+        box-shadow: 0 0 34px rgb(0 232 255 / 0.22);
+      }
+      .toast .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #3cff9a;
+        box-shadow: 0 0 10px #3cff9a;
+      }
+      .toast .muted {
+        color: #6fa6b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="dots"></div>
+
+    <div class="copy">
+      <div class="brand"><img src="lit-flame.svg" alt="" />vite-plugin-lit</div>
+      <h1>
+        Edit a Lit component.
+        <span class="accent">Keep the page.</span>
+      </h1>
+      <p class="lede">
+        <b>True HMR for Lit in Vite.</b> Every save patches the live page, and
+        its state stays put.
+      </p>
+      <div class="install">
+        <span class="p">$</span>npm i -D @oddsquad/vite-plugin-lit
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="panel editor">
+        <div class="bar">my-counter.ts<span class="saved">● saved</span></div>
+        <div class="code">
+          <span class="ln"><i>12</i><span class="k">render</span>() {</span>
+          <span class="ln"
+            ><i>13</i>&nbsp;&nbsp;<span class="k">return</span> html`</span
+          >
+          <span class="ln del"
+            ><i>14</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;b&gt;Clicks&lt;/b&gt;</span
+          >
+          <span class="ln add"
+            ><i>14</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;b&gt;Hot
+            clicks&lt;/b&gt;</span
+          >
+          <span class="ln"
+            ><i>15</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;output&gt;${<span class="k"
+              >this</span
+            >.count}&lt;/output&gt;`;</span
+          >
+        </div>
+      </div>
+
+      <div class="panel page">
+        <div class="bar">
+          <span class="dotset"><span></span><span></span><span></span></span>
+          <span class="url">localhost:5173</span>
+        </div>
+        <div class="counter">
+          <div class="tag">&lt;my-counter&gt;</div>
+          <div class="row">
+            <span class="label">Hot clicks</span>
+            <span class="n">42</span>
+            <span class="btn">+</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast">
+        <span class="dot"></span>patched in 9&nbsp;ms
+        <span class="muted">· count kept: 42</span>
+      </div>
+    </div>
+
+    <div class="edge"></div>
+  </body>
+</html>
