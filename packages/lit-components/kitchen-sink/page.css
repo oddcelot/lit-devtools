@@ -19,8 +19,14 @@ body {
 
 .shell {
   display: grid;
-  grid-template: 'top top' auto 'nav main' 1fr / 200px 1fr;
-  min-height: 100vh;
+  /* minmax(0, …): a 1fr track never shrinks below its widest content, which
+     pushed the page wider than the window. */
+  grid-template:
+    'top top' auto
+    'nav main' minmax(0, 1fr) / 200px minmax(0, 1fr);
+  /* The window's height, with the nav and the main column scrolling each on
+     its own under the top bar: nothing has to stick at a guessed offset. */
+  height: 100vh;
 }
 .top {
   grid-area: top;
@@ -30,22 +36,31 @@ body {
   padding: var(--space-5) var(--space-8);
   border-bottom: var(--border-width) solid var(--border);
   background: var(--surface);
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 .top h1 {
+  flex-shrink: 0;
   margin: 0;
+  white-space: nowrap;
   font-size: var(--text-lg);
   font-weight: var(--weight-extrabold);
   letter-spacing: var(--tracking-tight);
 }
+/* One line at any width, so the nav can stick under it at a fixed offset:
+   the subtitle gives way first, then the filter narrows. */
 .top .meta {
+  flex: 1 1 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--text-secondary);
 }
 .top .filter {
-  margin-left: auto;
-  width: 220px;
+  flex: 0 1 220px;
+  min-width: 120px;
+}
+.top .density {
+  flex-shrink: 0;
 }
 .top .density {
   display: flex;
@@ -58,12 +73,6 @@ nav {
   grid-area: nav;
   padding: var(--space-9) var(--space-6);
   border-right: var(--border-width) solid var(--border);
-  position: sticky;
-  top: 57px;
-  align-self: start;
-  /* Sticky and longer than the window once every section is listed: it
-     scrolls on its own, under the top bar. */
-  max-height: calc(100vh - 57px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -91,10 +100,18 @@ nav a:hover {
 
 main {
   grid-area: main;
+  overflow-y: auto;
+  /* Holds absolutely positioned demo parts (screen-reader-only text, say),
+     which would otherwise lengthen the page under this scroller. */
+  position: relative;
   padding: var(--space-8);
   display: grid;
   gap: var(--space-10);
   align-content: start;
+}
+/* A section a nav link scrolls to keeps the main column's top padding. */
+section {
+  scroll-margin-top: var(--space-8);
 }
 section > header {
   display: flex;
@@ -113,10 +130,19 @@ section > header p {
 }
 .halves {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-6);
 }
+/* Too narrow for the schemes side by side: one above the other. */
+@media (width < 1280px) {
+  .halves {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .half {
+  /* Content wider than the half (a variant grid, a fixed-width demo)
+     scrolls inside it rather than widening the page. */
+  overflow-x: auto;
   padding: var(--space-6);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-lg);
@@ -208,6 +234,8 @@ iframe.live-panel {
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
+  /* The table is as wide as its longest description: it scrolls here. */
+  overflow-x: auto;
 }
 .api summary {
   padding: var(--space-4) var(--space-6);
