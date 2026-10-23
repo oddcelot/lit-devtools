@@ -2,7 +2,10 @@
   "fonts": ["ui-sans-serif", "Lilex Variable"],
   "fontSizes": [11, 12, 13, 14, 16, 18, 22, 28, 36, 48, 64],
   "typeRules": [],
-  "viewports": [{"width": 1440, "height": 900}],
+  "viewports": [
+    {"width": 390, "height": 844},
+    {"width": 1440, "height": 900}
+  ],
   "colorSchemes": ["light"],
   "exceptions": [
     {
