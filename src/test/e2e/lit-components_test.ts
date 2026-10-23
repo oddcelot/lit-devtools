@@ -3,7 +3,7 @@ import {readFile} from 'node:fs/promises';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {createServer, type ViteDevServer} from 'vite';
-import {checkPage} from 'lintapple';
+import {expectUI} from 'lintapple/playwright';
 
 /**
  * packages/lit-components in a real browser: its kitchen sink, served the way
@@ -128,17 +128,11 @@ test('the kitchen sink passes its lintapple policy at each viewport', async () =
     await design.waitForFunction(
       () => document.querySelectorAll('section').length > 0
     );
-    const found: string[] = [];
     for (const viewport of policy.viewports) {
       await design.setViewportSize(viewport);
-      const {findings} = await checkPage(design, policy);
-      found.push(
-        ...findings.map(
-          (f) => `${viewport.width}px ${f.rule} ${f.selector}: ${f.message}`
-        )
-      );
+      // Throws with each finding and its fix; nothing to attach them to here.
+      await expectUI(design, {attach: async () => {}}, policy);
     }
-    expect(found).toEqual([]);
   } finally {
     await design.close();
   }
