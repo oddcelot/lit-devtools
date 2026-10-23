@@ -11,7 +11,8 @@ export interface SegmentedTabItem {
   label: string;
   /** An icon name, from the set icons.ts registers. */
   icon?: string;
-  /** A count pill after the label; hidden when absent or zero. */
+  /** A count pill after the label, in brand blue (news, not a fault);
+   * hidden when absent or zero. */
   badge?: number;
   /** A warning-count pill after `badge`; hidden when absent or zero. */
   warnings?: number;
@@ -115,7 +116,7 @@ export class LitSegmentedTabs extends LitElement {
           ${item.label}
           ${
             item.badge
-              ? html`<lit-badge variant="danger" appearance="accent" pill
+              ? html`<lit-badge variant="brand" appearance="accent" pill
                   >${item.badge}</lit-badge
                 >`
               : nothing

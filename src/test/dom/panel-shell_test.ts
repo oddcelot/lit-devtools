@@ -264,7 +264,7 @@ test('the Components tab counts warned components in a warning badge', async () 
   const badge = root.querySelector('lit-segmented-tabs')!.shadowRoot!;
   const warning = badge.querySelector('lit-badge[variant="warning"]');
   expect(warning?.textContent?.trim()).toBe('1');
-  expect(badge.querySelector('lit-badge[variant="danger"]')).toBeNull();
+  expect(badge.querySelector('lit-badge[variant="brand"]')).toBeNull();
 });
 
 test('no warning badge without warned components', async () => {
