@@ -166,6 +166,24 @@
   color: var(--sl-color-text-accent);
 }
 
+/* -------------------------------------------------------------- Steps ---- */
+
+/* Starlight numbers <Steps> in round sans badges behind a 1px gray-5 ring,
+   which on the near-black page all but disappears. The design system squares
+   them (the control radius) and sets the numeral in the code face like any
+   other identifier, in the accent text colour. The badge takes the page
+   colour rather than gray-6, which keeps that numeral above 4.5:1 in the
+   light theme too, and the ring lifts to gray-4 so the marker reads. */
+
+.sl-steps > li::before {
+  border-radius: var(--radius-md);
+  font-family: var(--sl-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--sl-color-text-accent);
+  background-color: var(--sl-color-black);
+  box-shadow: inset 0 0 0 1px var(--sl-color-gray-4);
+}
+
 /* ----------------------------------------------------------- Selection ---- */
 
 ::selection {

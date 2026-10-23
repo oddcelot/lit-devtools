@@ -10,16 +10,15 @@ import {extendCss} from './styles.js';
  * Importing this module also registers the `wa-*` tag the class defines.
  */
 export class LitSwitch extends WaSwitch {
-  // WA hard-codes a round track and thumb; take them from the theme's radii
-  // instead, so a theme that squares its corners squares the switch too.
+  // WA hard-codes a round track and thumb; take them from the theme's corner
+  // radius instead, so the switch is square in the square theme even though
+  // its pills are round.
   static override css = extendCss(
     WaSwitch.css,
     css`
-      .switch {
-        border-radius: var(--wa-border-radius-pill);
-      }
+      .switch,
       .switch .thumb {
-        border-radius: var(--wa-border-radius-circle);
+        border-radius: var(--wa-border-radius-s);
       }
     `
   );

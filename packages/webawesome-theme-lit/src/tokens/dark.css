@@ -51,6 +51,7 @@
   --code-number: #f78c6c;
   --code-property: #b2ccd6;
   --code-tag: #89ddff;
-  --code-comment: #616161;
+  /* #616161 in the design system: 3:1 on ink-2, too faint for a null. */
+  --code-comment: #8a8a8a;
   --code-callee: #82aaff;
 }

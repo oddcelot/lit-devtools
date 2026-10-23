@@ -1,0 +1,25 @@
+---
+/**
+ * Mirrors Starlight's `data-theme` onto `.wa-dark` on the root.
+ *
+ * The design tokens switch with `[data-theme]` on their own, but Web
+ * Awesome switches schemes by class only, so without this the lit-*
+ * controls on a dark page (the demos' "Stuck? Reload the demo", the agent
+ * prompt's button) drew with light-scheme colours: grey text at 2.4:1 on the
+ * near-black page. Inline, so the class is right before the first paint;
+ * the observer follows the theme picker.
+ */
+---
+
+<script is:inline>
+  (() => {
+    const root = document.documentElement;
+    const sync = () =>
+      root.classList.toggle('wa-dark', root.dataset.theme !== 'light');
+    sync();
+    new MutationObserver(sync).observe(root, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    });
+  })();
+</script>

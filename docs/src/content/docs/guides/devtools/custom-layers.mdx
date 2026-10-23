@@ -8,9 +8,7 @@ sidebar:
 import {Code, CardGrid, LinkCard} from '@astrojs/starlight/components';
 import customLayer from '../../../../../../playground/src/hmr-custom-layer.ts?raw';
 import {stripHeader} from '../../../../lib/fixture';
-import ThemedImage from '../../../../components/ThemedImage.astro';
-import devtoolsCustomLayerLight from '../../../../assets/shots/devtools-custom-layer.light.png';
-import devtoolsCustomLayerDark from '../../../../assets/shots/devtools-custom-layer.dark.png';
+import TimelineFigure from '../../../../components/TimelineFigure.astro';
 
 Line up your router, store or socket events against Lit's on the same time
 axis. Two calls, safe to leave in production code.
@@ -46,10 +44,10 @@ in the [timeline](/guides/devtools/timeline/) list, with no
 update to fold into, and a tick on its layer's track. Their pill is always on:
 app code decides whether it emits at all.
 
-<ThemedImage
-  light={devtoolsCustomLayerLight}
-  dark={devtoolsCustomLayerDark}
-  alt="Timeline rows from a custom Router layer, in the layer colour, next to Lit lifecycle rows."
+<TimelineFigure
+  mode="list"
+  event="mvk1zotj-16"
+  caption="A Router layer's navigate row, in the layer colour, between the Lit lifecycle rows around it. Recorded from the playground's hmr-custom-layer."
 />
 
 Both functions resolve to a no-op stub in any `vite build`, including a build

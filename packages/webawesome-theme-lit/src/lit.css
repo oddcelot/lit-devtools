@@ -74,8 +74,8 @@
       1px
     );
 
-    /* The design system's radii, square throughout; circles (a switch
-       thumb, a status dot) follow pills. */
+    /* The design system's radii: square corners, round pills. Circles (a
+       status dot) follow pills; lit-switch stays square. */
     --wa-border-radius-s: var(--radius-sm);
     --wa-border-radius-m: var(--radius-md);
     --wa-border-radius-l: var(--radius-lg);
@@ -86,5 +86,20 @@
     --wa-transition-fast: var(--dur-instant);
     --wa-transition-normal: var(--dur-fast);
     --wa-transition-slow: var(--dur-normal);
+  }
+
+  /* Dark-scheme contrast. WA's loud borders sit at step 40, 2.2–2.7:1 on
+     the dark surfaces, under the 3:1 a control's outline needs (an
+     unchecked switch, an input, an outlined button); step 50 clears it.
+     WA's loud neutral fill is near-white (step 90), which made a neutral
+     accent the brightest thing on a dark page; step 70 keeps it the loudest
+     neutral with dark text at 8:1. */
+  .wa-dark {
+    --wa-color-brand-border-loud: var(--wa-color-brand-50);
+    --wa-color-neutral-border-loud: var(--wa-color-neutral-50);
+    --wa-color-success-border-loud: var(--wa-color-success-50);
+    --wa-color-warning-border-loud: var(--wa-color-warning-50);
+    --wa-color-danger-border-loud: var(--wa-color-danger-50);
+    --wa-color-neutral-fill-loud: var(--wa-color-neutral-70);
   }
 }

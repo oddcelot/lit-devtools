@@ -64,12 +64,14 @@ body {
 }
 .top .density {
   flex-shrink: 0;
-}
-.top .density {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   color: var(--text-secondary);
+}
+/* Both options the same width, so picking one doesn't move the other. */
+.top .density lit-button {
+  min-width: 6.5em;
 }
 
 nav {
@@ -223,13 +225,6 @@ iframe.live-panel {
   height: 44rem;
   border: 1px solid var(--lit-devtools-border, var(--border));
 }
-/* A whole tab's view: the height of a panel, as the views lay out in one. */
-.panel-specimen.tall {
-  display: flex;
-  flex-direction: column;
-  height: 30rem;
-}
-
 /* A row/column grid of variants: a label column, then one per value. */
 .matrix {
   display: grid;

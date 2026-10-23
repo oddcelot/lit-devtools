@@ -8,18 +8,14 @@ import {html} from 'lit';
 import '../../../src/panel/figures/no-host.js';
 import {injectTokens} from '../../../src/lib/token-text.js';
 import {summarizeRange} from '../../../src/lib/timeline/range.js';
-import {events, layers, spans} from '../../../src/panel/figures/recording.js';
-import {useRecordedEvents} from '../../../src/panel/timeline-store.js';
+import {layers, spans} from '../../../src/panel/figures/recording.js';
 import '../../../src/panel/wa-icons.js';
 import '../../../src/panel/timeline-layers.js';
 import '../../../src/panel/timeline-span-detail.js';
 import '../../../src/panel/timeline-range-summary.js';
-import '../../../src/panel/updates-view.js';
+import '../../../src/panel/figures/updates-figure.js';
 
 injectTokens({scope: '.panel-specimen', webAwesome: true});
-// The Updates view reads the panel's event buffer; fill it from the
-// recording before it subscribes and looks for a host to stream from.
-useRecordedEvents(events);
 
 const specimen = (content: unknown) =>
   html`<div class="panel-specimen">${content}</div>`;
@@ -68,5 +64,4 @@ export const rangeSummary = () =>
     ></timeline-range-summary>`
   );
 
-export const updates = () =>
-  html`<div class="panel-specimen tall"><updates-view></updates-view></div>`;
+export const updates = () => html`<updates-figure></updates-figure>`;

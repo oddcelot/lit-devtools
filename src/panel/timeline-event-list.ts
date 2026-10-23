@@ -327,8 +327,9 @@ export class TimelineEventList extends LitElement {
   @property({attribute: false}) filter: TimelineFilter = NO_FILTER;
   /** Let the detail pane offer **inspect** (see `timeline-span-detail`). */
   @property({attribute: false}) inspectable = true;
-  /** One row per raw event instead of one per collapsed span. */
-  @state() private _raw = false;
+  /** One row per raw event instead of one per collapsed span: the filter
+   *  bar's Raw switch, which sets it. A figure can start with it on. */
+  @property({type: Boolean}) raw = false;
   /** Keys of the ticks whose nested rows are listed. Replaced, never mutated,
    *  so Lit and the row memo see it change. */
   @state() private _expanded: ReadonlySet<string> = new Set();
@@ -369,17 +370,17 @@ export class TimelineEventList extends LitElement {
       // The scroll event can still be on its way when new events arrive.
       else if (this._scrollRef.value) this._trackScroll(this._scrollRef.value);
     }
-    if (changed.has('events') || changed.has('spans') || changed.has('_raw')) {
+    if (changed.has('events') || changed.has('spans') || changed.has('raw')) {
       // A selection that is not among these rows (a span key in Raw mode, or
       // one that fell out of the buffer) just shows as unselected here;
       // `timeline-view` owns clearing it.
-      this._rowsCache = this._raw ? this.events.map(rawRow) : this.spans;
+      this._rowsCache = this.raw ? this.events.map(rawRow) : this.spans;
     }
     if (changed.has('selectedKey')) this._revealSelection();
     const refilter =
       changed.has('events') ||
       changed.has('spans') ||
-      changed.has('_raw') ||
+      changed.has('raw') ||
       changed.has('layers') ||
       changed.has('filter');
     if (refilter) this._refilter();
@@ -392,7 +393,7 @@ export class TimelineEventList extends LitElement {
    * selection, so the reader can close the tick again afterwards.
    */
   private _revealSelection() {
-    if (this._raw || this.selectedKey === null) return;
+    if (this.raw || this.selectedKey === null) return;
     const span = this._rowsCache.find((row) => row.key === this.selectedKey);
     const parent = span ? foldParentKey(span, this._rowsCache) : undefined;
     if (parent !== undefined && !this._expanded.has(parent)) {
@@ -413,7 +414,7 @@ export class TimelineEventList extends LitElement {
   private _regroup() {
     this._rowsExpanded = this._expanded;
     // Raw rows have no ticks to group.
-    this._visibleCache = this._raw
+    this._visibleCache = this.raw
       ? this._matchedCache.map((span) => ({span, depth: 0}))
       : buildListRows(this._layered, this._matchedCache, this._expanded);
     this._buildRails();
@@ -427,7 +428,7 @@ export class TimelineEventList extends LitElement {
   private _buildRails() {
     this._railsCache = new Map();
     this._laneCount = 0;
-    if (this._raw) {
+    if (this.raw) {
       this.style.removeProperty('--lane-count');
       return;
     }
@@ -619,12 +620,12 @@ export class TimelineEventList extends LitElement {
           ? html`
               <div class="filterbar">
                 <lit-switch
-                  class=${this._raw ? 'on' : ''}
+                  class=${this.raw ? 'on' : ''}
                   size="s"
-                  ?checked=${this._raw}
+                  ?checked=${this.raw}
                   data-tip="Show one row per recorded event instead of collapsing start/end pairs"
                   @change=${() => {
-                    this._raw = !this._raw;
+                    this.raw = !this.raw;
                     // Raw and collapsed rows have different keys, so the
                     // selection cannot carry across the switch.
                     this._select(null);
@@ -810,7 +811,7 @@ export class TimelineEventList extends LitElement {
                   this._toggle(item, e.key === 'ArrowRight');
                 }}
               ></button>`
-            : this._raw
+            : this.raw
               ? nothing
               : html`<span class="twisty" aria-hidden="true"></span>`
         }

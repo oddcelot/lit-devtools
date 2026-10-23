@@ -14,50 +14,18 @@ const componentPath = resolve(here, '../src/components/ThemedImage.astro');
 
 // Alt text says what to notice, per STYLE.md.
 const ALT = {
-  'indicator-idle':
-    'The HMR indicator at rest in the corner of the page: a flame icon, a dot and a zero.',
-  'indicator-green':
-    'The indicator pulsing green after a component edit; the count reads 1.',
-  'indicator-cyan':
-    'The indicator pulsing cyan after a stylesheet swap; the count has not moved.',
-  'hmr-indicator-green':
-    'The indicator pulsing green after a component edit; the count reads 1.',
-  'hmr-indicator-cyan':
-    'The indicator pulsing cyan after a stylesheet swap; the count has not moved.',
-  'css-sheet-cyan-pulse':
-    'The indicator pulsing cyan after a shared stylesheet edit, with the count unchanged.',
-  'tutorial-indicator-idle':
-    'The indicator at rest in the corner of the page, showing 0.',
-  'tutorial-green-pulse':
-    'The indicator pulsing green after the label edit; the count reads 1.',
   'tutorial-state-survives':
     'The notes component after a header edit: both notes, the count and the half-typed input are still there.',
-  'tutorial-cyan-pulse':
-    'The indicator pulsing cyan after the theme.css edit; the count has not moved.',
-  'source-overlay-armed':
-    'The source overlay outlining a component, with a tooltip showing its tag name and source file.',
   'devtools-panel-docked':
     'The Lit panel docked inside Vite DevTools, showing the Components tab.',
   'devtools-settings-tab':
     'The Settings tab listing the resolved options with live overrides and a Reset overrides button.',
-  'devtools-timeline-collapsed':
-    'The Timeline tab with collapsed lifecycle rows for hmr-counter, each showing its duration.',
-  'devtools-timeline-raw':
-    'The Timeline tab with Raw on: one row per recorded event, including custom Router events.',
-  'devtools-timeline-row-details':
-    'A timeline row expanded to show the element, instance id, changed properties and source link.',
   'devtools-export-snapshot':
     'An exported snapshot opened as a static page: the same timeline, read-only.',
   'devtools-components-tree':
     'The Components tab: the element tree on the left, hmr-properties selected, its reactive properties on the right.',
   'devtools-flash':
     'The playground with flash on: fading outlines over the components that just updated.',
-  'devtools-updates-table':
-    'The Updates tab table: one row per component with update counts and total time.',
-  'devtools-updates-detail':
-    'One update expanded in the Updates tab, showing the changed property keys and the triggering input event.',
-  'devtools-custom-layer':
-    'Timeline rows from a custom Router layer, in the layer colour, next to Lit lifecycle rows.',
   'landing-panel-docked':
     'A Lit app with the DevTools panel docked below it and the HMR indicator in the corner.',
 };
@@ -74,12 +42,6 @@ const walk = async (dir) => {
 
 // Slot names that reuse an existing capture.
 const ALIAS = {
-  'hmr-indicator-green': 'indicator-green',
-  'hmr-indicator-cyan': 'indicator-cyan',
-  'css-sheet-cyan-pulse': 'indicator-cyan',
-  'tutorial-indicator-idle': 'indicator-idle',
-  'tutorial-green-pulse': 'indicator-green',
-  'tutorial-cyan-pulse': 'indicator-cyan',
   'landing-panel-docked': 'devtools-panel-docked',
 };
 
