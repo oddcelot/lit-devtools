@@ -17,6 +17,16 @@ import {GROUPS, SECTIONS, type Section} from './sections.js';
 
 const DENSITY_KEY = 'kitchen-sink:density';
 
+// The chrome's tokens follow the OS scheme on their own; Web Awesome only
+// switches by class, so the top bar, where the chrome's controls are, takes
+// `.wa-dark` with it, or they draw light-scheme text on the dark chrome. Not
+// `:root`: the specimens' scoped tokens pick the nearest `.wa-dark` /
+// `.wa-light` ancestor, and one on the root would match inside the light
+// halves too. Asks for light: the tokens are dark when the OS states no
+// preference.
+const lightScheme = matchMedia('(prefers-color-scheme: light)');
+lightScheme.addEventListener('change', () => draw());
+
 let filter = '';
 
 const matches = (s: Section) =>
@@ -61,7 +71,7 @@ const section = (s: Section) => html`<section id=${s.tag}>
 const draw = () =>
   render(
     html`<div class="shell density-${density}">
-      <div class="top">
+      <div class="top ${lightScheme.matches ? '' : 'wa-dark'}">
         <h1>lit-* kitchen sink</h1>
         <span class="meta"
           >@oddsquad/lit-components on Web Awesome, themed by
@@ -79,17 +89,19 @@ const draw = () =>
           ><lit-icon slot="start" name="magnifying-glass"></lit-icon
         ></lit-input>
         <span class="density">
-          Density
-          ${(['docs', 'devtools'] as const).map(
-            (d) =>
-              html`<lit-button
-                variant="neutral"
-                appearance=${density === d ? 'filled' : 'plain'}
-                aria-pressed=${density === d ? 'true' : 'false'}
-                @click=${() => setDensity(d)}
-                >${d === 'docs' ? 'Docs' : 'DevTools'}</lit-button
-              >`
-          )}
+          <span aria-hidden="true">Density</span>
+          <wa-button-group label="Density">
+            ${(['docs', 'devtools'] as const).map(
+              (d) =>
+                html`<lit-button
+                  variant="neutral"
+                  appearance=${density === d ? 'accent' : 'outlined'}
+                  aria-pressed=${density === d ? 'true' : 'false'}
+                  @click=${() => setDensity(d)}
+                  >${d === 'docs' ? 'Docs' : 'DevTools'}</lit-button
+                >`
+            )}
+          </wa-button-group>
         </span>
       </div>
       <nav>

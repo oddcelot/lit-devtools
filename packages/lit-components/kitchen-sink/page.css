@@ -64,12 +64,14 @@ body {
 }
 .top .density {
   flex-shrink: 0;
-}
-.top .density {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   color: var(--text-secondary);
+}
+/* Both options the same width, so picking one doesn't move the other. */
+.top .density lit-button {
+  min-width: 6.5em;
 }
 
 nav {
