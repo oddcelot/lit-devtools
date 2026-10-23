@@ -903,14 +903,13 @@ export class ComponentsView extends LitElement {
       .row lit-badge.ssr {
         margin-left: var(--lit-devtools-space-3);
       }
-      /* A true pill, the one round shape in the square theme, so the
-         hydration state reads apart from the plain-text chips. */
+      /* A pill (the theme's one round shape), so the hydration state
+         reads apart from the plain-text chips. */
       /* Sized in em so it scales with the label. The icon side's padding
          matches the vertical padding, which centres the round icon in the
          pill's round end; the text side gets about half the height, so the
          label clears the curve. */
       lit-badge.ssr {
-        --wa-border-radius-pill: 9999px;
         flex-shrink: 0;
         gap: 0.3em;
         font-size: calc(var(--lit-devtools-text-2xs) - 1px);

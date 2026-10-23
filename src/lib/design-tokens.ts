@@ -94,14 +94,14 @@ export const designBaseCSS = `
   --lit-devtools-space-14: 80px;
   --lit-devtools-space-16: 96px;
 
-  /* ---- Radius · square corners throughout ---- */
+  /* ---- Radius · square corners; pills are the one round shape ---- */
   --lit-devtools-radius-xs: 0;
   --lit-devtools-radius-sm: 0;
   --lit-devtools-radius-md: 0; /* default control / card */
   --lit-devtools-radius-lg: 0; /* panels, active nav pill */
   --lit-devtools-radius-xl: 0;
   --lit-devtools-radius-2xl: 0; /* DevTools window shell */
-  --lit-devtools-radius-pill: 0;
+  --lit-devtools-radius-pill: 9999px; /* the one round shape: pills and dots */
 
   --lit-devtools-border-width: 1px;
   --lit-devtools-border-width-thick: 2px;

@@ -94,14 +94,14 @@
   --space-14: 80px;
   --space-16: 96px;
 
-  /* ---- Radius · square corners throughout ---- */
+  /* ---- Radius · square corners; pills are the one round shape ---- */
   --radius-xs: 0;
   --radius-sm: 0;
   --radius-md: 0; /* default control / card */
   --radius-lg: 0; /* panels, active nav pill */
   --radius-xl: 0;
   --radius-2xl: 0; /* DevTools window shell */
-  --radius-pill: 0;
+  --radius-pill: 9999px; /* the one round shape: pills and dots */
 
   --border-width: 1px;
   --border-width-thick: 2px;

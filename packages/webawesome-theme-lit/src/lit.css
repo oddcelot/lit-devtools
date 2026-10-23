@@ -74,8 +74,8 @@
       1px
     );
 
-    /* The design system's radii, square throughout; circles (a switch
-       thumb, a status dot) follow pills. */
+    /* The design system's radii: square corners, round pills. Circles (a
+       status dot) follow pills; lit-switch stays square. */
     --wa-border-radius-s: var(--radius-sm);
     --wa-border-radius-m: var(--radius-md);
     --wa-border-radius-l: var(--radius-lg);
