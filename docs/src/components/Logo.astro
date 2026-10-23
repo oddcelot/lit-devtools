@@ -7,40 +7,60 @@
  * The SVGs in `src/assets/logos/` come from upstream: Vite's from the
  * create-vite template favicon, the browsers' from alrra/browser-logos,
  * Vite DevTools' from vitejs/devtools (docs/public/logo.svg), Astro's from
- * the create-astro template favicon and MCP's from
+ * its press kit (withastro/astro.build, public/assets/press/) and MCP's from
  * modelcontextprotocol/modelcontextprotocol (docs/favicon.svg). The
  * full-colour ones render as `<img>` rather than inline SVG, because the
  * Firefox and Safari files define gradient ids that would collide when a
  * table repeats them on one page.
  *
- * Astro and MCP are one-colour marks. Upstream, Astro's switches colour with
- * the OS scheme and MCP's sits on a black tile; here both are the bare shape
- * (style and tile removed), drawn as a mask in the text colour, so they
- * follow the site's theme.
+ * Astro's colour mark has a white A over its gradient flame, for dark
+ * backgrounds (`astro-icon-light-gradient.svg`), and the press kit has no
+ * gradient one for light. So the light theme gets the same file with the A
+ * in #17191E, the colour of the kit's dark icon; the two swap with the
+ * site's theme.
+ *
+ * MCP's is a one-colour mark on a black tile upstream; here it is the bare
+ * shape, drawn as a mask in the text colour, so it follows the theme.
  */
 import chrome from '../assets/logos/chrome.svg';
 import firefox from '../assets/logos/firefox.svg';
 import safari from '../assets/logos/safari.svg';
 import vite from '../assets/logos/vite.svg';
 import viteDevtools from '../assets/logos/vite-devtools.svg';
-import astro from '../assets/logos/astro.svg';
+import astroOnDark from '../assets/logos/astro-on-dark.svg';
+import astroOnLight from '../assets/logos/astro-on-light.svg';
 import mcp from '../assets/logos/mcp.svg';
 
 const logos = {chrome, firefox, safari, vite, 'vite-devtools': viteDevtools};
-const marks = {astro, mcp};
+const marks = {mcp};
+/** Marks with one file per theme: for a dark page, then for a light one. */
+const themed = {astro: [astroOnDark, astroOnLight]};
 
 interface Props {
-  name: keyof typeof logos | keyof typeof marks;
+  name: keyof typeof logos | keyof typeof marks | keyof typeof themed;
   /** Any CSS length. Defaults to a little over the surrounding font size. */
   size?: string;
 }
 
 const {name, size = '1.25em'} = Astro.props;
 const mark = name in marks ? marks[name as keyof typeof marks] : undefined;
+const pair = name in themed ? themed[name as keyof typeof themed] : undefined;
+const box = {height: size, width: size};
 ---
 
 {
-  mark ? (
+  pair ? (
+    pair.map((image, i) => (
+      <img
+        class:list={['brand-logo', i === 0 ? 'on-dark' : 'on-light']}
+        src={image.src}
+        alt=""
+        style={box}
+        loading="lazy"
+        decoding="async"
+      />
+    ))
+  ) : mark ? (
     <span
       class="brand-logo mark"
       aria-hidden="true"
@@ -64,6 +84,10 @@ const mark = name in marks ? marks[name as keyof typeof marks] : undefined;
     vertical-align: -0.3em;
     margin-inline-end: 0.3em;
     object-fit: contain;
+  }
+  :global(:root[data-theme='light']) .on-dark,
+  :global(:root:not([data-theme='light'])) .on-light {
+    display: none;
   }
   .mark {
     background: currentColor;
