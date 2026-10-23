@@ -9,6 +9,7 @@
  */
 import arrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import chartBarHorizontal from '@phosphor-icons/core/assets/regular/chart-bar-horizontal.svg?raw';
+import bookOpen from '@phosphor-icons/core/assets/regular/book-open.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
 import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
 import cursorClick from '@phosphor-icons/core/assets/regular/cursor-click.svg?raw';
@@ -27,6 +28,7 @@ import treeStructure from '@phosphor-icons/core/assets/regular/tree-structure.sv
 
 const icons = {
   'arrow-right': arrowRight,
+  'book-open': bookOpen,
   'chart-bar-horizontal': chartBarHorizontal,
   check,
   copy,
