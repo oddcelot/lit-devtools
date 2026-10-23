@@ -13,7 +13,6 @@ import bookOpen from '@phosphor-icons/core/assets/regular/book-open.svg?raw';
 import check from '@phosphor-icons/core/assets/regular/check.svg?raw';
 import copy from '@phosphor-icons/core/assets/regular/copy.svg?raw';
 import cursorClick from '@phosphor-icons/core/assets/regular/cursor-click.svg?raw';
-import githubLogo from '@phosphor-icons/core/assets/regular/github-logo.svg?raw';
 import hardDrives from '@phosphor-icons/core/assets/regular/hard-drives.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
 import monitor from '@phosphor-icons/core/assets/regular/monitor.svg?raw';
@@ -33,7 +32,6 @@ const icons = {
   check,
   copy,
   'cursor-click': cursorClick,
-  'github-logo': githubLogo,
   'hard-drives': hardDrives,
   lightning,
   monitor,

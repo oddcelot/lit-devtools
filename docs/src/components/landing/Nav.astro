@@ -7,6 +7,7 @@
  * WaScheme.astro does on the docs pages.
  */
 import flame from '../../assets/lit-flame.svg';
+import {Icon} from '@astrojs/starlight/components';
 import {phosphor} from '../../lib/phosphor';
 
 const links = [
@@ -49,7 +50,7 @@ const links = [
         href="https://github.com/oddcelot/vite-plugin-lit"
         aria-label="vite-plugin-lit on GitHub"
       >
-        <Fragment set:html={phosphor('github-logo', '1.25rem')} />
+        <Icon name="github" size="1.25rem" />
       </a>
       <a class="start" href="/start/installation/">Get started</a>
     </div>

@@ -8,6 +8,7 @@
  * /start/installation/; every link out of here goes into them.
  */
 import {Font} from 'astro:assets';
+import {Icon} from '@astrojs/starlight/components';
 import '@oddsquad/webawesome-theme-lit/lit.css';
 import '../styles/custom.css';
 import Nav from '../components/landing/Nav.astro';
@@ -350,7 +351,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
           <div class="actions">
             <a class="button primary" href="/start/installation/">Get started</a>
             <a class="button" href="https://github.com/oddcelot/vite-plugin-lit"
-              ><Fragment set:html={phosphor('github-logo')} /> Star on GitHub</a
+              ><Icon name="github" size="1.15em" /> Star on GitHub</a
             >
           </div>
         </div>
