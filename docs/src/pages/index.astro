@@ -272,6 +272,13 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
       <section class="section" id="more">
         <div class="wrap">
           <h2 class="center reveal">Everything else you'd want.</h2>
+          <p class="center reveal tour-link">
+            <a class="more" href="/overview/tour/"
+              >See each one running in the feature tour <Fragment
+                set:html={phosphor('arrow-right')}
+              /></a
+            >
+          </p>
           <div class="features">
             {
               features.map((f) => (
@@ -366,6 +373,12 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
           </a>
           <p>True HMR, shared stylesheets and DevTools for Lit in Vite.</p>
         </div>
+        <nav aria-label="Overview">
+          <h4>Overview</h4>
+          <a href="/overview/why/">Why vite-plugin-lit</a>
+          <a href="/overview/tour/">Feature tour</a>
+          <a href="/overview/compare/">Compared to alternatives</a>
+        </nav>
         <nav aria-label="Docs">
           <h4>Start</h4>
           <a href="/start/installation/">Installation</a>
@@ -733,6 +746,9 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     color: var(--text-strong);
   }
 
+  .tour-link {
+    margin: 1rem 0 0;
+  }
   .features {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -870,7 +886,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
   }
   .footer-grid {
     display: grid;
-    grid-template-columns: 2fr repeat(3, 1fr);
+    grid-template-columns: 2fr repeat(4, 1fr);
     gap: 2rem;
   }
   .footer p {

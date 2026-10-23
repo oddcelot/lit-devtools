@@ -1,0 +1,128 @@
+---
+title: Feature tour
+description: Every feature of vite-plugin-lit in one page, each running live, with the guide that sets it up.
+sidebar:
+  order: 2
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+import DemoFrame from '../../../components/landing/DemoFrame.astro';
+import HmrIndicator from '../../../components/HmrIndicator.astro';
+import SourceOverlay from '../../../components/SourceOverlay.astro';
+import UpdatesFigure from '../../../components/UpdatesFigure.astro';
+import TimelineFigure from '../../../components/TimelineFigure.astro';
+import LivePanel from '../../../components/LivePanel.astro';
+import StoreButtons from '../../../components/StoreButtons.astro';
+
+See every feature of the plugin running, each next to the guide that sets it
+up. Everything on this page is live: the figures are the plugin's own UI, not
+screenshots.
+
+## Hot patching that keeps state
+
+Save a component and the page stays put. A hot patch is an edit applied to the
+running page without a reload: the plugin updates the class in place, so
+every element keeps its state. The indicator in the corner of the page pulses
+green when a patch lands. Click the figure to replay the pulse.
+
+<HmrIndicator
+  state="update"
+  count={3}
+  alt="The HMR indicator after a component patch: the dot green, the count at 3."
+/>
+
+On by default. Guide: [Keep state across edits](/guides/hmr/).
+
+## One stylesheet for every shadow root
+
+Import a CSS file with `?css-sheet` and every component adopts the same
+`CSSStyleSheet`. Recolour the thousand shadow roots below both ways and
+compare the re-render count.
+
+<DemoFrame
+  src="/demo/sheets/"
+  title="Stylesheet demo: a thousand shadow roots recoloured"
+  height="25rem"
+  narrowHeight="30rem"
+  caption="One shared sheet restyles all of them with no component rendering. A style element in each costs a thousand updates."
+/>
+
+On by default. Guide: [Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/).
+
+## Open a component's source from the page
+
+Hold the shortcut and point at any element. The overlay outlines the
+component and names the file and line that declares it and the one that
+renders it. Click to open either in your editor.
+
+<SourceOverlay
+  tag="hmr-counter"
+  path="src/hmr-counter.ts:7"
+  site="index.html:120"
+  alt="The source overlay outlining hmr-counter, with its source file and the line that renders it."
+/>
+
+Turn on: `sourceOverlay` option. Guide: [Open a component in your editor from the page](/guides/source-overlay/).
+
+## Inspect live components
+
+The DevTools panel lists every Lit element on the page as a tree. Select one
+to read and edit its properties, state and controllers while it runs. This
+is the whole panel, inspecting the demo page above it.
+
+<LivePanel caption="Click a component in the tree, then change one of its properties." />
+
+Turn on: the `timeline` option, with Vite DevTools. Guide: [Set up the DevTools panel](/guides/devtools/), then [Inspect live components](/guides/devtools/components/).
+
+## See every update and its cause
+
+The Updates tab counts each component's updates and shows what changed in
+each, with the time it took.
+
+<UpdatesFigure caption="A recorded session in the Updates tab: one row per component, with its update count and timings." />
+
+Guide: [Updates](/guides/devtools/updates/).
+
+## Read a session on one timeline
+
+Record a session and the Timeline puts every render, property change, patch
+and custom event on one time axis, in tracks or as a list.
+
+<TimelineFigure
+  mode="tracks"
+  caption="A recorded session in Tracks mode: one lane per layer, events in time. Drag across the ruler to zoom."
+/>
+
+Guide: [Record and read the timeline](/guides/devtools/timeline/).
+
+## Give your coding agent the page
+
+The same component tree and timeline are MCP tools. An agent asks which
+components re-rendered and why, and reads the answer from the running page
+instead of guessing from the code.
+
+Guide: [Connect a coding agent](/guides/devtools/agents/).
+
+## Inspect sites you don't serve
+
+Lit Inspector is the same panel as a browser extension. It works on
+production builds and on any Lit site, with no Vite and no plugin.
+
+<StoreButtons />
+
+Guide: [Browser extension](/guides/devtools/browser-extension/).
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Installation"
+    description="Install the plugin and add it to your Vite config."
+    href="/start/installation/"
+  />
+  <LinkCard
+    title="Compared to alternatives"
+    description="Plain Vite, Open Web Components' HMR plugin, and a Vite fork of it."
+    href="/overview/compare/"
+  />
+</CardGrid>

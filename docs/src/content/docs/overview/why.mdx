@@ -1,0 +1,82 @@
+---
+title: Why vite-plugin-lit
+description: What a save costs you in a Lit project under plain Vite, what the plugin changes, and what it asks of you in return.
+sidebar:
+  order: 1
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+import DemoFrame from '../../../components/landing/DemoFrame.astro';
+
+See what a save costs you in a Lit project today, and what changes with the
+plugin. Already convinced? Go straight to [Installation](/start/installation/).
+
+## A save costs you your place
+
+Vite's hot module replacement works for frameworks that bring a runtime to
+swap components. Lit has none, and the browser refuses to define a custom
+element tag twice. So when you save a Lit component, Vite reloads the page.
+
+The reload takes everything you had built up: the count you clicked to, the
+text half-typed into a field, the open menu, the scroll position, the step
+of the form you were testing. You click your way back, check the change, and
+save again.
+
+## The plugin patches the class in place
+
+The plugin catches the second `customElements.define()` and updates the class
+the browser already registered. The elements on the page are the same
+elements, so their state stays where it was. Only the markup you edited
+changes.
+
+Try it below. Both panes run the same component; make an edit and compare.
+
+<DemoFrame
+  src="/demo/hmr/"
+  title="HMR demo: the same component with and without vite-plugin-lit"
+  height="31rem"
+  narrowHeight="46rem"
+  caption="The plugin's own patcher, running in this page. Click the counter, type in a box, then make an edit."
+/>
+
+## Two more things you get
+
+**One stylesheet for every shadow root.** Each shadow root normally carries
+its own copy of a component's CSS. Import a file with `?css-sheet` and every
+component adopts one shared `CSSStyleSheet` instead. An edit to that file
+restyles every instance at once, and no component re-renders.
+
+**A panel that explains re-renders.** The DevTools panel shows the live
+component tree, each update with what triggered it and how long it took, and
+a timeline of the whole session. Your coding agent can read the same data
+over MCP.
+
+The [feature tour](/overview/tour/) shows each of these running.
+
+## What it asks of you
+
+- **One line of config.** `litPlugin()` in your Vite config turns on hot
+  patching and the CSS import queries. The panel and the source overlay are
+  opt-in.
+- **Vite 7 or 8, and Lit 3.** The [compatibility page](/reference/compatibility/)
+  has the full matrix.
+- **Nothing in production.** Patching, the indicator and the panel run on the
+  dev server only. A production build ships your components and nothing else.
+- **A few shapes still reload.** Standard `accessor` decorators, a changed
+  `observedAttributes` list and module-level state are the main ones. The
+  [limitations page](/reference/limitations/) lists each with its workaround.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Compared to alternatives"
+    description="Plain Vite, Open Web Components' HMR plugin, and a Vite fork of it."
+    href="/overview/compare/"
+  />
+  <LinkCard
+    title="Build your first hot-reloading component"
+    description="The tutorial: a Vite project, one component, and a patch you can see."
+    href="/start/first-component/"
+  />
+</CardGrid>

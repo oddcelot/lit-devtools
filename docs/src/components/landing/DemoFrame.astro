@@ -1,8 +1,10 @@
 ---
 /**
- * One of the live demos (src/pages/demo/, or the live panel) framed on the
- * landing page, with a caption that says what to try. The frame loads when
- * it nears the viewport, so the hero's is the only one on first paint.
+ * One of the live demos (src/pages/demo/, or the live panel) in a frame,
+ * with a caption that says what to try. The landing page uses it, and so do
+ * the Overview pages in the docs. The frame loads when it nears the
+ * viewport, so on the landing page the hero's is the only one on first
+ * paint.
  */
 import Glow from './Glow.astro';
 
@@ -35,7 +37,7 @@ const {
 } = Astro.props;
 ---
 
-<figure class="demo-frame">
+<figure class="demo-frame not-content">
   <Glow>
     <iframe
       id={id}
@@ -69,6 +71,10 @@ const {
 <style>
   .demo-frame {
     margin: 0;
+  }
+  /* In a docs page, the same rhythm as the other figures. */
+  :global(.sl-markdown-content) .demo-frame {
+    margin-block: 1.5rem;
   }
   iframe {
     display: block;

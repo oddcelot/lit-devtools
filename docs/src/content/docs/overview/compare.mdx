@@ -1,0 +1,86 @@
+---
+title: Compared to alternatives
+description: How vite-plugin-lit differs from plain Vite, Open Web Components' HMR plugin and the Vite fork of it, by what each keeps across an edit and what it asks of your code.
+sidebar:
+  order: 3
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+
+Choose between the ways to get hot reloading for Lit, by what each keeps
+across an edit and what it asks of your code. The facts about other tools
+come from their own documentation, as of October 2026; follow the links for
+the current state.
+
+## At a glance
+
+|                                        | Plain Vite            | [Open WC HMR][owc]            | [Gracile HMR][gracile]                        | vite-plugin-lit                  |
+| -------------------------------------- | --------------------- | ----------------------------- | --------------------------------------------- | -------------------------------- |
+| Dev server                             | Vite                  | Web Dev Server only           | Vite                                          | Vite 7 and 8                     |
+| On a component edit                    | Reloads the page      | Updates the class in place    | Updates templates and styles without a reload | Patches the class in place       |
+| Changes to your base class             | None                  | Needs a `hotReplacedCallback` | Lit preset                                    | None                             |
+| Element state                          | Lost                  | Kept                          | Not stated                                    | Kept                             |
+| Unchanged sibling DOM                  | Rebuilt by the reload | Not stated                    | Not stated                                    | Kept, through template interning |
+| State of re-created child elements     | Lost                  | Not stated                    | Not stated                                    | Transferred by default           |
+| Shared stylesheets across shadow roots | No                    | Not in scope                  | Not in scope                                  | `?css-sheet`, `urlSheet()`       |
+| DevTools panel and MCP tools           | No                    | Not in scope                  | Not in scope                                  | Yes                              |
+| Status                                 | Stable                | Marked experimental           | Only the core and Lit preset are tested       | Pre-1.0, released often          |
+
+[owc]: https://open-wc.org/docs/development/hot-module-replacement/
+[gracile]: https://gracile.js.org/docs/add-ons/hmr/
+
+## Plain Vite
+
+Vite reloads the page when an edited module has no hot-update handler, and a
+Lit component module has none. The reload is reliable and needs nothing from
+you, but every element starts over. The [Why page](/overview/why/) shows the
+difference side by side.
+
+## Open Web Components' HMR plugin
+
+[`@open-wc/dev-server-hmr`][owc] patches custom element classes in place for
+Web Dev Server. Its documentation marks it experimental and says it works only
+there, not in Vite. Your base class implements a `hotReplacedCallback` that
+the plugin calls after a patch; it ships presets that do this for Lit 2 and 3.
+
+Its documented limits: constructors do not re-run for existing elements, new
+fields are not available on them, and a changed `observedAttributes` list
+needs a refresh.
+
+## Gracile's HMR plugin
+
+[`@gracile-labs/hmr`][gracile] brings the same approach to Vite. It derives
+from `vite-plugin-web-components-hmr`, itself a fork of the Open Web
+Components plugin, and has a preset for Lit. Its documentation states that only
+the core and the Lit preset are tested.
+
+## vite-plugin-lit
+
+The plugin targets Lit on Vite and goes further than swapping the class:
+
+- It patches the class the browser registered first, so nothing in your
+  component code changes and no base-class hook is needed.
+- It interns templates, so an edit to one `html` literal rebuilds only that
+  literal's DOM. Siblings keep focus, selection and scroll.
+- It carries state onto child elements an edited template re-creates.
+- It adds what a Lit project needs around HMR: shared stylesheets, a source
+  overlay, and a DevTools panel your coding agent can read.
+
+It shares one limit with the others: a changed `observedAttributes` list
+cannot be applied in place. The [limitations page](/reference/limitations/)
+lists the rest.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="How hot patching works"
+    description="Template interning and in-place class patching, step by step."
+    href="/concepts/how-hmr-works/"
+  />
+  <LinkCard
+    title="Installation"
+    description="Install the plugin and add it to your Vite config."
+    href="/start/installation/"
+  />
+</CardGrid>
