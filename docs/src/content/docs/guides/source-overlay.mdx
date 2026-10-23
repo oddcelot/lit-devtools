@@ -6,9 +6,7 @@ sidebar:
 ---
 
 import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
-import ThemedImage from '../../../components/ThemedImage.astro';
-import sourceOverlayArmedLight from '../../../assets/shots/source-overlay-armed.light.png';
-import sourceOverlayArmedDark from '../../../assets/shots/source-overlay-armed.dark.png';
+import SourceOverlay from '../../../components/SourceOverlay.astro';
 import Since from '../../../components/Since.astro';
 
 Point at any element on the page and jump to the file and line that renders
@@ -48,9 +46,10 @@ LIT_PLUGIN_SOURCE_OVERLAY_EDITOR=zed
    tag name and source file, plus a second row for the line that renders it
    when it has one.
 
-   <ThemedImage
-     light={sourceOverlayArmedLight}
-     dark={sourceOverlayArmedDark}
+   <SourceOverlay
+     tag="hmr-counter"
+     path="src/hmr-counter.ts:7"
+     site="index.html:120"
      alt="The source overlay outlining hmr-counter. The tooltip shows its tag name and source file, and a second row reads rendered at index.html:120."
    />
 

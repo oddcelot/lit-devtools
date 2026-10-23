@@ -408,25 +408,6 @@ const SHOTS = [
     capture: chromePerformanceTracks,
   },
   {
-    name: 'source-overlay-armed',
-    capture: async (ctx) => {
-      // Smaller viewport: the tooltip is pinned to the bottom edge, so a tall
-      // window would put a lot of nothing between it and the hovered card.
-      const page = await ctx.openApp({viewport: {width: 900, height: 560}});
-      await page.locator('lit-source-overlay').waitFor({state: 'attached'});
-      await page.keyboard.press('Control+Shift+S');
-      const button = page.locator('hmr-counter').locator('css=#increment');
-      const b = await button.boundingBox();
-      // `hover()` fails the actionability check under the overlay's modal
-      // <dialog>; raw mouse moves are what the overlay listens for anyway.
-      await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
-      await sleep(120);
-      await page.mouse.move(b.x + b.width / 2 + 2, b.y + b.height / 2 + 1);
-      await sleep(900);
-      await ctx.shot(page);
-    },
-  },
-  {
     name: 'devtools-components-tree',
     capture: async (ctx) => {
       await ctx.openApp();

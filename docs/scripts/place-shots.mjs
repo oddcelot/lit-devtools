@@ -16,8 +16,6 @@ const componentPath = resolve(here, '../src/components/ThemedImage.astro');
 const ALT = {
   'tutorial-state-survives':
     'The notes component after a header edit: both notes, the count and the half-typed input are still there.',
-  'source-overlay-armed':
-    'The source overlay outlining a component, with a tooltip showing its tag name and source file.',
   'devtools-panel-docked':
     'The Lit panel docked inside Vite DevTools, showing the Components tab.',
   'devtools-settings-tab':

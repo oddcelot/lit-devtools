@@ -1,0 +1,80 @@
+---
+/**
+ * The source overlay as the picker shows it, drawn live from the runtime's
+ * own template (src/panel/figures/source-overlay.ts, shared with the kitchen
+ * sink) instead of a screenshot, so it follows the theme and every change to
+ * the overlay. It outlines the slotted content, or a stand-in counter, with
+ * the tooltip under it. It renders in the browser only.
+ */
+interface Props {
+  /** The outlined element's tag name, without the brackets. */
+  tag: string;
+  /** Where its class is declared, `file:line`. */
+  path?: string;
+  /** Where it is rendered, `file:line`. */
+  site?: string;
+  /** The arrow keys' way out and back, as the tooltip words it. */
+  step?: string;
+  /** The row a Cmd/Ctrl (`source`) or Cmd/Ctrl+Shift (`site`) click opens. */
+  armed?: 'source' | 'site';
+  /** What to notice, for screen readers; the figure is one image to them. */
+  alt: string;
+}
+const {tag, path, site, step, armed, alt} = Astro.props;
+---
+
+<figure class="source-overlay not-content" role="img" aria-label={alt}>
+  <source-overlay-specimen
+    tag={tag}
+    path={path}
+    site={site}
+    step={step}
+    armed={armed}
+  >
+    <slot>
+      <div class="stand-in">
+        <strong>Counter: HELLO</strong>
+        <span><span class="count">Count: 0</span> renders: 1</span>
+      </div>
+    </slot>
+  </source-overlay-specimen>
+</figure>
+
+<script>
+  import '../../../src/panel/figures/source-overlay.ts';
+</script>
+
+<style>
+  .source-overlay {
+    margin: 1.5rem 0;
+    padding: 1.25rem;
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: var(--radius-md);
+    background: var(--sl-color-black);
+  }
+  source-overlay-specimen:not(:defined) {
+    display: block;
+    min-height: 9rem;
+  }
+  .stand-in {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: var(--sl-color-white);
+  }
+  .stand-in strong {
+    font-size: var(--sl-text-2xl);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .stand-in > span {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+  }
+  .count {
+    margin-inline-end: 0.75rem;
+    padding: 0.125rem 0.5rem;
+    background: var(--sl-color-gray-5);
+    color: var(--sl-color-white);
+  }
+</style>
