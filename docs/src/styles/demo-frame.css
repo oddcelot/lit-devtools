@@ -1,0 +1,56 @@
+/* What every demo frame under src/pages/demo/ shares: the page itself, and
+   the window chrome the demos draw their panes in. The colours come from
+   the design tokens, which switch with `[data-theme]` on the root. */
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.window {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.window > .bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  background: var(--surface-low);
+  border-bottom: 1px solid var(--border);
+}
+
+.bar .dots {
+  display: inline-flex;
+  gap: 0.3rem;
+}
+
+.bar .dots i {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.bar .file {
+  font-family: var(--font-lilex, ui-monospace, monospace);
+}
