@@ -14,6 +14,13 @@ import '@oddsquad/webawesome-theme-lit/tokens.css';
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
     <title>Live panel demo: a cart</title>
+    <!-- The cart's docs, which the live panel reads as Lit Inspector reads
+         a site's. public/live-panel/showcase/custom-elements.json is written
+         by hand in the analyzer's shape; keep it in step with cart-app.ts. -->
+    <link
+      rel="custom-elements-manifest"
+      href="/live-panel/showcase/custom-elements.json"
+    />
     <script is:inline>
       // The tokens switch on data-theme; the panel page passes its scheme.
       (() => {
