@@ -13,17 +13,20 @@
  * from CHANGELOG.md as markup (docs/scripts/sync-changelog.mjs), with no
  * component to load it, unlike DemoVideo.
  *
- * Every page registers the docs' WebMCP tools.
+ * Every page registers the docs' WebMCP tools, and follows the theme with
+ * Web Awesome's scheme class (WaScheme).
  */
 import Default from '@astrojs/starlight/components/Head.astro';
 import {Font} from 'astro:assets';
 import VideoPlayerScript from './VideoPlayerScript.astro';
+import WaScheme from './WaScheme.astro';
 import WebMcpTools from './WebMcpTools.astro';
 
 const changelog = Astro.url.pathname.includes('/reference/changelog/');
 ---
 
 <Default />
+<WaScheme />
 <Font cssVariable="--font-lilex" />
 {changelog && <VideoPlayerScript />}
 <WebMcpTools />
