@@ -1,39 +1,82 @@
 ---
 /**
- * The official full-colour mark of a browser or of Vite, sized to the
- * surrounding text. Use it beside the name, never instead of it: the image is
- * decorative and has an empty alt.
+ * The official mark of a browser, of Vite or of a tool the plugin works
+ * with, sized to the surrounding text. Use it beside the name, never instead
+ * of it: the image is decorative and has an empty alt.
  *
- * The SVGs in `src/assets/logos/` come from upstream unchanged: Vite's from
- * the create-vite template favicon, the browsers' from alrra/browser-logos.
- * They render as `<img>` rather than inline SVG, because the Firefox and
- * Safari files define gradient ids that would collide when a table repeats
- * them on one page.
+ * The SVGs in `src/assets/logos/` come from upstream: Vite's from the
+ * create-vite template favicon, the browsers' from alrra/browser-logos,
+ * Vite DevTools' from vitejs/devtools (docs/public/logo.svg), Astro's from
+ * its press kit (withastro/astro.build, public/assets/press/) and MCP's from
+ * modelcontextprotocol/modelcontextprotocol (docs/favicon.svg). The
+ * full-colour ones render as `<img>` rather than inline SVG, because the
+ * Firefox and Safari files define gradient ids that would collide when a
+ * table repeats them on one page.
+ *
+ * Astro's colour mark has a white A over its gradient flame, for dark
+ * backgrounds (`astro-icon-light-gradient.svg`), and the press kit has no
+ * gradient one for light. So the light theme gets the same file with the A
+ * in #17191E, the colour of the kit's dark icon; the two swap with the
+ * site's theme.
+ *
+ * MCP's is a one-colour mark on a black tile upstream; here it is the bare
+ * shape, drawn as a mask in the text colour, so it follows the theme.
  */
 import chrome from '../assets/logos/chrome.svg';
 import firefox from '../assets/logos/firefox.svg';
 import safari from '../assets/logos/safari.svg';
 import vite from '../assets/logos/vite.svg';
+import viteDevtools from '../assets/logos/vite-devtools.svg';
+import astroOnDark from '../assets/logos/astro-on-dark.svg';
+import astroOnLight from '../assets/logos/astro-on-light.svg';
+import mcp from '../assets/logos/mcp.svg';
 
-const logos = {chrome, firefox, safari, vite};
+const logos = {chrome, firefox, safari, vite, 'vite-devtools': viteDevtools};
+const marks = {mcp};
+/** Marks with one file per theme: for a dark page, then for a light one. */
+const themed = {astro: [astroOnDark, astroOnLight]};
 
 interface Props {
-  name: keyof typeof logos;
+  name: keyof typeof logos | keyof typeof marks | keyof typeof themed;
   /** Any CSS length. Defaults to a little over the surrounding font size. */
   size?: string;
 }
 
 const {name, size = '1.25em'} = Astro.props;
+const mark = name in marks ? marks[name as keyof typeof marks] : undefined;
+const pair = name in themed ? themed[name as keyof typeof themed] : undefined;
+const box = {height: size, width: size};
 ---
 
-<img
-  class="brand-logo"
-  src={logos[name].src}
-  alt=""
-  style={{height: size, width: size}}
-  loading="lazy"
-  decoding="async"
-/>
+{
+  pair ? (
+    pair.map((image, i) => (
+      <img
+        class:list={['brand-logo', i === 0 ? 'on-dark' : 'on-light']}
+        src={image.src}
+        alt=""
+        style={box}
+        loading="lazy"
+        decoding="async"
+      />
+    ))
+  ) : mark ? (
+    <span
+      class="brand-logo mark"
+      aria-hidden="true"
+      style={{height: size, width: size, '--mark': `url(${mark.src})`}}
+    />
+  ) : (
+    <img
+      class="brand-logo"
+      src={logos[name as keyof typeof logos].src}
+      alt=""
+      style={{height: size, width: size}}
+      loading="lazy"
+      decoding="async"
+    />
+  )
+}
 
 <style>
   .brand-logo {
@@ -41,5 +84,13 @@ const {name, size = '1.25em'} = Astro.props;
     vertical-align: -0.3em;
     margin-inline-end: 0.3em;
     object-fit: contain;
+  }
+  :global(:root[data-theme='light']) .on-dark,
+  :global(:root:not([data-theme='light'])) .on-light {
+    display: none;
+  }
+  .mark {
+    background: currentColor;
+    mask: var(--mark) center / contain no-repeat;
   }
 </style>

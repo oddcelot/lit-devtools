@@ -1,0 +1,160 @@
+---
+/**
+ * The landing page's figure for component docs: the three places the panel
+ * reads a component's documentation from, each with the line that makes it
+ * work, and the three places it shows up. Drawn in HTML rather than as a
+ * screenshot; the live panel in the DevTools section above is the real
+ * thing, reading the cart's custom-elements.json.
+ */
+const sources = [
+  {
+    title: 'Your components',
+    note: 'Read from source while you edit. No manifest needed.',
+    file: 'src/user-card.ts',
+    code: `<span class="c">/**
+ * A user's avatar and name.
+ * @fires select - The card was chosen.
+ * @slot - Extra details under the name.
+ * @csspart avatar - The image.
+ */</span>`,
+  },
+  {
+    title: 'Libraries',
+    note: 'Found through each dependency. Web Awesome comes documented.',
+    file: 'node_modules/…/package.json',
+    code: `<span class="p">"customElements"</span>: <span class="s">"custom-elements.json"</span>`,
+  },
+  {
+    title: 'Any site',
+    note: 'Lit Inspector reads the manifests a page links.',
+    file: 'index.html',
+    code: `&lt;<span class="k">link</span> <span class="p">rel</span>=<span class="s">"custom-elements-manifest"</span>
+      <span class="p">href</span>=<span class="s">"/custom-elements.json"</span>&gt;`,
+  },
+];
+const targets = ['Components tab', 'Lit Inspector', 'Your coding agent'];
+---
+
+<div class="docs-sources" aria-label="Where component docs come from and where they show">
+  <ol class="sources">
+    {
+      sources.map((s) => (
+        <li class="source">
+          <div class="head">
+            <strong>{s.title}</strong>
+            <span class="file">{s.file}</span>
+          </div>
+          <pre><code set:html={s.code} /></pre>
+          <p>{s.note}</p>
+        </li>
+      ))
+    }
+  </ol>
+  <div class="arrow" aria-hidden="true"></div>
+  <ul class="targets">
+    {targets.map((t) => <li>{t}</li>)}
+  </ul>
+</div>
+
+<style>
+  .docs-sources {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .sources {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .source {
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+  }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .head strong {
+    color: var(--text-strong);
+  }
+  .file {
+    font: 0.75rem/1 var(--font-lilex, ui-monospace, monospace);
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  pre {
+    margin: 0.6rem 0;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--radius-md);
+    background: var(--surface-low);
+    font: 0.78rem/1.55 var(--font-lilex, ui-monospace, monospace);
+    color: var(--code-default);
+    overflow-x: auto;
+  }
+  pre code {
+    padding: 0;
+    background: none;
+    font-size: inherit;
+  }
+  pre :global(.c) {
+    color: var(--code-comment);
+  }
+  pre :global(.k) {
+    color: var(--code-keyword);
+  }
+  pre :global(.p) {
+    color: var(--code-property);
+  }
+  pre :global(.s) {
+    color: var(--code-string);
+  }
+  .source p {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+  }
+  .arrow {
+    justify-self: center;
+    width: 2px;
+    height: 1.6rem;
+    background: linear-gradient(var(--border-strong), var(--accent));
+    position: relative;
+  }
+  .arrow::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -2px;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-right: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  .targets {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .targets li {
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-pill);
+    background: var(--accent-soft);
+    color: var(--text-strong);
+    font-weight: 600;
+    font-size: 0.88rem;
+  }
+</style>

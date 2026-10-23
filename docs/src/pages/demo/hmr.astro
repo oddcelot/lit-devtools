@@ -1,0 +1,81 @@
+---
+/**
+ * The HMR demo (src/lib/demos/hmr-demo.ts): an editor and the component it
+ * shows, running once without the plugin and once with it. A frame of its
+ * own, because the plugin's patcher hooks `customElements.define` for the
+ * whole document, and the landing page's own elements should not go
+ * through it.
+ */
+import {Font} from 'astro:assets';
+import '@oddsquad/webawesome-theme-lit/tokens.css';
+import '../../styles/demo-frame.css';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>HMR demo</title>
+    <Font cssVariable="--font-lilex" />
+    <script is:inline>
+      // The theme before the first paint; theme.ts follows it from there.
+      (() => {
+        const t = localStorage.getItem('starlight-theme');
+        const theme =
+          t === 'light' || t === 'dark'
+            ? t
+            : matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="split-demo">
+      <section class="editor window" aria-label="Component source">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="file">src/demo-counter.ts</span>
+        </header>
+        <pre id="code" class="code"></pre>
+        <footer class="edits">
+          <span class="label">Make an edit</span>
+          <button data-edit="title" type="button">Rename the heading</button>
+          <button data-edit="accent" type="button">Change the colour</button>
+          <button data-edit="note" type="button">Add a line</button>
+          <button id="restart" class="ghost" type="button" title="Start over">
+            Start over
+          </button>
+        </footer>
+      </section>
+
+      <section class="pane window cold-window" aria-labelledby="cold-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="cold-title" class="who">Plain Vite</span>
+          <span class="tag">full reload</span>
+        </header>
+        <div id="cold" class="stage"></div>
+        <p id="cold-status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section class="pane window hot-window" aria-labelledby="hot-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="hot-title" class="who">With vite-plugin-lit</span>
+          <span class="tag accent">hot patch</span>
+        </header>
+        <div id="hot" class="stage"></div>
+        <p id="hot-status" class="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script>
+      import '../../lib/demos/hmr-demo.ts';
+    </script>
+  </body>
+</html>

@@ -1,0 +1,95 @@
+---
+/**
+ * One of the live demos (src/pages/demo/, or the live panel) framed on the
+ * landing page, with a caption that says what to try. The frame loads when
+ * it nears the viewport, so the hero's is the only one on first paint.
+ */
+import Glow from './Glow.astro';
+
+interface Props {
+  src: string;
+  title: string;
+  /** Any CSS length. */
+  height: string;
+  /** The height on a phone, where the demos stack; `height` by default. */
+  narrowHeight?: string;
+  /** What the visitor can try, under the frame. */
+  caption?: string;
+  /** The hero's frame loads at once. */
+  eager?: boolean;
+  id?: string;
+  /** The frame takes the page's scheme in its URL (`?scheme=`, as the live
+   *  panel pages do), set here and again when the theme changes. */
+  themed?: boolean;
+}
+
+const {
+  src,
+  title,
+  height,
+  narrowHeight = height,
+  caption,
+  eager = false,
+  id,
+  themed = false,
+} = Astro.props;
+---
+
+<figure class="demo-frame">
+  <Glow>
+    <iframe
+      id={id}
+      src={themed ? undefined : src}
+      data-themed-src={themed ? src : undefined}
+      title={title}
+      loading={eager ? 'eager' : 'lazy'}
+      style={{'--height': height, '--narrow-height': narrowHeight}}></iframe>
+  </Glow>
+  {caption && <figcaption set:html={caption} />}
+</figure>
+
+<script>
+  const themed = document.querySelectorAll<HTMLIFrameElement>(
+    'iframe[data-themed-src]'
+  );
+  const load = () => {
+    const scheme = document.documentElement.dataset.theme ?? 'dark';
+    for (const frame of themed) {
+      if (frame.dataset.scheme === scheme) continue;
+      frame.dataset.scheme = scheme;
+      frame.src = `${frame.dataset.themedSrc}?scheme=${scheme}`;
+    }
+  };
+  load();
+  new MutationObserver(load).observe(document.documentElement, {
+    attributeFilter: ['data-theme'],
+  });
+</script>
+
+<style>
+  .demo-frame {
+    margin: 0;
+  }
+  iframe {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: var(--radius-xl);
+    background: var(--bg);
+    height: var(--height);
+  }
+  @media (max-width: 40rem) {
+    iframe {
+      height: var(--narrow-height);
+    }
+  }
+  figcaption {
+    margin-top: 0.85rem;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+  figcaption :global(strong) {
+    color: var(--text-secondary);
+  }
+</style>

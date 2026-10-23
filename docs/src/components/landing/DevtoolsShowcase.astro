@@ -1,0 +1,227 @@
+---
+/**
+ * The landing page's DevTools section: three tabs, each a part of the panel
+ * at its best.
+ *
+ * - Components is the whole panel, live, inspecting a small cart
+ *   (src/pages/live-panel/showcase/) shown whole above it. The tree and the
+ *   properties work without a recording, so this one can be live.
+ * - Updates and Timeline only fill once a session is recorded, and a
+ *   visitor would meet them empty. They show the guides' recorded session
+ *   instead (UpdatesFigure, TimelineFigure): the same views, full from the
+ *   first look.
+ *
+ * The panes are stacked in one grid cell and only the active one shows, so
+ * a hidden figure keeps its width and lays out right when its tab opens.
+ * The live panel takes the page's scheme in its URL and reloads when the
+ * theme switch changes it.
+ */
+import Glow from './Glow.astro';
+import UpdatesFigure from '../UpdatesFigure.astro';
+import TimelineFigure from '../TimelineFigure.astro';
+
+const tabs = [
+  {
+    id: 'components',
+    label: 'Components',
+    caption:
+      'Live: the panel inspecting the cart above it, with an item selected: its docs, read from the cart\'s <code>custom-elements.json</code>, and its properties. Press + on an item, or change its <code>qty</code> or <code>price</code> here, and the total follows.',
+  },
+  {
+    id: 'updates',
+    label: 'Updates',
+    caption:
+      'A recorded session: each component with its update count and timings. <code>hmr-properties</code> is open, with the property that changed in each of its updates.',
+  },
+  {
+    id: 'timeline',
+    label: 'Timeline',
+    caption:
+      'The same session on one time axis, a lane per layer, zoomed to its busiest stretch. A route change is selected; click any mark for its details.',
+  },
+];
+---
+
+<div class="showcase">
+  <div class="tabs" role="tablist" aria-label="Panel views">
+    {
+      tabs.map((tab, i) => (
+        <button
+          type="button"
+          role="tab"
+          id={`devtools-tab-${tab.id}`}
+          aria-controls={`devtools-pane-${tab.id}`}
+          aria-selected={String(i === 0)}
+          data-tab={tab.id}
+        >
+          {tab.label}
+        </button>
+      ))
+    }
+  </div>
+
+  <div class="panes">
+    <section
+      class="pane active"
+      id="devtools-pane-components"
+      role="tabpanel"
+      aria-labelledby="devtools-tab-components"
+    >
+      <Glow>
+        <iframe
+          class="live"
+          data-src="/live-panel/showcase/"
+          title="Lit DevTools panel inspecting a demo cart"
+          loading="lazy"></iframe>
+      </Glow>
+    </section>
+    <section
+      class="pane"
+      id="devtools-pane-updates"
+      role="tabpanel"
+      aria-labelledby="devtools-tab-updates"
+    >
+      <Glow><div class="figure"><UpdatesFigure caption="" component="hmr-properties" /></div></Glow>
+    </section>
+    <section
+      class="pane"
+      id="devtools-pane-timeline"
+      role="tabpanel"
+      aria-labelledby="devtools-tab-timeline"
+    >
+      <Glow><div class="figure"><TimelineFigure mode="tracks" event="mvk1zotj-16" range="560-1140" caption="" /></div></Glow>
+    </section>
+  </div>
+
+  {
+    tabs.map((tab, i) => (
+      <p class="caption" data-caption={tab.id} hidden={i !== 0} set:html={tab.caption} />
+    ))
+  }
+</div>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.showcase')!;
+  const buttons = root.querySelectorAll<HTMLButtonElement>('[data-tab]');
+  for (const button of buttons) {
+    button.addEventListener('click', () => {
+      const id = button.dataset.tab;
+      for (const b of buttons) {
+        b.setAttribute('aria-selected', String(b === button));
+      }
+      for (const pane of root.querySelectorAll('.pane')) {
+        pane.classList.toggle('active', pane.id === `devtools-pane-${id}`);
+      }
+      for (const caption of root.querySelectorAll<HTMLElement>('[data-caption]')) {
+        caption.hidden = caption.dataset.caption !== id;
+      }
+    });
+  }
+
+  const live = root.querySelector<HTMLIFrameElement>('iframe.live')!;
+  const load = () => {
+    const scheme = document.documentElement.dataset.theme ?? 'dark';
+    if (live.dataset.scheme === scheme) return;
+    live.dataset.scheme = scheme;
+    live.src = `${live.dataset.src}?scheme=${scheme}#tab=components`;
+  };
+  // Open on the second item, so the tree is expanded and its properties
+  // show. The link waits for the cart to connect: one that arrives before
+  // the page does is answered with "no longer in the page" (bead vpl-idmf).
+  // Ids are stable here, the cart being the page's only tree: 2 is its
+  // second item.
+  live.addEventListener('load', () =>
+    setTimeout(
+      () =>
+        live.contentWindow?.location.replace(
+          `${live.src.split('#')[0]}#tab=components&component=2`
+        ),
+      1200
+    )
+  );
+  load();
+  new MutationObserver(load).observe(document.documentElement, {
+    attributeFilter: ['data-theme'],
+  });
+</script>
+
+<style>
+  .showcase {
+    display: grid;
+    justify-items: center;
+  }
+  .tabs {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin: 2rem 0 2.5rem;
+    padding: 0.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+  }
+  .tabs button {
+    padding: 0.5rem 1rem;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-secondary);
+    font: 600 0.9rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .tabs button[aria-selected='true'] {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+  .pane {
+    grid-area: 1 / 1;
+    min-width: 0;
+    align-self: start;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity var(--dur-normal) var(--ease-standard);
+  }
+  .pane.active {
+    visibility: visible;
+    opacity: 1;
+  }
+  iframe.live {
+    display: block;
+    width: 100%;
+    height: 36rem;
+    border: 0;
+    background: var(--bg);
+  }
+  .figure {
+    overflow: hidden;
+    background: var(--bg);
+  }
+  /* The figures carry their own margin and caption for the docs; here the
+     section's caption speaks for them. */
+  .figure :global(figure) {
+    margin: 0;
+  }
+  .figure :global(figcaption) {
+    display: none;
+  }
+  /* As tall as the live panel, so the caption under the panes stays put
+     when the tab changes. */
+  .figure :global(:is(updates-figure, timeline-figure)) {
+    height: 36rem;
+  }
+  .caption {
+    max-width: 44rem;
+    margin: 0.85rem 0 0;
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+  @media (max-width: 40rem) {
+    iframe.live {
+      height: 40rem;
+    }
+  }
+</style>

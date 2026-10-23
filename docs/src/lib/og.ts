@@ -32,9 +32,8 @@ export interface OgImage {
 }
 
 /**
- * Image path for a `docs` collection entry id, relative to `og/`. The
- * collection calls the home page `index`, but Starlight's route data hands the
- * middleware `''` for it, so both spellings land on the same file.
+ * Image path for a `docs` collection entry id, relative to `og/`. An empty id
+ * maps to `index`, the landing page's card (src/pages/index.astro).
  */
 export function ogImageSlug(entryId: string): string {
   return `${entryId || 'index'}.png`;

@@ -114,9 +114,6 @@ export default defineConfig({
       components: {
         // Adds the font tags; see the file for why this override exists.
         Head: './src/components/Head.astro',
-        // The landing page's hero: Lit Inspector beside the pitch and a pill
-        // for the newest release.
-        Hero: './src/components/Hero.astro',
       },
       // Starlight >= 0.39 requires the autogenerate config inside `items`;
       // a group with a bare `autogenerate` key is a hard error.
@@ -176,7 +173,7 @@ export default defineConfig({
         // neither.
         starlightLlmsTxt({
           projectName: '@oddsquad/vite-plugin-lit',
-          promote: ['index*', 'start/installation*', 'reference/options*'],
+          promote: ['start/installation*', 'reference/options*'],
           demote: ['contributing/**', 'reference/benchmarks*'],
           exclude: [
             'contributing/**',
@@ -209,7 +206,11 @@ export default defineConfig({
         }),
       ],
     }),
-    // The live panel's pages are only ever framed by a guide.
-    sitemap({filter: (page) => !page.includes('/live-panel/')}),
+    // The live panel's pages and the landing page's demos are only ever
+    // framed by another page.
+    sitemap({
+      filter: (page) =>
+        !page.includes('/live-panel/') && !page.includes('/demo/'),
+    }),
   ],
 });

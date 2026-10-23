@@ -1,0 +1,82 @@
+---
+/**
+ * The install command with a copy button, for the landing page. One package
+ * manager only: the docs' Installation page has the tabs for the rest.
+ */
+import {phosphor} from '../../lib/phosphor';
+
+const command = 'npm i -D @oddsquad/vite-plugin-lit';
+---
+
+<div class="install">
+  <code><span class="prompt" aria-hidden="true">$</span>{command}</code>
+  <button type="button" data-copy={command} aria-label="Copy the install command">
+    <span class="idle"><Fragment set:html={phosphor('copy')} /></span>
+    <span class="done"><Fragment set:html={phosphor('check')} /></span>
+  </button>
+</div>
+
+<script>
+  for (const button of document.querySelectorAll<HTMLButtonElement>(
+    '.install [data-copy]'
+  )) {
+    button.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(button.dataset.copy!);
+      button.classList.add('copied');
+      setTimeout(() => button.classList.remove('copied'), 1600);
+    });
+  }
+</script>
+
+<style>
+  .install {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.45rem 0.45rem 0.45rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    font: 0.88rem/1 var(--font-lilex, ui-monospace, monospace);
+    color: var(--text);
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  code {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font: inherit;
+  }
+  .prompt {
+    margin-right: 0.6rem;
+    color: var(--text-muted);
+  }
+  button {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--surface-container);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  button:hover {
+    color: var(--text-strong);
+  }
+  .done,
+  .copied .idle {
+    display: none;
+  }
+  .copied .done {
+    display: contents;
+    color: var(--success);
+  }
+  .idle {
+    display: contents;
+  }
+</style>

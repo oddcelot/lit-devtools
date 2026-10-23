@@ -1,0 +1,106 @@
+---
+/**
+ * The stylesheet demo (src/lib/demos/sheets-demo.ts): theme.css in an
+ * editor, and a thousand shadow roots styled by it twice, once reloading on
+ * a save as plain Vite does and once restyled in place as `?css-sheet`
+ * does. A frame of its own, so the two thousand tiles stay out of the
+ * landing page's DOM.
+ */
+import {Font} from 'astro:assets';
+import '@oddsquad/webawesome-theme-lit/tokens.css';
+import '../../styles/demo-frame.css';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>Stylesheet demo</title>
+    <Font cssVariable="--font-lilex" />
+    <script is:inline>
+      (() => {
+        const t = localStorage.getItem('starlight-theme');
+        document.documentElement.dataset.theme =
+          t === 'light' || t === 'dark'
+            ? t
+            : matchMedia('(prefers-color-scheme: light)').matches
+              ? 'light'
+              : 'dark';
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="split-demo">
+      <section class="editor window" aria-label="Stylesheet source">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="file">src/theme.css</span>
+        </header>
+        <pre id="code" class="code"></pre>
+        <footer class="edits">
+          <span class="label">Save an edit</span>
+          <button data-edit="colour" type="button">Change the colour</button>
+          <button data-edit="round" type="button">Round the tiles</button>
+          <button data-edit="fill" type="button">Restyle the selection</button>
+          <button id="restart" class="ghost" type="button" title="Start over">
+            Start over
+          </button>
+        </footer>
+      </section>
+
+      <section class="pane window cold-window" aria-labelledby="cold-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="cold-title" class="who">Plain Vite</span>
+          <span id="cold-counts" class="counts"></span>
+          <span class="tag">?inline · reload</span>
+        </header>
+        <div id="cold" class="stage tiles"></div>
+        <p id="cold-status" class="status" aria-live="polite"></p>
+      </section>
+
+      <section class="pane window hot-window" aria-labelledby="hot-title">
+        <header class="bar">
+          <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span id="hot-title" class="who">With vite-plugin-lit</span>
+          <span id="hot-counts" class="counts"></span>
+          <span class="tag accent">?css-sheet · in place</span>
+        </header>
+        <div id="hot" class="stage tiles"></div>
+        <p id="hot-status" class="status" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <script>
+      import '../../lib/demos/sheets-demo.ts';
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .tiles {
+    display: grid;
+    /* --cols comes from sheets-demo.ts, sized so all thousand fit. */
+    grid-template-columns: repeat(var(--cols, 50), minmax(0, 1fr));
+    align-content: center;
+    gap: 1px;
+    overflow: hidden;
+    cursor: crosshair;
+    touch-action: none;
+    user-select: none;
+  }
+  .counts {
+    font: 0.7rem/1 var(--font-lilex, ui-monospace, monospace);
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 40rem) {
+    .counts {
+      display: none;
+    }
+  }
+</style>

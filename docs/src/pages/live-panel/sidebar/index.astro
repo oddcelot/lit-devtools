@@ -1,0 +1,164 @@
+---
+/**
+ * Lit Inspector's Lit tab in the Elements sidebar, live: the demo cart
+ * above, and below it a DevTools strip with an Elements tree of the cart
+ * (src/lib/demos/elements-sidebar.ts) and the panel in its details-only
+ * mode, following the tree's selection. The landing page frames it.
+ *
+ * The panel and the cart are wired as on every live panel page
+ * (panel-page.ts); only the Elements tree and the chrome around it are
+ * drawn here. The sidebar's other tabs are drawn for their place, not
+ * working: Styles and Computed belong to the browser.
+ */
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Lit Inspector in the Elements panel, live</title>
+    <style is:global>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        height: 100vh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 11.5rem auto 1fr;
+        background: var(--lit-devtools-bg);
+        color: var(--lit-devtools-text);
+        font: 12px/1.4 var(--lit-devtools-font-sans, system-ui, sans-serif);
+      }
+      iframe.demo {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        border-bottom: 1px solid var(--lit-devtools-border);
+      }
+      .bar {
+        display: flex;
+        align-items: stretch;
+        white-space: nowrap;
+        overflow: hidden;
+        background: var(--lit-devtools-surface-low);
+        border-bottom: 1px solid var(--lit-devtools-border);
+      }
+      .bar span {
+        padding: 0.45rem 0.75rem;
+        color: var(--lit-devtools-text-muted);
+      }
+      .bar .active {
+        color: var(--lit-devtools-text-strong);
+        box-shadow: inset 0 -2px var(--lit-devtools-accent);
+      }
+      .bar .lit {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-weight: 700;
+      }
+      .split {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(16rem, 26rem);
+        min-height: 0;
+      }
+      .dom-tree {
+        overflow: auto;
+        padding: 0.4rem 0;
+        font: 12px/1.6 var(--lit-devtools-font-mono, ui-monospace, monospace);
+        color: var(--lit-devtools-text-secondary);
+        border-right: 1px solid var(--lit-devtools-border);
+      }
+      .row {
+        padding-left: calc(0.6rem + var(--depth) * 1rem);
+        white-space: nowrap;
+        cursor: default;
+      }
+      .row:hover {
+        background: var(--lit-devtools-surface-hover);
+      }
+      .row.selected {
+        background: var(--lit-devtools-accent-soft);
+      }
+      .twisty {
+        display: inline-block;
+        width: 1rem;
+        color: var(--lit-devtools-text-muted);
+        cursor: pointer;
+      }
+      .name {
+        color: var(--lit-devtools-code-tag);
+      }
+      .attr {
+        color: var(--lit-devtools-code-property);
+      }
+      .val {
+        color: var(--lit-devtools-code-string);
+      }
+      .shadow {
+        color: var(--lit-devtools-text-muted);
+      }
+      .text {
+        color: var(--lit-devtools-text);
+      }
+      .side {
+        display: grid;
+        grid-template-rows: max-content minmax(0, 1fr);
+        min-height: 0;
+      }
+      /* On a phone the cart wraps to two rows, and the tree sits above the
+         sidebar instead of beside it. */
+      @media (max-width: 40rem) {
+        body {
+          grid-template-rows: 19rem auto 1fr;
+        }
+        .split {
+          grid-template-columns: minmax(0, 1fr);
+          grid-template-rows: 8.5rem minmax(0, 1fr);
+        }
+        .dom-tree {
+          border-right: 0;
+          border-bottom: 1px solid var(--lit-devtools-border);
+        }
+      }
+      /* The panel sizes itself to the viewport; here it fills its cell. */
+      .side lit-devtools-panel {
+        height: 100%;
+        min-height: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      class="demo"
+      title="Demo page the Elements panel inspects"
+      data-src="../showcase/demo/"></iframe>
+    <div class="bar" aria-hidden="true">
+      <span class="active">Elements</span><span>Console</span><span
+        >Sources</span
+      ><span>Network</span><span>Performance</span>
+    </div>
+    <div class="split">
+      <div class="dom-tree" role="tree" aria-label="Elements"></div>
+      <div class="side">
+        <div class="bar">
+          <span aria-hidden="true">Styles</span><span aria-hidden="true"
+            >Computed</span
+          ><span aria-hidden="true">Layout</span><span class="active lit"
+            >Lit</span
+          >
+        </div>
+        <lit-devtools-panel details-only></lit-devtools-panel>
+      </div>
+    </div>
+    <script>
+      import '../../../../../src/panel/figures/live/panel-page.ts';
+      import '../../../lib/demos/elements-sidebar.ts';
+    </script>
+  </body>
+</html>

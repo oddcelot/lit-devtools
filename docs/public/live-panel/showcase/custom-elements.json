@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "cart-app.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "DemoCart",
+          "tagName": "demo-cart",
+          "customElement": true,
+          "summary": "A shopping cart: its items and their total.",
+          "description": "Owns the items and passes each one's name, price and quantity down to a `cart-item`. Takes an item's `item-change` report and passes the new count and total to `cart-summary`.",
+          "members": [
+            {
+              "kind": "field",
+              "name": "items",
+              "type": {
+                "text": "Item[]"
+              },
+              "description": "The items in the cart, each with a name, price, quantity and swatch hue."
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "CartItem",
+          "tagName": "cart-item",
+          "customElement": true,
+          "summary": "One product in the cart, with a quantity stepper.",
+          "description": "Shows the product, its unit price and its line total. The stepper changes `qty`; any change to `qty` or `price`, from the stepper or from outside, is reported with `item-change`.",
+          "members": [
+            {
+              "kind": "field",
+              "name": "name",
+              "type": {
+                "text": "string"
+              },
+              "default": "''",
+              "description": "The product's name."
+            },
+            {
+              "kind": "field",
+              "name": "price",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The unit price, in dollars."
+            },
+            {
+              "kind": "field",
+              "name": "qty",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "How many are in the cart. Never below zero."
+            },
+            {
+              "kind": "field",
+              "name": "hue",
+              "type": {
+                "text": "number"
+              },
+              "default": "232",
+              "description": "The hue of the product's swatch, 0 to 360."
+            }
+          ],
+          "events": [
+            {
+              "name": "item-change",
+              "type": {
+                "text": "CustomEvent<{qty: number; price: number}>"
+              },
+              "description": "The quantity or the price changed."
+            }
+          ]
+        },
+        {
+          "kind": "class",
+          "name": "CartSummary",
+          "tagName": "cart-summary",
+          "customElement": true,
+          "summary": "The cart's item count and total, with progress to free shipping.",
+          "description": "Free shipping starts at $60; the bar fills toward it.",
+          "members": [
+            {
+              "kind": "field",
+              "name": "count",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "How many items are in the cart."
+            },
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "text": "number"
+              },
+              "default": "0",
+              "description": "The cart's total, in dollars."
+            }
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "demo-cart",
+          "declaration": {
+            "name": "DemoCart",
+            "module": "cart-app.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "cart-item",
+          "declaration": {
+            "name": "CartItem",
+            "module": "cart-app.js"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "cart-summary",
+          "declaration": {
+            "name": "CartSummary",
+            "module": "cart-app.js"
+          }
+        }
+      ]
+    }
+  ]
+}
