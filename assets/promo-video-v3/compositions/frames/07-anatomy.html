@@ -1,0 +1,881 @@
+<template id="s07-anatomy-template">
+  <style>
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: normal;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: italic;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s07-anatomy,
+    #s07-anatomy * {
+      box-sizing: border-box;
+    }
+    #s07-anatomy {
+      position: absolute;
+      inset: 0;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    }
+    #s07-anatomy .a7-stage {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 664px;
+    }
+    #s07-anatomy .a7-m {
+      font-family: 'Lilex Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    #s07-anatomy svg.a7-ic {
+      display: block;
+      fill: currentColor;
+    }
+
+    .a7-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7bff;
+      line-height: 24px;
+      white-space: nowrap;
+    }
+    .a7-hl {
+      position: absolute;
+      left: 96px;
+      font-weight: 800;
+      font-size: 68px;
+      line-height: 72px;
+      letter-spacing: -0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .a7-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background-image: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* the page: a playground card holding <hmr-slots> */
+    .a7-card {
+      position: absolute;
+      left: 740px;
+      top: 150px;
+      width: 360px;
+      height: 348px;
+      background: #121212;
+      border: 1px solid #363636;
+    }
+    .a7-host {
+      position: absolute;
+      left: 760px;
+      top: 194px;
+      width: 320px;
+      height: 282px;
+      border: 2px dashed #919191;
+    }
+    .a7-hchip {
+      position: absolute;
+      left: 760px;
+      top: 170px;
+      height: 24px;
+      line-height: 24px;
+      padding: 0 8px;
+      background: #e3e3e3;
+      color: #363636;
+      font-size: 16px;
+      white-space: nowrap;
+    }
+    .a7-part {
+      position: absolute;
+      border: 2px dashed;
+    }
+    .a7-txt {
+      position: absolute;
+      white-space: nowrap;
+      padding: 0 8px;
+    }
+    .a7-title {
+      left: 786px;
+      top: 218px;
+      height: 48px;
+      line-height: 48px;
+      font-weight: 700;
+      font-size: 30px;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+    .a7-def {
+      left: 786px;
+      top: 300px;
+      height: 54px;
+      line-height: 54px;
+      font-weight: 500;
+      font-size: 26px;
+      color: #e3e3e3;
+    }
+    .a7-foot {
+      left: 786px;
+      top: 384px;
+      width: 280px;
+      padding: 6px 8px;
+      font-size: 21px;
+      line-height: 29px;
+      color: #a1a1a1;
+      white-space: normal;
+    }
+    .a7-box {
+      position: absolute;
+      inset: 0;
+      border: 2px solid;
+    }
+    .a7-lab {
+      position: absolute;
+      left: 1124px;
+      height: 26px;
+      line-height: 26px;
+      padding: 0 8px;
+      color: #fff;
+      font-size: 16px;
+      white-space: nowrap;
+    }
+    .a7-svg {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      overflow: visible;
+    }
+
+    /* details pane (Components tab, <hmr-slots> selected) */
+    .a7-pane {
+      position: absolute;
+      left: 1390px;
+      top: 124px;
+      width: 450px;
+      height: 516px;
+      background: #030303;
+      border: 1px solid #363636;
+      overflow: hidden;
+    }
+    .a7-blk {
+      position: absolute;
+      left: 19px;
+      width: 412px;
+    }
+    .a7-head {
+      top: 14px;
+      height: 45px;
+    }
+    .a7-tagh {
+      position: absolute;
+      left: 0;
+      top: 0;
+      line-height: 45px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .a7-tagh span {
+      color: #919191;
+    }
+    .a7-hbtn {
+      position: absolute;
+      top: 0;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9194a2;
+    }
+    .a7-hbtn i,
+    .a7-sh i {
+      display: block;
+    }
+    .a7-hbtn i {
+      width: 21px;
+      height: 21px;
+    }
+    .a7-sec {
+      border-top: 1px solid #363636;
+    }
+    .a7-sh {
+      position: absolute;
+      left: 0;
+      top: 13px;
+      height: 24px;
+      line-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #919191;
+      white-space: nowrap;
+    }
+    .a7-sh i {
+      width: 18px;
+      height: 18px;
+    }
+    .a7-cnt {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      letter-spacing: 0;
+    }
+    .a7-r {
+      position: absolute;
+      left: 0;
+      width: 412px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .a7-hov {
+      position: absolute;
+      left: -19px;
+      right: -19px;
+      top: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.07);
+      opacity: 0;
+    }
+    .a7-sw {
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 13px;
+      height: 13px;
+      border-radius: 2px;
+    }
+    .a7-n {
+      position: absolute;
+      left: 19px;
+    }
+    .a7-v {
+      position: absolute;
+      left: 200px;
+    }
+    .a7-b {
+      color: #919191;
+    }
+    .a7-t {
+      color: #89ddff;
+    }
+    .a7-badge {
+      display: inline-block;
+      height: 24px;
+      line-height: 24px;
+      padding: 0 6px;
+      margin-left: 8px;
+      background: #212121;
+      color: #919191;
+      font-size: 17.6px;
+      position: relative;
+      top: -1px;
+    }
+    .a7-ctx {
+      position: absolute;
+      left: 19px;
+      top: 418px;
+      width: 412px;
+      height: 90px;
+      background: #0d0d0d;
+      border: 1px solid #363636;
+    }
+    .a7-cl {
+      position: absolute;
+      left: 12px;
+      height: 28px;
+      line-height: 28px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .a7-ctxl {
+      position: absolute;
+      right: 12px;
+      top: 6px;
+      line-height: 28px;
+      font-size: 16px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #919191;
+    }
+    .a7-link {
+      color: #7c9fff;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-7ejr"
+    id="s07-anatomy"
+    data-composition-id="s07-anatomy"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-in99" class="a7-stage">
+      <div data-hf-id="hf-5fvf" class="a7-eyebrow">Anatomy</div>
+      <div data-hf-id="hf-x7v8" class="a7-hl a7-h1" style="top: 186px">
+        Slots, parts,
+      </div>
+      <div data-hf-id="hf-xzpg" class="a7-hl a7-h2" style="top: 258px">
+        <span data-hf-id="hf-huys" class="a7-shine">context.</span>
+      </div>
+
+      <div data-hf-id="hf-fhkn" class="a7-card"></div>
+      <div data-hf-id="hf-9ty4" class="a7-txt a7-title">
+        <span data-hf-id="hf-697x">Slots and parts</span>
+        <div
+          data-hf-id="hf-svjw"
+          class="a7-box a7-g-title"
+          style="border-color: #e8590c; background: rgba(232, 89, 12, 0.1)"
+        ></div>
+      </div>
+      <div data-hf-id="hf-87jv" class="a7-txt a7-def">
+        <span data-hf-id="hf-ty8r">Default slot content.</span>
+        <div
+          data-hf-id="hf-13lx"
+          class="a7-box a7-g-def"
+          style="border-color: #2f9e44; background: rgba(47, 158, 68, 0.1)"
+        ></div>
+      </div>
+      <div data-hf-id="hf-veom" class="a7-txt a7-foot">
+        <span data-hf-id="hf-0fyd"
+          >No footer given, so this is fallback content.</span
+        >
+        <div
+          data-hf-id="hf-3o3o"
+          class="a7-box a7-g-foot a7-fbox"
+          style="border-color: #c2255c; background: rgba(194, 37, 92, 0.1)"
+        ></div>
+      </div>
+      <div
+        data-hf-id="hf-kx6m"
+        class="a7-part a7-g-head a7-phead"
+        style="
+          left: 774px;
+          top: 208px;
+          width: 292px;
+          height: 68px;
+          border-color: #1098ad;
+          background: rgba(16, 152, 173, 0.06);
+        "
+      ></div>
+      <div
+        data-hf-id="hf-s4iw"
+        class="a7-part a7-g-body a7-pbody"
+        style="
+          left: 774px;
+          top: 290px;
+          width: 292px;
+          height: 76px;
+          border-color: #9c36b5;
+          background: rgba(156, 54, 181, 0.06);
+        "
+      ></div>
+      <div data-hf-id="hf-xyv0" class="a7-host a7-g-host"></div>
+      <div data-hf-id="hf-0dsd" class="a7-hchip a7-m a7-g-host">
+        &lt;hmr-slots&gt;
+      </div>
+
+      <svg data-hf-id="hf-wr76" class="a7-svg" viewBox="0 0 1920 1080"></svg>
+      <div
+        data-hf-id="hf-payh"
+        class="a7-lab a7-m a7-g-head"
+        style="top: 201px; background: #1098ad"
+      >
+        ::part(header)
+      </div>
+      <div
+        data-hf-id="hf-e1bu"
+        class="a7-lab a7-m a7-g-title"
+        style="top: 239px; background: #e8590c"
+      >
+        slot "title"
+      </div>
+      <div
+        data-hf-id="hf-ilh1"
+        class="a7-lab a7-m a7-g-body"
+        style="top: 287px; background: #9c36b5"
+      >
+        ::part(body)
+      </div>
+      <div
+        data-hf-id="hf-jme8"
+        class="a7-lab a7-m a7-g-def"
+        style="top: 325px; background: #2f9e44"
+      >
+        default slot
+      </div>
+      <div
+        data-hf-id="hf-ofqi"
+        class="a7-lab a7-m a7-g-foot a7-flab"
+        style="top: 385px; background: #c2255c"
+      >
+        slot "footer" · fallback
+      </div>
+
+      <div data-hf-id="hf-ljar" class="a7-pane a7-m">
+        <div data-hf-id="hf-zgct" class="a7-blk a7-head">
+          <div data-hf-id="hf-a0s0" class="a7-tagh">
+            <span data-hf-id="hf-dep3">&lt;</span>hmr-slots<span
+              data-hf-id="hf-cm31"
+              >&gt;</span
+            >
+          </div>
+          <div data-hf-id="hf-3nqq" class="a7-hbtn" style="right: 45px">
+            <i data-hf-id="hf-uaao" data-ic="arrows-clockwise"></i>
+          </div>
+          <div data-hf-id="hf-v8vt" class="a7-hbtn" style="right: 0">
+            <i data-hf-id="hf-jd9k" data-ic="target"></i>
+          </div>
+        </div>
+        <div
+          data-hf-id="hf-c9z5"
+          class="a7-blk a7-sec"
+          style="top: 68px; height: 208px"
+        >
+          <div
+            data-hf-id="hf-lzgy"
+            class="a7-sh a7-sh1"
+            style="
+              font-family:
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                'Segoe UI',
+                Roboto,
+                sans-serif;
+            "
+          >
+            <i data-hf-id="hf-i68p" data-ic="caret-down"></i>Slots
+            <span data-hf-id="hf-7y4e" class="a7-cnt">5</span>
+          </div>
+          <div data-hf-id="hf-wlik" class="a7-r a7-r1" style="top: 48px">
+            <i
+              data-hf-id="hf-23op"
+              class="a7-sw"
+              style="background: #4d63ff"
+            ></i
+            ><span data-hf-id="hf-ozih" class="a7-n"
+              >icon<span data-hf-id="hf-x8jg" class="a7-badge"
+                >empty</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-opoh" class="a7-r a7-r2" style="top: 80px">
+            <i
+              data-hf-id="hf-h3n6"
+              class="a7-sw"
+              style="background: #e8590c"
+            ></i
+            ><span data-hf-id="hf-gd3y" class="a7-n">title</span
+            ><span data-hf-id="hf-bzl3" class="a7-v"
+              ><span data-hf-id="hf-xoeg" class="a7-b">&lt;</span>strong<span
+                data-hf-id="hf-wvse"
+                class="a7-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-if62" class="a7-r a7-r3" style="top: 112px">
+            <i
+              data-hf-id="hf-1meu"
+              class="a7-sw"
+              style="background: #2f9e44"
+            ></i
+            ><span data-hf-id="hf-3juk" class="a7-n" style="font-style: italic"
+              >default</span
+            ><span data-hf-id="hf-48ps" class="a7-v"
+              ><span data-hf-id="hf-7cxs" class="a7-b">&lt;</span>p<span
+                data-hf-id="hf-e3ua"
+                class="a7-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-oask" class="a7-r a7-r4" style="top: 144px">
+            <div data-hf-id="hf-wock" class="a7-hov"></div>
+            <i
+              data-hf-id="hf-e7c8"
+              class="a7-sw"
+              style="background: #c2255c"
+            ></i
+            ><span data-hf-id="hf-k3wr" class="a7-n"
+              >footer<span data-hf-id="hf-ww65" class="a7-badge"
+                >fallback</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-oql2" class="a7-r a7-r5" style="top: 176px">
+            <span
+              data-hf-id="hf-nmcp"
+              class="a7-n"
+              style="left: 0; color: #ff6b6b"
+              >slot="aside"</span
+            ><span data-hf-id="hf-z0ti" class="a7-v"
+              ><span data-hf-id="hf-660p" class="a7-b">&lt;</span>em<span
+                data-hf-id="hf-ei5b"
+                class="a7-b"
+                >&gt;</span
+              >
+              <span data-hf-id="hf-whuw" style="color: #919191"
+                >not rendered</span
+              ></span
+            >
+          </div>
+        </div>
+        <div
+          data-hf-id="hf-0oau"
+          class="a7-blk a7-sec a7-sec2"
+          style="top: 290px; height: 112px"
+        >
+          <div
+            data-hf-id="hf-vbd2"
+            class="a7-sh"
+            style="
+              font-family:
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                'Segoe UI',
+                Roboto,
+                sans-serif;
+            "
+          >
+            <i data-hf-id="hf-kmp9" data-ic="caret-down"></i>Parts
+            <span data-hf-id="hf-6r7b" class="a7-cnt">2</span>
+          </div>
+          <div data-hf-id="hf-g369" class="a7-r a7-r6" style="top: 48px">
+            <i
+              data-hf-id="hf-eitb"
+              class="a7-sw"
+              style="background: #1098ad"
+            ></i
+            ><span data-hf-id="hf-dnvh" class="a7-n">header</span
+            ><span data-hf-id="hf-qf4g" class="a7-v"
+              ><span data-hf-id="hf-6kbq" class="a7-b">&lt;</span
+              ><span data-hf-id="hf-5cxf" class="a7-t">header</span
+              ><span data-hf-id="hf-ewgc" class="a7-b">&gt;</span></span
+            >
+          </div>
+          <div data-hf-id="hf-9w6y" class="a7-r a7-r7" style="top: 80px">
+            <i
+              data-hf-id="hf-716g"
+              class="a7-sw"
+              style="background: #9c36b5"
+            ></i
+            ><span data-hf-id="hf-505g" class="a7-n">body</span
+            ><span data-hf-id="hf-p1bc" class="a7-v"
+              ><span data-hf-id="hf-5den" class="a7-b">&lt;</span
+              ><span data-hf-id="hf-26n1" class="a7-t">div</span
+              ><span data-hf-id="hf-fard" class="a7-b">&gt;</span></span
+            >
+          </div>
+        </div>
+        <div data-hf-id="hf-xftg" class="a7-ctx">
+          <div
+            data-hf-id="hf-e652"
+            class="a7-cl"
+            style="top: 6px; font-weight: 600; color: #fff"
+          >
+            <span data-hf-id="hf-5rpo" class="a7-b">&lt;</span
+            >hmr-ctx-provider<span data-hf-id="hf-fp2e" class="a7-b">&gt;</span>
+          </div>
+          <div
+            data-hf-id="hf-4ps7"
+            class="a7-ctxl"
+            style="
+              font-family:
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                'Segoe UI',
+                Roboto,
+                sans-serif;
+            "
+          >
+            Instance
+          </div>
+          <div data-hf-id="hf-m11g" class="a7-cl" style="top: 32px">
+            ContextProvider<span data-hf-id="hf-n7c6" class="a7-badge"
+              >context</span
+            ><span
+              data-hf-id="hf-4g2l"
+              style="color: #f78c6c; margin-left: 14px"
+              >0</span
+            >
+          </div>
+          <div
+            data-hf-id="hf-7rt2"
+            class="a7-cl a7-to"
+            style="top: 58px; left: 31px"
+          >
+            <span data-hf-id="hf-3ddn" style="color: #919191">to</span>
+            <span data-hf-id="hf-q8d6" class="a7-link"
+              >&lt;hmr-ctx-consumer&gt;</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var R = document.getElementById('s07-anatomy');
+      var q = function (s) {
+        return R.querySelector(s);
+      };
+      var qa = function (s) {
+        return R.querySelectorAll(s);
+      };
+
+      /* Phosphor regular icons (assets/icons/*.svg; caret-down is Phosphor's) */
+      var IC = {
+        'arrows-clockwise':
+          'M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z',
+        target:
+          'M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z',
+        'caret-down':
+          'M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z',
+      };
+      qa('i[data-ic]').forEach(function (el) {
+        el.innerHTML =
+          '<svg class="a7-ic" viewBox="0 0 256 256" width="100%" height="100%"><path d="' +
+          IC[el.getAttribute('data-ic')] +
+          '"/></svg>';
+      });
+
+      /* leader lines: from each region's right edge to its label in the column */
+      var NS = 'http://www.w3.org/2000/svg';
+      var svg = q('.a7-svg');
+      var right = function (sel) {
+        var e = q(sel);
+        return e.offsetLeft + e.offsetWidth;
+      };
+      var leaders = [
+        {g: 'a7-g-head', c: '#1098ad', x: right('.a7-phead'), y: 222, ly: 214},
+        {g: 'a7-g-title', c: '#e8590c', x: right('.a7-title'), y: 242, ly: 252},
+        {g: 'a7-g-body', c: '#9c36b5', x: right('.a7-pbody'), y: 300, ly: 300},
+        {g: 'a7-g-def', c: '#2f9e44', x: right('.a7-def'), y: 327, ly: 338},
+        {g: 'a7-g-foot', c: '#c2255c', x: right('.a7-foot'), y: 398, ly: 398},
+      ];
+      leaders.forEach(function (L) {
+        var g = document.createElementNS(NS, 'g');
+        g.setAttribute('class', L.g + ' a7-ld');
+        var p = document.createElementNS(NS, 'path');
+        p.setAttribute(
+          'd',
+          'M' + L.x + ' ' + L.y + ' H1096 L1114 ' + L.ly + ' H1124'
+        );
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', L.c);
+        p.setAttribute('stroke-width', '1.5');
+        p.setAttribute('pathLength', '1');
+        p.setAttribute('stroke-dasharray', '1');
+        p.setAttribute('class', 'a7-lp');
+        var d = document.createElementNS(NS, 'circle');
+        d.setAttribute('cx', L.x);
+        d.setAttribute('cy', L.y);
+        d.setAttribute('r', '3.5');
+        d.setAttribute('fill', L.c);
+        g.appendChild(p);
+        g.appendChild(d);
+        svg.appendChild(g);
+      });
+
+      var tl = gsap.timeline({paused: true});
+      var slam = function (el, t) {
+        tl.fromTo(
+          el,
+          {opacity: 0, y: 24},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          t
+        );
+      };
+      var show = function (sel, t, dy) {
+        tl.fromTo(
+          qa(sel),
+          {opacity: 0, y: dy === undefined ? 8 : dy},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          t
+        );
+      };
+      var overlay = function (g, t) {
+        tl.fromTo(
+          qa('.a7-box.' + g + ', .a7-part.' + g),
+          {opacity: 0, scale: 1.05},
+          {opacity: 1, scale: 1, duration: 0.22, ease: 'power3.out'},
+          t
+        );
+        tl.fromTo(
+          q('g.' + g),
+          {opacity: 0},
+          {opacity: 1, duration: 0.1},
+          t + 0.04
+        );
+        tl.fromTo(
+          q('g.' + g + ' .a7-lp'),
+          {strokeDashoffset: 1},
+          {strokeDashoffset: 0, duration: 0.2, ease: 'power2.out'},
+          t + 0.04
+        );
+        tl.fromTo(
+          q('.a7-lab.' + g),
+          {opacity: 0, x: -8},
+          {opacity: 1, x: 0, duration: 0.2, ease: 'back.out(2)'},
+          t + 0.12
+        );
+      };
+
+      tl.fromTo(
+        q('.a7-eyebrow'),
+        {opacity: 0, y: 8},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        0
+      );
+      slam(q('.a7-h1'), 0.1);
+      slam(q('.a7-h2'), 0.48);
+      tl.fromTo(
+        q('.a7-shine'),
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 3.0, ease: 'none'},
+        0.48
+      );
+
+      /* page card + its content */
+      tl.fromTo(
+        q('.a7-card'),
+        {opacity: 0, y: 24},
+        {opacity: 1, y: 0, duration: 0.35, ease: 'power3.out'},
+        0.1
+      );
+      tl.fromTo(
+        qa('.a7-txt > span'),
+        {opacity: 0, y: 16},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out', stagger: 0.04},
+        0.14
+      );
+
+      /* details pane */
+      tl.fromTo(
+        q('.a7-pane'),
+        {opacity: 0, x: 40},
+        {opacity: 1, x: 0, duration: 0.35, ease: 'power3.out'},
+        0.24
+      );
+      show('.a7-sh1', 0.48);
+      show('.a7-r1', 0.48);
+
+      /* overlays on beats */
+      tl.fromTo(
+        qa('.a7-g-host'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.2, ease: 'power2.out'},
+        0.48
+      );
+      overlay('a7-g-title', 0.72);
+      show('.a7-r2', 0.72);
+      overlay('a7-g-def', 0.96);
+      show('.a7-r3', 0.96);
+      overlay('a7-g-foot', 1.2);
+      show('.a7-r4', 1.2);
+      overlay('a7-g-head', 1.44);
+      overlay('a7-g-body', 1.44);
+      show('.a7-r5', 1.44);
+      show('.a7-sec2', 1.44);
+      show('.a7-r6', 1.44);
+      show('.a7-r7', 1.52);
+
+      /* 1.92 HIT: footer row hovered, its region pulses, the rest dims */
+      ['a7-g-host', 'a7-g-title', 'a7-g-def', 'a7-g-head', 'a7-g-body'].forEach(
+        function (g) {
+          tl.to(
+            qa('.' + g),
+            {opacity: 0.25, duration: 0.2, ease: 'power2.out'},
+            1.92
+          );
+        }
+      );
+      tl.to(q('.a7-hov'), {opacity: 1, duration: 0.12}, 1.92);
+      tl.to(
+        q('.a7-fbox'),
+        {
+          scale: 1.04,
+          boxShadow: '0 0 30px rgba(194,37,92,.75)',
+          backgroundColor: 'rgba(194,37,92,.26)',
+          duration: 0.24,
+          ease: 'power3.out',
+        },
+        1.92
+      );
+      tl.to(
+        q('.a7-fbox'),
+        {scale: 1, duration: 0.3, ease: 'power2.inOut'},
+        2.16
+      );
+      tl.to(
+        q('.a7-flab'),
+        {
+          boxShadow: '0 0 18px rgba(194,37,92,.8)',
+          duration: 0.24,
+          ease: 'power3.out',
+        },
+        1.92
+      );
+
+      /* 2.64 context: the provider this tree hangs under */
+      tl.fromTo(
+        q('.a7-ctx'),
+        {opacity: 0, y: 16},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        2.64
+      );
+      tl.fromTo(
+        q('.a7-to'),
+        {clipPath: 'inset(0% 100% 0% 0%)'},
+        {clipPath: 'inset(0% 0% 0% 0%)', duration: 0.3, ease: 'power2.out'},
+        2.88
+      );
+
+      tl.fromTo(
+        q('.a7-stage'),
+        {scaleY: 1, opacity: 1},
+        {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+        3.51
+      );
+      window.__timelines['s07-anatomy'] = tl;
+    })();
+  </script>
+</template>

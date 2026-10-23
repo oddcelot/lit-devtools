@@ -1,0 +1,666 @@
+<template id="s13-inspector-template">
+  <style>
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: italic;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s13-inspector {
+      overflow: hidden;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      z-index: 2;
+    }
+    #s13-inspector * {
+      box-sizing: border-box;
+    }
+    #s13-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 960px 664px;
+    }
+    #s13-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 22px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7bff;
+      white-space: nowrap;
+    }
+    .s13-h {
+      position: absolute;
+      left: 96px;
+      font-weight: 800;
+      font-size: 68px;
+      line-height: 72px;
+      height: 76px;
+      letter-spacing: -0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .s13-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    #s13-h1 {
+      top: 186px;
+    }
+    #s13-h2 {
+      top: 258px;
+    }
+    #s13-h3 {
+      top: 330px;
+    }
+    .s13-mono {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+    }
+
+    .s13-card {
+      position: absolute;
+      background: #121212;
+      border: 1px solid #363636;
+    }
+    .s13-rim {
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      right: -1px;
+      bottom: -1px;
+      border: 2px solid #4d63ff;
+      box-shadow: 0 0 28px rgba(77, 99, 255, 0.55);
+      opacity: 0;
+    }
+    #s13-chrome {
+      left: 740px;
+      top: 124px;
+      width: 538px;
+      height: 170px;
+    }
+    #s13-ff {
+      left: 1302px;
+      top: 124px;
+      width: 538px;
+      height: 170px;
+    }
+    .s13-store {
+      position: absolute;
+      left: 24px;
+      top: 18px;
+      height: 28px;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 28px;
+      color: #919191;
+      white-space: nowrap;
+      padding-left: 38px;
+    }
+    .s13-store img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 28px;
+      height: 28px;
+    }
+    .s13-flame {
+      background: url('assets/flame.svg') center/contain no-repeat;
+      position: absolute;
+      left: 24px;
+      top: 66px;
+      width: 46px;
+      height: 58px;
+    }
+    .s13-name {
+      position: absolute;
+      left: 88px;
+      top: 64px;
+      font-weight: 800;
+      font-size: 30px;
+      line-height: 36px;
+      color: #fff;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+    .s13-sub {
+      position: absolute;
+      left: 88px;
+      top: 104px;
+      font-weight: 500;
+      font-size: 17px;
+      line-height: 22px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    .s13-btn {
+      position: absolute;
+      right: 24px;
+      top: 72px;
+      height: 45px;
+      padding: 0 20px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 45px;
+      white-space: nowrap;
+    }
+
+    /* Chrome DevTools Elements panel with the Lit sidebar tab */
+    #s13-el {
+      left: 740px;
+      top: 314px;
+      width: 1100px;
+      height: 282px;
+      overflow: hidden;
+    }
+    #s13-tabs {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1098px;
+      height: 38px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #363636;
+      font-size: 17px;
+      line-height: 37px;
+      color: #9194a2;
+      white-space: nowrap;
+    }
+    #s13-tabs span {
+      position: absolute;
+      top: 0;
+      height: 37px;
+    }
+    #s13-tabs span.on {
+      color: #e3e3e3;
+      border-bottom: 2px solid #7c9fff;
+    }
+    #s13-dom {
+      position: absolute;
+      left: 0;
+      top: 38px;
+      width: 620px;
+      height: 244px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 17px;
+      color: #919191;
+    }
+    .s13-dl {
+      position: absolute;
+      left: 0;
+      width: 620px;
+      height: 27px;
+      line-height: 27px;
+      white-space: pre;
+      padding-left: 18px;
+    }
+    .s13-dl b {
+      font-weight: 400;
+      color: #c7c7c7;
+    }
+    #s13-sel {
+      background: rgba(77, 100, 255, 0.22);
+      color: #c7c7c7;
+    }
+    #s13-sel b {
+      color: #fff;
+    }
+    #s13-cap {
+      position: absolute;
+      left: 18px;
+      top: 212px;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7bff;
+      white-space: nowrap;
+    }
+    #s13-side {
+      position: absolute;
+      left: 620px;
+      top: 38px;
+      width: 478px;
+      height: 244px;
+      border-left: 1px solid #363636;
+      background: #030303;
+    }
+    #s13-stabs {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 478px;
+      height: 36px;
+      border-bottom: 1px solid #363636;
+      background: #0d0d0d;
+      font-size: 17px;
+      line-height: 35px;
+      color: #9194a2;
+      white-space: nowrap;
+    }
+    #s13-stabs span {
+      position: absolute;
+      top: 0;
+      height: 35px;
+    }
+    #s13-stabs span.on {
+      color: #567eff;
+      border-bottom: 2px solid #324fff;
+      padding-left: 22px;
+    }
+    #s13-stabs span.on .s13-fl {
+      display: block;
+      background: url('assets/flame.svg') center/contain no-repeat;
+      position: absolute;
+      left: 0;
+      top: 9px;
+      width: 15px;
+      height: 18px;
+    }
+    #s13-dhead {
+      position: absolute;
+      left: 18px;
+      top: 46px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-weight: 600;
+      font-size: 20px;
+      line-height: 26px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    #s13-dhead span {
+      color: #919191;
+      font-weight: 400;
+    }
+    #s13-dsec {
+      position: absolute;
+      left: 18px;
+      top: 80px;
+      width: 442px;
+      height: 30px;
+      border-top: 1px solid #363636;
+      padding-top: 7px;
+      font-size: 15px;
+      line-height: 20px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #919191;
+      white-space: nowrap;
+    }
+    #s13-dsec svg {
+      width: 13px;
+      height: 13px;
+      vertical-align: -1px;
+      margin-right: 5px;
+    }
+    #s13-dsec em {
+      font-style: normal;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      letter-spacing: 0;
+      margin-left: 5px;
+    }
+    .s13-pr {
+      position: absolute;
+      left: 18px;
+      width: 442px;
+      height: 28px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 17px;
+      line-height: 28px;
+      white-space: nowrap;
+      color: #e3e3e3;
+    }
+    .s13-pr i {
+      font-style: normal;
+      position: absolute;
+      left: 140px;
+      top: 0;
+    }
+    #s13-line {
+      position: absolute;
+      left: 740px;
+      top: 608px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 18px;
+      line-height: 24px;
+      color: #919191;
+      white-space: nowrap;
+    }
+  </style>
+  <div
+    data-hf-id="hf-pwn9"
+    id="s13-inspector"
+    data-composition-id="s13-inspector"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <div data-hf-id="hf-dm3h" id="s13-stage">
+      <div data-hf-id="hf-zm4m" id="s13-eyebrow">Lit Inspector</div>
+      <div data-hf-id="hf-zyqf" class="s13-h" id="s13-h1">No Vite?</div>
+      <div data-hf-id="hf-8kdl" class="s13-h s13-shine" id="s13-h2">
+        Inspect any
+      </div>
+      <div data-hf-id="hf-056i" class="s13-h s13-shine" id="s13-h3">
+        Lit site.
+      </div>
+
+      <div data-hf-id="hf-u4qm" class="s13-card" id="s13-chrome">
+        <div data-hf-id="hf-wduy" class="s13-store">
+          <img
+            data-hf-id="hf-d2z5"
+            src="assets/logos/chrome.svg"
+            alt=""
+          />Chrome Web Store
+        </div>
+        <div data-hf-id="hf-2jgl" class="s13-flame"></div>
+        <div data-hf-id="hf-6snf" class="s13-name">Lit Inspector</div>
+        <div data-hf-id="hf-bi4f" class="s13-sub">Developer tools</div>
+        <div data-hf-id="hf-76cc" class="s13-btn" style="background: #1a73e8">
+          Add to Chrome
+        </div>
+        <div data-hf-id="hf-z7wc" class="s13-rim"></div>
+      </div>
+      <div data-hf-id="hf-et5w" class="s13-card" id="s13-ff">
+        <div data-hf-id="hf-ow0w" class="s13-store">
+          <img
+            data-hf-id="hf-r6qe"
+            src="assets/logos/firefox.svg"
+            alt=""
+          />Firefox Add-ons
+        </div>
+        <div data-hf-id="hf-60k9" class="s13-flame"></div>
+        <div data-hf-id="hf-3k6j" class="s13-name">Lit Inspector</div>
+        <div data-hf-id="hf-c51b" class="s13-sub">Developer tools</div>
+        <div data-hf-id="hf-nuc8" class="s13-btn" style="background: #0060df">
+          Add to Firefox
+        </div>
+        <div data-hf-id="hf-9nhw" class="s13-rim"></div>
+      </div>
+
+      <div data-hf-id="hf-csoj" class="s13-card" id="s13-el">
+        <div data-hf-id="hf-qi35" id="s13-tabs">
+          <span data-hf-id="hf-2snb" class="on" style="left: 18px"
+            >Elements</span
+          ><span data-hf-id="hf-dtaf" style="left: 124px">Console</span
+          ><span data-hf-id="hf-bpkt" style="left: 224px">Sources</span
+          ><span data-hf-id="hf-gheo" style="left: 322px">Network</span
+          ><span data-hf-id="hf-fyff" style="left: 424px">Performance</span>
+        </div>
+        <div data-hf-id="hf-43yb" id="s13-dom">
+          <div data-hf-id="hf-pc5b" class="s13-dl" style="top: 8px">
+            ▾ &lt;<b data-hf-id="hf-5p6h">fh-app</b>&gt;
+          </div>
+          <div data-hf-id="hf-3veo" class="s13-dl" style="top: 35px">
+            ▸ &lt;<b data-hf-id="hf-pez7">fh-header</b>&gt;…&lt;/<b
+              data-hf-id="hf-mfzn"
+              >fh-header</b
+            >&gt;
+          </div>
+          <div
+            data-hf-id="hf-fjj4"
+            class="s13-dl"
+            id="s13-sel"
+            style="top: 62px"
+          >
+            ▸ &lt;<b data-hf-id="hf-8joi">fh-product-card</b>&gt;…&lt;/<b
+              data-hf-id="hf-hapy"
+              >fh-product-card</b
+            >&gt; == $0
+          </div>
+          <div data-hf-id="hf-kafp" class="s13-dl" style="top: 89px">
+            ▸ &lt;<b data-hf-id="hf-hp0z">fh-product-card</b>&gt;…&lt;/<b
+              data-hf-id="hf-i3c0"
+              >fh-product-card</b
+            >&gt;
+          </div>
+          <div data-hf-id="hf-emge" class="s13-dl" style="top: 116px">
+            ▸ &lt;<b data-hf-id="hf-fb6t">fh-product-card</b>&gt;…&lt;/<b
+              data-hf-id="hf-fphu"
+              >fh-product-card</b
+            >&gt;
+          </div>
+          <div data-hf-id="hf-0b24" class="s13-dl" style="top: 143px">
+            &lt;<b data-hf-id="hf-bshp">fh-toast</b>&gt;&lt;/<b
+              data-hf-id="hf-evip"
+              >fh-toast</b
+            >&gt;
+          </div>
+          <div data-hf-id="hf-750o" class="s13-dl" style="top: 170px">
+            &lt;/<b data-hf-id="hf-bte5">fh-app</b>&gt;
+          </div>
+          <div data-hf-id="hf-g66r" id="s13-cap">
+            A Lit tab in the Elements panel
+          </div>
+        </div>
+        <div data-hf-id="hf-c2j4" id="s13-side">
+          <div data-hf-id="hf-4w3g" id="s13-stabs">
+            <span data-hf-id="hf-puvq" style="left: 18px">Styles</span
+            ><span data-hf-id="hf-v3az" style="left: 100px">Computed</span
+            ><span data-hf-id="hf-8kv7" style="left: 206px">Layout</span
+            ><span data-hf-id="hf-zrlx" class="on" style="left: 292px"
+              ><i data-hf-id="hf-hwjq" class="s13-fl"></i>Lit</span
+            >
+          </div>
+          <div data-hf-id="hf-aumu" id="s13-dhead">
+            <span data-hf-id="hf-dep3">&lt;</span>fh-product-card<span
+              data-hf-id="hf-cm31"
+              >&gt;</span
+            >
+          </div>
+          <div data-hf-id="hf-h217" id="s13-dsec">
+            <svg data-hf-id="hf-j71f" viewBox="0 0 256 256" fill="currentColor">
+              <path
+                data-hf-id="hf-t0xx"
+                d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"
+              /></svg
+            >Properties<em data-hf-id="hf-lal5">4</em>
+          </div>
+          <div
+            data-hf-id="hf-orqg"
+            class="s13-pr"
+            id="s13-p1"
+            style="top: 112px"
+          >
+            productId<i data-hf-id="hf-2xl9" style="color: #c3e88d"
+              >"monstera"</i
+            >
+          </div>
+          <div
+            data-hf-id="hf-odd7"
+            class="s13-pr"
+            id="s13-p2"
+            style="top: 140px"
+          >
+            name<i data-hf-id="hf-cg4t" style="color: #c3e88d">"Monstera"</i>
+          </div>
+          <div
+            data-hf-id="hf-13z8"
+            class="s13-pr"
+            id="s13-p3"
+            style="top: 168px"
+          >
+            price<i data-hf-id="hf-x0tn" style="color: #f78c6c">34</i>
+          </div>
+          <div
+            data-hf-id="hf-khki"
+            class="s13-pr"
+            id="s13-p4"
+            style="top: 196px"
+          >
+            badge<i data-hf-id="hf-ui8h" style="color: #c3e88d">"Bestseller"</i>
+          </div>
+        </div>
+        <div data-hf-id="hf-8gkt" class="s13-rim"></div>
+      </div>
+      <div data-hf-id="hf-1106" id="s13-line">
+        Chrome · Firefox · Elements · Performance
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({paused: true});
+      var E = 'power3.out';
+      tl.fromTo(
+        '#s13-eyebrow',
+        {opacity: 0},
+        {opacity: 1, duration: 0.3, ease: E},
+        0.05
+      );
+      tl.fromTo(
+        '#s13-h1',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.1
+      );
+      tl.fromTo(
+        '#s13-h2',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.96
+      );
+      tl.fromTo(
+        '#s13-h3',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        1.02
+      );
+      ['#s13-h2', '#s13-h3'].forEach(function (id) {
+        tl.fromTo(
+          id,
+          {backgroundPosition: '0% 50%'},
+          {
+            backgroundPosition: '100% 50%',
+            duration: 2.55,
+            ease: 'none',
+            immediateRender: false,
+          },
+          0.96
+        );
+      });
+
+      tl.fromTo(
+        '#s13-chrome',
+        {y: 28, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.35, ease: E},
+        0.24
+      );
+      tl.fromTo(
+        '#s13-ff',
+        {y: 28, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.35, ease: E},
+        0.48
+      );
+      tl.fromTo(
+        '#s13-el',
+        {y: 28, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.4, ease: E},
+        0.96
+      );
+      // Lit sidebar fills in on the next beats
+      tl.fromTo(
+        '#s13-sel',
+        {backgroundColor: 'rgba(77,100,255,0)'},
+        {backgroundColor: 'rgba(77,100,255,.22)', duration: 0.2, ease: 'none'},
+        1.2
+      );
+      tl.fromTo(
+        ['#s13-dhead', '#s13-dsec'],
+        {opacity: 0, x: -8},
+        {opacity: 1, x: 0, duration: 0.25, ease: E, stagger: 0.06},
+        1.2
+      );
+      tl.fromTo(
+        ['#s13-p1', '#s13-p2', '#s13-p3', '#s13-p4'],
+        {opacity: 0, x: -8},
+        {opacity: 1, x: 0, duration: 0.25, ease: E, stagger: 0.06},
+        1.44
+      );
+      tl.fromTo(
+        '#s13-cap',
+        {opacity: 0},
+        {opacity: 1, duration: 0.3, ease: E},
+        1.44
+      );
+
+      // 1.92 HIT: the cards pulse once with a blue rim
+      tl.fromTo(
+        '.s13-rim',
+        {opacity: 0},
+        {opacity: 1, duration: 0.12, ease: 'power2.out'},
+        1.92
+      );
+      tl.to('.s13-rim', {opacity: 0, duration: 0.45, ease: 'power2.in'}, 2.04);
+      tl.fromTo(
+        ['#s13-chrome', '#s13-ff', '#s13-el'],
+        {scale: 1},
+        {scale: 1.012, duration: 0.12, ease: 'power2.out'},
+        1.92
+      );
+      tl.to(
+        ['#s13-chrome', '#s13-ff', '#s13-el'],
+        {scale: 1, duration: 0.3, ease: 'power2.inOut'},
+        2.04
+      );
+
+      tl.fromTo(
+        '#s13-line',
+        {opacity: 0, y: 12},
+        {opacity: 1, y: 0, duration: 0.3, ease: E},
+        2.4
+      );
+      tl.fromTo(
+        '#s13-stage',
+        {scaleY: 1, opacity: 1},
+        {
+          scaleY: 0,
+          opacity: 0,
+          duration: 0.18,
+          ease: 'power3.in',
+          immediateRender: false,
+        },
+        3.51
+      );
+      window.__timelines['s13-inspector'] = tl;
+    })();
+  </script>
+</template>

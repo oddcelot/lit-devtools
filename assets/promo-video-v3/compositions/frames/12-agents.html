@@ -1,0 +1,779 @@
+<template id="s12-agents-template">
+  <style>
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: italic;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s12-agents {
+      overflow: hidden;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      z-index: 2;
+    }
+    #s12-agents * {
+      box-sizing: border-box;
+    }
+    #s12-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+      transform-origin: 960px 664px;
+    }
+    #s12-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 700;
+      font-size: 18px;
+      line-height: 22px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #a451af;
+      white-space: nowrap;
+    }
+    .s12-h {
+      position: absolute;
+      left: 96px;
+      font-weight: 800;
+      font-size: 68px;
+      line-height: 72px;
+      height: 76px;
+      letter-spacing: -0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .s12-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    #s12-h1 {
+      top: 186px;
+    }
+    #s12-h2 {
+      top: 258px;
+    }
+    .s12-mono {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+    }
+
+    /* terminal card */
+    #s12-term {
+      position: absolute;
+      left: 740px;
+      top: 150px;
+      width: 560px;
+      height: 470px;
+      background: #0d0d0d;
+      border: 1px solid #363636;
+      overflow: hidden;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 21px;
+      color: #e3e3e3;
+    }
+    #s12-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 40px;
+      background: #121212;
+      border-bottom: 1px solid #363636;
+    }
+    .s12-dot {
+      position: absolute;
+      top: 15px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #363636;
+    }
+    #s12-title {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      line-height: 40px;
+      text-align: center;
+      color: #919191;
+      font-size: 17px;
+    }
+    .s12-ln {
+      position: absolute;
+      left: 24px;
+      white-space: pre;
+      line-height: 32px;
+      height: 32px;
+    }
+    .s12-prompt {
+      color: #00e8ff;
+    }
+    .s12-dim {
+      color: #919191;
+    }
+    #s12-reply {
+      position: absolute;
+      left: 24px;
+      top: 202px;
+      width: 510px;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      font-weight: 500;
+      font-size: 22px;
+      line-height: 33px;
+      color: #e3e3e3;
+      border-top: 1px solid #1f1f1f;
+      padding-top: 20px;
+    }
+    #s12-reply code {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 20px;
+      background: #212121;
+      padding: 1px 6px;
+    }
+    #s12-caret {
+      position: absolute;
+      left: 52px;
+      top: 358px;
+      width: 12px;
+      height: 24px;
+      background: #00e8ff;
+    }
+
+    /* page mock counter card */
+    #s12-card {
+      position: absolute;
+      left: 1320px;
+      top: 150px;
+      width: 520px;
+      height: 220px;
+      background: #121212;
+      border: 1px solid #363636;
+    }
+    #s12-ctitle {
+      position: absolute;
+      left: 28px;
+      top: 22px;
+      font-weight: 800;
+      font-size: 36px;
+      line-height: 44px;
+      letter-spacing: -0.02em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    #s12-btn {
+      position: absolute;
+      left: 28px;
+      top: 88px;
+      height: 60px;
+      width: 214px;
+      border: 1px solid #4d63ff;
+      font-weight: 700;
+      font-size: 28px;
+      line-height: 58px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      padding-left: 22px;
+    }
+    .s12-num {
+      position: absolute;
+      left: 132px;
+      top: 0;
+      width: 44px;
+      height: 58px;
+      color: #00e8ff;
+      text-align: left;
+    }
+    #s12-ring {
+      position: absolute;
+      left: 122px;
+      top: 6px;
+      width: 52px;
+      height: 46px;
+      border: 2px solid #00e8ff;
+      border-radius: 50%;
+    }
+    #s12-rend {
+      position: absolute;
+      left: 28px;
+      top: 170px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 19px;
+      line-height: 24px;
+      color: #919191;
+      white-space: nowrap;
+      width: 200px;
+      height: 24px;
+    }
+    #s12-rend span {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    #s12-flash {
+      position: absolute;
+      left: -1px;
+      top: -1px;
+      width: 520px;
+      height: 220px;
+      border: 2px solid #4d63ff;
+      box-shadow: 0 0 24px rgba(77, 99, 255, 0.55);
+    }
+
+    /* panel fragment: overrides bar + details */
+    #s12-frag {
+      position: absolute;
+      left: 1320px;
+      top: 394px;
+      width: 520px;
+      height: 226px;
+      background: #030303;
+      border: 1px solid #363636;
+      overflow: hidden;
+    }
+    #s12-obar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 518px;
+      height: 59px;
+      background: rgba(77, 100, 255, 0.16);
+      border-bottom: 1px solid #363636;
+      font-size: 19px;
+      font-weight: 500;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    #s12-switch {
+      position: absolute;
+      left: 19px;
+      top: 20px;
+      width: 36px;
+      height: 19px;
+      background: #324fff;
+      border-radius: 2px;
+    }
+    #s12-switch i {
+      position: absolute;
+      right: 2px;
+      top: 2px;
+      width: 15px;
+      height: 15px;
+      background: #fff;
+      border-radius: 2px;
+    }
+    #s12-apply {
+      position: absolute;
+      left: 65px;
+      top: 0;
+      line-height: 58px;
+    }
+    #s12-count {
+      position: absolute;
+      left: 222px;
+      top: 0;
+      line-height: 58px;
+    }
+    #s12-count b {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-top: 5px solid transparent;
+      border-bottom: 5px solid transparent;
+      border-left: 7px solid #e3e3e3;
+      margin-right: 8px;
+      vertical-align: 2px;
+    }
+    #s12-clear {
+      position: absolute;
+      right: 19px;
+      top: 0;
+      line-height: 58px;
+      color: #c7c7c7;
+    }
+    #s12-det {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 518px;
+      height: 226px;
+    }
+    #s12-head {
+      position: absolute;
+      left: 19px;
+      top: 16px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-weight: 600;
+      font-size: 24px;
+      line-height: 30px;
+      color: #fff;
+      white-space: nowrap;
+    }
+    #s12-head span {
+      color: #919191;
+      font-weight: 400;
+    }
+    #s12-sec {
+      position: absolute;
+      left: 19px;
+      top: 56px;
+      width: 480px;
+      height: 40px;
+      border-top: 1px solid #363636;
+      padding-top: 12px;
+      font-size: 18px;
+      line-height: 22px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #919191;
+      white-space: nowrap;
+    }
+    #s12-sec svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: -2px;
+      margin-right: 6px;
+    }
+    #s12-sec em {
+      font-style: normal;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      letter-spacing: 0;
+      margin-left: 6px;
+    }
+    .s12-row {
+      position: absolute;
+      left: 0;
+      top: 100px;
+      width: 518px;
+      height: 35px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 19px;
+      line-height: 35px;
+      white-space: nowrap;
+    }
+    .s12-row .k {
+      position: absolute;
+      color: #e3e3e3;
+    }
+    .s12-row .v {
+      position: absolute;
+      color: #f78c6c;
+    }
+    .s12-row .m {
+      position: absolute;
+      color: #919191;
+    }
+    .s12-row svg {
+      position: absolute;
+      top: 8px;
+      width: 19px;
+      height: 19px;
+    }
+    #s12-rowflash {
+      position: absolute;
+      left: 0;
+      top: 100px;
+      width: 518px;
+      height: 35px;
+      background: rgba(77, 99, 255, 0.35);
+    }
+    #s12-cb {
+      position: absolute;
+      left: 19px;
+      top: 8px;
+      width: 19px;
+      height: 19px;
+      background: #4d63ff;
+      border-radius: 2px;
+    }
+    #s12-cb svg {
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 15px;
+      height: 15px;
+      color: #fff;
+    }
+  </style>
+  <div
+    data-hf-id="hf-a71v"
+    id="s12-agents"
+    data-composition-id="s12-agents"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <div data-hf-id="hf-7wl4" id="s12-stage">
+      <div data-hf-id="hf-43th" id="s12-eyebrow">MCP</div>
+      <div data-hf-id="hf-9esv" class="s12-h" id="s12-h1">Your agent</div>
+      <div data-hf-id="hf-4sdy" class="s12-h s12-shine" id="s12-h2">
+        can try it too.
+      </div>
+
+      <div data-hf-id="hf-6kys" id="s12-term">
+        <div data-hf-id="hf-2vxh" id="s12-bar">
+          <i data-hf-id="hf-b2du" class="s12-dot" style="left: 16px"></i
+          ><i data-hf-id="hf-4x5i" class="s12-dot" style="left: 34px"></i
+          ><i data-hf-id="hf-gwxm" class="s12-dot" style="left: 52px"></i>
+          <div data-hf-id="hf-7ml6" id="s12-title">claude</div>
+        </div>
+        <div data-hf-id="hf-wd23" class="s12-ln" id="s12-cmd" style="top: 60px">
+          <span data-hf-id="hf-s64q" class="s12-prompt">› </span
+          ><span data-hf-id="hf-6d13" id="s12-typed"></span>
+        </div>
+        <div
+          data-hf-id="hf-djzb"
+          class="s12-ln s12-dim"
+          id="s12-res1"
+          style="top: 106px"
+        >
+          ⎿ set count 42 → 43
+        </div>
+        <div
+          data-hf-id="hf-bjj9"
+          class="s12-ln s12-dim"
+          id="s12-res2"
+          style="top: 138px"
+        >
+          kept as an override
+        </div>
+        <div data-hf-id="hf-1eb9" id="s12-reply">
+          Set <code data-hf-id="hf-oaeu" style="color: #b2ccd6">count</code> to
+          43 on
+          <code data-hf-id="hf-xnx2" style="color: #89ddff"
+            >&lt;hmr-counter&gt;</code
+          >. Switch it off in the overrides bar.
+        </div>
+        <div
+          data-hf-id="hf-f3l1"
+          class="s12-ln"
+          id="s12-idle"
+          style="top: 354px"
+        >
+          <span data-hf-id="hf-qdvy" class="s12-prompt">›</span>
+        </div>
+        <div data-hf-id="hf-c12j" id="s12-caret"></div>
+      </div>
+
+      <div data-hf-id="hf-45s4" id="s12-card">
+        <div data-hf-id="hf-w1la" id="s12-ctitle">Counter: edited live</div>
+        <div data-hf-id="hf-xoy5" id="s12-btn">
+          Count:<span data-hf-id="hf-yuof" class="s12-num" id="s12-n42">42</span
+          ><span data-hf-id="hf-7pgd" class="s12-num" id="s12-n43">43</span
+          ><i data-hf-id="hf-suh4" id="s12-ring"></i>
+        </div>
+        <div data-hf-id="hf-b08j" id="s12-rend">
+          <span data-hf-id="hf-zgqa" id="s12-r2">renders: 2</span
+          ><span data-hf-id="hf-mygw" id="s12-r3">renders: 3</span>
+        </div>
+        <div data-hf-id="hf-chdg" id="s12-flash"></div>
+      </div>
+
+      <div data-hf-id="hf-it8i" id="s12-frag">
+        <div data-hf-id="hf-3qud" id="s12-det">
+          <div data-hf-id="hf-hb0m" id="s12-head">
+            <span data-hf-id="hf-dep3">&lt;</span>hmr-counter<span
+              data-hf-id="hf-cm31"
+              >&gt;</span
+            >
+          </div>
+          <div data-hf-id="hf-1y7g" id="s12-sec">
+            <svg data-hf-id="hf-j71f" viewBox="0 0 256 256" fill="currentColor">
+              <path
+                data-hf-id="hf-t0xx"
+                d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"
+              /></svg
+            >Properties<em data-hf-id="hf-k3o2">1</em>
+          </div>
+          <div data-hf-id="hf-2lqg" id="s12-rowflash"></div>
+          <div data-hf-id="hf-cqcx" class="s12-row" id="s12-rowA">
+            <span data-hf-id="hf-c8m8" class="k" style="left: 19px">count</span
+            ><span data-hf-id="hf-shq2" class="v" style="left: 190px">42</span>
+          </div>
+          <div data-hf-id="hf-gogy" class="s12-row" id="s12-rowB">
+            <div data-hf-id="hf-3e1x" id="s12-cb">
+              <svg
+                data-hf-id="hf-1jz7"
+                viewBox="0 0 256 256"
+                fill="currentColor"
+              >
+                <path
+                  data-hf-id="hf-g0e0"
+                  d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"
+                />
+              </svg>
+            </div>
+            <span data-hf-id="hf-fsta" class="k" style="left: 48px">count</span
+            ><span data-hf-id="hf-s3f1" class="v" style="left: 190px">43</span>
+            <svg
+              data-hf-id="hf-ikxb"
+              style="left: 226px; color: #c7c7c7"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-0k6s"
+                d="M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z"
+              />
+            </svg>
+            <span data-hf-id="hf-l4sy" class="m" style="left: 256px">42</span>
+            <svg
+              data-hf-id="hf-3zd2"
+              style="left: 296px; color: #919191"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-cbxe"
+                d="M235.32,81.37,174.63,20.69a16,16,0,0,0-22.63,0L98.37,74.49c-10.66-3.34-35-7.37-60.4,13.14a16,16,0,0,0-1.29,23.78L85,159.71,42.34,202.34a8,8,0,0,0,11.32,11.32L96.29,171l48.29,48.29A16,16,0,0,0,155.9,224c.38,0,.75,0,1.13,0a15.93,15.93,0,0,0,11.64-6.33c19.64-26.1,17.75-47.32,13.19-60L235.33,104A16,16,0,0,0,235.32,81.37ZM224,92.69h0l-57.27,57.46a8,8,0,0,0-1.49,9.22c9.46,18.93-1.8,38.59-9.34,48.62L48,100.08c12.08-9.74,23.64-12.31,32.48-12.31A40.13,40.13,0,0,1,96.81,91a8,8,0,0,0,9.25-1.51L163.32,32,224,92.68Z"
+              />
+            </svg>
+            <svg
+              data-hf-id="hf-u8qo"
+              style="left: 328px; color: #919191"
+              viewBox="0 0 256 256"
+              fill="currentColor"
+            >
+              <path
+                data-hf-id="hf-7b8c"
+                d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"
+              />
+            </svg>
+          </div>
+        </div>
+        <div data-hf-id="hf-evj8" id="s12-obar">
+          <div data-hf-id="hf-e9dm" id="s12-switch">
+            <i data-hf-id="hf-wt6k"></i>
+          </div>
+          <div data-hf-id="hf-677z" id="s12-apply">Apply overrides</div>
+          <div data-hf-id="hf-waom" id="s12-count">
+            <b data-hf-id="hf-xujp"></b>1 override
+          </div>
+          <div data-hf-id="hf-hc0d" id="s12-clear">Clear all</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({paused: true});
+      var E = 'power3.out';
+
+      // typed command, coloured per segment
+      var segs = [
+        ['lit_set-prop ', '#e3e3e3'],
+        ['<hmr-counter>', '#89ddff'],
+        [' ', '#e3e3e3'],
+        ['count', '#b2ccd6'],
+        [' = ', '#919191'],
+        ['43', '#f78c6c'],
+      ];
+      var typed = document.getElementById('s12-typed');
+      typed.innerHTML = '';
+      var spans = [];
+      segs.forEach(function (sg) {
+        for (var j = 0; j < sg[0].length; j++) {
+          var s = document.createElement('span');
+          s.textContent = sg[0][j];
+          s.style.color = sg[1];
+          typed.appendChild(s);
+          spans.push(s);
+        }
+      });
+      var n = spans.length,
+        T0 = 0.24,
+        TD = 0.66;
+      for (var i = 0; i < n; i++)
+        tl.fromTo(
+          spans[i],
+          {opacity: 0},
+          {opacity: 1, duration: 0.01},
+          T0 + (TD * i) / (n - 1)
+        );
+      var cw = 12.6;
+      tl.fromTo(
+        '#s12-caret',
+        {opacity: 0, x: 0, y: 0},
+        {opacity: 0, duration: 0.01},
+        0
+      );
+      tl.set('#s12-caret', {opacity: 1, x: 2 * cw - 28, y: -294}, T0);
+      tl.to(
+        '#s12-caret',
+        {x: (2 + n) * cw - 28, duration: TD, ease: 'none'},
+        T0
+      );
+      tl.set('#s12-caret', {opacity: 0}, 1.2);
+
+      // headline
+      tl.fromTo(
+        '#s12-eyebrow',
+        {opacity: 0},
+        {opacity: 1, duration: 0.3, ease: E},
+        0.05
+      );
+      tl.fromTo(
+        '#s12-h1',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.1
+      );
+      tl.fromTo(
+        '#s12-h2',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.48
+      );
+      tl.fromTo(
+        '#s12-h2',
+        {backgroundPosition: '0% 50%'},
+        {
+          backgroundPosition: '100% 50%',
+          duration: 3.03,
+          ease: 'none',
+          immediateRender: false,
+        },
+        0.48
+      );
+
+      // cards
+      tl.fromTo(
+        '#s12-term',
+        {y: 20, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.0
+      );
+      tl.fromTo(
+        '#s12-card',
+        {y: 20, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.24
+      );
+      tl.fromTo(
+        '#s12-frag',
+        {y: 20, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.48
+      );
+
+      // tool result
+      tl.fromTo(
+        '#s12-res1',
+        {opacity: 0, x: -10},
+        {opacity: 1, x: 0, duration: 0.2, ease: E},
+        1.2
+      );
+      tl.fromTo(
+        '#s12-res2',
+        {opacity: 0, x: -10},
+        {opacity: 1, x: 0, duration: 0.2, ease: E},
+        1.28
+      );
+
+      // 1.44 HIT: counter flips, overrides bar slides in
+      var H = 1.44;
+      tl.fromTo('#s12-n42', {opacity: 1}, {opacity: 0, duration: 0.01}, H);
+      tl.fromTo(
+        '#s12-n43',
+        {opacity: 0, scale: 1.35, transformOrigin: '20% 50%'},
+        {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2)'},
+        H
+      );
+      tl.fromTo(
+        '#s12-ring',
+        {opacity: 0, scale: 0.7},
+        {opacity: 1, scale: 1.15, duration: 0.25, ease: E},
+        H
+      );
+      tl.to(
+        '#s12-ring',
+        {opacity: 0, scale: 1.4, duration: 0.45, ease: 'power2.in'},
+        H + 0.25
+      );
+      tl.fromTo(
+        '#s12-flash',
+        {opacity: 0},
+        {opacity: 1, duration: 0.08, ease: 'none'},
+        H
+      );
+      tl.to(
+        '#s12-flash',
+        {opacity: 0, duration: 0.6, ease: 'power2.out'},
+        H + 0.08
+      );
+      tl.fromTo('#s12-r2', {opacity: 1}, {opacity: 0, duration: 0.01}, H);
+      tl.fromTo('#s12-r3', {opacity: 0}, {opacity: 1, duration: 0.01}, H);
+      tl.fromTo('#s12-obar', {y: -60}, {y: 0, duration: 0.3, ease: E}, H);
+      tl.fromTo('#s12-det', {y: 0}, {y: 59, duration: 0.3, ease: E}, H);
+      tl.fromTo('#s12-rowA', {opacity: 1}, {opacity: 0, duration: 0.01}, H);
+      tl.fromTo('#s12-rowB', {opacity: 0}, {opacity: 1, duration: 0.01}, H);
+      tl.fromTo('#s12-rowflash', {opacity: 0}, {opacity: 1, duration: 0.05}, H);
+      tl.to(
+        '#s12-rowflash',
+        {opacity: 0, duration: 0.8, ease: 'power2.out'},
+        H + 0.05
+      );
+
+      // 2.40: agent reply, 2.88: idle prompt
+      tl.fromTo(
+        '#s12-reply',
+        {opacity: 0, y: 14},
+        {opacity: 1, y: 0, duration: 0.4, ease: E},
+        2.4
+      );
+      tl.fromTo('#s12-idle', {opacity: 0}, {opacity: 1, duration: 0.15}, 2.88);
+      tl.set('#s12-caret', {x: 0, y: 0}, 2.87);
+      [2.88, 3.36].forEach(function (t) {
+        tl.set('#s12-caret', {opacity: 1}, t);
+        tl.set('#s12-caret', {opacity: 0}, t + 0.24);
+      });
+
+      // snap shut, gone by 3.69
+      tl.fromTo(
+        '#s12-stage',
+        {scaleY: 1, opacity: 1},
+        {
+          scaleY: 0,
+          opacity: 0,
+          duration: 0.18,
+          ease: 'power3.in',
+          immediateRender: false,
+        },
+        3.51
+      );
+      window.__timelines['s12-agents'] = tl;
+    })();
+  </script>
+</template>

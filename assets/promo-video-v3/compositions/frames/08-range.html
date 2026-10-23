@@ -1,0 +1,508 @@
+<template id="s08-range-template">
+  <style>
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: normal;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: italic;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s08-range,
+    #s08-range * {
+      box-sizing: border-box;
+    }
+    #s08-range {
+      position: absolute;
+      inset: 0;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      color: #e3e3e3;
+    }
+    #s08-range .a8-stage {
+      position: absolute;
+      inset: 0;
+    }
+    #s08-range .a8-mono {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+    }
+    .a8-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #99aeff;
+      line-height: 24px;
+      white-space: nowrap;
+    }
+    .a8-hl {
+      position: absolute;
+      left: 96px;
+      display: block;
+      font-weight: 800;
+      font-size: 68px;
+      line-height: 72px;
+      letter-spacing: -0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .a8-sh {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      padding-right: 4px;
+    }
+    /* panel tooltip (1.6x: sans 19px, square, #363636) */
+    /* shared URL pill */
+    .a8-url {
+      position: absolute;
+      left: 740px;
+      top: 292px;
+      height: 52px;
+      padding: 0 22px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: #121212;
+      border: 1px solid #717584;
+      font-size: 20px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .a8-url svg {
+      width: 22px;
+      height: 22px;
+      flex: none;
+      color: #99aeff;
+    }
+    .a8-url .a8-caret {
+      display: inline-block;
+      width: 2px;
+      height: 26px;
+      background: #00e8ff;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+    /* range summary (bottom of the Tracks view, 1.6x) */
+    .a8-sum {
+      position: absolute;
+      left: 740px;
+      top: 360px;
+      width: 1100px;
+      height: 280px;
+      background: #030303;
+      border: 1px solid #363636;
+    }
+    .a8-t1 {
+      position: absolute;
+      left: 19px;
+      top: 14px;
+      height: 45px;
+      line-height: 45px;
+      font-size: 19px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .a8-t2 {
+      position: absolute;
+      left: 19px;
+      top: 58px;
+      height: 28px;
+      line-height: 28px;
+      font-size: 18px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    .a8-lay {
+      position: absolute;
+      left: 19px;
+      top: 92px;
+      height: 28px;
+      line-height: 28px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      display: flex;
+      gap: 20px;
+    }
+    .a8-lay span {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .a8-lay i {
+      display: inline-block;
+      width: 13px;
+      height: 13px;
+    }
+    .a8-btns {
+      position: absolute;
+      right: 16px;
+      top: 14px;
+      display: flex;
+      gap: 10px;
+    }
+    .a8-b {
+      position: relative;
+      height: 45px;
+      line-height: 43px;
+      padding: 0 19px;
+      border: 1px solid #717584;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      text-align: center;
+    }
+    .a8-b.a8-copy {
+      width: 150px;
+      padding: 0;
+    }
+    .a8-b.a8-copy span {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+    }
+    .a8-b.a8-clear {
+      width: 96px;
+      padding: 0;
+      border-color: transparent;
+      color: #c7c7c7;
+    }
+    .a8-th,
+    .a8-tr {
+      position: absolute;
+      left: 19px;
+      width: 1060px;
+      white-space: nowrap;
+    }
+    .a8-th {
+      top: 132px;
+      height: 26px;
+      line-height: 26px;
+      font-size: 18px;
+      color: #919191;
+    }
+    .a8-tr {
+      height: 36px;
+      line-height: 36px;
+      font-size: 19px;
+      color: #e3e3e3;
+    }
+    .a8-c {
+      position: absolute;
+      top: 0;
+    }
+    .a8-c1 {
+      left: 0;
+    }
+    .a8-c2 {
+      left: 290px;
+      width: 100px;
+      text-align: right;
+    }
+    .a8-c3 {
+      left: 410px;
+      width: 100px;
+      text-align: right;
+    }
+    .a8-c4 {
+      left: 540px;
+      color: #7c9fff;
+    }
+    .a8-c4 b {
+      font-weight: 400;
+      margin-right: 16px;
+    }
+    .a8-rip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 70px;
+      height: 70px;
+      margin: -35px 0 0 -35px;
+      border-radius: 50%;
+      border: 2px solid #7c9fff;
+      background: rgba(124, 159, 255, 0.22);
+      opacity: 0;
+    }
+    .a8-cur {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 30px;
+      height: 40px;
+      opacity: 0;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.7));
+      z-index: 3;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-k8p3"
+    id="s08-range"
+    data-composition-id="s08-range"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-uprq" class="a8-stage">
+      <div data-hf-id="hf-sshi" class="a8-eyebrow">Timeline</div>
+      <div data-hf-id="hf-n9cg" class="a8-hl" style="top: 186px">Select</div>
+      <div data-hf-id="hf-rxr9" class="a8-hl" style="top: 258px">
+        a <span data-hf-id="hf-417o" class="a8-sh">moment.</span>
+      </div>
+      <div data-hf-id="hf-mtal" class="a8-hl" style="top: 330px">
+        <span data-hf-id="hf-xomc" class="a8-sh">Share it.</span>
+      </div>
+
+      <div data-hf-id="hf-49du" class="a8-url a8-mono">
+        <svg data-hf-id="hf-j71f" viewBox="0 0 256 256" fill="currentColor">
+          <path
+            data-hf-id="hf-yp2r"
+            d="M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z"
+          /></svg
+        ><span data-hf-id="hf-uckh"
+          ><span data-hf-id="hf-h7i0" class="a8-ut"></span
+          ><span data-hf-id="hf-7ook" class="a8-caret"></span
+        ></span>
+      </div>
+
+      <div data-hf-id="hf-3of8" class="a8-sum a8-mono">
+        <div data-hf-id="hf-eg3j" class="a8-t1">
+          Range 22.63s–26.73s (4.10s)
+        </div>
+        <div data-hf-id="hf-5o2y" class="a8-t2">412 events starting in it</div>
+        <div data-hf-id="hf-s70a" class="a8-lay">
+          <span data-hf-id="hf-0pcm"
+            ><i data-hf-id="hf-e1qj" style="background: #325cff"></i>Lit Render
+            318</span
+          >
+          <span data-hf-id="hf-k7xo"
+            ><i data-hf-id="hf-p0ul" style="background: #4d63ff"></i>Lit
+            Lifecycle 64</span
+          >
+          <span data-hf-id="hf-cyx9"
+            ><i data-hf-id="hf-c1es" style="background: #a451af"></i>Mouse
+            21</span
+          >
+          <span data-hf-id="hf-2x4o"
+            ><i data-hf-id="hf-fit3" style="background: #af7a51"></i>Custom
+            events 9</span
+          >
+        </div>
+        <div data-hf-id="hf-z17b" class="a8-btns">
+          <div data-hf-id="hf-nrcz" class="a8-b">Zoom to range</div>
+          <div data-hf-id="hf-mwtk" class="a8-b">Filter to range</div>
+          <div data-hf-id="hf-wa5d" class="a8-b a8-copy">
+            <span data-hf-id="hf-o3il" class="a8-l1">Copy link</span
+            ><span data-hf-id="hf-09v4" class="a8-l2" style="opacity: 0"
+              >Copied</span
+            >
+          </div>
+          <div data-hf-id="hf-lzey" class="a8-b a8-clear">Clear</div>
+        </div>
+        <div data-hf-id="hf-t4fk" class="a8-th">
+          <span data-hf-id="hf-f1dt" class="a8-c a8-c1">component</span
+          ><span data-hf-id="hf-egyh" class="a8-c a8-c2">updates</span
+          ><span data-hf-id="hf-2g36" class="a8-c a8-c3">total</span>
+        </div>
+        <div data-hf-id="hf-2mh2" class="a8-tr" style="top: 160px">
+          <span data-hf-id="hf-l6jx" class="a8-c a8-c1"
+            >&lt;hmr-utility-btn&gt;</span
+          ><span data-hf-id="hf-xnph" class="a8-c a8-c2">6</span
+          ><span data-hf-id="hf-sshj" class="a8-c a8-c3">1.2ms</span
+          ><span data-hf-id="hf-uqg1" class="a8-c a8-c4"
+            ><b data-hf-id="hf-g6tz">filter</b>inspect</span
+          >
+        </div>
+        <div data-hf-id="hf-azgh" class="a8-tr" style="top: 196px">
+          <span data-hf-id="hf-nnth" class="a8-c a8-c1">&lt;hmr-slots&gt;</span
+          ><span data-hf-id="hf-zn8m" class="a8-c a8-c2">3</span
+          ><span data-hf-id="hf-fbne" class="a8-c a8-c3">600µs</span
+          ><span data-hf-id="hf-pw8l" class="a8-c a8-c4"
+            ><b data-hf-id="hf-fbmf">filter</b>inspect</span
+          >
+        </div>
+        <div data-hf-id="hf-r92o" class="a8-tr" style="top: 232px">
+          <span data-hf-id="hf-3bdp" class="a8-c a8-c1"
+            >&lt;hmr-properties&gt;</span
+          ><span data-hf-id="hf-z8xl" class="a8-c a8-c2">2</span
+          ><span data-hf-id="hf-9ge8" class="a8-c a8-c3">400µs</span
+          ><span data-hf-id="hf-r35o" class="a8-c a8-c4"
+            ><b data-hf-id="hf-exbe">filter</b>inspect</span
+          >
+        </div>
+        <div data-hf-id="hf-qfld" class="a8-rip"></div>
+        <svg data-hf-id="hf-5ht9" class="a8-cur" viewBox="0 0 30 40">
+          <path
+            data-hf-id="hf-0pre"
+            d="M2 2 L2 31 L9 25 L14.5 37 L19.5 34.8 L14 23 L23 23 Z"
+            fill="#fff"
+            stroke="#000"
+            stroke-width="2"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var R = document.getElementById('s08-range');
+      var q = function (s) {
+        return R.querySelector(s);
+      };
+      var qa = function (s) {
+        return R.querySelectorAll(s);
+      };
+      var tl = gsap.timeline({paused: true});
+      var slam = function (el, t) {
+        tl.fromTo(
+          el,
+          {opacity: 0, y: 24},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          t
+        );
+      };
+
+      tl.fromTo(
+        q('.a8-eyebrow'),
+        {opacity: 0, y: 8},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        0
+      );
+      var hl = qa('.a8-hl');
+      slam(hl[0], 0.3);
+      slam(hl[1], 0.78);
+      slam(hl[2], 2.4);
+      tl.fromTo(
+        qa('.a8-sh'),
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 2.9, ease: 'none'},
+        0.78
+      );
+
+      /* 1.44 summary slides up */
+      tl.fromTo(
+        q('.a8-sum'),
+        {opacity: 0, y: 44},
+        {opacity: 1, y: 0, duration: 0.5, ease: 'power3.out'},
+        1.44
+      );
+      qa('.a8-tr').forEach(function (r, i) {
+        tl.fromTo(
+          r,
+          {opacity: 0, y: 8},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power2.out'},
+          1.8 + i * 0.12
+        );
+      });
+
+      /* 2.40 cursor clicks Copy link (coordinates relative to the summary; button centre 901, 36) */
+      tl.fromTo(
+        q('.a8-cur'),
+        {x: 800, y: 200, opacity: 0},
+        {x: 898, y: 30, opacity: 1, duration: 0.5, ease: 'power3.out'},
+        1.9
+      );
+      tl.fromTo(
+        q('.a8-rip'),
+        {x: 901, y: 36, scale: 0.2, opacity: 0.9},
+        {
+          x: 901,
+          y: 36,
+          scale: 1,
+          opacity: 0,
+          duration: 0.45,
+          ease: 'power2.out',
+        },
+        2.4
+      );
+      tl.to(
+        q('.a8-cur'),
+        {
+          scale: 0.88,
+          duration: 0.08,
+          ease: 'power2.in',
+          transformOrigin: '0 0',
+        },
+        2.38
+      );
+      tl.to(q('.a8-cur'), {scale: 1, duration: 0.12, ease: 'power2.out'}, 2.46);
+      tl.to(
+        q('.a8-copy'),
+        {borderColor: '#4d63ff', color: '#82a5ff', duration: 0.1},
+        2.4
+      );
+      tl.to(q('.a8-l1'), {opacity: 0, duration: 0.08}, 2.4);
+      tl.fromTo(q('.a8-l2'), {opacity: 0}, {opacity: 1, duration: 0.08}, 2.4);
+      tl.to(q('.a8-l2'), {opacity: 0, duration: 0.1}, 3.0);
+      tl.to(q('.a8-l1'), {opacity: 1, duration: 0.1}, 3.0);
+      tl.to(
+        q('.a8-copy'),
+        {borderColor: '#717584', color: '#e3e3e3', duration: 0.1},
+        3.0
+      );
+
+      /* 2.64 -> 3.30 URL types */
+      var url = 'localhost:5173/__lit/#tab=timeline&range=22630-26730';
+      var st = {n: 0};
+      var ut = q('.a8-ut');
+      tl.fromTo(
+        q('.a8-url'),
+        {opacity: 0, y: 12},
+        {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+        2.64
+      );
+      tl.fromTo(
+        st,
+        {n: 0},
+        {
+          n: url.length,
+          duration: 0.66,
+          ease: 'none',
+          onUpdate: function () {
+            ut.textContent = url.slice(0, Math.round(st.n));
+          },
+        },
+        2.64
+      );
+
+      /* snap shut toward the strip */
+      tl.fromTo(
+        q('.a8-stage'),
+        {scaleY: 1, opacity: 1, transformOrigin: '960px 664px'},
+        {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+        3.51
+      );
+      window.__timelines['s08-range'] = tl;
+    })();
+  </script>
+</template>

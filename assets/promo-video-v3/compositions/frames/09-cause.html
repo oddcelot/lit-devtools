@@ -1,0 +1,831 @@
+<template id="s09-cause-template">
+  <div
+    data-hf-id="hf-vp6t"
+    id="s09-cause"
+    data-composition-id="s09-cause"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <style>
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-style: normal;
+        font-weight: 100 700;
+        src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-style: italic;
+        font-weight: 100 700;
+        src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+      }
+      #s09-cause,
+      #s09-cause * {
+        box-sizing: border-box;
+      }
+      #s09-cause {
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        color: #e3e3e3;
+      }
+      #s09-wrap {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+      }
+      #s09-flash {
+        position: absolute;
+        left: 40px;
+        top: 100px;
+        width: 1840px;
+        height: 564px;
+        background: radial-gradient(
+          circle 700px at 1290px 360px,
+          rgba(77, 99, 255, 0.42),
+          rgba(77, 99, 255, 0) 100%
+        );
+      }
+      #s09-eyebrow {
+        position: absolute;
+        left: 96px;
+        top: 150px;
+        font-weight: 700;
+        font-size: 18px;
+        line-height: 24px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #99aeff;
+        white-space: nowrap;
+      }
+      .s09-h {
+        position: absolute;
+        left: 96px;
+        display: block;
+        font-weight: 800;
+        font-size: 68px;
+        line-height: 72px;
+        letter-spacing: -0.03em;
+        color: #fff;
+        white-space: nowrap;
+      }
+      .s09-sh {
+        padding-bottom: 0.16em;
+        margin-bottom: -0.16em;
+        -webkit-box-decoration-break: clone;
+        box-decoration-break: clone;
+        background: linear-gradient(
+          100deg,
+          #4d63ff 10%,
+          #00ffff 55%,
+          #4d63ff 95%
+        );
+        background-size: 200% 100%;
+        background-position: 0% 50%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+        padding-right: 4px;
+      }
+      .s09-m {
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+      }
+      #s09-fragbox {
+        position: absolute;
+        left: 740px;
+        top: 124px;
+        width: 1100px;
+        height: 516px;
+      }
+      #s09-frag {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1100px;
+        height: 516px;
+        background: #030303;
+        border: 1px solid #363636;
+        overflow: hidden;
+      }
+      #s09-in {
+        position: absolute;
+        left: -1px;
+        top: -1px;
+        width: 1100px;
+        height: 516px;
+      }
+      /* toolbar (66 px at 1.6x) */
+      .s09-tb {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1100px;
+        height: 66px;
+        background: #0d0d0d;
+        border-bottom: 1px solid #363636;
+      }
+      .s09-seg {
+        position: absolute;
+        left: 19px;
+        top: 10px;
+        height: 45px;
+        display: flex;
+        padding: 3px;
+        background: #121212;
+        border: 1px solid #363636;
+      }
+      .s09-seg span {
+        display: block;
+        padding: 0 19px;
+        line-height: 37px;
+        font-weight: 400;
+        font-size: 19px;
+        color: #919191;
+      }
+      .s09-seg span.s09-on {
+        background: rgba(255, 255, 255, 0.07);
+        color: #e3e3e3;
+        font-weight: 600;
+      }
+      .s09-btns {
+        position: absolute;
+        right: 19px;
+        top: 10px;
+        height: 45px;
+        display: flex;
+        gap: 13px;
+      }
+      .s09-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 45px;
+        padding: 0 19px;
+        border: 1px solid #717584;
+        font-weight: 500;
+        font-size: 19px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      .s09-btn svg {
+        width: 19px;
+        height: 19px;
+      }
+      .s09-btn.s09-stop {
+        background: #5e081c;
+        border-color: #5e081c;
+        color: #fd8f90;
+      }
+      /* list bar */
+      .s09-bar {
+        position: absolute;
+        left: 0;
+        top: 66px;
+        width: 1100px;
+        height: 48px;
+        border-bottom: 1px solid #1f1f1f;
+      }
+      .s09-sw1 {
+        position: absolute;
+        left: 19px;
+        top: 13px;
+        width: 40px;
+        height: 22px;
+        border: 1px solid #717584;
+        background: #121212;
+      }
+      .s09-sw1::after {
+        content: '';
+        position: absolute;
+        left: 3px;
+        top: 3px;
+        width: 14px;
+        height: 14px;
+        background: #919191;
+      }
+      .s09-raw {
+        position: absolute;
+        left: 70px;
+        top: 0;
+        line-height: 48px;
+        font-weight: 500;
+        font-size: 19px;
+        color: #e3e3e3;
+      }
+      .s09-exp {
+        position: absolute;
+        left: 139px;
+        top: 0;
+        line-height: 48px;
+        font-size: 19px;
+        color: #c7c7c7;
+      }
+      .s09-cnt {
+        position: absolute;
+        right: 19px;
+        top: 0;
+        line-height: 48px;
+        font-size: 18px;
+        color: #919191;
+      }
+      /* rows: 37 px, Lilex 18 px */
+      .s09-row {
+        position: absolute;
+        left: 0;
+        width: 1100px;
+        height: 37px;
+        border-bottom: 1px solid #141414;
+        font-size: 18px;
+        line-height: 36px;
+      }
+      .s09-hl {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1100px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.07);
+        opacity: 0;
+      }
+      .s09-tw {
+        position: absolute;
+        left: 94px;
+        top: 12px;
+        width: 0;
+        height: 0;
+        border-left: 9px solid #919191;
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+      }
+      .s09-time {
+        position: absolute;
+        left: 110px;
+        width: 100px;
+        text-align: right;
+        color: #919191;
+      }
+      .s09-sw {
+        position: absolute;
+        left: 224px;
+        top: 12px;
+        width: 13px;
+        height: 13px;
+      }
+      .s09-title {
+        position: absolute;
+        left: 250px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      .s09-tag {
+        position: absolute;
+        right: 131px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      .s09-tag em {
+        font-style: normal;
+        color: #919191;
+        margin-right: 11px;
+      }
+      .s09-tag u {
+        text-decoration: none;
+        color: #4d63ff;
+        margin-right: 11px;
+      }
+      .s09-tag .s09-x2 {
+        display: inline-block;
+        color: #f4bf4f;
+        margin-right: 11px;
+      }
+      .s09-dur {
+        position: absolute;
+        right: 19px;
+        width: 99px;
+        text-align: right;
+        color: #c7c7c7;
+      }
+      .s09-d {
+        opacity: 0.6;
+      }
+      .s09-rail {
+        position: absolute;
+        width: 2px;
+        margin-left: -1px;
+      }
+      .s09-node {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin: -5px 0 0 -5px;
+      }
+      #s09-chip {
+        position: absolute;
+        left: 410px;
+        top: 378px;
+        height: 27px;
+        padding: 0 10px;
+        background: #212121;
+        font-size: 16px;
+        line-height: 27px;
+        color: #e3e3e3;
+        white-space: nowrap;
+      }
+      #s09-chip i {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #e64980;
+        margin-right: 9px;
+        vertical-align: 1px;
+      }
+      #s09-tip {
+        position: absolute;
+        right: 40px;
+        top: 372px;
+        width: 440px;
+        padding: 7px 13px;
+        background: #363636;
+        border: 1px solid #363636;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+        font-size: 19px;
+        line-height: 27px;
+        color: #e3e3e3;
+      }
+    </style>
+    <div data-hf-id="hf-iezy" id="s09-wrap">
+      <div data-hf-id="hf-ssjw" id="s09-flash"></div>
+      <div data-hf-id="hf-x9ok" id="s09-eyebrow">Timeline</div>
+      <span data-hf-id="hf-aosg" class="s09-h" id="s09-h1" style="top: 186px"
+        >See why it</span
+      >
+      <span data-hf-id="hf-rmv3" class="s09-h" id="s09-h2" style="top: 258px"
+        ><span data-hf-id="hf-o91m" class="s09-sh">re-rendered.</span></span
+      >
+      <div data-hf-id="hf-jubt" id="s09-fragbox">
+        <div data-hf-id="hf-gpm2" id="s09-frag">
+          <div data-hf-id="hf-2w6b" id="s09-in">
+            <div data-hf-id="hf-hk0d" class="s09-tb">
+              <div data-hf-id="hf-2wf2" class="s09-seg">
+                <span data-hf-id="hf-ez61" class="s09-on">List</span
+                ><span data-hf-id="hf-j7td">Tracks</span>
+              </div>
+              <div data-hf-id="hf-vs68" class="s09-btns">
+                <div data-hf-id="hf-yjz1" class="s09-btn">Export snapshot</div>
+                <div data-hf-id="hf-3wfq" class="s09-btn">Clear</div>
+                <div data-hf-id="hf-ysok" class="s09-btn s09-stop">
+                  <svg
+                    data-hf-id="hf-j71f"
+                    viewBox="0 0 256 256"
+                    fill="currentColor"
+                  >
+                    <path
+                      data-hf-id="hf-f0af"
+                      d="M200,40H56A16,16,0,0,0,40,56V200a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,160H56V56H200V200Z"
+                    /></svg
+                  >Stop
+                </div>
+              </div>
+            </div>
+            <div data-hf-id="hf-tnpe" class="s09-bar">
+              <i data-hf-id="hf-7t5q" class="s09-sw1"></i
+              ><span data-hf-id="hf-as9a" class="s09-raw">Raw</span
+              ><span data-hf-id="hf-odso" class="s09-exp">Expand all</span
+              ><span data-hf-id="hf-vyr4" class="s09-cnt s09-m">52 / 4926</span>
+            </div>
+
+            <div
+              data-hf-id="hf-it75"
+              class="s09-row s09-m"
+              id="s09-row0"
+              style="top: 114px"
+            >
+              <i data-hf-id="hf-x05m" class="s09-hl" id="s09-hl0"></i
+              ><span data-hf-id="hf-l0nl" class="s09-tw"></span
+              ><span data-hf-id="hf-96yl" class="s09-time">2168.7ms</span
+              ><i
+                data-hf-id="hf-rite"
+                class="s09-sw"
+                style="background: #a451af"
+              ></i
+              ><span data-hf-id="hf-taag" class="s09-title">click</span
+              ><span data-hf-id="hf-uogq" class="s09-tag">(385, 540)</span
+              ><span data-hf-id="hf-3mw3" class="s09-dur"></span>
+            </div>
+            <div
+              data-hf-id="hf-3gsd"
+              class="s09-row s09-m"
+              id="s09-row1"
+              style="top: 151px"
+            >
+              <i data-hf-id="hf-35vf" class="s09-hl" id="s09-hl1"></i
+              ><span data-hf-id="hf-kyrp" class="s09-tw"></span
+              ><span data-hf-id="hf-03o1" class="s09-time">2168.7ms</span
+              ><i
+                data-hf-id="hf-kf7b"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-r2fw" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-wwq1" class="s09-tag"
+                ><em data-hf-id="hf-c3n6">+2</em
+                ><u data-hf-id="hf-7duu">userId</u>hmr-task</span
+              ><span data-hf-id="hf-heh8" class="s09-dur">0.50ms</span>
+            </div>
+            <div
+              data-hf-id="hf-exdk"
+              class="s09-row s09-m"
+              id="s09-row2"
+              style="top: 188px"
+            >
+              <i data-hf-id="hf-sads" class="s09-hl" id="s09-hl2"></i
+              ><span data-hf-id="hf-m5os" class="s09-tw"></span
+              ><span data-hf-id="hf-tx1n" class="s09-time">2169.0ms</span
+              ><i
+                data-hf-id="hf-z3lj"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-5eyd" class="s09-title">task</span
+              ><span data-hf-id="hf-6dul" class="s09-tag">hmr-task</span
+              ><span data-hf-id="hf-d82k" class="s09-dur">302.8ms</span>
+            </div>
+            <div
+              data-hf-id="hf-14rs"
+              class="s09-row s09-m s09-d"
+              id="s09-row3"
+              style="top: 225px"
+            >
+              <i data-hf-id="hf-t21l" class="s09-hl" id="s09-hl3"></i
+              ><span data-hf-id="hf-lrdr" class="s09-tw"></span
+              ><span data-hf-id="hf-d0fg" class="s09-time">2169.1ms</span
+              ><i
+                data-hf-id="hf-e3kq"
+                class="s09-sw"
+                style="background: #99aeff"
+              ></i
+              ><span data-hf-id="hf-oaat" class="s09-title">set part</span
+              ><span data-hf-id="hf-7kro" class="s09-tag">hmr-task</span
+              ><span data-hf-id="hf-kjhf" class="s09-dur"></span>
+            </div>
+            <div
+              data-hf-id="hf-g65t"
+              class="s09-row s09-m"
+              id="s09-row4"
+              style="top: 262px"
+            >
+              <i data-hf-id="hf-ke5q" class="s09-hl" id="s09-hl4"></i
+              ><span data-hf-id="hf-myau" class="s09-tw"></span
+              ><span data-hf-id="hf-34kr" class="s09-time">2301.0ms</span
+              ><i
+                data-hf-id="hf-ypai"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-9gr8" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-o8k4" class="s09-tag"
+                ><em data-hf-id="hf-chy7">+1</em>hmr-parent</span
+              ><span data-hf-id="hf-9fjq" class="s09-dur">0.30ms</span>
+            </div>
+            <div
+              data-hf-id="hf-2rxi"
+              class="s09-row s09-m"
+              id="s09-row5"
+              style="top: 299px"
+            >
+              <i data-hf-id="hf-oc9r" class="s09-hl" id="s09-hl5"></i
+              ><span data-hf-id="hf-mjzt" class="s09-tw"></span
+              ><span data-hf-id="hf-hh31" class="s09-time">2301.2ms</span
+              ><i
+                data-hf-id="hf-yazh"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-89u5" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-krm2" class="s09-tag">hmr-child</span
+              ><span data-hf-id="hf-mp9k" class="s09-dur">0.10ms</span>
+            </div>
+            <div
+              data-hf-id="hf-ynit"
+              class="s09-row s09-m"
+              id="s09-row6"
+              style="top: 336px"
+            >
+              <i data-hf-id="hf-fodw" class="s09-hl" id="s09-hl6"></i
+              ><span data-hf-id="hf-nqww" class="s09-tw"></span
+              ><span data-hf-id="hf-z2au" class="s09-time">2409.8ms</span
+              ><i
+                data-hf-id="hf-ded1"
+                class="s09-sw"
+                style="background: #6b7bff"
+              ></i
+              ><span data-hf-id="hf-ikn8" class="s09-title"
+                >edit factor 2 -&gt; 4</span
+              ><span data-hf-id="hf-t4xt" class="s09-tag">hmr-properties</span
+              ><span data-hf-id="hf-k56e" class="s09-dur"></span>
+            </div>
+            <div
+              data-hf-id="hf-j2rx"
+              class="s09-row s09-m"
+              id="s09-row7"
+              style="top: 373px"
+            >
+              <i data-hf-id="hf-gg1p" class="s09-hl" id="s09-hl7"></i
+              ><span data-hf-id="hf-nclv" class="s09-tw"></span
+              ><span data-hf-id="hf-wmka" class="s09-time">2410.2ms</span
+              ><i
+                data-hf-id="hf-134o"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-8o56" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-d4k5" class="s09-tag"
+                ><em data-hf-id="hf-xu8v">+1</em
+                ><u data-hf-id="hf-zk57">factor</u>hmr-properties</span
+              ><span data-hf-id="hf-ex4v" class="s09-dur">0.20ms</span>
+            </div>
+            <div
+              data-hf-id="hf-1p5o"
+              class="s09-row s09-m"
+              id="s09-row8"
+              style="top: 410px"
+            >
+              <i data-hf-id="hf-qncy" class="s09-hl" id="s09-hl8"></i
+              ><span data-hf-id="hf-i6mi" class="s09-tw"></span
+              ><span data-hf-id="hf-mlzn" class="s09-time">2471.2ms</span
+              ><i
+                data-hf-id="hf-0otn"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-epnf" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-76gn" class="s09-tag"
+                ><em data-hf-id="hf-olrq">+2</em>hmr-task</span
+              ><span data-hf-id="hf-rctg" class="s09-dur">0.50ms</span>
+            </div>
+            <div
+              data-hf-id="hf-w379"
+              class="s09-row s09-m"
+              id="s09-row9"
+              style="top: 447px"
+            >
+              <i data-hf-id="hf-ulgz" class="s09-hl" id="s09-hl9"></i
+              ><span data-hf-id="hf-hsbh" class="s09-tw"></span
+              ><span data-hf-id="hf-b7lk" class="s09-time">2472.0ms</span
+              ><i
+                data-hf-id="hf-0aim"
+                class="s09-sw"
+                style="background: #4d63ff"
+              ></i
+              ><span data-hf-id="hf-f3yg" class="s09-title">performUpdate</span
+              ><span data-hf-id="hf-afax" class="s09-tag"
+                ><span data-hf-id="hf-qrhk" class="s09-x2" id="s09-x2">2×</span
+                ><em data-hf-id="hf-p02r">+2</em
+                ><u data-hf-id="hf-dojk">echoed</u>hmr-warnings</span
+              ><span data-hf-id="hf-1q7d" class="s09-dur">0.00ms</span>
+            </div>
+
+            <!-- chain 1 rails (teal, lane 0) -->
+            <div
+              data-hf-id="hf-isx9"
+              class="s09-rail"
+              id="s09-c1a"
+              style="left: 30px; top: 132px; height: 37px; background: #20c997"
+            ></div>
+            <div
+              data-hf-id="hf-d7ik"
+              class="s09-rail"
+              id="s09-c1b"
+              style="left: 30px; top: 169px; height: 37px; background: #20c997"
+            ></div>
+            <div
+              data-hf-id="hf-snkr"
+              class="s09-rail"
+              id="s09-c1c"
+              style="left: 30px; top: 206px; height: 222px; background: #20c997"
+            ></div>
+            <i
+              data-hf-id="hf-75ze"
+              class="s09-node"
+              id="s09-n0"
+              style="left: 30px; top: 132px; background: #20c997"
+            ></i>
+            <i
+              data-hf-id="hf-u3u1"
+              class="s09-node"
+              id="s09-n1"
+              style="left: 30px; top: 169px; background: #20c997"
+            ></i>
+            <i
+              data-hf-id="hf-2xl6"
+              class="s09-node"
+              id="s09-n2"
+              style="left: 30px; top: 206px; background: #20c997"
+            ></i>
+            <i
+              data-hf-id="hf-dryn"
+              class="s09-node"
+              id="s09-n3"
+              style="left: 30px; top: 428px; background: #20c997"
+            ></i>
+            <!-- chain 2 rails (orange, lane 1) -->
+            <div
+              data-hf-id="hf-ghed"
+              class="s09-rail"
+              id="s09-c2a"
+              style="left: 56px; top: 280px; height: 37px; background: #fd7e14"
+            ></div>
+            <i
+              data-hf-id="hf-fphm"
+              class="s09-node"
+              id="s09-m0"
+              style="left: 56px; top: 280px; background: #fd7e14"
+            ></i>
+            <i
+              data-hf-id="hf-fkyu"
+              class="s09-node"
+              id="s09-m1"
+              style="left: 56px; top: 317px; background: #fd7e14"
+            ></i>
+            <!-- chain 3 rails (pink, lane 2): the edit caused the update -->
+            <div
+              data-hf-id="hf-9qku"
+              class="s09-rail"
+              id="s09-c3a"
+              style="left: 82px; top: 354px; height: 37px; background: #e64980"
+            ></div>
+            <i
+              data-hf-id="hf-yvlp"
+              class="s09-node"
+              id="s09-p0"
+              style="left: 82px; top: 354px; background: #e64980"
+            ></i>
+            <i
+              data-hf-id="hf-qksl"
+              class="s09-node"
+              id="s09-p1"
+              style="left: 82px; top: 391px; background: #e64980"
+            ></i>
+
+            <div data-hf-id="hf-bx4g" id="s09-chip" class="s09-m">
+              <i data-hf-id="hf-wt6k"></i>after edit factor
+            </div>
+            <div data-hf-id="hf-jynl" id="s09-tip">
+              Re-rendered: its own previous update scheduled this one
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        var pop = function (id, t) {
+          tl.fromTo(
+            id,
+            {scale: 0},
+            {scale: 1, duration: 0.2, ease: 'back.out(2.5)'},
+            t
+          );
+        };
+        var draw = function (id, t, ease) {
+          tl.fromTo(
+            id,
+            {scaleY: 0, transformOrigin: '50% 0%'},
+            {scaleY: 1, duration: 0.24, ease: ease || 'none'},
+            t
+          );
+        };
+
+        // 0.00 drop hit: flash + headline slam + fragment punch-in
+        tl.fromTo(
+          '#s09-flash',
+          {opacity: 1},
+          {opacity: 0, duration: 0.5, ease: 'power2.out'},
+          0
+        );
+        tl.fromTo(
+          '#s09-eyebrow',
+          {opacity: 0, y: 12},
+          {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out'},
+          0
+        );
+        tl.fromTo(
+          ['#s09-h1', '#s09-h2'],
+          {opacity: 0, y: 24},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          0
+        );
+        tl.fromTo(
+          '.s09-sh',
+          {backgroundPosition: '0% 50%'},
+          {backgroundPosition: '100% 50%', duration: 3.5, ease: 'none'},
+          0
+        );
+        tl.fromTo(
+          '#s09-fragbox',
+          {opacity: 0, scale: 1.04},
+          {opacity: 1, scale: 1, duration: 0.3, ease: 'power3.out'},
+          0
+        );
+
+        // 0.24 -> 0.96 chain 1 (teal): click -> performUpdate -> task -> performUpdate
+        pop('#s09-n0', 0.24);
+        draw('#s09-c1a', 0.24);
+        pop('#s09-n1', 0.48);
+        draw('#s09-c1b', 0.48);
+        pop('#s09-n2', 0.72);
+        draw('#s09-c1c', 0.72, 'power2.in');
+        pop('#s09-n3', 0.96);
+
+        // 1.92 chain 2 (orange): hmr-parent -> hmr-child
+        pop('#s09-m0', 1.92);
+        draw('#s09-c2a', 1.92);
+        pop('#s09-m1', 2.16);
+
+        // pink chain hidden until 2.88
+        tl.set(['#s09-p0', '#s09-p1'], {scale: 0}, 0);
+        tl.set('#s09-c3a', {scaleY: 0, transformOrigin: '50% 0%'}, 0);
+
+        // 2.40 the 2x re-render flag is hovered: row highlight, flag pulse, tooltip
+        tl.fromTo('#s09-hl9', {opacity: 0}, {opacity: 1, duration: 0.15}, 2.4);
+        tl.fromTo(
+          '#s09-x2',
+          {scale: 1.6},
+          {
+            scale: 1,
+            duration: 0.3,
+            ease: 'back.out(3)',
+            immediateRender: false,
+          },
+          2.4
+        );
+        tl.fromTo(
+          '#s09-tip',
+          {opacity: 0, y: 6},
+          {opacity: 1, y: 0, duration: 0.18, ease: 'power2.out'},
+          2.46
+        );
+
+        // 2.88 the edit is the cause: pink rail, chip, rows lit, the rest dims
+        tl.to('#s09-tip', {opacity: 0, duration: 0.12}, 2.88);
+        tl.to('#s09-hl9', {opacity: 0, duration: 0.12}, 2.88);
+        pop('#s09-p0', 2.88);
+        draw('#s09-c3a', 2.88);
+        pop('#s09-p1', 3.08);
+        [6, 7].forEach(function (i) {
+          tl.fromTo(
+            '#s09-hl' + i,
+            {opacity: 0},
+            {opacity: 1, duration: 0.2},
+            2.88
+          );
+        });
+        [0, 1, 2, 3, 4, 5, 8, 9].forEach(function (i) {
+          tl.to('#s09-row' + i, {opacity: 0.35, duration: 0.2}, 2.88);
+        });
+        tl.to(
+          [
+            '#s09-c1a',
+            '#s09-c1b',
+            '#s09-c1c',
+            '#s09-n0',
+            '#s09-n1',
+            '#s09-n2',
+            '#s09-n3',
+            '#s09-c2a',
+            '#s09-m0',
+            '#s09-m1',
+          ],
+          {opacity: 0.35, duration: 0.2},
+          2.88
+        );
+        tl.fromTo(
+          '#s09-chip',
+          {opacity: 0, scale: 0.85, transformOrigin: '0% 50%'},
+          {opacity: 1, scale: 1, duration: 0.22, ease: 'back.out(2)'},
+          2.96
+        );
+
+        // snap shut toward the strip
+        tl.fromTo(
+          '#s09-wrap',
+          {scaleY: 1, opacity: 1, transformOrigin: '960px 664px'},
+          {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+          3.51
+        );
+        window.__timelines['s09-cause'] = tl;
+      })();
+    </script>
+  </div>
+</template>
