@@ -66,5 +66,7 @@ peerDependencyRules:
 allowBuilds:
   # astro bundles with esbuild; its postinstall wires up the platform binary.
   esbuild: true
+  # The analyzer the manifest oracle test runs works without its native build.
+  rs-module-lexer: false
 minimumReleaseAgeExclude:
   - vite@8.3.2
