@@ -10,6 +10,7 @@ import {litCssQueries} from './plugins/css-queries.js';
 import {litTimelineVirtual} from './plugins/timeline-virtual.js';
 import {litCssLiterals} from './plugins/css-literals.js';
 import {lazyServePlugin} from './plugins/lazy.js';
+import {litManifest} from './plugins/manifest.js';
 
 export {litCssQueries} from './plugins/css-queries.js';
 export {litTimelineVirtual} from './plugins/timeline-virtual.js';
@@ -43,6 +44,14 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
       m.createSourceDocsIndex((id) => ctx.locator().toWire(id))
     ));
   const devtools = options.timeline !== false;
+  // The dev server's manifest is written from the same index, so the
+  // component-docs plugin also reads modules while only it is on.
+  const devManifest = () => {
+    const manifest = ctx.get().manifest;
+    return (
+      manifest !== false && (manifest.dev !== false || manifest.write !== false)
+    );
+  };
   const plugins: Plugin[] = [
     ctx.plugin,
     litCssQueries(() => ctx.get().cssSheetBuild),
@@ -52,7 +61,7 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
       import('./plugins/private-fields.js').then((m) => m.litPrivateFields(ctx))
     ),
     // Before the source overlay, which rewrites the code it has to read.
-    ...(devtools
+    ...(devtools || (options.manifest ?? false) !== false
       ? [
           lazyServePlugin(
             {
@@ -64,11 +73,12 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
               (await import('./plugins/component-docs.js')).litComponentDocs(
                 ctx,
                 await loadSourceDocs(),
-                () => ctx.get().timeline
+                () => ctx.get().timeline || devManifest()
               )
           ),
         ]
       : []),
+    litManifest(ctx, loadSourceDocs),
     lazyServePlugin(
       {
         name: 'lit-source-overlay',

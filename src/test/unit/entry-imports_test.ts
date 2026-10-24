@@ -88,12 +88,15 @@ describe('vite-plugin-lit', () => {
       'lib/confine.ts',
       'lib/css-sheet-build.ts',
       'lib/env.ts',
+      'lib/manifest-options.ts',
       'lib/options.ts',
       'lib/plugin.ts',
       'lib/plugins/context.ts',
       'lib/plugins/css-literals.ts',
       'lib/plugins/css-queries.ts',
       'lib/plugins/lazy.ts',
+      // A shell: it imports the manifest writer only once an output is on.
+      'lib/plugins/manifest.ts',
       'lib/plugins/shared.ts',
       'lib/plugins/timeline-virtual.ts',
       // Data tables the options are validated against.

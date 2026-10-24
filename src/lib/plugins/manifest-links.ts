@@ -2,6 +2,7 @@ import type {HtmlTagDescriptor, Plugin} from 'vite';
 import {MANIFEST_LINK_REL} from '../component-docs/linked.js';
 import {findManifests, nodeDocsFs} from '../component-docs/load.js';
 import type {OptionsContext} from './context.js';
+import {endpointUrl} from './manifest.js';
 
 /**
  * The URL the dev server serves `file` under: a path from `base` for a file
@@ -38,16 +39,27 @@ export const litManifestLinks = (ctx: OptionsContext): Plugin => {
       base = config.base;
     },
     async transformIndexHtml(): Promise<HtmlTagDescriptor[]> {
-      if (!ctx.get().timeline) return [];
+      const {timeline, manifest} = ctx.get();
+      if (!timeline) return [];
       const fs = await nodeDocsFs();
-      return findManifests(fs, root).map((manifest) => ({
-        tag: 'link',
-        attrs: {
-          rel: MANIFEST_LINK_REL,
-          href: devServerUrl(manifest.path, root, base),
-        },
-        injectTo: 'head',
-      }));
+      // The dev server's own manifest links itself; a copy `write` keeps at
+      // the same URL would be the same document twice.
+      const served =
+        manifest !== false && manifest.dev !== false
+          ? endpointUrl(base, manifest.dev)
+          : undefined;
+      return findManifests(fs, root).flatMap((found) => {
+        const href = devServerUrl(found.path, root, base);
+        return href === served
+          ? []
+          : [
+              {
+                tag: 'link',
+                attrs: {rel: MANIFEST_LINK_REL, href},
+                injectTo: 'head' as const,
+              },
+            ];
+      });
     },
   };
 };
