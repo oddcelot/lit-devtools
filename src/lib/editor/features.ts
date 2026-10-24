@@ -54,8 +54,11 @@ export interface Hover {
 export interface DocsSource {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   tags(file: string): Promise<string[]>;
-  /** What every element accepts: global attributes and DOM events. */
-  globals?(): {attributes: DocEntry[]; events: DocEntry[]};
+  /**
+   * What every element like `tagName` accepts: global attributes and DOM
+   * events, which differ between HTML and SVG elements.
+   */
+  globals?(tagName: string): {attributes: DocEntry[]; events: DocEntry[]};
 }
 
 export interface FeatureRequest {
@@ -242,7 +245,7 @@ const sharedCandidates = async (
   tagName: string,
   binding: Binding
 ): Promise<Candidate[]> => {
-  const globals = source.globals?.() ?? {attributes: [], events: []};
+  const globals = source.globals?.(tagName) ?? {attributes: [], events: []};
   const as = (headline: string) => (entry: DocEntry) => ({entry, headline});
   if (binding === '@') {
     return [
