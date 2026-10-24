@@ -32,6 +32,14 @@ colours survive. The
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/flame)
 lists edits to try.
 
+:::note[Why the stoke count isn't in the panel]
+Select `<lit-flame>` and the panel shows `hue` and `burning`, its reactive
+state, but not how often you stoked it. That count is `#stokes`, a native
+`#private` field: nothing outside the class can read it, the panel included,
+and Lit doesn't watch it, so the component asks for its own update. Make it
+`@state()` and it shows up with the others.
+:::
+
 <StackBlitzEmbed
   path="examples/flame"
   file="src/lit-flame.ts"
