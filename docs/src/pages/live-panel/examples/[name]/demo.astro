@@ -8,19 +8,27 @@
  * rewritten to this page's, find them.
  */
 import {examplePage} from '../../../../lib/live-example-page';
-import {liveDemoUrl, liveExamplePaths} from '../../../../lib/live-examples';
+import {
+  liveDemoUrl,
+  liveExamplePaths,
+  liveExamples,
+} from '../../../../lib/live-examples';
 
 export const getStaticPaths = liveExamplePaths;
 
 const {name} = Astro.params;
-const {title, head, body} = examplePage(
-  name,
-  `${liveDemoUrl(`examples/${name}`)}demo/`
-);
+const base = `${liveDemoUrl(`examples/${name}`)}demo/`;
+const {title, head, body} = examplePage(name, base);
+// An example built with its own vite.config.ts: its build, beside this page
+// (src/lib/live-examples-own-build.mjs).
+const ownBuild =
+  typeof liveExamples[name] === 'function'
+    ? undefined
+    : `${base}_live/live-example.js`;
 ---
 
 <!doctype html>
-<html lang="en" data-live-example={name}>
+<html lang="en" data-live-example={name} data-live-build={ownBuild}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -35,9 +43,16 @@ const {title, head, body} = examplePage(
       import {liveExamples} from '../../../../lib/live-examples';
 
       // The page names its example; its entry loads once the runtime's
-      // hooks are in (demo-runtime.ts).
+      // hooks are in (demo-runtime.ts). An example built with its own config
+      // names that build, which loads the same way.
+      const {liveExample = '', liveBuild} = document.documentElement.dataset;
+      const example = liveExamples[liveExample];
       const load =
-        liveExamples[document.documentElement.dataset['liveExample'] ?? ''];
+        typeof example === 'function'
+          ? example
+          : liveBuild !== undefined
+            ? () => import(/* @vite-ignore */ liveBuild)
+            : undefined;
       if (load !== undefined) await startDemoPage(load);
     </script>
   </body>

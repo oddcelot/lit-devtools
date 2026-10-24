@@ -13,6 +13,8 @@ import {cpSync, existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {latestRelease} from './src/lib/latest-release.mjs';
 import {liveDemoDevLit} from './src/lib/live-demo-dev-lit.mjs';
+import {liveExamplesOwnBuild} from './src/lib/live-examples-own-build.mjs';
+import {ownConfigExamples} from './src/lib/live-examples.ts';
 
 const latest = latestRelease(
   readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8')
@@ -119,6 +121,7 @@ export default defineConfig({
     // components are client-only and bring their own Lit.
     litDevtools(),
     liveExamplesPublic(),
+    liveExamplesOwnBuild(ownConfigExamples()),
     starlight({
       title: 'vite-plugin-lit',
       // The Lit flame from the design system, beside the title rather than

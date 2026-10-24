@@ -16,6 +16,9 @@ const DEV_LIT_IMPORTER =
  * bundles, so their Lit imports, and the imports inside Lit's own
  * `development/` files, resolve to `development/`: a copy of Lit of their
  * own, apart from the production one every other page shares.
+ *
+ * The docs' Vite config runs it, and so does the build of each example
+ * built with its own vite.config.ts (scripts/build-live-example.mjs).
  */
 export const liveDemoDevLit = () => ({
   name: 'live-demo-dev-lit',
