@@ -10,6 +10,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
 import {
+  CodeActionKind,
   type CompletionItem,
   type Connection,
   type Diagnostic,
@@ -18,9 +19,11 @@ import {
   type FileEvent,
   FileChangeType,
   type Hover as LspHover,
+  InlayHintKind,
   MarkupKind,
   type Position,
   ProposedFeatures,
+  type Range,
   TextDocumentSyncKind,
   TextDocuments,
   createConnection,
@@ -30,6 +33,7 @@ import {
   type DocsSource,
   type FeatureRequest,
   completionsAt,
+  handlerTypes,
   hoverAt,
 } from '../../../src/lib/editor/features.js';
 import {
@@ -197,12 +201,15 @@ export const startServer = (streams?: ServerStreams): Connection => {
     else await refreshFromDisk(workspace, file);
   };
 
-  /** What every feature takes, or undefined for a document without markup. */
-  const requestFor = async (
-    uri: string,
-    position: Position
+  /** A document's request, without a cursor; undefined without markup. */
+  const documentRequest = async (
+    uri: string
   ): Promise<
-    | {document: TextDocument; source: DocsSource; request: FeatureRequest}
+    | {
+        document: TextDocument;
+        source: DocsSource;
+        request: Omit<FeatureRequest, 'offset'>;
+      }
     | undefined
   > => {
     const document = documents.get(uri);
@@ -212,13 +219,38 @@ export const startServer = (streams?: ServerStreams): Connection => {
     const workspace = await workspaceOf(file);
     if (!workspace) return undefined;
     const {templateTags} = workspace.configOf(file) ?? {};
-    const offset = document.offsetAt(position);
-    const code = document.getText();
     return {
       document,
       source: docsSourceFor(workspace, kind),
-      request: {file, code, kind, offset, templateTags},
+      request: {file, code: document.getText(), kind, templateTags},
     };
+  };
+
+  /** What every feature takes, or undefined for a document without markup. */
+  const requestFor = async (
+    uri: string,
+    position: Position
+  ): Promise<
+    | {document: TextDocument; source: DocsSource; request: FeatureRequest}
+    | undefined
+  > => {
+    const found = await documentRequest(uri);
+    if (!found) return undefined;
+    const offset = found.document.offsetAt(position);
+    return {...found, request: {...found.request, offset}};
+  };
+
+  /** The untyped inline handlers whose parameter falls in `range`. */
+  const handlersIn = async (uri: string, range: Range) => {
+    const found = await documentRequest(uri);
+    if (!found) return undefined;
+    const from = found.document.offsetAt(range.start);
+    const to = found.document.offsetAt(range.end);
+    const all = await handlerTypes(found.source, found.request);
+    const within = all.filter(
+      ({handler}) => handler.param.end >= from && handler.param.start <= to
+    );
+    return {document: found.document, within};
   };
 
   connection.onInitialize((params) => {
@@ -244,6 +276,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
           triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'"],
         },
         hoverProvider: true,
+        codeActionProvider: {codeActionKinds: [CodeActionKind.QuickFix]},
+        inlayHintProvider: true,
       },
     };
   });
@@ -284,6 +318,38 @@ export const startServer = (streams?: ServerStreams): Connection => {
       };
     }
   );
+
+  // Writes an inline handler's event type in, so TypeScript can take over.
+  connection.onCodeAction(async ({textDocument, range}) => {
+    const found = await handlersIn(textDocument.uri, range);
+    return (found?.within ?? []).map(({type, edit}) => ({
+      title: `Add event type ${type}`,
+      kind: CodeActionKind.QuickFix,
+      edit: {
+        changes: {
+          [textDocument.uri]: [
+            {
+              range: {
+                start: found!.document.positionAt(edit.start),
+                end: found!.document.positionAt(edit.end),
+              },
+              newText: edit.newText,
+            },
+          ],
+        },
+      },
+    }));
+  });
+
+  // Shows an untyped inline handler's event type after its parameter.
+  connection.languages.inlayHint.on(async ({textDocument, range}) => {
+    const found = await handlersIn(textDocument.uri, range);
+    return (found?.within ?? []).map(({handler, type}) => ({
+      position: found!.document.positionAt(handler.param.end),
+      label: `: ${type}`,
+      kind: InlayHintKind.Type,
+    }));
+  });
 
   connection.onShutdown(async () => {
     for (const pending of workspaces.values()) await (await pending)?.close();
