@@ -62,17 +62,26 @@ export interface FeatureRequest {
 
 // --- markdown --------------------------------------------------------------
 
-/** `{@link X}`, `{@link url text}` and `{@link X | text}` as markdown. */
+/**
+ * Doc prose as markdown: `{@link X}`, `{@link url text}` and `{@link X |
+ * text}` become code or links, and the indent JSDoc leaves on a wrapped
+ * tag's continuation lines goes, outside fenced code, so four spaces of it
+ * never turn a sentence into a code block.
+ */
 const links = (text: string): string =>
-  text.replace(
-    /\{@link(?:code|plain)?\s+([^}\s|]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
-    (_, target: string, label: string) => {
-      const shown = label.trim() || target;
-      return /^https?:\/\//.test(target)
-        ? `[${shown}](${target})`
-        : `\`${shown}\``;
-    }
-  );
+  text
+    .split(/(```[\s\S]*?```)/)
+    .map((part, i) => (i % 2 === 1 ? part : part.replace(/\n[ \t]+/g, '\n')))
+    .join('')
+    .replace(
+      /\{@link(?:code|plain)?\s+([^}\s|]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
+      (_, target: string, label: string) => {
+        const shown = label.trim() || target;
+        return /^https?:\/\//.test(target)
+          ? `[${shown}](${target})`
+          : `\`${shown}\``;
+      }
+    );
 
 const deprecation = (value: boolean | string | undefined): string[] =>
   value === undefined || value === false
@@ -138,6 +147,19 @@ const WHAT: Record<Binding, string> = {
   '@': 'event',
 };
 
+/**
+ * An entry's type for its hover. An event's is what its listener receives:
+ * the event class, and a `CustomEvent`'s `detail` on its own.
+ */
+const typeFacts = (type: string | undefined, binding: Binding): string[] => {
+  if (!type) return [];
+  if (binding !== '@') return [`Type ${code(type)}`];
+  const generic = /^(\w+)<([\s\S]+)>$/.exec(type);
+  if (!generic) return [`Event ${code(type)}`];
+  const [, eventClass, detail] = generic;
+  return [`Event ${code(eventClass)}`, `${code('detail')} ${code(detail)}`];
+};
+
 /** The hover over one attribute, property or event. */
 const entryMarkdown = (
   entry: DocEntry,
@@ -145,7 +167,7 @@ const entryMarkdown = (
   headline: string
 ): string => {
   const facts = [
-    entry.type ? `Type ${code(entry.type)}` : '',
+    ...typeFacts(entry.type, binding),
     entry.default ? `Default ${code(entry.default)}` : '',
     entry.reflects ? 'Reflects to its attribute' : '',
     entry.counterpart

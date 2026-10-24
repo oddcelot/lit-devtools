@@ -67,7 +67,9 @@
     "lit/**",
     "assets/**",
     "examples/tutorial/**",
-    "docs/public/**"
+    "docs/public/**",
+    // The Zed extension is Rust, with no package.json for pnpm's packages/*.
+    "packages/zed/**"
   ],
   "ignoreDependencies": [
     // packages/lit-language-server bundles the editor code from src/lib,

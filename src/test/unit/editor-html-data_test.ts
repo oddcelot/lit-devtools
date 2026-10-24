@@ -45,6 +45,6 @@ test('global attributes, and on… handlers as DOM events', () => {
       {name: 'id', description: 'Unique.'},
       {name: 'dir', type: "'ltr' | 'rtl'"},
     ],
-    events: [{name: 'click', description: 'A click.'}],
+    events: [{name: 'click', description: 'A click.', type: 'MouseEvent'}],
   });
 });
