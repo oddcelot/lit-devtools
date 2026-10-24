@@ -12,6 +12,7 @@ export const DIAGNOSTIC_RULES = [
   'invalid-value',
   'missing-import',
   'event-type',
+  'css',
 ] as const;
 
 export type DiagnosticRule = (typeof DIAGNOSTIC_RULES)[number];
@@ -44,6 +45,8 @@ export interface LanguageServerConfig {
   entries?: string[];
   /** Tags of the templates to read; `html` and `svg` by default. */
   templateTags?: string[];
+  /** Tags of the CSS templates to read; `css` by default. */
+  cssTemplateTags?: string[];
 }
 
 /** What a `lit-devtools.config.ts` exports by default. */
@@ -58,4 +61,5 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'invalid-value': 'warning',
   'missing-import': 'off',
   'event-type': 'error',
+  css: 'warning',
 };

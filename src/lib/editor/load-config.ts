@@ -38,6 +38,7 @@ const LIST_KEYS = [
   'ignoreAttributes',
   'entries',
   'templateTags',
+  'cssTemplateTags',
 ] as const;
 
 export interface ConfigProblem {
@@ -53,6 +54,7 @@ export interface ResolvedLanguageServerConfig {
   diagnostics: Record<DiagnosticRule, Severity>;
   entries: string[];
   templateTags: string[];
+  cssTemplateTags: string[];
   /** Where the settings came from. */
   source: 'vite' | 'file' | 'default';
   file?: string;
@@ -140,6 +142,7 @@ const LIST_DEFAULTS: Record<Exclude<ListKey, 'scan'>, string[]> = {
   ignoreAttributes: [],
   entries: [],
   templateTags: ['html', 'svg'],
+  cssTemplateTags: ['css'],
 };
 
 const isStringList = (value: unknown): value is string[] =>
