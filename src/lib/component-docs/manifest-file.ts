@@ -7,13 +7,21 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, posix, relative, resolve} from 'node:path';
 import {normalizePath} from 'vite';
 import type {SourceDocsIndex} from './source-index.js';
-import {writeManifest} from './write-manifest.js';
+import {type ManifestPaths, writeManifest} from './write-manifest.js';
 
-/** The manifest `index` holds, as file text, module paths relative to `root`. */
-export const manifestText = (index: SourceDocsIndex, root: string): string => {
+/**
+ * The manifest `index` holds, as file text. Module paths are the source
+ * files' relative to `root`, unless `paths` says otherwise.
+ */
+export const manifestText = (
+  index: SourceDocsIndex,
+  root: string,
+  paths?: ManifestPaths
+): string => {
   const base = normalizePath(root);
-  const manifest = writeManifest(index.modules(), (id) =>
-    posix.relative(base, normalizePath(id))
+  const manifest = writeManifest(
+    index.modules(),
+    paths ?? {path: (id) => posix.relative(base, normalizePath(id))}
   );
   return `${JSON.stringify(manifest, null, 2)}\n`;
 };

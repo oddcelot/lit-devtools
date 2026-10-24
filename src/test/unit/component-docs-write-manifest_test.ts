@@ -18,7 +18,11 @@ const index = () => {
       extractModuleDocs(code, id),
       new Map(Object.entries(superclassIds))
     );
-  return {docs, add, manifest: () => writeManifest(docs.modules(), relative)};
+  return {
+    docs,
+    add,
+    manifest: () => writeManifest(docs.modules(), {path: relative}),
+  };
 };
 
 const BASE = `
@@ -274,4 +278,29 @@ test('the same sources write the same manifest in any order', () => {
   p.add('/app/src/sized.ts', SIZED);
   p.add('/app/src/base.ts', BASE);
   expect(JSON.stringify(p.manifest())).toBe(JSON.stringify(a));
+});
+
+test('modules sharing a path merge; ones without a path are left out', () => {
+  const {docs} = project();
+  const chunks: Record<string, string | undefined> = {
+    '/app/src/base.ts': 'dist/x-a.js',
+    '/app/src/x-a.ts': 'dist/x-a.js',
+    '/app/src/sized.ts': undefined,
+  };
+  const result = writeManifest(docs.modules(), {
+    path: (id) => chunks[id],
+    exported: (id, name) => id === '/app/src/x-a.ts' && name === 'XA',
+  });
+  expect(result.modules.map((m) => m.path)).toEqual(['dist/x-a.js']);
+  const [module] = result.modules as {
+    declarations: {name: string; mixins?: unknown}[];
+    exports: {kind: string; name: string}[];
+  }[];
+  expect(module.declarations.map((d) => d.name)).toEqual(['Base', 'XA']);
+  expect(module.exports.map((e) => [e.kind, e.name])).toEqual([
+    ['js', 'XA'],
+    ['custom-element-definition', 'x-a'],
+  ]);
+  // A mixin in no file is still named, without a module.
+  expect(module.declarations[1].mixins).toEqual([{name: 'Sized'}]);
 });
