@@ -257,6 +257,7 @@ describe('members', () => {
       type: "'small' | 'large'",
       default: "'small'",
       counterpart: 'size',
+      reflects: true,
     });
     expect(big).toEqual({
       name: 'big',
@@ -365,6 +366,122 @@ describe('JavaScript', () => {
         counterpart: 'sz',
       },
     ]);
+  });
+});
+
+describe('reflects', () => {
+  test('a reflecting property says so; its attribute does not', () => {
+    const cls = only(`
+      class X extends LitElement {
+        static properties = {open: {type: Boolean, reflect: true}};
+        @property({reflect: true, attribute: false}) data = null;
+        @property({reflect: true}) size = 'm';
+      }
+    `);
+    expect(
+      cls.docs.properties.map((p) => [p.name, p.reflects ?? false])
+    ).toEqual([
+      ['data', false],
+      ['size', true],
+      ['open', true],
+    ]);
+    expect(cls.docs.attributes.map((a) => a.reflects)).toEqual([
+      undefined,
+      undefined,
+    ]);
+  });
+});
+
+describe('methods', () => {
+  const methods = (code: string) => only(code).docs.methods;
+
+  test('public instance methods; lifecycle and hidden ones left out', () => {
+    expect(
+      methods(`
+        class X extends LitElement {
+          /** Opens it. */
+          open() {}
+          close() {}
+          render() { return html\`\`; }
+          updated() {}
+          connectedCallback() {}
+          private hide() {}
+          protected guard() {}
+          #secret() {}
+          static create() {}
+          /** @internal */
+          wire() {}
+          get value() { return 1; }
+        }
+      `)?.map((m) => m.name)
+    ).toEqual(['open', 'close']);
+  });
+
+  test('parameters and return type from TypeScript', () => {
+    expect(
+      methods(`
+        class X extends LitElement {
+          /**
+           * Shows a message.
+           * @param text - What to show.
+           * @returns Whether it was shown.
+           * @deprecated Use notify.
+           */
+          show(text: string, level = 'info', options?: {sticky: boolean}, ...rest: number[]): boolean {
+            return true;
+          }
+        }
+      `)
+    ).toEqual([
+      {
+        name: 'show',
+        description: 'Shows a message.',
+        deprecated: 'Use notify.',
+        parameters: [
+          {name: 'text', type: 'string', description: 'What to show.'},
+          {name: 'level', default: "'info'", optional: true},
+          {name: 'options', type: '{sticky: boolean}', optional: true},
+          {name: 'rest', type: 'number[]', rest: true},
+        ],
+        return: {type: 'boolean', description: 'Whether it was shown.'},
+      },
+    ]);
+  });
+
+  test('types from JSDoc in JavaScript', () => {
+    expect(
+      methods(
+        `
+        class X extends LitElement {
+          /**
+           * @param {string} id - The id.
+           * @param {number} [count=1] - How many.
+           * @returns {Promise<void>} Done.
+           */
+          load(id, count) {}
+        }
+      `
+      )
+    ).toEqual([
+      {
+        name: 'load',
+        parameters: [
+          {name: 'id', type: 'string', description: 'The id.'},
+          {
+            name: 'count',
+            type: 'number',
+            description: 'How many.',
+            default: '1',
+            optional: true,
+          },
+        ],
+        return: {type: 'Promise<void>', description: 'Done.'},
+      },
+    ]);
+  });
+
+  test('none leaves the field off', () => {
+    expect(only('class X { a = 1; }').docs).not.toHaveProperty('methods');
   });
 });
 

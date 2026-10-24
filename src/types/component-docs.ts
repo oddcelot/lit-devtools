@@ -28,6 +28,8 @@ export interface DocEntry {
   counterpart?: string;
   /** The class the manifest says it was inherited from. */
   inheritedFrom?: string;
+  /** For a property: its attribute follows its value (`reflect: true`). */
+  reflects?: true;
 }
 
 /** A usage example from an `@example` tag. */

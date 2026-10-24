@@ -90,7 +90,7 @@ interface LocatedMixin {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples'
+  'summary' | 'description' | 'deprecated' | 'examples' | 'methods'
 >;
 
 const LISTS: ListKey[] = [
@@ -215,8 +215,10 @@ export const createSourceDocsIndex = (
   };
 
   const docsFor = (tagName: string, start: Located): ComponentDocs => {
+    // Methods are for the manifest; the panel's docs have no place for them.
+    const {methods: _, ...body} = structuredClone(start.cls.docs);
     const docs: ComponentDocs = {
-      ...structuredClone(start.cls.docs),
+      ...body,
       tagName,
       className: start.cls.name,
       origin: {manifest: '', module: relative(start.id), source: true},

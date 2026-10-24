@@ -168,6 +168,18 @@ const leadingType = (text: string): {type?: string; rest: string} => {
 const afterSeparator = (text: string): string | undefined =>
   trimmed(text.replace(/^\s*-(?=\s|$)/, ''));
 
+/** `{Type} description`, as a `@returns` tag has it, both optional. */
+export const typedText = (
+  text: string
+): {type?: string; description?: string} => {
+  const {type, rest} = leadingType(text.trim());
+  const result: {type?: string; description?: string} = {};
+  const description = afterSeparator(rest);
+  if (type !== undefined) result.type = type;
+  if (description !== undefined) result.description = description;
+  return result;
+};
+
 /**
  * `{Type} name - description`, with the type and the dash both optional. A
  * missing name (`@slot - The content`) is the empty name of a default slot.

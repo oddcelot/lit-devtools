@@ -97,6 +97,16 @@ const entries = (
 const plain = (list: unknown, options?: EntryOptions): DocEntry[] =>
   entries(list, (raw) => entry(raw, options));
 
+/** Marks `entry` as reflecting when the manifest's field says it does. */
+const reflecting = (
+  field: unknown,
+  entry: DocEntry | undefined
+): DocEntry | undefined => {
+  if (entry !== undefined && isRecord(field) && field.reflects === true)
+    entry.reflects = true;
+  return entry;
+};
+
 const isPublicInstanceField = (member: unknown): member is Json =>
   isRecord(member) &&
   member.kind === 'field' &&
@@ -115,9 +125,12 @@ const declarationDocs = (
     properties: entries(
       asArray(declaration.members).filter(isPublicInstanceField),
       (field) =>
-        entry(field, {
-          counterpart: isRecord(field) ? text(field.attribute) : undefined,
-        })
+        reflecting(
+          field,
+          entry(field, {
+            counterpart: isRecord(field) ? text(field.attribute) : undefined,
+          })
+        )
     ),
     attributes: entries(declaration.attributes, (attribute) =>
       entry(attribute, {

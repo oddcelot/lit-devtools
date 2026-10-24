@@ -31,6 +31,9 @@ const BASE = `
   export default class Base extends LitElement {
     /** The base value. */
     @property({reflect: true}) value: string = '';
+    /** Resets it. */
+    reset(): void {}
+    focus() {}
   }
 `;
 
@@ -47,6 +50,8 @@ const ELEMENT = `
     @property({attribute: 'aria-text'}) label = 'hi';
     /** Redeclared. */
     @property() value = 'own';
+    /** Own focus. */
+    focus(options?: FocusOptions) {}
   }
 `;
 
@@ -127,6 +132,21 @@ test('a custom element with its own and inherited members', () => {
         default: "'m'",
         attribute: 'size',
         inheritedFrom: {name: 'Sized', module: 'src/sized.ts'},
+      },
+      {
+        kind: 'method',
+        name: 'focus',
+        description: 'Own focus.',
+        parameters: [
+          {name: 'options', type: {text: 'FocusOptions'}, optional: true},
+        ],
+      },
+      {
+        kind: 'method',
+        name: 'reset',
+        description: 'Resets it.',
+        return: {type: {text: 'void'}},
+        inheritedFrom: {name: 'Base', module: 'src/base.ts'},
       },
     ],
     attributes: [
@@ -226,6 +246,12 @@ test('superclasses from packages, globals and unresolved imports', () => {
     {name: 'Gone'},
     {name: 'A', module: 'src/el.ts'},
   ]);
+});
+
+test('a reflecting field says so, and reads back', () => {
+  const [base] = project().manifest().modules;
+  const [field] = (base.declarations as {members: unknown[]}[])[0].members;
+  expect(field).toMatchObject({name: 'value', reflects: true});
 });
 
 test('reads back as the docs the index gives', () => {

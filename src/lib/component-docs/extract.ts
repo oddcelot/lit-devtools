@@ -44,12 +44,16 @@ import {
   tagText,
 } from './jsdoc.js';
 import {attributesOf, propertiesOf} from './members.js';
+import {type MethodDocs, methodsOf} from './methods.js';
 
-/** `ComponentDocs` without what the index fills in. */
+/**
+ * `ComponentDocs` without what the index fills in, plus the public methods,
+ * which only the manifest lists.
+ */
 export type ClassDocsBody = Omit<
   ComponentDocs,
   'tagName' | 'className' | 'origin'
->;
+> & {methods?: MethodDocs[]};
 
 export interface ClassDocs {
   name: string;
@@ -194,6 +198,8 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   put(docs, 'deprecated', deprecationOf(doc));
   const examples = examplesOf(doc);
   if (examples.length > 0) docs.examples = examples;
+  const methods = methodsOf(code, cls);
+  if (methods.length > 0) docs.methods = methods;
   return docs;
 };
 
