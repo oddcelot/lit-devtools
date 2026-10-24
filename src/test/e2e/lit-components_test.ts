@@ -187,6 +187,41 @@ test('lit-button type=submit submits its form', async () => {
   expect(await submitted).toBe(true);
 });
 
+test('a disabled field looks unlike one showing its placeholder', async () => {
+  await mount(`
+    <lit-input id="in-empty" placeholder="Filter"></lit-input>
+    <lit-input id="in-off" placeholder="Filter" disabled></lit-input>
+    <lit-select id="sel-empty" placeholder="Color scheme">
+      <wa-option value="a">A</wa-option>
+    </lit-select>
+    <lit-select id="sel-off" placeholder="Color scheme" disabled>
+      <wa-option value="a">A</wa-option>
+    </lit-select>`);
+  const look = (id: string, box: string) =>
+    page.$eval(
+      `#${id}`,
+      (el, box) => {
+        const s = getComputedStyle(el.shadowRoot!.querySelector(box)!);
+        return {border: s.borderStyle, cursor: s.cursor, opacity: s.opacity};
+      },
+      box
+    );
+  for (const [id, box] of [
+    ['in', '.text-field'],
+    ['sel', '.combobox'],
+  ]) {
+    expect(await look(`${id}-empty`, box)).toMatchObject({
+      border: 'solid',
+      opacity: '1',
+    });
+    expect(await look(`${id}-off`, box)).toEqual({
+      border: 'dashed',
+      cursor: 'not-allowed',
+      opacity: '0.5',
+    });
+  }
+});
+
 test('lit-input reports a missing required value', async () => {
   await mount(`<lit-input id="req" required></lit-input>`);
   expect(
