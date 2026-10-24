@@ -45,10 +45,17 @@ export const startDemoPage = async (
 
   // The panel page posts the port once this frame has loaded; the runtime
   // announces itself on attach, so the panel sees the page from then on.
+  // The frame's load does not wait for the components, which are imported
+  // dynamically, and Lit with them: attached before they evaluate, the
+  // announcement would list no Lit, and Settings would say "not detected".
+  // So the port is held until they have loaded.
+  let loaded: Promise<unknown> = Promise.resolve();
   window.addEventListener('message', (event: MessageEvent) => {
     const port = isPortMessage(event) ? event.ports[0] : undefined;
     if (port !== undefined) {
-      pageChannel.attach(portPageTransport(messagePortLike(port)));
+      void loaded.then(() =>
+        pageChannel.attach(portPageTransport(messagePortLike(port)))
+      );
     }
   });
 
@@ -56,5 +63,7 @@ export const startDemoPage = async (
   // frame takes it, as in the extension.
   initSourceOverlay({hosts: 'lit'});
 
-  await loadComponents();
+  const components = loadComponents();
+  loaded = components.catch(() => undefined);
+  await components;
 };

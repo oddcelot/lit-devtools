@@ -1,5 +1,5 @@
 import {LitElement, html, css, nothing} from 'lit';
-import {customElement, state} from 'lit/decorators.js';
+import {customElement, property, state} from 'lit/decorators.js';
 import '../../packages/lit-components/src/badge.js';
 import '../../packages/lit-components/src/button.js';
 import '../../packages/lit-components/src/icon.js';
@@ -28,7 +28,10 @@ import {
 import {presentationOf} from './setting-presentation.js';
 import {settingRow, type SettingRow} from './setting-rows.js';
 import {getMeta, litSettingsRpc, type LitClient} from './client.js';
-import type {LitGetMetaResult} from '../lib/devframe/protocol.js';
+import type {
+  LitGetMetaResult,
+  LitRuntimeInfo,
+} from '../lib/devframe/protocol.js';
 import type {OverridableKey} from '../lib/settings-override.js';
 import {overrides} from './settings-override.js';
 import {
@@ -281,6 +284,11 @@ export class DevtoolsSettings extends LitElement {
 
   @state() private _settings: FeatureSettings | null = null;
   @state() private _meta: LitGetMetaResult | null = null;
+  /**
+   * What the page last announced, from the panel shell; fresher than
+   * `get-meta`'s, which may predate the page connecting.
+   */
+  @property({attribute: false}) runtime: LitRuntimeInfo | null = null;
   @state() private _override: SettingsOverride = {};
   @state() private _recorded: OverrideBaselines = {};
   @state() private _loaded = false;
@@ -656,7 +664,7 @@ export class DevtoolsSettings extends LitElement {
    */
   private _renderTimelinePrefs() {
     // The page's browser, not this panel's: the runtime reports it.
-    const userTiming = this._meta?.runtime.chromeTracks === false;
+    const userTiming = this._runtime()?.chromeTracks === false;
     return html`
       <table>
         ${this._row(
@@ -882,11 +890,17 @@ export class DevtoolsSettings extends LitElement {
     </div>`;
   }
 
+  /** The page's runtime: as it last announced itself, else `get-meta`'s. */
+  private _runtime(): LitRuntimeInfo | undefined {
+    return this.runtime ?? this._meta?.runtime;
+  }
+
   private _renderAbout() {
     const meta = this._meta;
     if (meta === null) return nothing;
+    const runtime = this._runtime();
     const packages = Object.entries(
-      meta.runtime.ready ? meta.runtime.litPackages : {}
+      runtime?.ready === true ? runtime.litPackages : {}
     );
     return html`
       <section>
