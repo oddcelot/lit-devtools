@@ -147,7 +147,10 @@ export default defineConfig({
 
 - `'transfer'` copies the old element's reactive properties and `#private`
   fields onto the new one before its first render. Properties and attributes
-  the template sets are left alone, so an edited binding takes effect.
+  the template sets are left alone, so an edited binding takes effect. So are
+  `#private` fields that hold a function, such as an arrow-function listener,
+  and those the new element set in its `connectedCallback`, such as a
+  reference to a form it looked up.
 - `'reuse'` puts the old element back in place of the new one, keeping its
   identity, shadow DOM and controllers. It only does so when no binding
   targets the new element or its light DOM; otherwise it transfers.

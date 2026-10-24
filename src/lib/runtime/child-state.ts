@@ -205,16 +205,29 @@ export const privateKeys = (el: object): symbol[] =>
     (Symbol.keyFor(sym) ?? '').startsWith(PRIVATE_KEY_PREFIX)
   );
 
+/** `el`'s own `#private` values, to tell later which ones `el` set itself. */
+export const privateSnapshot = (el: object): Map<symbol, unknown> =>
+  new Map(
+    privateKeys(el).map((sym) => [sym, (el as Record<symbol, unknown>)[sym]])
+  );
+
 /**
  * Copies `from`'s state onto `to`: reactive properties not driven by `to`'s
  * template, and the `#private` members the dev rewrite turned into
  * `Symbol.for` keys. Nothing else — Lit's own bookkeeping lives in string
  * keys and must stay per-instance.
+ *
+ * A `#private` field is left alone when it holds a function (an arrow
+ * listener closes over `from`) or when `to` changed it since `before`, a
+ * {@link privateSnapshot} taken ahead of its `connectedCallback`: what `to`
+ * set while connecting belongs to `to`, and `from` may have cleared it on
+ * disconnect.
  */
 export const transferState = (
   from: ElementLike,
   to: ElementLike,
-  parts: readonly PartLike[] | undefined
+  parts: readonly PartLike[] | undefined,
+  before?: ReadonlyMap<symbol, unknown>
 ): void => {
   const skip = templateDrivenKeys(to, parts);
   const keys = new Set<PropertyKey>([
@@ -235,11 +248,14 @@ export const transferState = (
   }
   for (const sym of privateKeys(from)) {
     try {
-      Object.defineProperty(
-        to,
-        sym,
-        Object.getOwnPropertyDescriptor(from, sym)!
-      );
+      const desc = Object.getOwnPropertyDescriptor(from, sym)!;
+      if (
+        typeof desc.value === 'function' ||
+        (before !== undefined && !Object.is(before.get(sym), dst[sym]))
+      ) {
+        continue;
+      }
+      Object.defineProperty(to, sym, desc);
     } catch {
       // Non-configurable on the target; leave it.
     }
@@ -439,13 +455,15 @@ export const createChildState = (options: ChildStateOptions): ChildState => {
     const origin = w.originOf.get(old) ?? old;
     w.originOf.set(fresh, origin);
     w.pairs.push([origin, fresh]);
+    // Ahead of `fresh`'s own connectedCallback, see transferState.
+    const before = privateSnapshot(fresh);
     // lit-html assigns the new template instance to its part only after the
     // fragment is inserted, so the parts targeting `fresh` aren't reachable
     // yet. Queued before the original connectedCallback enables updating,
     // this runs ahead of `fresh`'s first update.
     queueMicrotask(() => {
       try {
-        transferState(old, fresh, partsAround(fresh));
+        transferState(old, fresh, partsAround(fresh), before);
       } catch {
         // Keep the defaults.
       }

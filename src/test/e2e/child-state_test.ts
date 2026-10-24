@@ -16,6 +16,15 @@ export class CsChild extends LitElement {
   @property() label = 'none';
   @state() count = 0;
   #clicks = 0;
+  #root?: Node;
+  override connectedCallback() {
+    super.connectedCallback();
+    this.#root = this.getRootNode();
+  }
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.#root = undefined;
+  }
   render() {
     return html\`<button
         id="bump"
@@ -28,7 +37,8 @@ export class CsChild extends LitElement {
       </button>
       <span id="count">\${this.count}</span>
       <span id="private">\${this.#clicks}</span>
-      <span id="label">\${this.label}</span>\`;
+      <span id="label">\${this.label}</span>
+      <span id="root">\${this.#root ? 'set' : 'unset'}</span>\`;
   }
 }
 `;
@@ -138,6 +148,8 @@ test("default ('transfer'): a re-created child keeps its state", async () => {
   await expect.poll(() => text(f, 'count')).toBe('2');
   expect(await text(f, 'private')).toBe('2');
   expect(await text(f, 'label')).toBe('a');
+  // Set by the new child's connectedCallback, not the old one's cleared value.
+  expect(await text(f, 'root')).toBe('set');
   expect(await sameChild(f)).toBe(false);
   expect(await marker(f)).toBe(1);
 

@@ -5,6 +5,7 @@ import {
   partsAround,
   PRIVATE_KEY_PREFIX,
   privateKeys,
+  privateSnapshot,
   templateDrivenKeys,
   transferState,
   type ChildStateMode,
@@ -202,6 +203,26 @@ describe('pairing', () => {
     expect(fake(nextGrand).count).toBe(9);
   });
 
+  test('keeps what the new element set in its connectedCallback', async () => {
+    const cs = tracker();
+    const root = new FakeNode();
+    const form = Symbol.for(`${PRIVATE_KEY_PREFIX}/src/x.ts:X#form`);
+    const r = (e: ElementLike) => fake(e) as unknown as Record<symbol, unknown>;
+    const old = el();
+    r(old)[form] = undefined;
+    connect(cs, root, old);
+
+    cs.open();
+    disconnect(cs, old);
+    const fresh = el();
+    r(fresh)[form] = undefined;
+    connect(cs, root, fresh);
+    // The original connectedCallback runs after `connected()`.
+    r(fresh)[form] = 'the form';
+    await microtasks();
+    expect(r(fresh)[form]).toBe('the form');
+  });
+
   test("'reset' opens no window", async () => {
     const cs = tracker('reset');
     const root = new FakeNode();
@@ -341,6 +362,33 @@ describe('transferState', () => {
     expect(foreign in t).toBe(false);
     expect(local in t).toBe(false);
     expect('__internal' in t).toBe(false);
+  });
+
+  test('leaves #private functions on the new element', () => {
+    const o = el();
+    const n = el();
+    const refresh = Symbol.for(`${PRIVATE_KEY_PREFIX}/src/x.ts:X#refresh`);
+    const own = () => n;
+    (fake(o) as unknown as Record<symbol, unknown>)[refresh] = () => o;
+    (fake(n) as unknown as Record<symbol, unknown>)[refresh] = own;
+    transferState(o, n, []);
+    expect((fake(n) as unknown as Record<symbol, unknown>)[refresh]).toBe(own);
+  });
+
+  test('leaves #private fields the new element set since the snapshot', () => {
+    const o = el();
+    const n = el();
+    const form = Symbol.for(`${PRIVATE_KEY_PREFIX}/src/x.ts:X#form`);
+    const count = Symbol.for(`${PRIVATE_KEY_PREFIX}/src/x.ts:X#count`);
+    const r = (e: ElementLike) => fake(e) as unknown as Record<symbol, unknown>;
+    Object.assign(r(o), {[form]: undefined, [count]: 5});
+    Object.assign(r(n), {[form]: undefined, [count]: 0});
+    const before = privateSnapshot(n);
+    // `n`'s connectedCallback finds its form.
+    r(n)[form] = 'the form';
+    transferState(o, n, [], before);
+    expect(r(n)[form]).toBe('the form');
+    expect(r(n)[count]).toBe(5);
   });
 });
 
