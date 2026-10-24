@@ -7,7 +7,7 @@
 
 import {readFile, readdir} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {createServer} from 'vite';
+import {type PluginOption, createServer, loadConfigFromFile} from 'vite';
 import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
@@ -37,14 +37,45 @@ export interface ScanOptions {
   configFile?: string | false;
 }
 
+/** This package's plugins: serving the panel or patching modules has no place in a scan. */
+const isOwnPlugin = (name: string): boolean =>
+  name.startsWith('lit-') || name === 'devframe:lit';
+
+/** `plugins` flattened, without this package's own. */
+const foreignPlugins = async (
+  plugins: PluginOption[]
+): Promise<PluginOption[]> => {
+  const out: PluginOption[] = [];
+  for (const option of plugins) {
+    const plugin = await option;
+    if (Array.isArray(plugin)) out.push(...(await foreignPlugins(plugin)));
+    else if (plugin && !isOwnPlugin(plugin.name)) out.push(plugin);
+  }
+  return out;
+};
+
 /** The index of every script under `dirs`, and how many files were read. */
 export const scanSources = async (
   options: ScanOptions
 ): Promise<{index: SourceDocsIndex; files: number}> => {
   const root = resolve(options.root);
+  // Loaded here rather than by `createServer`, so this package's plugins can
+  // be left out of it.
+  const loaded =
+    options.configFile === false
+      ? undefined
+      : await loadConfigFromFile(
+          {command: 'serve', mode: 'development'},
+          options.configFile,
+          root,
+          'silent'
+        );
+  const config = loaded?.config ?? {};
   const server = await createServer({
+    ...config,
+    plugins: await foreignPlugins(config.plugins ?? []),
     root,
-    configFile: options.configFile,
+    configFile: false,
     logLevel: 'error',
     appType: 'custom',
     server: {middlewareMode: true, ws: false, watch: null},
