@@ -8,6 +8,7 @@ import {
 } from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import '../../packages/lit-components/src/badge.js';
+import '@awesome.me/webawesome/dist/components/button-group/button-group.js';
 import '../../packages/lit-components/src/button.js';
 import '../../packages/lit-components/src/icon-button.js';
 import '../../packages/lit-components/src/details.js';
@@ -721,10 +722,12 @@ export class ComponentsView extends LitElement {
         white-space: nowrap;
       }
       .toolbar lit-button,
+      .toolbar lit-icon-button,
       .toolbar lit-input {
         --wa-form-control-height: var(--lit-devtools-control-height);
       }
-      .toolbar lit-button::part(base) {
+      .toolbar lit-button::part(base),
+      .toolbar lit-icon-button::part(base) {
         min-height: var(--lit-devtools-control-height);
       }
       lit-input.tree-filter {
@@ -3984,6 +3987,7 @@ export class ComponentsView extends LitElement {
     `;
   }
 
+  /** A switch that stays on until pressed again, for the toggle group. */
   private _renderToggle(
     kind: string,
     on: boolean,
@@ -3997,11 +4001,30 @@ export class ComponentsView extends LitElement {
       size="s"
       variant=${on ? 'brand' : 'neutral'}
       appearance=${on ? 'filled' : 'outlined'}
+      aria-pressed=${on ? 'true' : 'false'}
       data-tip=${tip}
       @click=${onClick}
     >
       ${icon} ${label}
     </lit-button>`;
+  }
+
+  /**
+   * Pick is a one-shot mode, not a setting: it ends with the pick. So it is
+   * an icon by the filter, apart from the toggles that stay on.
+   */
+  private _renderPick(): TemplateResult {
+    const on = this._session.picking;
+    return html`<lit-icon-button
+      class="pick ${on ? 'active' : ''}"
+      variant=${on ? 'brand' : 'neutral'}
+      appearance=${on ? 'filled' : 'plain'}
+      aria-pressed=${on ? 'true' : 'false'}
+      data-tip="Pick an element on the page (Meta+Shift+E)"
+      @click=${this._togglePick}
+      icon="crosshair"
+      label="Pick an element"
+    ></lit-icon-button>`;
   }
 
   override render() {
@@ -4015,18 +4038,7 @@ export class ComponentsView extends LitElement {
         : filterTree(this._session.roots, this._treeQuery);
     return html`
       <div class="toolbar">
-        ${
-          this._canPick
-            ? this._renderToggle(
-                'pick',
-                this._session.picking,
-                'Pick an element on the page (Meta+Shift+E)',
-                this._togglePick,
-                html`<lit-icon slot="start" name="crosshair"></lit-icon>`,
-                'Pick'
-              )
-            : nothing
-        }
+        ${this._canPick ? this._renderPick() : nothing}
         <lit-input
           class="tree-filter"
           size="s"
@@ -4055,26 +4067,28 @@ export class ComponentsView extends LitElement {
           <lit-icon slot="clear-icon" name="x"></lit-icon>
         </lit-input>
         <span class="spacer"></span>
-        ${this._renderToggle(
-          'flash',
-          this._flash,
-          'Flash elements on the page when they update',
-          this._toggleFlash,
-          html`<lit-icon slot="start" name="lightning"></lit-icon>`,
-          'Flash'
-        )}
-        ${
-          this._snapshot
-            ? nothing
-            : this._renderToggle(
-                'anatomy',
-                this._anatomy,
-                "Draw the selected element's slots and parts on the page",
-                this._toggleAnatomy,
-                html`<lit-icon slot="start" name="bounding-box"></lit-icon>`,
-                'Anatomy'
-              )
-        }
+        <wa-button-group class="toggles" label="Draw on the page">
+          ${this._renderToggle(
+            'flash',
+            this._flash,
+            'Flash elements on the page when they update',
+            this._toggleFlash,
+            html`<lit-icon slot="start" name="lightning"></lit-icon>`,
+            'Flash'
+          )}
+          ${
+            this._snapshot
+              ? nothing
+              : this._renderToggle(
+                  'anatomy',
+                  this._anatomy,
+                  "Draw the selected element's slots and parts on the page",
+                  this._toggleAnatomy,
+                  html`<lit-icon slot="start" name="bounding-box"></lit-icon>`,
+                  'Anatomy'
+                )
+          }
+        </wa-button-group>
       </div>
       ${this._renderRuntimesBanner()}${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
       <lit-split-panel

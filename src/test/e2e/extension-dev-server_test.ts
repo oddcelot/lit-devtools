@@ -161,7 +161,7 @@ test('one runtime serves both panels on a dev server page', async () => {
       {timeout: 15_000}
     )
     .toContain('The Lit Inspector extension serves this page');
-  await panel.locator('components-view lit-button.pick').click();
+  await panel.locator('components-view lit-icon-button.pick').click();
   await expect
     .poll(() =>
       page.evaluate(() =>

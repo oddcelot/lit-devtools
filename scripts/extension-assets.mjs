@@ -232,7 +232,7 @@ const SHOTS = [
     async capture({app, openPanel}) {
       const panel = await openPanel('components');
       await panel.locator('components-view .row').first().waitFor();
-      await panel.locator('components-view lit-button.pick').click();
+      await panel.locator('components-view lit-icon-button.pick').click();
       await sleep(300);
       const {x, y} = await cardText(app, 0);
       await app.mouse.move(x, y);

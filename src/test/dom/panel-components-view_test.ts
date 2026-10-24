@@ -67,7 +67,7 @@ const mount = async (picker = false, roots: InspectorTreeNode[] = tree) => {
   return {
     el,
     root,
-    pick: () => root.querySelector<HTMLElement>('lit-button.pick'),
+    pick: () => root.querySelector<HTMLElement>('lit-icon-button.pick'),
     rows: () => [...root.querySelectorAll<HTMLElement>('.row')],
     inspects: () =>
       calls.filter((c) => c.name === 'inspect').map((c) => c.args[0]),
@@ -107,6 +107,25 @@ test('Pick starts the picker in the page', async () => {
   await flush(el);
   expect(inspects()).toContainEqual({type: 'pick'});
   expect(pick()!.classList.contains('active')).toBe(true);
+  // The button inside carries it: the host has no role.
+  expect(
+    pick()!
+      .shadowRoot!.querySelector('[part~="base"]')!
+      .getAttribute('aria-pressed')
+  ).toBe('true');
+});
+
+test('groups the toggles that stay on, with Pick apart by the filter', async () => {
+  const {root, pick} = await mount(true);
+  const group = root.querySelector('wa-button-group.toggles')!;
+  expect(
+    [...group.querySelectorAll('lit-button')].map((b) => b.className.trim())
+  ).toEqual(['flash', 'anatomy']);
+  expect(group.contains(pick())).toBe(false);
+  expect(pick()!.nextElementSibling?.classList.contains('tree-filter')).toBe(
+    true
+  );
+  expect(pick()!.getAttribute('label')).toBe('Pick an element');
 });
 
 test('a pick from the page selects it and asks to be brought forward', async () => {

@@ -174,7 +174,7 @@ test('Pick picks on the page and raises a panel on the element', async () => {
       )
     );
   const pickHello = async () => {
-    await panel.locator('components-view lit-button.pick').click();
+    await panel.locator('components-view lit-icon-button.pick').click();
     // The toggle goes panel -> server -> page; the picker is up once the
     // page has its crosshair cursor.
     await expect.poll(picking).toBe(true);
