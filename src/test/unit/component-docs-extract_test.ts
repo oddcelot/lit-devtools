@@ -502,9 +502,79 @@ describe('dispatched events', () => {
       }
     `);
     expect(cls.docs.events).toEqual([
-      {name: 'change', description: 'Documented.'},
-      {name: 'pick', type: 'CustomEvent'},
+      // A tag without a type takes the dispatched one.
+      {name: 'change', description: 'Documented.', type: 'Event'},
+      {name: 'pick', type: 'CustomEvent<number>'},
       {name: 'keydown', type: 'KeyboardEvent'},
+    ]);
+  });
+
+  test("a CustomEvent's type argument is its type, as written", () => {
+    const cls = only(`
+      class X extends LitElement {
+        go() {
+          this.dispatchEvent(new CustomEvent<{id: string}>('go', {detail}));
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {name: 'go', type: 'CustomEvent<{id: string}>'},
+    ]);
+  });
+
+  test('a detail literal gives the shape, typed from this and literals', () => {
+    const cls = only(`
+      /** @fires add-to-cart - When clicked. */
+      class X extends LitElement {
+        @property() productId = '';
+        @property({type: Number}) price = 0;
+        @property() size: 'a' | 'b' = 'a';
+        add() {
+          this.dispatchEvent(
+            new CustomEvent('add-to-cart', {
+              detail: {id: this.productId, price: this.price, size: this.size, at: 'shop', n: 2, x: compute()},
+              bubbles: true,
+            })
+          );
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {
+        name: 'add-to-cart',
+        description: 'When clicked.',
+        type: "CustomEvent<{id: string; price: number; size: 'a' | 'b'; at: string; n: number; x: unknown}>",
+      },
+    ]);
+  });
+
+  test('a private field types the detail too; an unknown detail adds nothing', () => {
+    const cls = only(`
+      class X extends LitElement {
+        @state() private query = '';
+        go() {
+          this.dispatchEvent(new CustomEvent('typed', {detail: this.query}));
+          this.dispatchEvent(new CustomEvent('opaque', {detail: compute()}));
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {name: 'typed', type: 'CustomEvent<string>'},
+      {name: 'opaque', type: 'CustomEvent'},
+    ]);
+  });
+
+  test('a typed @fires tag keeps its type', () => {
+    const cls = only(`
+      /** @fires {CustomEvent<Item>} add - Added. */
+      class X extends LitElement {
+        add() {
+          this.dispatchEvent(new CustomEvent('add', {detail: 1}));
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {name: 'add', description: 'Added.', type: 'CustomEvent<Item>'},
     ]);
   });
 });
