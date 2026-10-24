@@ -118,7 +118,8 @@ build reached, and writes `custom-elements.json`. Run it before you publish:
 }
 ```
 
-It resolves imports through your Vite config, so aliases work. The
+It resolves imports through your Vite config, so aliases work; without one,
+through `tsconfig.json` paths and package `exports`. The
 [CLI reference](/reference/cli/#lit-devtools-manifest) lists its flags.
 
 ## Related
