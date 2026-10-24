@@ -6,7 +6,10 @@ import {panelBrand} from './brand.js';
 import {litRpc} from './client.js';
 import {hostInfo} from './host.js';
 import {clearTimelineEvents} from './timeline-store.js';
-import type {PageChangedEvent} from '../lib/devframe/protocol.js';
+import type {
+  LitRuntimeInfo,
+  PageChangedEvent,
+} from '../lib/devframe/protocol.js';
 
 import './components-view.js';
 import type {ComponentsView} from './components-view.js';
@@ -139,6 +142,8 @@ export class LitDevtoolsPanel extends LitElement {
   @state() private _hmrCount = 0;
   /** Distinct warned components; see `_onWarningCountChange`. */
   @state() private _warningCount = 0;
+  /** What the page last announced; see `_onRuntimeChange`. */
+  @state() private _runtime: LitRuntimeInfo | null = null;
 
   /** The latest `page-changed` notice, until dismissed. */
   @state() private _pageChange: PageChangedEvent | null = null;
@@ -247,6 +252,11 @@ export class LitDevtoolsPanel extends LitElement {
     this._warningCount = e.detail.count;
   }
 
+  /** The page announced itself (its Lit versions among it), for Settings. */
+  private _onRuntimeChange(e: CustomEvent<{runtime: LitRuntimeInfo}>) {
+    this._runtime = e.detail.runtime;
+  }
+
   /** An "inspect" link in the timeline or Updates: open Components on it. */
   private _onInspectElement(e: CustomEvent<{id: number}>) {
     this._location.apply({componentId: e.detail.id});
@@ -314,6 +324,7 @@ export class LitDevtoolsPanel extends LitElement {
           .location=${this._location}
           @hmr-count-change=${this._onHmrCountChange}
           @warning-count-change=${this._onWarningCountChange}
+          @runtime-change=${this._onRuntimeChange}
         ></components-view>
         <!-- Mounted lazily: the recording it derives from lives in the
              timeline store and keeps filling whether or not this view exists,
@@ -325,7 +336,9 @@ export class LitDevtoolsPanel extends LitElement {
         }
         ${
           this._location.tab === 'settings'
-            ? html`<devtools-settings></devtools-settings>`
+            ? html`<devtools-settings
+                .runtime=${this._runtime}
+              ></devtools-settings>`
             : nothing
         }
       </div>

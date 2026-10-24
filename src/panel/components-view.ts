@@ -1747,6 +1747,7 @@ export class ComponentsView extends LitElement {
   private _pendingFlash = new Set<string>();
   private _reportedIncompatibilities: unknown = null;
   private _reportedWarningRoots: unknown = null;
+  private _reportedRuntime: unknown = null;
 
   override connectedCallback() {
     super.connectedCallback();
@@ -1767,6 +1768,7 @@ export class ComponentsView extends LitElement {
       this.requestUpdate();
       this._reportIncompatibilities();
       this._reportWarnings();
+      this._reportRuntime();
     });
     this._flash = overrides.get().flashUpdates ?? false;
     this._inlineDocs = overrides.get().inlineDocs ?? false;
@@ -2006,6 +2008,25 @@ export class ComponentsView extends LitElement {
     this.dispatchEvent(
       new CustomEvent('warning-count-change', {
         detail: {count: warnedTagCount(roots)},
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  /**
+   * Tell the panel shell what the page last said about itself, for the
+   * Settings tab's About. The page may announce itself after Settings read
+   * `get-meta` (a panel opened on Settings before the page connected), and
+   * only this view hears the announcements.
+   */
+  private _reportRuntime(): void {
+    const runtime = this._session.runtime;
+    if (runtime === null || runtime === this._reportedRuntime) return;
+    this._reportedRuntime = runtime;
+    this.dispatchEvent(
+      new CustomEvent('runtime-change', {
+        detail: {runtime},
         bubbles: true,
         composed: true,
       })

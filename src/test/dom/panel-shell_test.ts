@@ -8,6 +8,7 @@ import type {TimelineEvent} from '../../types/timeline.js';
 import {
   answers,
   calls,
+  meta,
   push,
   resetClient,
   setSnapshot,
@@ -325,6 +326,28 @@ test('a page change asks the new page for the selection, not the old details', a
     {type: 'details', id: 7},
     {type: 'watch', id: 7},
   ]);
+});
+
+test("Settings' About takes the Lit versions the page announces after it opened", async () => {
+  // Opened on Settings before the page connected: `get-meta` knows no Lit.
+  meta.runtime = {
+    ready: false,
+    litPackages: {},
+    topFrame: true,
+    chromeTracks: true,
+  };
+  const {el, view} = await mount('#tab=settings');
+  const about = () =>
+    [...view('devtools-settings')!.shadowRoot!.querySelectorAll('section')]
+      .find((s) => s.querySelector('h3')?.textContent?.trim() === 'About')
+      ?.textContent?.replace(/\s+/g, ' ');
+  expect(about()).toContain('not detected');
+  push('inspector-message', {
+    type: 'ready',
+    litPackages: {'lit-html': ['3.3.3']},
+  });
+  await flush(el);
+  expect(about()).toContain('lit-html 3.3.3');
 });
 
 test('a frozen session has no page to follow', async () => {
