@@ -17,6 +17,8 @@
  *   (src/pages/live-panel/examples/[name]/demo.astro);
  * - `liveDemoDevLit()` resolves the example's Lit to the development build,
  *   so the Timeline's render lanes fill;
+ * - `liveDemoPrivateFields()` rewrites its `#private` fields as the dev
+ *   server does, so the panel's Private section lists them;
  * - its public/ files are left to `liveExamplesPublic` in astro.config.mjs;
  * - `base` is the demo page's URL, and everything goes under `_live/`;
  * - CSS the entry imports itself, such as a library's global stylesheet,
@@ -29,6 +31,7 @@ import {createRequire} from 'node:module';
 import {join, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {liveDemoDevLit} from '../src/lib/live-demo-dev-lit.mjs';
+import {liveDemoPrivateFields} from '../src/lib/live-demo-private-fields.mjs';
 
 const EXAMPLES = fileURLToPath(new URL('../../examples/', import.meta.url));
 
@@ -59,7 +62,7 @@ await build({
   base: `/live-panel/examples/${name}/demo/`,
   logLevel: 'warn',
   publicDir: false,
-  plugins: [liveDemoDevLit()],
+  plugins: [liveDemoDevLit(), liveDemoPrivateFields()],
   build: {
     outDir: resolve(outDir),
     emptyOutDir: false,
