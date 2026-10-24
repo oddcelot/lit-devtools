@@ -77,6 +77,7 @@ import {
   type LitPackageVersions,
   type ValueSegment,
 } from '../../../types/inspector.js';
+import {CHANNEL_RECORDING_CHANGED} from '../../../types/timeline.js';
 
 /** Lit packages and the global each pushes its version onto when loaded. */
 const LIT_VERSION_GLOBALS = [
@@ -410,18 +411,37 @@ if (installs) {
   };
 
   // -------------------------------------------------------------------------
-  // Opt-in live tree: watch the DOM (light + every shadow root) and push a
-  // fresh tree when the component hierarchy actually changes. Off by default.
-  // childList-only (no attributes), so cosmetic changes — including our own
-  // highlight box toggling — don't churn; identical rebuilds are also deduped.
-  // Batches that only move text or comment nodes (most Lit re-renders) are
-  // dropped before the debounce, and only added subtrees are walked for new
-  // shadow roots, so a busy page no longer costs a full-page walk per batch.
+  // Live tree: while the panel asks, watch the DOM (light + every shadow
+  // root) and push a fresh tree when the component hierarchy actually
+  // changes. childList-only (no attributes), so cosmetic changes — including
+  // our own highlight box toggling — don't churn; identical rebuilds are also
+  // deduped. Batches that only move text or comment nodes (most Lit
+  // re-renders) are dropped before they schedule anything, and only added
+  // subtrees are walked for new shadow roots, so a busy page no longer costs
+  // a full-page walk per batch.
+  //
+  // Rebuilds are paced by their own cost: the next one waits at least
+  // {@link PACE_FACTOR} times as long as the last took (and never less than
+  // {@link MIN_PACE_MS}), so a page whose tree is slow to walk spends a
+  // bounded share of its main thread on the panel. While the Timeline
+  // records, none run at all, so they stay out of what it measures; the
+  // changes they missed land in one rebuild when it stops.
   // -------------------------------------------------------------------------
+
+  /** The shortest wait between two rebuilds, in ms. */
+  const MIN_PACE_MS = 100;
+  /** How many times the last rebuild's cost the next one waits. */
+  const PACE_FACTOR = 5;
 
   let observer: MutationObserver | null = null;
   let observeTimer: ReturnType<typeof setTimeout> | undefined;
   let lastTreeJson = '';
+  /** What the last rebuild cost, in ms; sets the wait before the next. */
+  let lastBuildMs = 0;
+  /** Whether the Timeline is recording; rebuilds wait it out. */
+  let recording = false;
+  /** A change arrived while recording, so one rebuild is owed at the end. */
+  let heldWhileRecording = false;
   // Added elements whose subtrees still need their shadow roots observed.
   let pendingRoots: Element[] = [];
 
@@ -475,8 +495,7 @@ if (installs) {
       void customElements.whenDefined(tag).then(
         () => {
           awaiting.delete(tag);
-          // A paused tree (Live off) stays a snapshot until refreshed.
-          if (observer !== null) setTimeout(pushTreeIfChanged, 0);
+          scheduleRebuild();
         },
         () => awaiting.delete(tag)
       );
@@ -485,9 +504,17 @@ if (installs) {
     return roots;
   };
 
-  const pushTreeIfChanged = (): void => {
+  /** Build the tree and its JSON, timing both for the pacing. */
+  const timedBuild = (): {roots: InspectorTreeNode[]; json: string} => {
+    const start = performance.now();
     const roots = build();
     const json = JSON.stringify(roots);
+    lastBuildMs = performance.now() - start;
+    return {roots, json};
+  };
+
+  const pushTreeIfChanged = (): void => {
+    const {roots, json} = timedBuild();
     if (json === lastTreeJson) return;
     lastTreeJson = json;
     send({type: 'tree', roots});
@@ -516,8 +543,7 @@ if (installs) {
         () => {
           hydrating.delete(el);
           if (watched?.ref.deref() === el) watched.queuePush();
-          // A paused tree (Live off) stays a snapshot until refreshed.
-          if (observer !== null) setTimeout(pushTreeIfChanged, 0);
+          scheduleRebuild();
         },
         () => hydrating.delete(el)
       );
@@ -525,10 +551,8 @@ if (installs) {
   };
 
   // A warning lands after the element rendered, with no DOM change to tell
-  // the observer. A paused tree (Live off) stays a snapshot.
-  onLitWarning(() => {
-    if (observer !== null) setTimeout(pushTreeIfChanged, 0);
-  });
+  // the observer.
+  onLitWarning(() => scheduleRebuild());
 
   /** Whether a subtree holds anything the tree (or observer) cares about. */
   const mayHoldComponents = (node: Node): node is Element => {
@@ -581,10 +605,42 @@ if (installs) {
       if (queueAdded(record.addedNodes)) relevant = true;
       if (!relevant && anyMayHold(record.removedNodes)) relevant = true;
     }
-    if (!relevant) return;
-    if (observeTimer !== undefined) clearTimeout(observeTimer);
-    observeTimer = setTimeout(flushMutations, 100);
+    if (relevant) scheduleRebuild();
   };
+
+  /**
+   * Rebuild the tree once the pace allows. Changes that arrive while one is
+   * queued ride along with it rather than push it back, so a page that never
+   * stops changing still gets a fresh tree every so often. Nothing runs
+   * without a panel watching, and nothing while the Timeline records.
+   */
+  const scheduleRebuild = (): void => {
+    if (observer === null) return;
+    if (recording) {
+      heldWhileRecording = true;
+      return;
+    }
+    if (observeTimer !== undefined) return;
+    observeTimer = setTimeout(
+      flushMutations,
+      Math.max(MIN_PACE_MS, PACE_FACTOR * lastBuildMs)
+    );
+  };
+
+  pageChannel.on(CHANNEL_RECORDING_CHANGED, (data) => {
+    recording = (data as {recording: boolean}).recording;
+    if (recording) {
+      // A rebuild already queued would land mid-recording.
+      if (observeTimer !== undefined) {
+        clearTimeout(observeTimer);
+        observeTimer = undefined;
+        heldWhileRecording = true;
+      }
+    } else if (heldWhileRecording) {
+      heldWhileRecording = false;
+      scheduleRebuild();
+    }
+  });
 
   const setObserving = (enabled: boolean): void => {
     if (enabled) {
@@ -596,6 +652,7 @@ if (installs) {
       observer.disconnect();
       observer = null;
       pendingRoots = [];
+      heldWhileRecording = false;
       if (observeTimer !== undefined) {
         clearTimeout(observeTimer);
         observeTimer = undefined;
@@ -647,8 +704,8 @@ if (installs) {
   // -------------------------------------------------------------------------
 
   const replyTree = (): void => {
-    const roots = build();
-    lastTreeJson = JSON.stringify(roots);
+    const {roots, json} = timedBuild();
+    lastTreeJson = json;
     send({type: 'tree', roots});
   };
 
