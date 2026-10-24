@@ -454,3 +454,52 @@ test('through a symlinked root, paths and inheritance hold', async () => {
     await server.close();
   }
 });
+
+test('a barrel entry exports the classes it re-exports', async () => {
+  const root = await fixture();
+  await fsp.writeFile(
+    joinPath(root, 'src/index.ts'),
+    `export * from './x-a.js';\nexport {Base as Root} from './base.js';\n`
+  );
+  await build({
+    root,
+    logLevel: 'silent',
+    configFile: false,
+    plugins: [litPlugin({manifest: true, timeline: false})],
+    build: {
+      lib: {entry: joinPath(root, 'src/index.ts'), formats: ['es']},
+      rollupOptions: {external: [/^lit/]},
+      minify: false,
+    },
+  });
+  const built = await readJson(joinPath(root, 'dist/custom-elements.json'));
+  const [module] = built.modules as {
+    path: string;
+    exports: {kind: string; name: string; declaration: {name: string}}[];
+  }[];
+  expect(module.path).toBe('dist/x-lib.js');
+  // The barrel's re-export of XA and XA's own export are one; sources go
+  // by path, so the barrel's come first.
+  expect(
+    module.exports.map((e) => [e.kind, e.name, e.declaration.name])
+  ).toEqual([
+    ['js', 'XA', 'XA'],
+    ['js', 'Root', 'Base'],
+    ['custom-element-definition', 'x-a', 'XA'],
+  ]);
+
+  const {index} = await scanSources({root, dirs: ['src']});
+  const scanned = JSON.parse(manifestText(index, root)) as {
+    modules: {path: string; exports: {name: string; declaration: unknown}[]}[];
+  };
+  expect(
+    scanned.modules.find((m) => m.path === 'src/index.ts')?.exports
+  ).toEqual([
+    {kind: 'js', name: 'XA', declaration: {name: 'XA', module: 'src/x-a.ts'}},
+    {
+      kind: 'js',
+      name: 'Root',
+      declaration: {name: 'Base', module: 'src/base.ts'},
+    },
+  ]);
+});

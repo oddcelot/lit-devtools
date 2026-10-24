@@ -23,15 +23,22 @@ export const indexModule = async (
   code: string,
   id: string
 ): Promise<void> => {
-  const module = code.includes('class')
-    ? extractModuleDocs(code, id)
-    : {classes: []};
-  if (module.classes.length === 0 && module.mixins === undefined) {
+  // Only a module with a class, or one that exports, can document anything.
+  const module =
+    code.includes('class') || code.includes('export')
+      ? extractModuleDocs(code, id)
+      : {classes: []};
+  const documents =
+    module.classes.length > 0 ||
+    module.mixins !== undefined ||
+    module.reexports !== undefined;
+  if (!documents) {
     index.delete(id);
     return;
   }
-  // Only imported superclasses and mixins need resolving; the index
-  // follows the resolved id to the module that declares them.
+  // Only imported superclasses and mixins, and re-exported modules, need
+  // resolving; the index follows the resolved id to the module that
+  // declares them.
   const specifiers = new Set(
     [
       ...module.classes.flatMap((cls) => [
@@ -39,6 +46,7 @@ export const indexModule = async (
         ...(cls.mixins ?? []),
       ]),
       ...(module.mixins ?? []).flatMap((mixin) => mixin.mixins ?? []),
+      ...(module.reexports ?? []),
     ].flatMap((ref) => ref?.specifier ?? [])
   );
   const superclassIds = new Map<string, string>();

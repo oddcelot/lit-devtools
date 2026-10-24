@@ -120,6 +120,20 @@ export interface ModuleDocs {
   mixins?: MixinDocs[];
   /** The classes and mixins above it exports; absent when it exports none. */
   exports?: ModuleExport[];
+  /** What it exports from other modules; absent when nothing. */
+  reexports?: ModuleReexport[];
+}
+
+/**
+ * Exports of another module's names: `export * from './a.js'` (no `name`),
+ * `export {A as B} from './a.js'`, or an imported `A` exported again.
+ */
+export interface ModuleReexport {
+  specifier: string;
+  /** What importers ask for; absent for `export *`. */
+  name?: string;
+  /** The name `specifier` exports it as. */
+  local?: string;
 }
 
 // --- imports and registrations ---------------------------------------------
@@ -447,6 +461,46 @@ const exportedBindings = (statement: Node): ModuleExport[] => {
   });
 };
 
+/** `export * from` and `export {A as B} from`, with the module they name. */
+const reexportsFrom = (statement: Node): ModuleReexport[] => {
+  const specifier = stringLiteral(child(statement, 'source'));
+  if (specifier === undefined) return [];
+  if (statement.type === 'ExportAllDeclaration')
+    // `export * as ns from` exports a namespace, not a declaration.
+    return child(statement, 'exported') === undefined ? [{specifier}] : [];
+  if (statement.type !== 'ExportNamedDeclaration') return [];
+  return nodes(statement.specifiers).flatMap((spec) => {
+    const local = nameOf(child(spec, 'local'));
+    const name = nameOf(child(spec, 'exported'));
+    return local === undefined || name === undefined
+      ? []
+      : [{specifier, name, local}];
+  });
+};
+
+/** What `program` exports from other modules, imported names exported again included. */
+const reexportsOf = (
+  program: Node,
+  imports: Map<string, Imported>
+): ModuleReexport[] =>
+  nodes(program.body).flatMap((statement) => [
+    ...reexportsFrom(statement),
+    ...(child(statement, 'source') === undefined
+      ? exportedBindings(statement).flatMap((binding) => {
+          const imported = imports.get(binding.local);
+          return imported === undefined
+            ? []
+            : [
+                {
+                  specifier: imported.specifier,
+                  name: binding.name,
+                  local: imported.name,
+                },
+              ];
+        })
+      : []),
+  ]);
+
 /** The exports of `program` that name one of `declared`. */
 const exportsOf = (program: Node, declared: Set<string>): ModuleExport[] =>
   nodes(program.body)
@@ -485,9 +539,11 @@ export const extractModuleDocs = (code: string, id: string): ModuleDocs => {
     program,
     new Set([...classes, ...mixins].map((declaration) => declaration.name))
   );
+  const reexports = reexportsOf(program, context.imports);
   return {
     classes,
     ...(mixins.length > 0 ? {mixins} : {}),
     ...(exports.length > 0 ? {exports} : {}),
+    ...(reexports.length > 0 ? {reexports} : {}),
   };
 };
