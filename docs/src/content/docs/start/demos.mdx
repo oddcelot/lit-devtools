@@ -36,8 +36,9 @@ lists edits to try.
 Select `<lit-flame>` and the stoke count shows under **Private** as
 `#stokes`, below `hue` and `burning`. It's a native `#private` field, which
 nothing outside the class could read, but in dev the plugin rewrites private
-fields so HMR can patch the class, and that lets the panel read them. The
-live demo does the same.
+fields so HMR can patch the class, and that lets the panel read and edit
+them: set `#stokes` to 5 and the flame reads "stoked 5×". The live demo does
+the same.
 :::
 
 <StackBlitzEmbed

@@ -124,9 +124,10 @@ named `#name` with its live value. Nothing outside a class can read a real
 `#private` field, but in dev the plugin rewrites them to symbol-keyed
 properties so HMR can patch the class
 ([`hmr.privateFields`](/reference/options/#hmrprivatefields)), and the panel
-reads those. The rows are read-only, private methods and accessors are left
-out, and a field a base class and a subclass both declare reads
-`#name (Subclass)` the second time. A production build keeps real `#private`
+reads those. A field holding a string, number or boolean can be edited like a
+property (see below). Private methods and accessors are left out, and a field
+a base class and a subclass both declare reads `#name (Subclass)` the second
+time. A production build keeps real `#private`
 fields, so the section is absent there, and with the Lit Inspector extension
 on a page the plugin didn't serve.
 
@@ -166,6 +167,16 @@ flips on a click. A string or number turns into an input: Enter or leaving
 the field applies it, and Escape cancels. Objects, arrays and functions cannot
 be replaced, nor can a string cut short in the pane, and a snapshot has no
 page to write to.
+
+A `#private` field under **Private** gets the same edit button when it holds a
+string, number or boolean. The write goes to that exact field, so a subclass's
+`#x` and its base class's `#x` stay apart, and the element is asked to update,
+since Lit doesn't watch private fields. The class wasn't written to have its
+private fields changed from outside, though, so an invariant it keeps between
+them can break. The value is an override like any other, with the same
+checkbox, pin and cross. A pinned one finds its field again after a reload
+as long as the field, its class and its file keep their names; otherwise it
+is dropped like a renamed property's.
 
 The value you set is an override, kept on top of the element's own value the
 way a declaration sits in the browser's Styles pane. It holds when the app
