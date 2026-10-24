@@ -24,6 +24,8 @@ interface Reactive {
   /** `type: Number` → `number`. */
   type?: string;
   state?: boolean;
+  /** `reflect: true`. */
+  reflect?: true;
 }
 
 const optionValue = (options: Node | undefined, key: string) =>
@@ -39,6 +41,9 @@ const reactiveFrom = (options: Node | undefined, state = false): Reactive => {
   else put(reactive, 'attribute', stringLiteral(attribute));
   const type = nameOf(child(optionValue(options, 'type'), 'value'));
   if (type !== undefined) reactive.type = type.toLowerCase();
+  const reflect = child(optionValue(options, 'reflect'), 'value');
+  if (reflect?.type === 'Literal' && reflect.value === true)
+    reactive.reflect = true;
   const isState = child(optionValue(options, 'state'), 'value');
   if (isState?.type === 'Literal' && isState.value === true)
     reactive.state = true;
@@ -95,7 +100,7 @@ const staticProperties = (code: string, body: Node[]): StaticProperty[] => {
 
 const FIELD_TYPES = new Set(['PropertyDefinition', 'AccessorProperty']);
 const ACCESSOR_KINDS = new Set(['get', 'set']);
-const HIDDEN_ACCESS = new Set(['private', 'protected']);
+export const HIDDEN_ACCESS = new Set(['private', 'protected']);
 const HIDDEN_TAGS = new Set(['private', 'protected', 'internal', 'ignore']);
 
 /** A public instance field or accessor's name, or `undefined` for anything else. */
@@ -111,7 +116,10 @@ const publicMemberName = (member: Node): string | undefined => {
   return key?.type === 'Identifier' ? nameOf(key) : undefined;
 };
 
-const sliceOf = (code: string, node: Node | undefined): string | undefined =>
+export const sliceOf = (
+  code: string,
+  node: Node | undefined
+): string | undefined =>
   node === undefined ? undefined : code.slice(node.start, node.end).trim();
 
 /** The member's declared type: its annotation, a getter's return type or a setter's parameter type. */
@@ -144,7 +152,7 @@ const attributeOf = (
   return reactive.attribute ?? name.toLowerCase();
 };
 
-const isHidden = (doc: JsDoc | undefined): boolean =>
+export const isHidden = (doc: JsDoc | undefined): boolean =>
   doc?.tags.some((t) => HIDDEN_TAGS.has(t.tag)) ?? false;
 
 /** The annotation's text, else a JS `@type`, else the `type:` option's. */
@@ -177,6 +185,8 @@ const memberEntry = (
   put(entry, 'type', memberType(code, member, doc, reactive));
   put(entry, 'default', initializerOf(code, member));
   put(entry, 'counterpart', attributeOf(name, reactive));
+  if (entry.counterpart !== undefined && reactive?.reflect)
+    entry.reflects = true;
   return entry;
 };
 
@@ -186,6 +196,8 @@ const staticEntry = (property: StaticProperty): DocEntry | undefined => {
   const entry = describe({name: property.name}, property.doc);
   put(entry, 'type', jsDocType(property.doc) ?? property.type);
   put(entry, 'counterpart', attributeOf(property.name, property));
+  if (entry.counterpart !== undefined && property.reflect)
+    entry.reflects = true;
   return entry;
 };
 
@@ -209,6 +221,6 @@ export const propertiesOf = (code: string, cls: Node): DocEntry[] => {
 export const attributesOf = (properties: DocEntry[]): DocEntry[] =>
   properties.flatMap((property) => {
     if (property.counterpart === undefined) return [];
-    const {inheritedFrom: _, ...rest} = property;
+    const {inheritedFrom: _, reflects: __, ...rest} = property;
     return [{...rest, name: property.counterpart, counterpart: property.name}];
   });

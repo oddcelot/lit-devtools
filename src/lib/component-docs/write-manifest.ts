@@ -16,6 +16,7 @@
 
 import type {DocEntry} from '../../types/component-docs.js';
 import type {ClassDocs, ClassDocsBody, ClassRef, MixinDocs} from './extract.js';
+import type {MethodDocs} from './methods.js';
 import type {Ancestor, IndexedModule} from './source-index.js';
 
 /** The schema version written. */
@@ -60,6 +61,25 @@ const field = (entry: DocEntry): Json => {
     entry
   );
   if (entry.counterpart !== undefined) out.attribute = entry.counterpart;
+  if (entry.reflects) out.reflects = true;
+  return out;
+};
+
+const method = (docs: MethodDocs): Json => {
+  const out: Json = {kind: 'method', name: docs.name};
+  if (docs.description !== undefined) out.description = docs.description;
+  if (docs.deprecated !== undefined) out.deprecated = docs.deprecated;
+  if (docs.parameters !== undefined)
+    out.parameters = docs.parameters.map(({type, ...param}) =>
+      type === undefined ? param : {...param, type: {text: type}}
+    );
+  if (docs.return !== undefined) {
+    const {type, description} = docs.return;
+    out.return = {
+      ...(type !== undefined ? {type: {text: type}} : {}),
+      ...(description !== undefined ? {description} : {}),
+    };
+  }
   return out;
 };
 
@@ -85,7 +105,7 @@ const cssProperty = (entry: DocEntry): Json => {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples'
+  'summary' | 'description' | 'deprecated' | 'examples' | 'methods'
 >;
 
 /** Each list of a body, its manifest key and how an entry is written. */
@@ -99,24 +119,47 @@ const LISTS: [ListKey, string, (e: DocEntry) => Json][] = [
   ['cssStates', 'cssStates', named],
 ];
 
+interface Inherited {
+  from: Reference;
+  docs: ClassDocsBody;
+}
+
+/** `own` written, then each ancestor's entries it doesn't redeclare, marked as inherited. */
+const merged = <T extends {name: string}>(
+  own: readonly T[],
+  inherited: readonly [Reference, readonly T[]][],
+  write: (entry: T) => Json
+): Json[] => {
+  const names = new Set(own.map((entry) => entry.name));
+  const written = own.map(write);
+  for (const [from, entries] of inherited)
+    for (const entry of entries) {
+      if (names.has(entry.name)) continue;
+      names.add(entry.name);
+      written.push({...write(entry), inheritedFrom: from});
+    }
+  return written;
+};
+
 /** A body's lists as manifest keys, own entries first, then inherited ones it doesn't redeclare. */
-const lists = (
-  docs: ClassDocsBody,
-  ancestors: {from: Reference; docs: ClassDocsBody}[]
-): Json => {
+const lists = (docs: ClassDocsBody, ancestors: Inherited[]): Json => {
   const out: Json = {};
   for (const [key, manifestKey, write] of LISTS) {
-    const own = docs[key];
-    const names = new Set(own.map((entry) => entry.name));
-    const written = own.map(write);
-    for (const ancestor of ancestors)
-      for (const entry of ancestor.docs[key]) {
-        if (names.has(entry.name)) continue;
-        names.add(entry.name);
-        written.push({...write(entry), inheritedFrom: ancestor.from});
-      }
+    const written = merged(
+      docs[key],
+      ancestors.map((a) => [a.from, a.docs[key]]),
+      write
+    );
     if (written.length > 0) out[manifestKey] = written;
   }
+  // Methods share `members` with the fields, after them.
+  const methods = merged(
+    docs.methods ?? [],
+    ancestors.map((a) => [a.from, a.docs.methods ?? []]),
+    method
+  );
+  if (methods.length > 0)
+    out.members = [...((out.members as Json[] | undefined) ?? []), ...methods];
   return out;
 };
 
