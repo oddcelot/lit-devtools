@@ -364,7 +364,7 @@ export const SECTIONS: Section[] = [
     `,
   },
   {
-    tag: 'lit-segmented-tabs',
+    tag: 'lit-tabs',
     group: 'Layout',
     variants: false,
     summary:
@@ -373,7 +373,7 @@ export const SECTIONS: Section[] = [
       ${row(
         'md',
         html`<div class="tabs-bar">
-          <lit-segmented-tabs
+          <lit-tabs
             value="components"
             .items=${[
               {id: 'components', label: 'Components', icon: 'cube'},
@@ -381,13 +381,13 @@ export const SECTIONS: Section[] = [
               {id: 'timeline', label: 'Timeline', warnings: 2},
               {id: 'settings', label: 'Settings', icon: 'gear'},
             ]}
-          ></lit-segmented-tabs>
+          ></lit-tabs>
         </div>`
       )}
       ${row(
         'sm',
         html`<div class="tabs-bar">
-          <lit-segmented-tabs
+          <lit-tabs
             size="sm"
             value="props"
             .items=${[
@@ -395,7 +395,7 @@ export const SECTIONS: Section[] = [
               {id: 'attrs', label: 'Attributes'},
               {id: 'events', label: 'Events'},
             ]}
-          ></lit-segmented-tabs>
+          ></lit-tabs>
         </div>`
       )}
     `,

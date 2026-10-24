@@ -6,7 +6,7 @@ import type {WaTabShowEvent} from '@awesome.me/webawesome/dist/events/tab-show.j
 import './badge.js';
 import './icon.js';
 
-export interface SegmentedTabItem {
+export interface TabItem {
   id: string;
   label: string;
   /** An icon name, from the set icons.ts registers. */
@@ -21,13 +21,13 @@ export interface SegmentedTabItem {
 /**
  * A row of tabs over a Web Awesome `wa-tab-group`, with the panels left out:
  * callers keep their views mounted and toggle them themselves, so this only
- * picks. The DevTools panel's header tabs (src/panel/segmented-tabs.ts,
- * which moves onto this one with the rest of the panel).
+ * picks; the DevTools panel's header tabs use it. Underline tabs, not a segmented
+ * control: the active tab is marked by the brand-coloured indicator.
  *
  * Fires `change` with `detail.value` when the user picks a tab; setting
  * `value` from outside moves the selection without firing it.
  */
-export class LitSegmentedTabs extends LitElement {
+export class LitTabs extends LitElement {
   static override styles = css`
     :host {
       display: flex;
@@ -85,7 +85,7 @@ export class LitSegmentedTabs extends LitElement {
     }
   `;
 
-  @property({type: Array}) items: SegmentedTabItem[] = [];
+  @property({type: Array}) items: TabItem[] = [];
   @property() value = '';
   @property({reflect: true}) size: 'sm' | 'md' = 'md';
 
@@ -134,10 +134,10 @@ export class LitSegmentedTabs extends LitElement {
   }
 }
 
-customElements.define('lit-segmented-tabs', LitSegmentedTabs);
+customElements.define('lit-tabs', LitTabs);
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lit-segmented-tabs': LitSegmentedTabs;
+    'lit-tabs': LitTabs;
   }
 }

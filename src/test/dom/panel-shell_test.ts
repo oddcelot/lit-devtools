@@ -261,7 +261,7 @@ test('the Components tab counts warned components in a warning badge', async () 
       children: [{id: 2, tagName: 'x-app', warnings: 1, children: []}],
     },
   ]);
-  const badge = root.querySelector('lit-segmented-tabs')!.shadowRoot!;
+  const badge = root.querySelector('lit-tabs')!.shadowRoot!;
   const warning = badge.querySelector('lit-badge[variant="warning"]');
   expect(warning?.textContent?.trim()).toBe('1');
   expect(badge.querySelector('lit-badge[variant="brand"]')).toBeNull();
@@ -269,7 +269,7 @@ test('the Components tab counts warned components in a warning badge', async () 
 
 test('no warning badge without warned components', async () => {
   const {root} = await mount();
-  const tabs = root.querySelector('lit-segmented-tabs')!.shadowRoot!;
+  const tabs = root.querySelector('lit-tabs')!.shadowRoot!;
   expect(tabs.querySelector('lit-badge[variant="warning"]')).toBeNull();
 });
 

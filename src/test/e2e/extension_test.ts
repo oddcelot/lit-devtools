@@ -695,7 +695,7 @@ test('the Lit tab leaves out what needs a dev server', async () => {
   );
 
   // The Settings tab says why the plugin settings are missing.
-  await panel.locator('lit-segmented-tabs').getByText('Settings').click();
+  await panel.locator('lit-tabs').getByText('Settings').click();
   await expect
     .poll(async () =>
       (await panel.locator('devtools-settings .empty').textContent())?.trim()
@@ -732,7 +732,7 @@ test("the Elements sidebar's Lit tab shows only an element's details", async () 
       timeout: 15_000,
     })
     .toContain('probe-hello');
-  expect(await sidebar.locator('lit-segmented-tabs').count()).toBe(0);
+  expect(await sidebar.locator('lit-tabs').count()).toBe(0);
   expect(await sidebar.locator('components-view .tree').count()).toBe(0);
   expect(await sidebar.locator('#bar').isVisible()).toBe(false);
 

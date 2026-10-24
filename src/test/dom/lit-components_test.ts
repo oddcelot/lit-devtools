@@ -182,9 +182,9 @@ describe('inside Web Awesome containers', () => {
 describe('lit-* compounds', () => {
   type Updating = HTMLElement & {updateComplete: Promise<unknown>};
 
-  test('lit-segmented-tabs renders its items and reports a pick once', async () => {
+  test('lit-tabs renders its items and reports a pick once', async () => {
     const el = await mount<Updating & {items: unknown[]; value: string}>(
-      '<lit-segmented-tabs value="a"></lit-segmented-tabs>'
+      '<lit-tabs value="a"></lit-tabs>'
     );
     el.items = [
       {id: 'a', label: 'Components'},
