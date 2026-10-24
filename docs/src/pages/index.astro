@@ -399,25 +399,25 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
           <p>True HMR, shared stylesheets and DevTools for Lit in Vite.</p>
         </div>
         <nav aria-label="Overview">
-          <h4>Overview</h4>
+          <h2>Overview</h2>
           <a href="/overview/why/">Why vite-plugin-lit</a>
           <a href="/overview/tour/">Feature tour</a>
           <a href="/overview/compare/">Compared to alternatives</a>
         </nav>
         <nav aria-label="Docs">
-          <h4>Start</h4>
+          <h2>Start</h2>
           <a href="/start/installation/">Installation</a>
           <a href="/start/first-component/">First component</a>
           <a href="/start/demos/">Demos</a>
         </nav>
         <nav aria-label="Guides">
-          <h4>Guides</h4>
+          <h2>Guides</h2>
           <a href="/guides/hmr/">Keep state across edits</a>
           <a href="/guides/stylesheets/">Stylesheets</a>
           <a href="/guides/devtools/">DevTools</a>
         </nav>
         <nav aria-label="Project">
-          <h4>Project</h4>
+          <h2>Project</h2>
           <a href="/reference/changelog/">Changelog</a>
           <a href="https://github.com/oddcelot/vite-plugin-lit">GitHub</a>
           <a href="https://www.npmjs.com/package/@oddsquad/vite-plugin-lit">npm</a>
@@ -930,9 +930,12 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     flex-direction: column;
     gap: 0.4rem;
   }
-  .footer h4 {
+  /* h2 for the outline, set as a small label. */
+  .footer h2 {
     margin: 0 0 0.3rem;
     font-size: 0.78rem;
+    font-weight: 700;
+    line-height: inherit;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-muted);

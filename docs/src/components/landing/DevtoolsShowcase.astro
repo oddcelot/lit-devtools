@@ -13,8 +13,8 @@
  *
  * The panes are stacked in one grid cell and only the active one shows, so
  * a hidden figure keeps its width and lays out right when its tab opens.
- * The live panel takes the page's scheme in its URL and reloads when the
- * theme switch changes it.
+ * The live panel loads when it comes within a screen of the viewport, takes
+ * the page's scheme in its URL and reloads when the theme switch changes it.
  */
 import Glow from './Glow.astro';
 import UpdatesFigure from '../UpdatesFigure.astro';
@@ -71,8 +71,7 @@ const tabs = [
         <iframe
           class="live"
           data-src="/live-panel/showcase/"
-          title="Lit DevTools panel inspecting a demo cart"
-          loading="lazy"></iframe>
+          title="Lit DevTools panel inspecting a demo cart"></iframe>
       </Glow>
     </section>
     <section
@@ -101,6 +100,8 @@ const tabs = [
 </div>
 
 <script>
+  import {whenNear} from '../../lib/near-viewport';
+
   const root = document.querySelector<HTMLElement>('.showcase')!;
   const buttons = root.querySelectorAll<HTMLButtonElement>('[data-tab]');
   for (const button of buttons) {
@@ -139,9 +140,11 @@ const tabs = [
       1200
     )
   );
-  load();
-  new MutationObserver(load).observe(document.documentElement, {
-    attributeFilter: ['data-theme'],
+  whenNear(live, () => {
+    load();
+    new MutationObserver(load).observe(document.documentElement, {
+      attributeFilter: ['data-theme'],
+    });
   });
 </script>
 

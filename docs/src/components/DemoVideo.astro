@@ -43,7 +43,15 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
         loop={autoplay}
         playsinline
         preload={autoplay ? 'metadata' : 'none'}></video>
-      <img slot="poster" src={`${base}/demo/${name}-poster.jpg`} alt="" />
+      <img
+        slot="poster"
+        src={`${base}/demo/${name}-poster.jpg`}
+        width={width}
+        height={height}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
     </video-skin>
   </video-player>
 </figure>

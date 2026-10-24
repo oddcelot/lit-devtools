@@ -2,9 +2,9 @@
 /**
  * One of the live demos (src/pages/demo/, or the live panel) in a frame,
  * with a caption that says what to try. The landing page uses it, and so do
- * the Overview pages in the docs. The frame loads when it nears the
- * viewport, so on the landing page the hero's is the only one on first
- * paint.
+ * the Overview pages in the docs. The frame loads when it comes within a
+ * screen of the viewport (src/lib/near-viewport.ts), so on the landing page
+ * the hero's is the only one on first paint.
  */
 import Glow from './Glow.astro';
 
@@ -41,31 +41,40 @@ const {
   <Glow>
     <iframe
       id={id}
-      src={themed ? undefined : src}
-      data-themed-src={themed ? src : undefined}
+      src={eager && !themed ? src : undefined}
+      data-frame-src={eager && !themed ? undefined : src}
+      data-themed={themed ? '' : undefined}
       title={title}
-      loading={eager ? 'eager' : 'lazy'}
       style={{'--height': height, '--narrow-height': narrowHeight}}></iframe>
   </Glow>
   {caption && <figcaption set:html={caption} />}
 </figure>
 
 <script>
-  const themed = document.querySelectorAll<HTMLIFrameElement>(
-    'iframe[data-themed-src]'
+  import {whenNear} from '../../lib/near-viewport';
+
+  const frames = document.querySelectorAll<HTMLIFrameElement>(
+    'iframe[data-frame-src]'
   );
-  const load = () => {
-    const scheme = document.documentElement.dataset.theme ?? 'dark';
-    for (const frame of themed) {
-      if (frame.dataset.scheme === scheme) continue;
-      frame.dataset.scheme = scheme;
-      frame.src = `${frame.dataset.themedSrc}?scheme=${scheme}`;
+  const show = (frame: HTMLIFrameElement) => {
+    if (!('themed' in frame.dataset)) {
+      frame.src = frame.dataset.frameSrc!;
+      return;
     }
+    const scheme = document.documentElement.dataset.theme ?? 'dark';
+    if (frame.dataset.scheme === scheme) return;
+    frame.dataset.scheme = scheme;
+    frame.src = `${frame.dataset.frameSrc}?scheme=${scheme}`;
   };
-  load();
-  new MutationObserver(load).observe(document.documentElement, {
-    attributeFilter: ['data-theme'],
-  });
+  for (const frame of frames) {
+    whenNear(frame, () => show(frame));
+  }
+  // A themed frame that has loaded follows the theme switch.
+  new MutationObserver(() => {
+    for (const frame of frames) {
+      if (frame.dataset.scheme !== undefined) show(frame);
+    }
+  }).observe(document.documentElement, {attributeFilter: ['data-theme']});
 </script>
 
 <style>
