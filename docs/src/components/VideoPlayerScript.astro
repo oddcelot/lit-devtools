@@ -5,10 +5,33 @@
  * has one: Astro bundles the script once and ships it only to those pages.
  * The skin keeps its styles in its shadow root; the theme comes from the
  * `--media-*` properties in src/styles/custom.css.
+ *
+ * Video.js loads once a player comes within a screen of the viewport, so a
+ * video far down a page costs nothing up front. Until then the poster stands
+ * in for the player.
  */
 ---
 
 <script>
-  import '@videojs/html/video/player';
-  import '@videojs/html/video/skin';
+  import {whenNear} from '../lib/near-viewport';
+
+  let loading = false;
+  for (const player of document.querySelectorAll('video-player')) {
+    whenNear(player, () => {
+      if (loading) return;
+      loading = true;
+      void import('../lib/video-player');
+    });
+  }
 </script>
+
+<style is:global>
+  video-player:not(:defined) video {
+    display: none;
+  }
+  video-player:not(:defined) img[slot='poster'] {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>

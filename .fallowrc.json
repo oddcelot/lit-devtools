@@ -28,6 +28,9 @@
     // docs/src/pages/live-panel/showcase/demo.astro hands it to
     // startDemoPage() as a dynamic import, which fallow doesn't follow.
     "docs/src/lib/demos/cart-app.ts",
+    // docs/src/components/VideoPlayerScript.astro imports it dynamically
+    // once a player nears the viewport.
+    "docs/src/lib/video-player.ts",
     // docs/worker/wrangler.jsonc names it as the Worker's main module.
     "docs/worker/src/index.js",
     // examples/astro/astro.multi.config.mjs sets `srcDir: './multi'`, which
