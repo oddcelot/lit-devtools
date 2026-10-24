@@ -1,3 +1,4 @@
+import {resolve} from 'node:path';
 import type {HtmlTagDescriptor, Plugin, ResolvedConfig} from 'vite';
 import type {SourceDocsIndex} from '../component-docs/source-index.js';
 import type {ResolvedManifest} from '../manifest-options.js';
@@ -32,6 +33,8 @@ export const litManifest = (
   loadIndex: () => Promise<SourceDocsIndex>
 ): Plugin => {
   let config: ResolvedConfig | undefined;
+  // The first output's manifest, which `write` keeps once the build closes.
+  let built: string | undefined;
   const options = (): ResolvedManifest | false => ctx.get().manifest;
   const isBuild = () => config?.command === 'build';
   const readsInBuild = (): boolean => {
@@ -58,28 +61,35 @@ export const litManifest = (
       if (readsInBuild() && change.event === 'delete')
         (await loadIndex()).delete(id);
     },
-    async generateBundle() {
+    buildStart() {
+      built = undefined;
+    },
+    async generateBundle(outputOptions, bundle) {
       const manifest = options();
-      if (!isBuild() || manifest === false || manifest.build === false) return;
-      this.emitFile({
-        type: 'asset',
-        fileName: manifest.build,
-        source: (await manifestFile()).manifestText(
-          await loadIndex(),
-          config!.root
-        ),
-      });
+      if (!readsInBuild() || manifest === false) return;
+      const {manifestText, bundlePaths} = await manifestFile();
+      const {root, build} = config!;
+      const chunks = Object.values(bundle).flatMap((output) =>
+        output.type === 'chunk' ? [output] : []
+      );
+      const outDir = outputOptions.dir ?? resolve(root, build.outDir);
+      const text = manifestText(
+        await loadIndex(),
+        root,
+        bundlePaths(chunks, outDir, root)
+      );
+      built ??= text;
+      if (manifest.build !== false)
+        this.emitFile({type: 'asset', fileName: manifest.build, source: text});
     },
     async closeBundle() {
       const manifest = options();
       if (!isBuild() || manifest === false || manifest.write === false) return;
-      const {manifestText, writeManifestFile} = await manifestFile();
+      if (built === undefined) return;
+      const {writeManifestFile} = await manifestFile();
       const {root, logger} = config!;
-      await writeManifestFile(
-        root,
-        manifest.write,
-        manifestText(await loadIndex(), root),
-        (message) => logger.info(`[lit-plugin] ${message}`)
+      await writeManifestFile(root, manifest.write, built, (message) =>
+        logger.info(`[lit-plugin] ${message}`)
       );
     },
     async configureServer(server) {

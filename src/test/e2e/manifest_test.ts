@@ -60,7 +60,8 @@ const fixture = async (): Promise<string> => {
 
 const buildLib = async (
   root: string,
-  manifest?: LitPluginOptions['manifest']
+  manifest?: LitPluginOptions['manifest'],
+  output: {preserveModules?: boolean} = {}
 ) => {
   await build({
     root,
@@ -69,7 +70,12 @@ const buildLib = async (
     plugins: [litPlugin({manifest, timeline: false})],
     build: {
       lib: {entry: joinPath(root, 'src/x-a.ts'), formats: ['es']},
-      rollupOptions: {external: [/^lit/]},
+      rollupOptions: {
+        external: [/^lit/],
+        output: output.preserveModules
+          ? {preserveModules: true, preserveModulesRoot: 'src'}
+          : {},
+      },
       minify: false,
     },
   });
@@ -96,24 +102,67 @@ test('vite build emits the manifest beside the bundle', async () => {
   expect(await buildLib(root, true)).toContain('custom-elements.json');
   const manifest = await readJson(joinPath(root, 'dist/custom-elements.json'));
   expect(manifest.schemaVersion).toBe('2.1.0');
-  expect(declarations(manifest)).toEqual([
-    ['src/base.ts', ['Base']],
-    ['src/x-a.ts', ['XA']],
-  ]);
-  const xa = (manifest.modules as {declarations: Declaration[]}[])[1]
-    .declarations[0];
+  // One bundle: both source modules are the file a consumer imports.
+  expect(declarations(manifest)).toEqual([['dist/x-lib.js', ['Base', 'XA']]]);
+  const [module] = manifest.modules as {
+    declarations: Declaration[];
+    exports: {kind: string; name: string}[];
+  }[];
+  const xa = module.declarations[1];
   expect(xa.tagName).toBe('x-a');
   expect(xa.members).toEqual([
     expect.objectContaining({name: 'label', type: {text: 'string'}}),
     expect.objectContaining({
       name: 'value',
-      inheritedFrom: {name: 'Base', module: 'src/base.ts'},
+      inheritedFrom: {name: 'Base', module: 'dist/x-lib.js'},
     }),
+  ]);
+  // The bundle exports XA; Base stays inside it.
+  expect(module.exports.map((e) => [e.kind, e.name])).toEqual([
+    ['js', 'XA'],
+    ['custom-element-definition', 'x-a'],
   ]);
   // Nothing is written outside the build output.
   await expect(
     fsp.readFile(joinPath(root, 'custom-elements.json'))
   ).rejects.toThrow();
+});
+
+test('with preserveModules each source module is its own file', async () => {
+  const root = await fixture();
+  const emitted = await buildLib(root, true, {preserveModules: true});
+  const manifest = await readJson(joinPath(root, 'dist/custom-elements.json'));
+  const modules = manifest.modules as {
+    path: string;
+    declarations: Declaration[];
+    exports: {kind: string; name: string}[];
+  }[];
+  // Lib mode names the files; each module names the one it became.
+  expect(modules.map((m) => m.declarations.map((d) => d.name))).toEqual([
+    ['XA'],
+    ['Base'],
+  ]);
+  for (const module of modules)
+    expect(emitted).toContain(module.path.replace('dist/', ''));
+  expect(modules[1].exports.map((e) => [e.kind, e.name])).toEqual([
+    ['js', 'Base'],
+  ]);
+});
+
+test('a module tree-shaken out of the bundle is left out', async () => {
+  const root = await fixture();
+  await fsp.writeFile(
+    joinPath(root, 'src/unused.ts'),
+    `import {LitElement} from 'lit';\nexport class Unused extends LitElement {}\n`
+  );
+  const xa = joinPath(root, 'src/x-a.ts');
+  await fsp.writeFile(
+    xa,
+    `import './unused.js';\n${await fsp.readFile(xa, 'utf8')}`
+  );
+  await buildLib(root, true);
+  const manifest = await readJson(joinPath(root, 'dist/custom-elements.json'));
+  expect(declarations(manifest)).toEqual([['dist/x-lib.js', ['Base', 'XA']]]);
 });
 
 test('a build without the option emits none', async () => {
@@ -129,7 +178,7 @@ test('write keeps a file in the project and points package.json at it', async ()
   });
   expect(emitted).not.toContain('custom-elements.json');
   const manifest = await readJson(joinPath(root, 'docs/elements.json'));
-  expect(declarations(manifest)).toHaveLength(2);
+  expect(declarations(manifest)).toEqual([['dist/x-lib.js', ['Base', 'XA']]]);
   const pkg = await readJson(joinPath(root, 'package.json'));
   expect(pkg).toEqual({
     name: 'x-lib',

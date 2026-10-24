@@ -59,3 +59,37 @@ export const writeManifestFile = async (
   await writeFile(pkgPath, `${JSON.stringify(pkg, null, indent)}\n`);
   log(`set "customElements": "${field}" in package.json`);
 };
+
+/** What `bundlePaths` reads of an output chunk. */
+export interface BuiltChunk {
+  fileName: string;
+  /** Each module the chunk was built from; `renderedLength` 0 when tree-shaking dropped all of it. */
+  modules: Readonly<Record<string, {renderedLength: number}>>;
+  exports: readonly string[];
+}
+
+/**
+ * Module paths for a built bundle: each source module is written as the
+ * chunk that holds it, relative to `root` (`dist/x-a.js`), and keeps an
+ * export only when that chunk exports the name. A module tree-shaking
+ * dropped, whose code is in no chunk, is left out.
+ */
+export const bundlePaths = (
+  chunks: readonly BuiltChunk[],
+  outDir: string,
+  root: string
+): ManifestPaths => {
+  const dir = posix.relative(normalizePath(root), normalizePath(outDir));
+  const chunkOf = new Map<string, BuiltChunk>();
+  for (const chunk of chunks)
+    for (const [id, module] of Object.entries(chunk.modules))
+      if (module.renderedLength > 0) chunkOf.set(normalizePath(id), chunk);
+  return {
+    path: (id) => {
+      const chunk = chunkOf.get(normalizePath(id));
+      return chunk === undefined ? undefined : posix.join(dir, chunk.fileName);
+    },
+    exported: (id, name) =>
+      chunkOf.get(normalizePath(id))?.exports.includes(name) ?? false,
+  };
+};
