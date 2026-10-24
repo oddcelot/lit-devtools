@@ -19,6 +19,10 @@ export const liveExamples: Record<string, LiveExample> = {
     load: () => import('../../../examples/flame/src/lit-flame.ts'),
     demoRow: 'minmax(24rem, 50%)',
   },
+  forms: {
+    load: () => import('../../../examples/forms/src/main.ts'),
+    demoRow: 'minmax(24rem, 55%)',
+  },
 };
 
 interface LiveExample {
