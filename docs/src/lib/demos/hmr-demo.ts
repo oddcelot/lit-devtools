@@ -76,6 +76,9 @@ const counterClass = (src: Source) =>
         --on-color: ${unsafeCSS(ACCENT_VALUE[src.accent][1])};
         display: grid;
         gap: 0.6rem;
+        /* Room for the line "Add a line" adds (one line and a gap), held
+           while it's absent, so adding it moves nothing below. */
+        padding-bottom: ${unsafeCSS(src.note ? '0' : 'calc(1.4em + 0.6rem)')};
         font: 0.95rem/1.4 var(--font-sans);
         color: var(--text);
       }

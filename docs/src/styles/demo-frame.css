@@ -220,6 +220,9 @@ body {
 }
 .stage {
   flex: 1;
+  /* Shrinks and scrolls before it pushes the status line out of the pane. */
+  min-height: 0;
+  overflow: auto;
   padding: 0.9rem 1rem;
   transition: opacity 0.15s;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
