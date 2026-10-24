@@ -280,6 +280,15 @@ export interface InspectorPrivateField {
 export const PRIVATE_KEY_PREFIX = '@oddsquad/vite-plugin-lit#private:';
 
 /**
+ * `#name` for a private field's {@link InspectorPrivateField.key}, as an
+ * override names it; undefined for a property's name.
+ */
+export const privateFieldLabel = (name: string): string | undefined =>
+  name.startsWith(PRIVATE_KEY_PREFIX)
+    ? `#${name.slice(name.lastIndexOf('#') + 1)}`
+    : undefined;
+
+/**
  * A `@lit/context` provider or consumer on the element: the context key as
  * written, and the elements on the other side of it.
  */

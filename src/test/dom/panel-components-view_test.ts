@@ -3191,7 +3191,7 @@ const withPrivate = (stokes = '0') => ({
   ],
 });
 
-test('lists #private fields after State, read-only', async () => {
+test('lists #private fields after State', async () => {
   const {el, root} = await mount(true);
   push('inspector-message', {type: 'pick', id: 2});
   push('inspector-message', {type: 'details', details: withPrivate()});
@@ -3211,8 +3211,117 @@ test('lists #private fields after State, read-only', async () => {
   ).toEqual(['#stokes', '#cache']);
   expect(section.querySelector('[data-key="r:stokes"]')).not.toBeNull();
   expect(section.querySelector('lit-input')).toBeNull();
-  expect(section.querySelector('.origin')?.getAttribute('data-tip')).toMatch(
-    /hmr\.privateFields/
+  const tip = section.querySelector('.origin')?.getAttribute('data-tip');
+  expect(tip).toMatch(/hmr\.privateFields/);
+  expect(tip).not.toMatch(/read-only/i);
+});
+
+const STOKES_KEY =
+  '@oddsquad/vite-plugin-lit#private:/src/lit-flame.ts:LitFlame#stokes';
+
+/** Private fields from a runtime that can write them: each has its key. */
+const withWritablePrivate = (override?: {
+  value: string;
+  enabled: boolean;
+  intrinsic: string;
+}) => ({
+  ...filterable(),
+  privateFields: [
+    {
+      name: 'stokes',
+      key: STOKES_KEY,
+      value: override?.enabled === true ? override.value : '0',
+      type: 'number',
+      editable: 'number' as const,
+      ...(override === undefined ? {} : {override}),
+    },
+    {
+      name: 'cache',
+      key: STOKES_KEY.replace('stokes', 'cache'),
+      value: 'Map(1)',
+      type: 'Map',
+      expandable: true,
+    },
+  ],
+});
+
+const mountPrivate = async (details: unknown) => {
+  const mounted = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details});
+  await flush(mounted.el);
+  const row = (name: string) =>
+    mounted.root.querySelector<HTMLElement>(
+      `.details .entry[data-key="r:${name}"]`
+    )!;
+  const sent = (type: string) =>
+    mounted.inspects().filter((c) => (c as {type: string}).type === type);
+  return {...mounted, row, sent};
+};
+
+test('a #private primitive is typed over and sent by its full key', async () => {
+  const {el, row, sent} = await mountPrivate(withWritablePrivate());
+  expect(row('cache').querySelector('button.edit')).toBeNull();
+  const button = row('stokes').querySelector<HTMLElement>('button.edit')!;
+  expect(button.dataset['tip']).toMatch(
+    /may not expect outside changes to its private fields/
+  );
+  button.click();
+  await flush(el);
+  const input = row('stokes').querySelector<HTMLInputElement>('.edit-input')!;
+  expect(input.value).toBe('0');
+  expect(input.getAttribute('aria-label')).toBe('Value of #stokes');
+  input.value = '5';
+  input.dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter'}));
+  await flush(el);
+  expect(sent('set-prop')).toEqual([
+    {type: 'set-prop', id: 2, name: STOKES_KEY, value: 5},
+  ]);
+});
+
+test('a #private field from an older runtime stays read-only', async () => {
+  const {row} = await mountPrivate(withPrivate());
+  expect(row('stokes').querySelector('button.edit')).toBeNull();
+});
+
+test('an overridden #private field is switched and removed by its key', async () => {
+  const {el, row, sent} = await mountPrivate(
+    withWritablePrivate({value: '5', enabled: true, intrinsic: '0'})
+  );
+  expect(row('stokes').classList.contains('overridden')).toBe(true);
+  expect(row('stokes').querySelector('.shadowed')!.textContent).toBe('0');
+  const toggle =
+    row('stokes').querySelector<HTMLInputElement>('.override-toggle')!;
+  expect(toggle.getAttribute('aria-label')).toBe('Override #stokes');
+  toggle.click();
+  row('stokes').querySelector<HTMLElement>('.remove-override')!.click();
+  await flush(el);
+  expect(sent('override-toggle')).toEqual([
+    {type: 'override-toggle', id: 2, name: STOKES_KEY, enabled: false},
+  ]);
+  expect(sent('override-remove')).toEqual([
+    {type: 'override-remove', id: 2, name: STOKES_KEY},
+  ]);
+});
+
+test('the overrides bar names a #private override by its #name', async () => {
+  const {el, root} = await mountPrivate(withWritablePrivate());
+  push('inspector-message', {
+    type: 'overrides',
+    applied: true,
+    entries: [
+      {
+        id: 2,
+        tagName: 'lit-flame',
+        name: STOKES_KEY,
+        value: '5',
+        enabled: true,
+      },
+    ],
+  });
+  await flush(el);
+  expect(root.querySelector('.overrides-list .tag')!.textContent!.trim()).toBe(
+    '<lit-flame>.#stokes'
   );
 });
 

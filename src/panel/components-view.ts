@@ -37,6 +37,7 @@ import {
   type InspectorPrivateField,
   type InspectorTreeNode,
   PAGE_RUNTIME_NAMES,
+  privateFieldLabel,
   sentenceStart,
   type ValueChild,
   type ValuePath,
@@ -440,9 +441,12 @@ interface OverrideTarget {
   override?: InspectorPropOverride;
 }
 
-/** `name.key[0]`, as code would reach the value. */
+/**
+ * `name.key[0]`, as code would reach the value; a private field's key reads
+ * `#name`.
+ */
 const pathLabel = (name: string, keys: readonly ValueSegment[]): string =>
-  name +
+  (privateFieldLabel(name) ?? name) +
   keys
     .map((k) =>
       typeof k === 'number'
@@ -475,12 +479,20 @@ const childWrites = (
 const plural = (n: number, one: string, many: string): string =>
   n === 1 ? one : `${n} ${many}`;
 
+/** An override's place after its element's tag: `.name.key`, or `.#name`. */
+const memberLabel = (e: InspectorOverrideEntry): string => {
+  const field = privateFieldLabel(e.name);
+  return field === undefined
+    ? pathLabel('', [e.name, ...(e.keys ?? [])])
+    : `.${field}`;
+};
+
 /** Dropped overrides as `<tag>.path` code spans, comma-separated. */
 const dropList = (entries: readonly InspectorOverrideEntry[]) =>
   entries.map(
     (e, i) =>
       html`${i > 0 ? ', ' : ''}<code
-          >&lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}</code
+          >&lt;${e.tagName}&gt;${memberLabel(e)}</code
         >`
   );
 
@@ -641,7 +653,11 @@ const typeLabel = (
     : html`<span class="type">${type}</span>`;
 
 const PRIVATE_TIP_TEXT =
-  "Native #private fields. The dev server's private-fields rewrite (hmr.privateFields) keys them by symbols so HMR can patch the class, which also lets the panel read them. Read-only; a production build has none to show.";
+  "Native #private fields. The dev server's private-fields rewrite (hmr.privateFields) keys them by symbols so HMR can patch the class, which also lets the panel read them. A string, number or boolean can be set as an override, as a property can, though the class may not expect it. A production build has none to show.";
+
+/** After an edit tip on a `#private` field. */
+const PRIVATE_EDIT_CAVEAT =
+  '. The class may not expect outside changes to its private fields.';
 
 /** Where the Private section's rows come from, at its heading's end. */
 const PRIVATE_TIP = html`<button
@@ -2466,11 +2482,13 @@ export class ComponentsView extends LitElement {
    * what the page holds, not what was asked for.
    */
   private _renderEditButton(key: string, edit: PropEdit): TemplateResult {
+    const caveat =
+      privateFieldLabel(edit.name) === undefined ? '' : PRIVATE_EDIT_CAVEAT;
     if (edit.kind === 'boolean') {
       const next = edit.text !== 'true';
       return html`<button
         class="edit"
-        data-tip=${`Set to ${next} (or double-click the value)`}
+        data-tip=${`Set to ${next} (or double-click the value)${caveat}`}
         aria-label=${`Set to ${next}`}
         @click=${() => this._setProp(edit, next)}
       >
@@ -2479,7 +2497,7 @@ export class ComponentsView extends LitElement {
     }
     return html`<button
       class="edit"
-      data-tip="Edit value (or double-click it)"
+      data-tip=${`Edit value (or double-click it)${caveat}`}
       aria-label="Edit value"
       @click=${() => void this._startEdit(key)}
     >
@@ -2493,7 +2511,7 @@ export class ComponentsView extends LitElement {
       type=${edit.kind === 'number' ? 'number' : 'text'}
       step=${edit.kind === 'number' ? 'any' : nothing}
       .value=${edit.text}
-      aria-label=${`Value of ${[edit.name, ...edit.keys].join('.')}`}
+      aria-label=${`Value of ${[pathLabel(edit.name, []), ...edit.keys].join('.')}`}
       aria-invalid=${this._editInvalid ? 'true' : 'false'}
       @input=${() => (this._editInvalid = false)}
       @keydown=${(e: KeyboardEvent) => {
@@ -3105,7 +3123,7 @@ export class ComponentsView extends LitElement {
                   data-tip="Select the element"
                   @click=${() => this._session.select(e.id)}
                 >
-                  &lt;${e.tagName}&gt;${pathLabel('', [e.name, ...(e.keys ?? [])])}
+                  &lt;${e.tagName}&gt;${memberLabel(e)}
                 </button>
                 <span class="override-value">${e.value}</span>
                 ${this._renderPin(e.name, e.keys ?? [], e.persist === true, e.id)}
@@ -3133,17 +3151,33 @@ export class ComponentsView extends LitElement {
   }
 
   /**
-   * `#private` fields, read-only: the page can read them only because the
-   * dev server rewrote them, and writing one would bypass the class.
+   * `#private` fields. The page can read them only because the dev server
+   * rewrote them; a primitive one is set as a property is, as an override
+   * addressed by the field's full key, since a base class and a subclass may
+   * both declare `#name`. An older runtime sends no key and they stay
+   * read-only.
    */
   private _renderPrivateTable(fields: InspectorPrivateField[]): TemplateResult {
     return html`
       <div class="kv">
-        ${fields.map((f) =>
-          this._renderEntry(
-            html`${this._mark(`#${f.name}`)}${typeLabel(f.type, f.value)}`,
+        ${fields.map((f) => {
+          const target =
+            f.key === undefined
+              ? undefined
+              : {name: f.key, keys: [], override: f.override};
+          return this._renderEntry(
+            html`${target === undefined ? nothing : this._renderOverrideToggle(target)}${this._mark(
+              `#${f.name}`
+            )}${typeLabel(f.type, f.value)}`,
             f.value,
             {
+              rowClass: f.override === undefined ? '' : 'overridden',
+              trailing:
+                target === undefined ? nothing : this._renderShadowed(target),
+              edit:
+                f.key === undefined
+                  ? undefined
+                  : editOf({...f, name: f.key}, this._snapshot),
               code: true,
               key: privateKey(f.name),
               copy: f.value,
@@ -3157,8 +3191,8 @@ export class ComponentsView extends LitElement {
                   }
                 : {}),
             }
-          )
-        )}
+          );
+        })}
       </div>
     `;
   }
