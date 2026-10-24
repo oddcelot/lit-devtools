@@ -56,6 +56,9 @@ export const createOptionsContext = (
   const plugin: Plugin = {
     name: 'lit-plugin-options',
     enforce: 'pre',
+    // The options as given, for tools that load a Vite config to read them,
+    // such as the language server's `languageServer` settings.
+    api: {options},
     config(viteConfig, {mode}) {
       resolved = resolveOptions(options, loadPluginEnv(viteConfig, mode));
     },

@@ -4,24 +4,54 @@
  * when the project has a Vite config.
  */
 
-import {type PluginOption, createServer, loadConfigFromFile} from 'vite';
+import {
+  type Plugin,
+  type PluginOption,
+  createServer,
+  loadConfigFromFile,
+} from 'vite';
+import type {LitPluginOptions} from '../options.js';
 import type {ImportResolver} from './index-module.js';
 
 /** This package's plugins: serving the panel or patching modules has no place in a scan. */
 const isOwnPlugin = (name: string): boolean =>
   name.startsWith('lit-') || name === 'devframe:lit';
 
-/** `plugins` flattened, without this package's own. */
-const foreignPlugins = async (
-  plugins: PluginOption[]
-): Promise<PluginOption[]> => {
-  const out: PluginOption[] = [];
+/** `plugins` flattened, awaited, without the empty ones. */
+const flatPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> => {
+  const out: Plugin[] = [];
   for (const option of plugins) {
     const plugin = await option;
-    if (Array.isArray(plugin)) out.push(...(await foreignPlugins(plugin)));
-    else if (plugin && !isOwnPlugin(plugin.name)) out.push(plugin);
+    if (Array.isArray(plugin)) out.push(...(await flatPlugins(plugin)));
+    else if (plugin) out.push(plugin as Plugin);
   }
   return out;
+};
+
+/** `plugins` flattened, without this package's own. */
+const foreignPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> =>
+  (await flatPlugins(plugins)).filter((plugin) => !isOwnPlugin(plugin.name));
+
+const loadConfig = (root: string, configFile: string | undefined) =>
+  loadConfigFromFile(
+    {command: 'serve', mode: 'development'},
+    configFile,
+    root,
+    'silent'
+  );
+
+/**
+ * The options `litPlugin()` was given in the project's Vite config, read off
+ * its options plugin's `api`; undefined without a config or the plugin.
+ */
+export const readLitPluginOptions = async (
+  root: string,
+  configFile: string | undefined
+): Promise<LitPluginOptions | undefined> => {
+  const loaded = await loadConfig(root, configFile);
+  const plugins = await flatPlugins(loaded?.config.plugins ?? []);
+  const own = plugins.find((plugin) => plugin.name === 'lit-plugin-options');
+  return (own?.api as {options?: LitPluginOptions} | undefined)?.options;
 };
 
 /**
@@ -36,12 +66,7 @@ export const createViteResolver = async (
 > => {
   // Loaded here rather than by `createServer`, so this package's plugins can
   // be left out of it.
-  const loaded = await loadConfigFromFile(
-    {command: 'serve', mode: 'development'},
-    configFile,
-    root,
-    'silent'
-  );
+  const loaded = await loadConfig(root, configFile);
   if (!loaded) return undefined;
   const server = await createServer({
     ...loaded.config,
