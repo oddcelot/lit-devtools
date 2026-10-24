@@ -13,6 +13,7 @@ import {cpSync, existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {latestRelease} from './src/lib/latest-release.mjs';
 import {liveDemoDevLit} from './src/lib/live-demo-dev-lit.mjs';
+import {liveDemoPrivateFields} from './src/lib/live-demo-private-fields.mjs';
 import {liveExamplesOwnBuild} from './src/lib/live-examples-own-build.mjs';
 import {ownConfigExamples} from './src/lib/live-examples.ts';
 
@@ -61,7 +62,7 @@ const liveExamplesPublic = () => ({
 export default defineConfig({
   site: 'https://vite-plugin-lit.oddsquad.dev',
   vite: {
-    plugins: [liveDemoDevLit()],
+    plugins: [liveDemoDevLit(), liveDemoPrivateFields()],
     build: {
       rolldownOptions: {
         output: {

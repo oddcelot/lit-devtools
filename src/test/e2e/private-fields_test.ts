@@ -1,5 +1,12 @@
 import {afterEach, expect, test} from 'vite-plus/test';
 import {
+  INSPECT_CMD_CHANNEL,
+  INSPECT_DATA_CHANNEL,
+  type InspectorDetails,
+  type InspectorMessage,
+  type InspectorTreeNode,
+} from '../../types/inspector.js';
+import {
   type Fixture,
   fsp,
   joinPath,
@@ -115,4 +122,67 @@ test('control: with privateFields off the patched render throws on old instances
     .toBe(true);
   expect(await marker(fixture!)).toBe(1);
   expect(await shadowText(page, 'hmr-private >> #bump')).toBe('Count: 3');
+});
+
+const findTag = (
+  nodes: InspectorTreeNode[],
+  tag: string
+): number | undefined => {
+  for (const node of nodes) {
+    if (node.tagName === tag) return node.id;
+    const found = findTag(node.children, tag);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+};
+
+/**
+ * Watch `<hmr-private>` through the inspector channel; returns the latest
+ * details the page pushed for it.
+ */
+const watchPrivate = async (
+  f: Fixture
+): Promise<() => InspectorDetails | undefined> => {
+  let roots: InspectorTreeNode[] = [];
+  const details: InspectorDetails[] = [];
+  f.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
+    if (data.type === 'tree') roots = data.roots;
+    if (data.type === 'details') details.push(data.details);
+  });
+  await expect
+    .poll(
+      () => {
+        f.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'tree'});
+        return findTag(roots, 'hmr-private');
+      },
+      {timeout: 10_000}
+    )
+    .toBeDefined();
+  const id = findTag(roots, 'hmr-private')!;
+  f.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id});
+  return () => details.filter((d) => d.id === id).at(-1);
+};
+
+test('the inspector shows a #private field and follows it live', async () => {
+  const f = await setup({plugin: {timeline: true}});
+  const latest = await watchPrivate(f);
+  await expect
+    .poll(() => latest()?.privateFields, {timeout: 10_000})
+    .toEqual([{name: 'count', value: '3', type: 'number'}]);
+
+  await f.page.click('hmr-private #bump');
+  await expect
+    .poll(() => latest()?.privateFields?.[0]?.value, {timeout: 10_000})
+    .toBe('4');
+  f.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+});
+
+test('with privateFields off the inspector has no #private fields', async () => {
+  const f = await setup({
+    plugin: {timeline: true, hmr: {privateFields: false}},
+  });
+  const latest = await watchPrivate(f);
+  await expect.poll(() => latest(), {timeout: 10_000}).toBeDefined();
+  expect(latest()?.privateFields).toBeUndefined();
+  f.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
 });

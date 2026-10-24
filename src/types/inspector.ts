@@ -243,6 +243,25 @@ export interface InspectorExtra {
 }
 
 /**
+ * A native `#private` field of the element, readable only because the
+ * plugin's private-fields rewrite (dev server, `hmr.privateFields`) turned it
+ * into a property keyed by a registered symbol.
+ */
+export interface InspectorPrivateField {
+  /**
+   * The field's name without the `#`. When two classes in the chain each
+   * declare a field of that name, the later one reads `name (Class)`.
+   */
+  name: string;
+  /** Serialized preview of the value. */
+  value: string;
+  /** A short type tag. */
+  type: string;
+  /** As {@link InspectorProp.expandable}. */
+  expandable?: boolean;
+}
+
+/**
  * A `@lit/context` provider or consumer on the element: the context key as
  * written, and the elements on the other side of it.
  */
@@ -278,7 +297,7 @@ export type ValueSegment = string | number;
  * the steps from that row's value down to the one meant.
  */
 export interface ValuePath {
-  section: 'prop' | 'extra';
+  section: 'prop' | 'extra' | 'private';
   name: string;
   keys: ValueSegment[];
 }
@@ -505,6 +524,12 @@ export interface InspectorDetails {
    * Absent when there is none.
    */
   extras?: InspectorExtra[];
+  /**
+   * Native `#private` fields, which the dev server's private-fields rewrite
+   * makes readable. Absent when there are none, and always absent without
+   * the rewrite (a production build, or `hmr.privateFields: false`).
+   */
+  privateFields?: InspectorPrivateField[];
   /**
    * Custom states, form value and validity, for an element that called
    * `attachInternals()` after the runtime loaded. Absent otherwise.

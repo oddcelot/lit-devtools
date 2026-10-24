@@ -9,6 +9,7 @@ export const propKey = (name: string) => `p:${name}`;
 export const attrKey = (name: string) => `a:${name}`;
 export const extraKey = (name: string) => `e:${name}`;
 export const internalsKey = (name: string) => `i:${name}`;
+export const privateKey = (name: string) => `r:${name}`;
 
 const rows = (d: InspectorDetails): Map<string, string> => {
   const m = new Map<string, string>();
@@ -17,6 +18,7 @@ const rows = (d: InspectorDetails): Map<string, string> => {
   for (const e of d.extras ?? []) {
     m.set(extraKey(e.name), `${e.status ?? ''}\u0000${e.value}`);
   }
+  for (const f of d.privateFields ?? []) m.set(privateKey(f.name), f.value);
   if (d.internals !== undefined) {
     for (const r of internalsRows(d.internals)) {
       m.set(internalsKey(r.name), r.value);

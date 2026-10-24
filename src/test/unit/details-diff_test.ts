@@ -73,3 +73,16 @@ test('nothing changes on a first snapshot or another element', () => {
 test('an identical refresh changes nothing', () => {
   expect(changedRows(details(), details()).size).toBe(0);
 });
+
+test('a #private field is a row of its own', () => {
+  const before = details({
+    privateFields: [{name: 'count', value: '0', type: 'number'}],
+  });
+  const after = details({
+    privateFields: [
+      {name: 'count', value: '1', type: 'number'},
+      {name: 'open', value: 'false', type: 'boolean'},
+    ],
+  });
+  expect([...changedRows(before, after)]).toEqual(['r:count', 'r:open']);
+});

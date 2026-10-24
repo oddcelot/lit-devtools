@@ -34,6 +34,7 @@ import {
   type InspectorContext,
   type InspectorExtra,
   type InspectorMessage,
+  type InspectorPrivateField,
   type InspectorTreeNode,
   PAGE_RUNTIME_NAMES,
   sentenceStart,
@@ -84,6 +85,7 @@ import {
   changedRows,
   extraKey,
   internalsKey,
+  privateKey,
   propKey,
 } from './details-diff.js';
 import {internalsRows} from './internals-rows.js';
@@ -637,6 +639,19 @@ const typeLabel = (
   SELF_EVIDENT_TYPES.has(type) || value.startsWith(type)
     ? nothing
     : html`<span class="type">${type}</span>`;
+
+const PRIVATE_TIP_TEXT =
+  "Native #private fields. The dev server's private-fields rewrite (hmr.privateFields) keys them by symbols so HMR can patch the class, which also lets the panel read them. Read-only; a production build has none to show.";
+
+/** Where the Private section's rows come from, at its heading's end. */
+const PRIVATE_TIP = html`<button
+  class="origin"
+  type="button"
+  data-tip=${PRIVATE_TIP_TEXT}
+  aria-label=${PRIVATE_TIP_TEXT}
+>
+  <lit-icon name="info"></lit-icon>
+</button>`;
 
 /**
  * The render root in a few words: `shadow, open, delegatesFocus`, or
@@ -1919,6 +1934,9 @@ export class ComponentsView extends LitElement {
       const name = key.slice(2);
       if (key === propKey(name)) this._expansion.refresh('prop', name);
       else if (key === extraKey(name)) this._expansion.refresh('extra', name);
+      else if (key === privateKey(name)) {
+        this._expansion.refresh('private', name);
+      }
     }
     this._shownDetails = d;
   }
@@ -3115,6 +3133,37 @@ export class ComponentsView extends LitElement {
   }
 
   /**
+   * `#private` fields, read-only: the page can read them only because the
+   * dev server rewrote them, and writing one would bypass the class.
+   */
+  private _renderPrivateTable(fields: InspectorPrivateField[]): TemplateResult {
+    return html`
+      <div class="kv">
+        ${fields.map((f) =>
+          this._renderEntry(
+            html`${this._mark(`#${f.name}`)}${typeLabel(f.type, f.value)}`,
+            f.value,
+            {
+              code: true,
+              key: privateKey(f.name),
+              copy: f.value,
+              store: {section: 'private', name: f.name, keys: []},
+              ...(f.expandable === true
+                ? {
+                    expand: {
+                      path: {section: 'private', name: f.name, keys: []},
+                      type: f.type,
+                    },
+                  }
+                : {}),
+            }
+          )
+        )}
+      </div>
+    `;
+  }
+
+  /**
    * Instance state. The kind follows the name like a type tag (a field shows
    * its type instead, since "field" says nothing), then a task's status as
    * a coloured dot.
@@ -3756,10 +3805,14 @@ export class ComponentsView extends LitElement {
     const allProps = d.properties.filter((p) => !p.state);
     const allState = d.properties.filter((p) => p.state);
     const allExtras = d.extras ?? [];
+    const allPrivate = d.privateFields ?? [];
     const props = allProps.filter((p) => byRow(p.name, p.value));
     const stateProps = allState.filter((p) => byRow(p.name, p.value));
     const attributes = d.attributes.filter((a) => byRow(a.name, a.value));
     const extras = allExtras.filter((e) => byRow(e.name, e.value));
+    const privateFields = allPrivate.filter((f) =>
+      byRow(`#${f.name}`, f.value)
+    );
     const allWarnings = d.warnings ?? [];
     const warnings = this._warningsView(d);
     const dispatched = this._dispatchedView(d);
@@ -3774,6 +3827,7 @@ export class ComponentsView extends LitElement {
     const anyMatch =
       props.length +
         stateProps.length +
+        privateFields.length +
         attributes.length +
         extras.length +
         warnings.shown +
@@ -3896,6 +3950,13 @@ export class ComponentsView extends LitElement {
         stateProps.length,
         allState.length,
         this._renderPropTable(stateProps, docs.properties)
+      )}
+      ${this._renderSection(
+        'Private',
+        privateFields.length,
+        allPrivate.length,
+        this._renderPrivateTable(privateFields),
+        {aside: PRIVATE_TIP}
       )}
       ${this._renderSection(
         'Attributes',
