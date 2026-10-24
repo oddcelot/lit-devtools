@@ -145,6 +145,27 @@ describe('selecting', () => {
     expect([...session.expanded]).toEqual([1, 2]);
   });
 
+  test('follows a link only once the tree holds its element', () => {
+    const {session, events, drain} = setup();
+    // The panel read the link before the page connected: nothing to ask yet,
+    // or the page answers "gone" and that answer sticks.
+    session.connected({roots: [], hmrIncompatibilities: []});
+    drain();
+    expect(session.follow(3)).toBe(false);
+    expect(session.selectedId).toBeNull();
+    expect(drain()).toEqual([]);
+
+    session.receive({type: 'tree', roots: tree});
+    expect(session.follow(3)).toBe(true);
+    expect(events).toEqual(['select 3']);
+    expect([...session.expanded]).toEqual([1, 2]);
+    expect(drain()).toEqual([
+      {type: 'tree'},
+      {type: 'details', id: 3},
+      {type: 'watch', id: 3},
+    ]);
+  });
+
   test('takes details and gone only for the selected element', () => {
     const {session} = setup();
     session.select(3);

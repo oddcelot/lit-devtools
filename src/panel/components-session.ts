@@ -316,6 +316,19 @@ export class ComponentsSession {
     if (this.#select(id)) this.#changed();
   }
 
+  /**
+   * Select the element a deep link names, once the page's tree holds it;
+   * false, selecting nothing, until then. A link read before the page
+   * connects, or before its components define, would otherwise ask for
+   * details the page cannot give yet, and its "gone" answer would stick
+   * after the element arrived.
+   */
+  follow(id: number): boolean {
+    if (findAncestors(this.#roots, id) === null) return false;
+    this.select(id);
+    return true;
+  }
+
   toggleExpand(id: number): void {
     const next = new Set(this.#expanded);
     if (next.has(id)) next.delete(id);
