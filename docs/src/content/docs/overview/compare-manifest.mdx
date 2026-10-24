@@ -41,7 +41,7 @@ barrel file. The versions were vite-plugin-lit 0.24,
 | Mixin declarations                        | Yes                                                   | Yes                                      | No                                               | Yes                                |
 | A vanilla `HTMLElement` element           | Yes                                                   | Yes                                      | No                                               | No                                 |
 | `observedAttributes`                      | No                                                    | Yes                                      | No                                               | No                                 |
-| Barrel files (`export * from`)            | No                                                    | Listed as a `*` export                   | Resolved to each name                            | Resolved to each name              |
+| Barrel files (`export * from`)            | Resolved to each name, through chains of barrels      | Listed as a `*` export                   | Resolved to each name                            | Resolved to each name              |
 | Watch mode                                | The dev server, through HMR and a file watcher        | `--watch`                                | `--watch`                                        | No option                          |
 | Also does                                 | The same docs in the DevTools panel and Lit Inspector | A plugin API; FAST, Stencil and Catalyst | A language server, MCP, a dev server, `validate` | React and Vue wrappers             |
 

@@ -79,6 +79,8 @@ export interface BuiltChunk {
   fileName: string;
   /** Each module the chunk was built from; `renderedLength` 0 when tree-shaking dropped all of it. */
   modules: Readonly<Record<string, {renderedLength: number}>>;
+  /** The module the chunk stands for, such as an entry that only re-exports. */
+  facadeModuleId: string | null;
   exports: readonly string[];
 }
 
@@ -95,9 +97,13 @@ export const bundlePaths = (
 ): ManifestPaths => {
   const dir = posix.relative(normalizePath(root), normalizePath(outDir));
   const chunkOf = new Map<string, BuiltChunk>();
-  for (const chunk of chunks)
+  for (const chunk of chunks) {
     for (const [id, module] of Object.entries(chunk.modules))
       if (module.renderedLength > 0) chunkOf.set(normalizePath(id), chunk);
+    // A barrel renders no code of its own, but it is the chunk's face.
+    if (chunk.facadeModuleId !== null)
+      chunkOf.set(normalizePath(chunk.facadeModuleId), chunk);
+  }
   return {
     path: (id) => {
       const chunk = chunkOf.get(normalizePath(id));

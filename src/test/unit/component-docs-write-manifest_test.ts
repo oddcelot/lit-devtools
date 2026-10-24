@@ -335,3 +335,41 @@ test('constructor assignments re-default inherited fields or add their own', () 
     ['focus', undefined, true],
   ]);
 });
+
+test('a barrel exports what it re-exports, from the module that declares it', () => {
+  const p = project();
+  p.add(
+    '/app/src/inner.ts',
+    `export * from './x-a.js';\nexport * from './index.js';\n`,
+    {
+      './x-a.js': '/app/src/x-a.ts',
+      './index.js': '/app/src/index.ts',
+    }
+  );
+  p.add(
+    '/app/src/index.ts',
+    `export * from './inner.js';\nexport {default as TheBase} from './base.js';\nexport {Missing} from './gone.js';\nexport {html} from 'lit';\n`,
+    {'./inner.js': '/app/src/inner.ts', './base.js': '/app/src/base.ts'}
+  );
+  const modules = p.manifest().modules as {
+    path: string;
+    declarations: unknown[];
+    exports: {kind: string; name: string; declaration: unknown}[];
+  }[];
+  const index = modules.find((m) => m.path === 'src/index.ts')!;
+  expect(index.declarations).toEqual([]);
+  expect(index.exports).toEqual([
+    {kind: 'js', name: 'XA', declaration: {name: 'XA', module: 'src/x-a.ts'}},
+    {
+      kind: 'js',
+      name: 'TheBase',
+      declaration: {name: 'Base', module: 'src/base.ts'},
+    },
+  ]);
+});
+
+test('a module that re-exports no class or mixin is left out', () => {
+  const p = index();
+  p.add('/app/src/util.ts', `export {html} from 'lit';\n`);
+  expect(p.manifest().modules).toEqual([]);
+});

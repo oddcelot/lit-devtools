@@ -646,6 +646,27 @@ describe('exports', () => {
     expect(exports).toEqual([{name: 'default', local: 'default'}]);
   });
 
+  test('re-exports: star, named, and imported names exported again', () => {
+    const {reexports, exports} = extractModuleDocs(
+      `
+      import {Local, Other as O} from './local.js';
+      export * from './a.js';
+      export * as ns from './ns.js';
+      export {B as Bee, C} from './b.js';
+      export {Local, O as Renamed};
+    `,
+      '/app/src/index.ts'
+    );
+    expect(exports).toBeUndefined();
+    expect(reexports).toEqual([
+      {specifier: './a.js'},
+      {specifier: './b.js', name: 'Bee', local: 'B'},
+      {specifier: './b.js', name: 'C', local: 'C'},
+      {specifier: './local.js', name: 'Local', local: 'Local'},
+      {specifier: './local.js', name: 'Renamed', local: 'Other'},
+    ]);
+  });
+
   test('a module exporting none leaves the field off', () => {
     expect(
       extractModuleDocs('class A {}', '/app/src/el.ts')

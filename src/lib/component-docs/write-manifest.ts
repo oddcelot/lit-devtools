@@ -16,7 +16,13 @@
  */
 
 import type {DocEntry} from '../../types/component-docs.js';
-import type {ClassDocs, ClassDocsBody, ClassRef, MixinDocs} from './extract.js';
+import type {
+  ClassDocs,
+  ClassDocsBody,
+  ClassRef,
+  MixinDocs,
+  ModuleReexport,
+} from './extract.js';
 import type {MethodDocs} from './methods.js';
 import type {Ancestor, IndexedModule} from './source-index.js';
 
@@ -186,6 +192,17 @@ const lists = (docs: ClassDocsBody, ancestors: Inherited[]): Json => {
   return out;
 };
 
+/** Exports without repeats: a barrel bundled with what it re-exports names it twice. */
+const unique = (exports: Json[]): Json[] => {
+  const seen = new Set<string>();
+  return exports.filter((e) => {
+    const key = `${String(e.kind)}:${String(e.name)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
 const heading = (docs: ClassDocsBody): Json => {
   const out: Json = {};
   if (docs.summary !== undefined) out.summary = docs.summary;
@@ -269,29 +286,72 @@ export const writeManifest = (
     ...(at.module.mixins ?? []).map((mixin) => mixinDeclaration(at, mixin)),
   ];
 
-  const exportsOf = (at: IndexedModule, modulePath: string): Json[] => {
-    const declaration = (name: string) => ({name, module: modulePath});
-    return [
-      ...(at.module.exports ?? [])
-        .filter((e) => exported(at.id, e.name))
-        .map((e) => ({
-          kind: 'js',
-          name: e.name,
-          declaration: declaration(e.local),
-        })),
-      ...at.module.classes.flatMap((cls) =>
-        cls.tagName === undefined
-          ? []
-          : [
-              {
-                kind: 'custom-element-definition',
-                name: cls.tagName,
-                declaration: declaration(cls.name),
-              },
-            ]
-      ),
-    ];
+  interface Resolved {
+    name: string;
+    declaration: {name: string; module: string};
+  }
+
+  /** One re-export of `at`, followed to the declarations it names. */
+  const followed = (
+    at: IndexedModule,
+    reexport: ModuleReexport,
+    seen: Set<string>
+  ): Resolved[] => {
+    const id = at.moduleOf({name: '', specifier: reexport.specifier});
+    const target = id === undefined ? undefined : byId.get(id);
+    if (target === undefined) return [];
+    const exports = resolvedExports(target, seen);
+    if (reexport.name === undefined)
+      return exports.filter((e) => e.name !== 'default');
+    const match = exports.find((e) => e.name === reexport.local);
+    return match === undefined ? [] : [{...match, name: reexport.name}];
   };
+
+  /**
+   * Every class and mixin `at` exports, its own and those it re-exports,
+   * each with the module that declares it. `seen` ends an export cycle.
+   */
+  const resolvedExports = (
+    at: IndexedModule,
+    seen = new Set<string>()
+  ): Resolved[] => {
+    if (seen.has(at.id)) return [];
+    seen.add(at.id);
+    const modulePath = path(at.id);
+    const own: Resolved[] =
+      modulePath === undefined
+        ? []
+        : (at.module.exports ?? []).map((e) => ({
+            name: e.name,
+            declaration: {name: e.local, module: modulePath},
+          }));
+    const names = new Set(own.map((e) => e.name));
+    const result = [...own];
+    for (const reexport of at.module.reexports ?? [])
+      for (const e of followed(at, reexport, seen)) {
+        if (names.has(e.name)) continue;
+        names.add(e.name);
+        result.push(e);
+      }
+    return result;
+  };
+
+  const exportsOf = (at: IndexedModule, modulePath: string): Json[] => [
+    ...resolvedExports(at)
+      .filter((e) => exported(at.id, e.name))
+      .map((e) => ({kind: 'js', ...e})),
+    ...at.module.classes.flatMap((cls) =>
+      cls.tagName === undefined
+        ? []
+        : [
+            {
+              kind: 'custom-element-definition',
+              name: cls.tagName,
+              declaration: {name: cls.name, module: modulePath},
+            },
+          ]
+    ),
+  ];
 
   const byPath = new Map<string, IndexedModule[]>();
   for (const at of modules) {
@@ -311,8 +371,10 @@ export const writeManifest = (
           kind: 'javascript-module',
           path: modulePath,
           declarations: ordered.flatMap(declarationsOf),
-          exports: ordered.flatMap((at) => exportsOf(at, modulePath)),
+          exports: unique(ordered.flatMap((at) => exportsOf(at, modulePath))),
         };
-      }),
+      })
+      // A module that only re-exports names no class or mixin is noise.
+      .filter((m) => m.declarations.length > 0 || m.exports.length > 0),
   };
 };
