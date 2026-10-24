@@ -230,6 +230,22 @@ describe('createComponentDocsIndex', () => {
     expect(onChange).toHaveBeenCalledTimes(1);
   });
 
+  it('lists every tag once, the project manifest first', async () => {
+    const {fs} = memoryFs({
+      '/p/package.json': JSON.stringify({dependencies: {lib: '1'}}),
+      '/p/custom-elements.json': manifestJson('own-tag', 'shared-tag'),
+      '/p/node_modules/lib/package.json': JSON.stringify({
+        customElements: 'custom-elements.json',
+      }),
+      '/p/node_modules/lib/custom-elements.json': manifestJson(
+        'lib-tag',
+        'shared-tag'
+      ),
+    });
+    const index = createComponentDocsIndex({root: () => '/p', fs: () => fs});
+    expect(await index.tags()).toEqual(['own-tag', 'shared-tag', 'lib-tag']);
+  });
+
   it('reads the project manifest from the customElements field', async () => {
     const {fs} = memoryFs({
       '/p/package.json': JSON.stringify({customElements: 'dist/cem.json'}),

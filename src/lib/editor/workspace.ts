@@ -57,6 +57,8 @@ export interface Workspace {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   /** The tags of every component read from source. */
   sourceTags(): string[];
+  /** The tags `file` can use: from source, then its package's manifests. */
+  tags(file: string): Promise<string[]>;
   /**
    * Reads `file` again from `code`, an editor buffer or the file on disk.
    * Ignored unless the file is a script in a package's read folders.
@@ -189,6 +191,11 @@ const createWorkspaceView = (parts: {
       ? {id, state}
       : undefined;
   };
+  const sourceTags = (): string[] =>
+    sources
+      .modules()
+      .flatMap(({module}) => module.classes.flatMap((cls) => cls.tagName ?? []))
+      .sort();
   return {
     root: parts.root,
     packages,
@@ -199,13 +206,12 @@ const createWorkspaceView = (parts: {
       const pkg = packageOf(packages, normalizePath(file));
       return pkg ? manifestsOf(pkg).get(tagName) : null;
     },
-    sourceTags: () =>
-      sources
-        .modules()
-        .flatMap(({module}) =>
-          module.classes.flatMap((cls) => cls.tagName ?? [])
-        )
-        .sort(),
+    sourceTags,
+    async tags(file) {
+      const pkg = packageOf(packages, normalizePath(file));
+      const fromManifests = pkg ? await manifestsOf(pkg).tags() : [];
+      return [...new Set([...sourceTags(), ...fromManifests])];
+    },
     async update(file, code) {
       const target = read(file);
       if (target) {

@@ -116,6 +116,14 @@ describe('createWorkspace', () => {
       'fancy-card'
     );
     expect(fromUi).toBeNull();
+    // The tags each file can use follow the same rule.
+    expect(await workspace?.tags(join(root, 'apps/site/src/main.ts'))).toEqual([
+      'x-button',
+      'fancy-card',
+    ]);
+    expect(
+      await workspace?.tags(join(root, 'packages/ui/src/x-button.ts'))
+    ).toEqual(['x-button']);
   });
 
   test('follows unsaved edits and deletes', async () => {
