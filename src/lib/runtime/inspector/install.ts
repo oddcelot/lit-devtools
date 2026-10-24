@@ -411,7 +411,7 @@ if (installs) {
   };
 
   // -------------------------------------------------------------------------
-  // Live tree: while the panel asks, watch the DOM (light + every shadow
+  // Live tree: while a panel is open, watch the DOM (light + every shadow
   // root) and push a fresh tree when the component hierarchy actually
   // changes. childList-only (no attributes), so cosmetic changes — including
   // our own highlight box toggling — don't churn; identical rebuilds are also
@@ -673,31 +673,8 @@ if (installs) {
   };
   // A panel that connects later cannot know whether this runtime was
   // released, so tell it the runtime is up; its `ready` handler re-requests
-  // the tree and re-arms the selection and Live mode. Idempotent.
+  // the tree and re-arms the selection and the live tree. Idempotent.
   onPanelArrived = () => send(readyMessage());
-
-  // -------------------------------------------------------------------------
-  // SPA navigation: a route change swaps the component tree without any HMR
-  // or panel event, so the snapshot went stale until a manual refresh. Push a
-  // deduped tree after each navigation — twice, since routes typically
-  // lazy-load and render async. Redundant while the live observer watches.
-  // -------------------------------------------------------------------------
-
-  const onNavigation = (): void => {
-    if (observer !== null) return;
-    for (const delay of [150, 1000]) {
-      setTimeout(pushTreeIfChanged, delay);
-    }
-  };
-  window.addEventListener('popstate', onNavigation);
-  window.addEventListener('hashchange', onNavigation);
-  for (const method of ['pushState', 'replaceState'] as const) {
-    const original = history[method].bind(history);
-    history[method] = (...args: Parameters<History['pushState']>) => {
-      original(...args);
-      onNavigation();
-    };
-  }
 
   // -------------------------------------------------------------------------
   // Command dispatch

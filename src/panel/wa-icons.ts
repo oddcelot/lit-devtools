@@ -29,8 +29,6 @@ import cube from '@phosphor-icons/core/assets/regular/cube.svg?raw';
 import cursorClick from '@phosphor-icons/core/assets/regular/cursor-click.svg?raw';
 import equals from '@phosphor-icons/core/assets/regular/equals.svg?raw';
 import exportIcon from '@phosphor-icons/core/assets/regular/export.svg?raw';
-import eyeSlash from '@phosphor-icons/core/assets/regular/eye-slash.svg?raw';
-import eye from '@phosphor-icons/core/assets/regular/eye.svg?raw';
 import fileCode from '@phosphor-icons/core/assets/regular/file-code.svg?raw';
 import gear from '@phosphor-icons/core/assets/regular/gear.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
@@ -69,8 +67,6 @@ const ICONS = {
   'drop-simple-fill': dropSimpleFill,
   equals,
   export: exportIcon,
-  eye,
-  'eye-slash': eyeSlash,
   'file-code': fileCode,
   gear,
   lightning,

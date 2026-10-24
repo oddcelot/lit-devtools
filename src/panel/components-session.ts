@@ -1,13 +1,13 @@
 /**
  * What the Components tab knows about the page, and the rules that keep the
- * page in step with it: the tree, the selected element and its details, the
- * Live tree, the picker, and the HMR notices. Framework-free; the element in
+ * page in step with it: the live tree, the selected element and its details,
+ * the picker, and the HMR notices. Framework-free; the element in
  * `components-view.ts` renders it and re-renders on {@link subscribe}.
  *
  * The rules that matter live here rather than in the element's handlers:
  * which commands a selection sends and in what order, and what has to be
  * re-armed when the runtime reconnects or another page takes over, since the
- * page forgets its watch and its Live observer each time.
+ * page forgets its watch and its tree observer each time.
  */
 
 import type {
@@ -30,17 +30,12 @@ import {
 } from '../types/hmr-incompatibility.js';
 import type {HmrPatchEvent} from '../types/hmr-patch.js';
 
-/** localStorage key holding whether Live is on. */
-export const LIVE_LS_KEY = 'lit-devtools-components-live';
-
 export interface ComponentsSessionPorts {
   /**
    * Send an inspector command to the page. Best-effort: the caller drops it
    * where there is no page to reach (a frozen snapshot, no connection yet).
    */
   send(command: InspectorCommand): void;
-  /** Where Live is remembered across panel reloads. */
-  storage?: Pick<Storage, 'getItem' | 'setItem'>;
   /** A different element was selected; fires before the state changes. */
   onSelect?(id: number): void;
   /** The page's picker chose an element; the tab should come forward. */
@@ -106,7 +101,10 @@ export class ComponentsSession {
   #gone = false;
   #expanded: ReadonlySet<number> = new Set();
   #picking = false;
-  #live: boolean;
+  /** Whether trees are held back, as while the pointer is over the tree. */
+  #holding = false;
+  /** The newest tree that arrived while holding; applied on release. */
+  #heldRoots: InspectorTreeNode[] | null = null;
   #runtime: LitRuntimeInfo | null = null;
   #hmrIncompatibilities: HmrIncompatibilityEvent[] = [];
   #lastPatch: HmrPatchEvent | null = null;
@@ -119,13 +117,6 @@ export class ComponentsSession {
 
   constructor(ports: ComponentsSessionPorts) {
     this.#ports = ports;
-    let stored: string | null = null;
-    try {
-      stored = ports.storage?.getItem(LIVE_LS_KEY) ?? null;
-    } catch {
-      // Storage unavailable: Live starts on.
-    }
-    this.#live = stored !== 'false';
   }
 
   get roots(): readonly InspectorTreeNode[] {
@@ -146,10 +137,6 @@ export class ComponentsSession {
   }
   get picking(): boolean {
     return this.#picking;
-  }
-  /** The opt-in live tree (a MutationObserver in the page). Remembered. */
-  get live(): boolean {
-    return this.#live;
   }
   /**
    * What the page runtime announced, from `get-meta` on connect and from each
@@ -181,18 +168,19 @@ export class ComponentsSession {
   /**
    * The panel connected: take what the node side has cached, so a panel
    * opened after the page loaded isn't blank, then ask the page for a fresh
-   * tree. Re-arms Live too, since the page released its observer when the
+   * tree and keep it live, since the page released its observer when the
    * previous panel went away.
    */
   connected(prime: ComponentsPrime): void {
     this.#roots = prime.roots;
+    this.#heldRoots = null;
     this.#hmrIncompatibilities = prime.hmrIncompatibilities.slice(
       -MAX_HMR_INCOMPATIBILITIES
     );
     if (prime.hmrHistory) this.#lastPatch = lastPatchOf(prime.hmrHistory);
     this.#send({type: 'tree'});
     this.#send({type: 'overrides'});
-    if (this.#live) this.#send({type: 'observe', enabled: true});
+    this.#send({type: 'observe', enabled: true});
     this.#changed();
   }
 
@@ -209,11 +197,13 @@ export class ComponentsSession {
         this.#receiveReady(message);
         break;
       case 'tree':
-        this.#roots = message.roots;
-        // Re-reveal the selection against the fresh tree: a just-picked node
-        // may not have existed in the previous tree, so the reveal on select
-        // found no ancestors to expand and the node stayed hidden.
-        if (this.#selectedId !== null) this.#reveal(this.#selectedId);
+        // Rows moving under the pointer would make it click the wrong one.
+        // An empty tree has nothing to aim at, so it fills in straight away.
+        if (this.#holding && this.#roots.length > 0) {
+          this.#heldRoots = message.roots;
+          return;
+        }
+        this.#applyTree(message.roots);
         break;
       case 'details':
         if (!this.#receiveDetails(message.details)) return;
@@ -267,6 +257,7 @@ export class ComponentsSession {
    */
   pageChanged(): void {
     this.#roots = [];
+    this.#heldRoots = null;
     this.#lastPatch = null;
     this.#hmrIncompatibilities = [];
     // Overrides live in the page, so the new one has its own (none, on a
@@ -324,23 +315,32 @@ export class ComponentsSession {
     this.#changed();
   }
 
-  togglePick(): void {
-    this.#picking = !this.#picking;
-    this.#send({type: 'pick'});
+  /**
+   * Hold incoming trees back, or apply the newest one held. The view holds
+   * while the pointer is over the tree, so rows stay put under it; the
+   * selection survives either way, as it is found by id.
+   */
+  holdTree(hold: boolean): void {
+    this.#holding = hold;
+    if (hold) return;
+    const held = this.#heldRoots;
+    if (held === null) return;
+    this.#heldRoots = null;
+    this.#applyTree(held);
     this.#changed();
   }
 
-  toggleLive(): void {
-    this.#live = !this.#live;
-    try {
-      this.#ports.storage?.setItem(LIVE_LS_KEY, String(this.#live));
-    } catch {
-      // Storage unavailable: Live just won't be remembered.
-    }
-    // Resuming pushes a fresh tree on its own; pausing pulls one, so the
-    // frozen tree is the page as of now.
-    this.#send({type: 'observe', enabled: this.#live});
-    if (!this.#live) this.#send({type: 'tree'});
+  #applyTree(roots: InspectorTreeNode[]): void {
+    this.#roots = roots;
+    // Re-reveal the selection against the fresh tree: a just-picked node
+    // may not have existed in the previous tree, so the reveal on select
+    // found no ancestors to expand and the node stayed hidden.
+    if (this.#selectedId !== null) this.#reveal(this.#selectedId);
+  }
+
+  togglePick(): void {
+    this.#picking = !this.#picking;
+    this.#send({type: 'pick'});
     this.#changed();
   }
 
@@ -410,9 +410,9 @@ export class ComponentsSession {
 
   /**
    * The runtime (re)connected with no memory of this panel: refresh the tree
-   * and re-arm the selection's watch. It may also have dropped Live (it
-   * releases the observer when the panel disconnects, and a reload restarts
-   * it with none); `live` is what the user asked for.
+   * and re-arm the selection's watch and the live tree (the page releases
+   * its observer when the panel disconnects, and a reload restarts it with
+   * none).
    */
   #receiveReady(message: Extract<InspectorMessage, {type: 'ready'}>): void {
     this.#runtime = {
@@ -425,7 +425,7 @@ export class ComponentsSession {
     this.#send({type: 'tree'});
     this.#send({type: 'overrides'});
     this.rewatch();
-    if (this.#live) this.#send({type: 'observe', enabled: true});
+    this.#send({type: 'observe', enabled: true});
   }
 
   /**
@@ -482,7 +482,7 @@ export class ComponentsSession {
   /** The panel is going away: release what the page holds for it. */
   dispose(): void {
     this.#send({type: 'watch', id: null});
-    if (this.#live) this.#send({type: 'observe', enabled: false});
+    this.#send({type: 'observe', enabled: false});
   }
 
   #select(id: number): boolean {

@@ -440,7 +440,7 @@ test('the Tracks ruler spans the same width as every lane plot', async () => {
 test('Pick is not offered when the source overlay is off', async () => {
   const {page} = panel;
   await page.goto(`${fixture.origin}/__lit/#tab=components`);
-  await page.locator('components-view lit-button.live').waitFor();
+  await page.locator('components-view lit-button.flash').waitFor();
   // `get-meta` arrives after the toolbar first renders; give it the time.
   await page.waitForTimeout(500);
   expect(await page.locator('components-view lit-button.pick').count()).toBe(0);
@@ -449,7 +449,7 @@ test('Pick is not offered when the source overlay is off', async () => {
 test('the selection is the same element after the page reloads', async () => {
   const {page} = panel;
   await page.goto(`${fixture.origin}/__lit/#tab=components`);
-  await page.locator('components-view lit-button.live').waitFor();
+  await page.locator('components-view lit-button.flash').waitFor();
   const idOf = (tag: string) =>
     fixture.page.evaluate(
       `globalThis[Symbol.for('@oddsquad/vite-plugin-lit#lit-id-of')](document.querySelector('${tag}'))`

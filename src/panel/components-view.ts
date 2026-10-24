@@ -90,10 +90,6 @@ import {
   type ManifestModule,
 } from './source-text.js';
 
-/**
- * localStorage key remembering a paused live tree. Live is the default, so
- * only an explicit `'false'` turns it off.
- */
 /** localStorage key remembering the details pane's width in pixels. */
 const DETAILS_WIDTH_LS_KEY = 'lit-devtools-components-details-width';
 const DETAILS_WIDTH_DEFAULT = 340;
@@ -1618,15 +1614,11 @@ export class ComponentsView extends LitElement {
   ];
 
   /**
-   * The tree, the selection, Live, the picker and the HMR notices, and the
+   * The live tree, the selection, the picker and the HMR notices, and the
    * rules that keep the page in step with them. This element renders it.
    */
   private readonly _session = new ComponentsSession({
     send: sendToPage,
-    storage: {
-      getItem: (key) => localStorage.getItem(key),
-      setItem: (key, value) => localStorage.setItem(key, value),
-    },
     // A selection is part of "where the panel is": the shell writes it
     // into the URL, and a link that drops it would reopen the wrong view.
     onSelect: (id) => this.location.select('components', id),
@@ -1804,7 +1796,7 @@ export class ComponentsView extends LitElement {
     this._releasePage();
   }
 
-  /** Drop what the page keeps for this panel: watch, Live, overlays, breaks. */
+  /** Drop what the page keeps for this panel: watch, observer, overlays, breaks. */
   private _releasePage(): void {
     this._session.dispose();
     this._syncAnatomy(null, null);
@@ -1814,10 +1806,10 @@ export class ComponentsView extends LitElement {
 
   /**
    * A panel in its own tab has no in-page channel, so the page never hears
-   * it close and would keep the anatomy overlay, Live and the watch. Closing
-   * the tab tears nothing down, but `pagehide` still runs and its RPC calls
-   * go out. Kept while the page enters the back/forward cache, which it may
-   * leave again.
+   * it close and would keep the anatomy overlay, the tree observer and the
+   * watch. Closing the tab tears nothing down, but `pagehide` still runs and
+   * its RPC calls go out. Kept while the page enters the back/forward cache,
+   * which it may leave again.
    */
   private readonly _onPageHide = (e: PageTransitionEvent): void => {
     if (!e.persisted) this._releasePage();
@@ -2084,7 +2076,9 @@ export class ComponentsView extends LitElement {
       // The tree baked into a frozen session is all it has: `sendToPage` drops the
       // commands this sends, since asking the page would reject.
       this._session.connected({roots, hmrIncompatibilities, hmrHistory});
-      if (this._session.live) touchPageChannel();
+      // The page stops observing the tree when this panel leaves, which it
+      // only hears of over the in-page channel.
+      touchPageChannel();
     } catch (err) {
       this._error = describeError(err);
     }
@@ -2143,12 +2137,6 @@ export class ComponentsView extends LitElement {
     this._session.togglePick();
   }
 
-  private _toggleLive(): void {
-    this._session.toggleLive();
-    // Connect the lazy in-page channel so the page can see the panel leave.
-    if (this._session.live) touchPageChannel();
-  }
-
   /**
    * Flash-on-update is a settings override, not an inspector command: the
    * page runtime reads it at boot (so it survives reloads) and gets live
@@ -2191,7 +2179,13 @@ export class ComponentsView extends LitElement {
     });
   }
 
+  /** Keep the rows still while the pointer is over them. */
+  private readonly _enterTree = (): void => {
+    this._session.holdTree(true);
+  };
+
   private readonly _leaveTree = (): void => {
+    this._session.holdTree(false);
     this._hovered = null;
     this._tagHover = null;
     this._highlight(null);
@@ -4062,19 +4056,6 @@ export class ComponentsView extends LitElement {
         </lit-input>
         <span class="spacer"></span>
         ${this._renderToggle(
-          'live',
-          this._session.live,
-          this._session.live
-            ? 'Pause: stop updating the tree as the page changes'
-            : 'Resume updating the tree as the page changes',
-          this._toggleLive,
-          html`<lit-icon
-            slot="start"
-            name=${this._session.live ? 'eye' : 'eye-slash'}
-          ></lit-icon>`,
-          'Live'
-        )}
-        ${this._renderToggle(
           'flash',
           this._flash,
           'Flash elements on the page when they update',
@@ -4106,6 +4087,7 @@ export class ComponentsView extends LitElement {
           class="tree"
           role="tree"
           aria-label="Components"
+          @mouseenter=${this._enterTree}
           @mouseleave=${this._leaveTree}
         >
           ${

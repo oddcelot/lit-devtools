@@ -1,5 +1,5 @@
 /**
- * Regression coverage for the Components inspector's opt-in "Live" tree mode
+ * Regression coverage for the Components inspector's live tree
  * (`{type: 'observe', enabled: true}` in `src/lib/runtime/inspector/install.ts`).
  *
  * The live tree watches the light DOM and every shadow root, and must keep
@@ -8,7 +8,7 @@
  * markup churn must not push a tree.
  *
  * Worth an e2e rather than a unit test: the whole thing lives on a real
- * `MutationObserver` watching a real page's shadow DOM, debounced against
+ * `MutationObserver` watching a real page's shadow DOM, paced against
  * real timers, and driven end to end over the HMR channel the way the panel
  * actually drives it (`fixture.server.hot.send(INSPECT_CMD_CHANNEL, ...)` /
  * `fixture.server.hot.on(INSPECT_DATA_CHANNEL, ...)`, mirroring
@@ -40,9 +40,9 @@ beforeAll(async () => {
   fixture.server.hot.on(INSPECT_DATA_CHANNEL, (data: InspectorMessage) => {
     if (data.type === 'tree') treeMessages.push(data.roots);
   });
-  // Mirrors the panel's "Live" toggle. `setObserving(true)` always pushes an
-  // immediate snapshot (it resets its dedupe cache first), so this also
-  // confirms the runtime is listening before any test proceeds.
+  // Mirrors what the Components view sends on connect. `setObserving(true)`
+  // always pushes an immediate snapshot (it resets its dedupe cache first),
+  // so this also confirms the runtime is listening before any test proceeds.
   fixture.server.hot.send(INSPECT_CMD_CHANNEL, {
     type: 'observe',
     enabled: true,
@@ -68,7 +68,7 @@ afterAll(async () => {
 // Each test appends its own uniquely-tagged elements straight to
 // `document.body` (or nested inside a previous element's shadow root); clean
 // them back out so a later test's tree diffs never see a stale root, and give
-// the 100ms debounce time to flush the removal before the next test marks its
+// the 100ms pacing time to flush the removal before the next test marks its
 // own starting index into `treeMessages`.
 afterEach(async () => {
   await fixture.page.evaluate(() => {

@@ -1,7 +1,6 @@
 import {describe, expect, test} from 'vite-plus/test';
 import {
   ComponentsSession,
-  LIVE_LS_KEY,
   findAncestors,
 } from '../../panel/components-session.js';
 import type {
@@ -15,26 +14,15 @@ import {
 } from '../../types/hmr-incompatibility.js';
 import type {HmrPatchEvent} from '../../types/hmr-patch.js';
 
-const memoryStorage = (initial: Record<string, string> = {}) => {
-  const data = new Map(Object.entries(initial));
-  return {
-    data,
-    getItem: (key: string) => data.get(key) ?? null,
-    setItem: (key: string, value: string) => void data.set(key, value),
-  };
-};
-
 /**
  * A session wired to recording ports. `sent` is every command the page was
  * sent, `events` the outward notices in order.
  */
-const setup = (stored: Record<string, string> = {}) => {
+const setup = () => {
   const sent: InspectorCommand[] = [];
   const events: string[] = [];
-  const storage = memoryStorage(stored);
   const session = new ComponentsSession({
     send: (command) => sent.push(command),
-    storage,
     onSelect: (id) => events.push(`select ${id}`),
     onPicked: () => events.push('picked'),
   });
@@ -42,7 +30,7 @@ const setup = (stored: Record<string, string> = {}) => {
   session.subscribe(() => changes++);
   /** Commands sent since the last call. */
   const drain = () => sent.splice(0);
-  return {session, storage, events, drain, changes: () => changes};
+  return {session, events, drain, changes: () => changes};
 };
 
 // <x-app id=1> > <x-list id=2> > <x-item id=3>
@@ -82,7 +70,7 @@ const patch = (at: number): HmrPatchEvent => ({
 });
 
 describe('connecting', () => {
-  test('primes from the node side, then asks for a fresh tree and arms Live', () => {
+  test('primes from the node side, then asks for a fresh tree and keeps it live', () => {
     const {session, drain} = setup();
     session.connected({
       roots: tree,
@@ -101,13 +89,6 @@ describe('connecting', () => {
       {type: 'overrides'},
       {type: 'observe', enabled: true},
     ]);
-  });
-
-  test('leaves Live off when it was paused last time', () => {
-    const {session, drain} = setup({[LIVE_LS_KEY]: 'false'});
-    expect(session.live).toBe(false);
-    session.connected({roots: [], hmrIncompatibilities: []});
-    expect(drain()).toEqual([{type: 'tree'}, {type: 'overrides'}]);
   });
 });
 
@@ -218,10 +199,14 @@ describe('re-arming', () => {
     expect(drain()).toEqual([]);
   });
 
-  test('a ready with nothing selected and Live paused only asks for the tree and overrides', () => {
-    const {session, drain} = setup({[LIVE_LS_KEY]: 'false'});
+  test('a ready with nothing selected asks for the tree and overrides and keeps it live', () => {
+    const {session, drain} = setup();
     session.receive({type: 'ready'});
-    expect(drain()).toEqual([{type: 'tree'}, {type: 'overrides'}]);
+    expect(drain()).toEqual([
+      {type: 'tree'},
+      {type: 'overrides'},
+      {type: 'observe', enabled: true},
+    ]);
   });
 
   test('a page change forgets the old page but keeps and re-watches the selection', () => {
@@ -412,19 +397,55 @@ describe('finding the selection on a new page', () => {
   });
 });
 
-describe('Live', () => {
-  test('pausing is remembered and pulls one fresh tree; resuming re-arms', () => {
-    const {session, storage, drain} = setup();
-    session.toggleLive();
-    expect(session.live).toBe(false);
-    expect(storage.data.get(LIVE_LS_KEY)).toBe('false');
-    expect(drain()).toEqual([
-      {type: 'observe', enabled: false},
-      {type: 'tree'},
-    ]);
-    session.toggleLive();
-    expect(storage.data.get(LIVE_LS_KEY)).toBe('true');
-    expect(drain()).toEqual([{type: 'observe', enabled: true}]);
+describe('the live tree', () => {
+  const moved: InspectorTreeNode[] = [
+    {id: 9, tagName: 'x-banner', children: []},
+    ...tree,
+  ];
+
+  test('holds trees while asked and applies the newest on release', () => {
+    const {session, changes} = setup();
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    session.holdTree(true);
+    const before = changes();
+    session.receive({type: 'tree', roots: [moved[0]!]});
+    session.receive({type: 'tree', roots: moved});
+    expect(session.roots).toBe(tree);
+    expect(changes()).toBe(before);
+    session.holdTree(false);
+    expect(session.roots).toBe(moved);
+    expect(changes()).toBe(before + 1);
+    // Nothing held, nothing to apply.
+    session.holdTree(true);
+    session.holdTree(false);
+    expect(changes()).toBe(before + 1);
+  });
+
+  test('fills an empty tree even while holding', () => {
+    const {session} = setup();
+    session.holdTree(true);
+    session.receive({type: 'tree', roots: tree});
+    expect(session.roots).toBe(tree);
+  });
+
+  test('reveals the selection in a tree applied on release', () => {
+    const {session} = setup();
+    session.connected({roots: [moved[0]!], hmrIncompatibilities: []});
+    session.select(3);
+    session.holdTree(true);
+    session.receive({type: 'tree', roots: moved});
+    session.holdTree(false);
+    expect([...session.expanded]).toEqual([1, 2]);
+  });
+
+  test('a page change drops a held tree from the old page', () => {
+    const {session} = setup();
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    session.holdTree(true);
+    session.receive({type: 'tree', roots: moved});
+    session.pageChanged();
+    session.holdTree(false);
+    expect(session.roots).toEqual([]);
   });
 
   test('leaving releases the watch and the observer', () => {

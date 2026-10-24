@@ -321,19 +321,33 @@ test('Anatomy turned off stays off', async () => {
 // The session's rules are `components-session_test.ts`'s; these check the
 // element wires them to the page, the shell and storage.
 
-test('pausing Live remembers it and pulls one fresh tree', async () => {
-  const {el, root, inspects} = await mount();
-  const before = inspects().length;
-  root.querySelector<HTMLElement>('lit-button.live')!.click();
-  await flush(el);
-  expect(inspects().slice(before)).toEqual([
-    {type: 'observe', enabled: false},
-    {type: 'tree'},
-  ]);
-  expect(localStorage.getItem(LIVE_LS_KEY)).toBe('false');
+test('keeps the tree live, whatever an older version stored', async () => {
+  // Left behind by the Live toggle, which is gone.
+  localStorage.setItem(LIVE_LS_KEY, 'false');
+  const {root, inspects} = await mount();
+  expect(inspects()).toContainEqual({type: 'observe', enabled: true});
+  expect(root.querySelector('lit-button.live')).toBeNull();
 });
 
-test('never arms Live in a snapshot', async () => {
+test('holds tree updates while the pointer is over the tree', async () => {
+  const {el, root, rows} = await mount();
+  const treeEl = root.querySelector<HTMLElement>('.tree')!;
+  const banner = {id: 9, tagName: 'x-banner', children: []};
+  treeEl.dispatchEvent(new MouseEvent('mouseenter'));
+  push('inspector-message', {type: 'tree', roots: [banner, ...tree]});
+  await flush(el);
+  expect(rows().map((r) => r.querySelector('.tag')!.textContent)).toEqual([
+    '<x-app>',
+  ]);
+  treeEl.dispatchEvent(new MouseEvent('mouseleave'));
+  await flush(el);
+  expect(rows().map((r) => r.querySelector('.tag')!.textContent)).toEqual([
+    '<x-banner>',
+    '<x-app>',
+  ]);
+});
+
+test('never observes the tree in a snapshot', async () => {
   setSnapshot(true);
   const {inspects} = await mount();
   expect(inspects()).toEqual([]);
