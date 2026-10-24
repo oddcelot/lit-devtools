@@ -3,11 +3,25 @@
  * written into the project. Shared by the plugin's outputs and the CLI.
  */
 
+import {realpathSync} from 'node:fs';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, posix, relative, resolve} from 'node:path';
 import {normalizePath} from 'vite';
 import type {SourceDocsIndex} from './source-index.js';
 import {type ManifestPaths, writeManifest} from './write-manifest.js';
+
+/**
+ * `dir` with symlinks resolved, forward slashes, as Vite writes module ids:
+ * a project opened through a symlink (macOS `/tmp`, a linked workspace) has
+ * ids under the real path, and paths compared with them must be too.
+ */
+export const realDir = (dir: string): string => {
+  try {
+    return normalizePath(realpathSync(dir));
+  } catch {
+    return normalizePath(dir);
+  }
+};
 
 /**
  * The manifest `index` holds, as file text. Module paths are the source
@@ -18,7 +32,7 @@ export const manifestText = (
   root: string,
   paths?: ManifestPaths
 ): string => {
-  const base = normalizePath(root);
+  const base = realDir(root);
   const manifest = writeManifest(
     index.modules(),
     paths ?? {path: (id) => posix.relative(base, normalizePath(id))}

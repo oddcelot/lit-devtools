@@ -32,28 +32,43 @@ const scanInDev = async (
   index: SourceDocsIndex,
   dirs: readonly string[]
 ): Promise<void> => {
-  const [{indexDirs, isScannedScript}, {indexModule}, {readFile}, path, vite] =
-    await Promise.all([
-      import('../component-docs/scan.js'),
-      import('./component-docs.js'),
-      import('node:fs/promises'),
-      import('node:path'),
-      import('vite'),
-    ]);
+  const [
+    {indexDirs, isScannedScript},
+    {indexModule},
+    {readFile},
+    path,
+    vite,
+    {realDir},
+  ] = await Promise.all([
+    import('../component-docs/scan.js'),
+    import('./component-docs.js'),
+    import('node:fs/promises'),
+    import('node:path'),
+    import('vite'),
+    import('../component-docs/manifest-file.js'),
+  ]);
   const {root, logger} = server.config;
   const resolver = {
     resolve: (specifier: string, importer: string) =>
       server.pluginContainer.resolveId(specifier, importer),
   };
-  const folders = dirs.map((dir) =>
-    vite.normalizePath(path.resolve(root, dir) + path.sep)
-  );
+  // Module ids are real paths; the watcher reports paths under `root` as
+  // configured, which may run through a symlink.
+  const shown = `${vite.normalizePath(path.resolve(root))}/`;
+  const real = `${realDir(root)}/`;
+  const toReal = (file: string): string => {
+    const normal = vite.normalizePath(file);
+    return normal.startsWith(shown)
+      ? real + normal.slice(shown.length)
+      : normal;
+  };
+  const folders = dirs.map((dir) => `${toReal(path.resolve(root, dir))}/`);
   const scanned = (file: string): boolean =>
     isScannedScript(file) &&
     !file.includes('/node_modules/') &&
     folders.some((folder) => file.startsWith(folder));
   const reread = (raw: string) => {
-    const file = vite.normalizePath(raw);
+    const file = toReal(raw);
     if (!scanned(file)) return;
     readFile(file, 'utf8').then(
       (code) => indexModule(resolver, index, code, file),
@@ -63,7 +78,7 @@ const scanInDev = async (
   server.watcher.on('add', reread);
   server.watcher.on('change', reread);
   server.watcher.on('unlink', (raw) => {
-    const file = vite.normalizePath(raw);
+    const file = toReal(raw);
     if (scanned(file)) index.delete(file);
   });
   await indexDirs(resolver, index, root, dirs).catch((error: unknown) =>

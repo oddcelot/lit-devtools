@@ -397,3 +397,60 @@ test('scan: false lists only what pages load', async () => {
     await server.close();
   }
 });
+
+/** The fixture, reached through a symlink, as macOS `/tmp` or a linked workspace is. */
+const linkedFixture = async (): Promise<string> => {
+  const real = await fixture();
+  const link = `${real}-link`;
+  await fsp.symlink(real, link, 'dir');
+  roots.push(link);
+  return link;
+};
+
+const inheritedValue = (manifest: Record<string, unknown>) => {
+  const xa = (manifest.modules as {declarations: Declaration[]}[])
+    .flatMap((m) => m.declarations)
+    .find((d) => d.tagName === 'x-a');
+  return xa?.members?.find((m) => m.name === 'value')?.inheritedFrom;
+};
+
+test('through a symlinked root, paths and inheritance hold', async () => {
+  const root = await linkedFixture();
+  const {index} = await scanSources({root, dirs: ['src']});
+  const scanned = JSON.parse(manifestText(index, root)) as Record<
+    string,
+    unknown
+  >;
+  expect(declarations(scanned)).toEqual([
+    ['src/base.ts', ['Base']],
+    ['src/x-a.ts', ['XA']],
+  ]);
+  expect(inheritedValue(scanned)).toEqual({
+    name: 'Base',
+    module: 'src/base.ts',
+  });
+
+  await buildLib(root, true);
+  const built = await readJson(joinPath(root, 'dist/custom-elements.json'));
+  expect(inheritedValue(built)).toEqual({
+    name: 'Base',
+    module: 'dist/x-lib.js',
+  });
+
+  const {server, served} = await devServer(root, true);
+  try {
+    await expect.poll(served, {timeout: 5000}).toEqual([
+      ['src/base.ts', ['Base']],
+      ['src/x-a.ts', ['XA']],
+    ]);
+    // A page's transform and the scan land on the same entry.
+    await server.transformRequest('/src/x-a.ts');
+    expect(await served()).toHaveLength(2);
+    await fsp.rm(joinPath(root, 'src/base.ts'));
+    await expect
+      .poll(served, {timeout: 5000})
+      .toEqual([['src/x-a.ts', ['XA']]]);
+  } finally {
+    await server.close();
+  }
+});
