@@ -69,6 +69,7 @@ const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
 const svgGlobals = {
   attributes: svg.globals.attributes,
   events: html.globals.events,
+  label: 'attribute of every SVG element',
 };
 
 /**

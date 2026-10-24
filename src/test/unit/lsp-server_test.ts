@@ -219,6 +219,13 @@ describe('the language server', () => {
     expect(onPath.map((item) => item.label)).toEqual(
       expect.arrayContaining(['pathLength', 'stroke-width'])
     );
+    const shared = await client.request(
+      'textDocument/hover',
+      at(1, 'stroke-line')
+    );
+    expect(shared.contents.value).toMatch(
+      /^\*\*`stroke-linejoin`\*\* attribute of every SVG element/
+    );
     const onDiv = await client.request<{label: string}[]>(
       'textDocument/completion',
       at(2, '<div ')
