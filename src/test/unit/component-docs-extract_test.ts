@@ -368,6 +368,47 @@ describe('JavaScript', () => {
   });
 });
 
+describe('exports', () => {
+  test('declarations, default and renamed exports of classes and mixins', () => {
+    const {exports} = extractModuleDocs(
+      `
+      export class A extends LitElement {}
+      class B extends LitElement {}
+      class Hidden extends LitElement {}
+      export const M = (base) => class extends base {};
+      export function N(base) { return class extends base {}; }
+      export {B as Bee};
+      export default B;
+      export const notAClass = 1;
+      export {X} from './x.js';
+    `,
+      '/app/src/el.ts'
+    );
+    expect(exports).toEqual([
+      {name: 'A', local: 'A'},
+      {name: 'M', local: 'M'},
+      {name: 'N', local: 'N'},
+      {name: 'Bee', local: 'B'},
+      {name: 'default', local: 'B'},
+    ]);
+  });
+
+  test('an anonymous default class exports its stand-in name', () => {
+    const {classes, exports} = extractModuleDocs(
+      'export default class extends LitElement {}',
+      '/app/src/el.ts'
+    );
+    expect(classes[0].name).toBe('default');
+    expect(exports).toEqual([{name: 'default', local: 'default'}]);
+  });
+
+  test('a module exporting none leaves the field off', () => {
+    expect(
+      extractModuleDocs('class A {}', '/app/src/el.ts')
+    ).not.toHaveProperty('exports');
+  });
+});
+
 test('a module that does not parse documents nothing', () => {
   expect(extractModuleDocs('class {', '/app/src/broken.ts')).toEqual({
     classes: [],
