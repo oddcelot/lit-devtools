@@ -766,7 +766,7 @@ const manifestChanged = (): void => {
   const nudge = count > 0 && !snoozed;
   manifestNudge.hidden = !nudge;
   pageEl.hidden = nudge;
-  manifestNudgeText.textContent =
+  manifestNudgeText.textContent = manifestNudgeText.title =
     count === 1
       ? 'Found a Custom Elements Manifest for this site'
       : `Found ${count} Custom Elements Manifests for this site`;
@@ -794,7 +794,8 @@ const editorNoticeChanged = (): void => {
   const show =
     message !== undefined && !editorNoticeSnoozed && manifestNudge.hidden;
   editorNotice.hidden = !show;
-  if (message !== undefined) editorNoticeText.textContent = message;
+  if (message !== undefined)
+    editorNoticeText.textContent = editorNoticeText.title = message;
   editorFolderOffer.hidden =
     editorReach !== 'unsure' || !editorFolderForm.hidden;
   pageEl.hidden = !manifestNudge.hidden || show;
@@ -978,7 +979,8 @@ editorFolderForm.addEventListener('submit', async (event) => {
     module !== undefined &&
     !(await devServerEditor.isRoot(at, root, module))
   ) {
-    editorNoticeText.textContent = `No ${module} in that folder, so it isn't this page's project`;
+    editorNoticeText.textContent =
+      editorNoticeText.title = `No ${module} in that folder, so it isn't this page's project`;
     return;
   }
   await writeProjectRoot(chrome.storage.local, at, root);

@@ -92,14 +92,31 @@ lit-devtools-panel {
   cursor: pointer;
 }
 
+/* A notice is a row of its own: only its text gives way, cut short with an
+   ellipsis (its title has it whole), so the buttons after it stay visible
+   and clickable however narrow the panel is. */
 #manifest-nudge,
 #editor-notice {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
   white-space: nowrap;
   color: var(--lit-devtools-text, CanvasText);
+}
+
+#manifest-nudge > *,
+#editor-notice > * {
+  flex: none;
+}
+
+#manifest-nudge-text,
+#editor-notice-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #bar button:hover {
