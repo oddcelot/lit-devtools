@@ -229,4 +229,49 @@ describe('override store', () => {
     expect(back.cfg.theme).toBe('dark');
     expect(second.renders).toEqual(['intrinsic/1/dark']);
   });
+
+  test('a #private field override is saved by its key and comes back', async () => {
+    const field = '@oddsquad/vite-plugin-lit#private:/src/app.ts:Counter#count';
+    const sym = Symbol.for(field);
+    /** Defines `tag` with a rewritten `#count = 1`, rendering it. */
+    const definePrivate = async (tag: string, renders: string[]) => {
+      const {LitElement, html} = await import('lit');
+      class El extends LitElement {
+        [sym] = 1;
+        override render() {
+          renders.push(String(this[sym]));
+          return html`${this[sym]}`;
+        }
+      }
+      customElements.define(tag, El);
+    };
+    const tag = `x-saved-${n++}`;
+    const first = await boot();
+    await definePrivate(tag, []);
+    const el = await first.mount(tag, SITE);
+    expect(first.collect.setProp(el, field, 7)).toBe(true);
+    first.props.persistOverride(el, field, true);
+    first.store.saveOverrides();
+    const saved = first.stored();
+    expect(saved).toEqual([
+      {key: {tag, site: SITE, nth: 0}, name: field, value: 7, enabled: true},
+    ]);
+    el.remove();
+
+    const again = `x-saved-${n++}`;
+    const second = await boot([
+      {...(saved[0] as object), key: {tag: again, site: SITE, nth: 0}},
+    ]);
+    const renders: string[] = [];
+    await definePrivate(again, renders);
+    const back = await second.mount(again, SITE);
+    expect((back as unknown as Record<symbol, unknown>)[sym]).toBe(7);
+    // On from the first render, as a property's is.
+    expect(renders).toEqual(['7']);
+    expect(second.props.overrideOf(back, field)).toMatchObject({
+      value: 7,
+      persist: true,
+      intrinsic: 1,
+    });
+  });
 });

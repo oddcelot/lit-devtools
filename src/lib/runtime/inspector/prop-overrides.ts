@@ -11,9 +11,16 @@
  * reflection carry on as before. Removing the last override on a property
  * takes the accessor away and hands the intrinsic value back.
  *
+ * A `#private` field is overridden the same way, named by its key (the
+ * description of the symbol the dev server's rewrite keys it by, see
+ * `private-fields.ts`): the class reads and writes it as `this[symbol]`, so
+ * the accessor sits in its path just as it does in a property's.
+ *
  * Mechanics only: what may be overridden, and with what, is for the caller
  * (`setProp` in `collect.ts`) to decide.
  */
+
+import {PRIVATE_KEY_PREFIX} from '../../../types/inspector.js';
 
 /** Where a property keeps the value the element renders from. */
 interface Backing {
@@ -35,6 +42,13 @@ interface Slot {
 interface Updatable extends Element {
   requestUpdate?: (name?: PropertyKey, old?: unknown) => void;
 }
+
+const isPrivateName = (name: string): boolean =>
+  name.startsWith(PRIVATE_KEY_PREFIX);
+
+/** Where `name` lives on the element: a private field's symbol, else itself. */
+const keyOf = (name: string): PropertyKey =>
+  isPrivateName(name) ? Symbol.for(name) : name;
 
 /** One override in the page, for the panel's list. */
 export interface OverrideRecord {
@@ -74,7 +88,7 @@ const effectiveOf = (slot: Slot): unknown =>
 
 const accessorOf = (
   el: Element,
-  name: string
+  name: PropertyKey
 ): PropertyDescriptor | undefined => {
   for (
     let proto = Object.getPrototypeOf(el) as object | null;
@@ -96,7 +110,8 @@ const accessorOf = (
  * no setter, or an own property that is not configurable.
  */
 const backingOf = (el: Element, name: string): Backing | undefined => {
-  const own = Object.getOwnPropertyDescriptor(el, name);
+  const key = keyOf(name);
+  const own = Object.getOwnPropertyDescriptor(el, key);
   if (own !== undefined) {
     if (own.configurable !== true || !('value' in own)) return undefined;
     let stored: unknown = own.value;
@@ -104,10 +119,10 @@ const backingOf = (el: Element, name: string): Backing | undefined => {
       get: () => stored,
       set: (v) => (stored = v),
       restore: (intrinsic) =>
-        Object.defineProperty(el, name, {...own, value: intrinsic}),
+        Object.defineProperty(el, key, {...own, value: intrinsic}),
     };
   }
-  const desc = accessorOf(el, name);
+  const desc = accessorOf(el, key);
   if (desc === undefined || 'value' in desc) {
     // Never set, or a data value on a prototype: an own data property is
     // what a plain assignment would have made.
@@ -116,7 +131,7 @@ const backingOf = (el: Element, name: string): Backing | undefined => {
       get: () => stored,
       set: (v) => (stored = v),
       restore: (intrinsic) =>
-        Object.defineProperty(el, name, {
+        Object.defineProperty(el, key, {
           value: intrinsic,
           writable: true,
           enumerable: true,
@@ -136,9 +151,16 @@ const backingOf = (el: Element, name: string): Backing | undefined => {
   };
 };
 
+/**
+ * Ask for the render a change is for. A private field is no reactive
+ * property and goes unnamed, so the symbol never shows up among the
+ * element's changed properties.
+ */
 const requestUpdate = (el: Element, name: string, old: unknown): void => {
   const re = el as Updatable;
-  if (typeof re.requestUpdate === 'function') re.requestUpdate(name, old);
+  if (typeof re.requestUpdate !== 'function') return;
+  if (isPrivateName(name)) re.requestUpdate();
+  else re.requestUpdate(name, old);
 };
 
 /**
@@ -164,7 +186,7 @@ const install = (el: Element, name: string): Slot | undefined => {
     intrinsic: backing.get(),
     backing,
   };
-  Object.defineProperty(el, name, {
+  Object.defineProperty(el, keyOf(name), {
     configurable: true,
     enumerable: true,
     get: () => backing.get(),
@@ -183,7 +205,7 @@ const install = (el: Element, name: string): Slot | undefined => {
 
 const uninstall = (el: Element, name: string, slot: Slot): void => {
   const old = slot.backing.get();
-  delete (el as unknown as Record<string, unknown>)[name];
+  delete (el as unknown as Record<PropertyKey, unknown>)[keyOf(name)];
   slot.backing.restore(slot.intrinsic);
   if (!Object.is(old, slot.intrinsic)) requestUpdate(el, name, old);
 };

@@ -46,8 +46,9 @@ plugin's Lit panel in it:
 
 - **Components** lists `<lit-flame>` with its state (`hue`, `burning`) and the
   line it is defined on. Press **⌖ Pick**, or Ctrl/⌘+Shift+S on the page, and
-  click the flame to select it from the page. `#stokes` is not listed: Lit
-  does not track private fields, so the inspector cannot see them.
+  click the flame to select it from the page. `#stokes` shows under
+  **Private**, which the plugin's private-fields rewrite makes readable; edit
+  it to 5 and the flame reads "stoked 5×".
 - **Timeline** records each update once you press **Record**: move the hue
   slider and watch one update per step.
 - **Updates** sums them up per component and says which property changed.

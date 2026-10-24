@@ -60,7 +60,8 @@ see in an open panel.
 without asking you to type it into the panel. It writes the same way the
 panel's property editor does: only a property or field the details mark
 editable, only with a string, number or boolean of that type, and kept as an
-override on top of what your app sets. So an agent's edit shows up in the
+override on top of what your app sets. It can set a `#private` field the
+same way, addressed by the key `lit_component-details` lists for it. So an agent's edit shows up in the
 panel's overrides bar, where you can switch it off or clear it, and a reload
 drops it. It does change the page you are looking at, so the tool tells the
 agent to say what it set. The layer toggles and the element picker stay

@@ -168,7 +168,15 @@ test('the inspector shows a #private field and follows it live', async () => {
   const latest = await watchPrivate(f);
   await expect
     .poll(() => latest()?.privateFields, {timeout: 10_000})
-    .toEqual([{name: 'count', value: '3', type: 'number'}]);
+    .toEqual([
+      {
+        name: 'count',
+        key: expect.stringMatching(/:HmrPrivate#count$/),
+        value: '3',
+        type: 'number',
+        editable: 'number',
+      },
+    ]);
 
   await f.page.click('hmr-private #bump');
   await expect
@@ -185,4 +193,55 @@ test('with privateFields off the inspector has no #private fields', async () => 
   await expect.poll(() => latest(), {timeout: 10_000}).toBeDefined();
   expect(latest()?.privateFields).toBeUndefined();
   f.server.hot.send(INSPECT_CMD_CHANNEL, {type: 'watch', id: null});
+});
+
+test('a #private field is set from the panel, pinned across a reload, and reverted', async () => {
+  const f = await setup({plugin: {timeline: true}, panel: true});
+  const {page: panel, errors} = await f.openPanel();
+  /** Opens the Components tab and selects `<hmr-private>`. */
+  const select = async (): Promise<void> => {
+    await panel.goto(`${f.origin}/__lit/#tab=components`);
+    await panel.reload();
+    const row = panel
+      .locator('components-view .row')
+      .filter({hasText: /^\s*<hmr-private>\s*$/});
+    await row.first().click();
+  };
+  const field = panel.locator(
+    'components-view .details .entry[data-key="r:count"]'
+  );
+  await select();
+  await expect.poll(() => field.locator('.val').innerText()).toMatch(/^3/);
+
+  await field.locator('button.edit').click();
+  const input = field.locator('.edit-input');
+  await input.fill('7');
+  await input.press('Enter');
+  // Lit does not watch the field; the write asks for the render itself.
+  await expect
+    .poll(() => shadowText(f.page, 'hmr-private >> #bump'))
+    .toBe('Count: 7');
+  await expect.poll(() => field.locator('.shadowed').innerText()).toBe('3');
+
+  // The symbol is `Symbol.for` with the file in it, so a pinned override
+  // finds its field again after a reload.
+  await field.locator('.pin-override').click();
+  await expect
+    .poll(() => field.locator('.pin-override').getAttribute('aria-pressed'))
+    .toBe('true');
+  await f.page.reload();
+  await f.page.evaluate(`import('/src/hmr-private.ts')`);
+  await mountElement(f.page, 'hmr-private');
+  await expect
+    .poll(() => shadowText(f.page, 'hmr-private >> #bump'))
+    .toBe('Count: 7');
+
+  await select();
+  await expect.poll(() => field.locator('.shadowed').innerText()).toBe('0');
+  await field.locator('.remove-override').click();
+  await expect
+    .poll(() => shadowText(f.page, 'hmr-private >> #bump'))
+    .toBe('Count: 0');
+  await expect.poll(() => field.locator('.remove-override').count()).toBe(0);
+  expect(errors).toEqual([]);
 });
