@@ -10,13 +10,25 @@
  * the development build there (`liveDemoDevLit`), so the Timeline's render
  * lanes fill. The docs list the demo next to the example's StackBlitz embed.
  *
- * The docs build bundles the example with the docs' own Vite config, not the
- * example's: an example that needs a plugin of its own (Tailwind, UnoCSS)
- * needs it in the docs too.
+ * The docs build bundles the example with the docs' own Vite config. An
+ * example whose styles need build plugins of its own (UnoCSS, Tailwind,
+ * Lightning CSS targets) is marked `{build: 'own-config'}` instead: it is
+ * built apart with its own vite.config.ts, from the entry its index.html
+ * runs, and the demo page loads that build (src/lib/live-examples-own-build.mjs).
  */
-export const liveExamples: Record<string, () => Promise<unknown>> = {
+type LiveExample = (() => Promise<unknown>) | {build: 'own-config'};
+
+export const liveExamples: Record<string, LiveExample> = {
   flame: () => import('../../../examples/flame/src/lit-flame.ts'),
+  css: {build: 'own-config'},
+  tailwind: {build: 'own-config'},
 };
+
+/** The examples built with their own vite.config.ts. */
+export const ownConfigExamples = (): string[] =>
+  Object.keys(liveExamples).filter(
+    (name) => typeof liveExamples[name] !== 'function'
+  );
 
 /** The examples published as live demos, as `getStaticPaths()` lists them. */
 export const liveExamplePaths = () =>
