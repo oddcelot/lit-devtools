@@ -27,4 +27,3 @@ Allow: /
 Disallow: /pagefind/
 
 Sitemap: https://vite-plugin-lit.oddsquad.dev/sitemap-index.xml
-Agentmap: https://vite-plugin-lit.oddsquad.dev/.well-known/ai-catalog.json
