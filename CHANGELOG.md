@@ -3,6 +3,82 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.22.0 — 2026-10-24
+
+The Lit DevTools now run in any server. `createLitDevtools()` serves the
+panel from your app's own origin, without Vite or a second port, and docks it
+in a drawer along the bottom of the page. An Elysia example puts it next to
+server rendering on Bun, and a forms example shows form-associated elements
+with `:state()`. The panel takes its colours, type and code font from the Lit
+Design System, and agents can read the docs as Markdown. Nothing needs action
+to upgrade.
+
+### Added
+
+- **The Lit DevTools in any server.** `createLitDevtools()` from
+  `@oddsquad/vite-plugin-lit/devframe` gives a server without Vite (Elysia,
+  Hono, `Bun.serve`, a SvelteKit or Next.js route) one request handler for the
+  panel, its page script and its RPC on the app's own origin, with no
+  `lit-devtools dev` process or second port.
+- **The panel docks in the page.** With `createLitDevtools()`, a Lit button in
+  the corner opens the panel in a resizable drawer along the bottom of the
+  page, and picking an element opens it there instead of in another tab. It
+  reopens as you left it; pass `dock: false` to keep it a tab.
+- **An Elysia example, without Vite.** A guestbook that Elysia renders on Bun
+  with `@lit-labs/ssr`, streams, hydrates and keeps live over a WebSocket,
+  with a form that works before it hydrates. It shows the hydration traps to
+  avoid, attaches the standalone Lit DevTools, and builds into a single
+  executable.
+- **A forms example.** A text field, a switch and a star rating extend one
+  `FormControl` base class and work in a plain `<form>`: they submit with
+  `FormData`, block submit while invalid, reset, and follow a disabled
+  fieldset. Each shows what it is doing as `:state()` custom states for CSS to
+  style on.
+- **Every docs page has a Markdown copy.** Append `index.md` to a page's
+  address, follow its `rel="alternate"` link, or send `Accept: text/markdown`
+  to get the page as Markdown, with Link headers pointing to llms.txt and the
+  sitemap.
+- **An agent skill for the plugin.** Agents that read Agent Skills Discovery
+  find it at `/.well-known/agent-skills/` on the docs site: setup, CSS
+  delivery, hot-patch failures and the DevTools MCP server in one file.
+- **A setup prompt for coding agents.** The Installation page has a prompt to
+  copy into your agent; it installs the plugin, adds it to the Vite config and
+  registers the types, then lists what it changed.
+- **Browser agents can search and read the docs through WebMCP.** In a
+  browser with WebMCP, the docs offer `search_docs`, `read_docs_page` and
+  `open_docs_page` tools.
+
+### Changed
+
+- **The panel takes the Lit Design System's theme.** Its colours, focus ring,
+  motion and type scale come from the same tokens as the docs, in both colour
+  schemes. Corners stay square; pills, status dots and the Timeline's layer
+  chips are round.
+- **The panel sets code in Lilex.** Values, source locations, timings and the
+  Timeline's lanes use the Lilex monospace instead of the system one.
+- **The Updates count no longer looks like an error.** The number on the
+  Updates tab is blue instead of red; the orange count on Components still
+  flags Lit warnings.
+- **A lighter split between the tree and the details.** The divider in the
+  Components view is a hairline that lights up blue under the pointer, and is
+  just as easy to drag.
+- **The docs moved to vite-plugin-lit.oddsquad.dev.** Links in the DevTools
+  panel, the README and the extension listing point there, and the old
+  oddcelot.github.io/vite-plugin-lit/ addresses redirect.
+
+### Fixed
+
+- **A re-created child keeps its own listeners and lookups.** When a parent
+  edit makes Lit re-create a child, `#private` arrow-function listeners and
+  fields the child sets in `connectedCallback`, such as a form it looks up,
+  stay the new element's instead of being overwritten by the old one's.
+- **Dark outlines and nulls are legible.** In the dark scheme, unchecked
+  switches, inputs and outlined buttons have a visible outline, and `null`
+  values in the Properties view no longer fade into the background.
+- **The `./build` and `./astro/*` exports have types on JSR.** JSR no longer
+  warns that these entry points have no type declarations, and installing the
+  package from JSR types them like the others.
+
 ## 0.21.0 — 2026-10-19
 
 Lit Inspector now opens sources in your editor: on a page a Vite dev server
