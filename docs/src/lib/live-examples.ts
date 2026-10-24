@@ -49,8 +49,8 @@ export const liveExamples: Record<string, LiveExample> = {
     load: () => import('../../../examples/tutorial/src/my-element.ts'),
     demoRow: 'minmax(18rem, 45%)',
   },
-  css: {build: 'own-config'},
-  tailwind: {build: 'own-config'},
+  css: {build: 'own-config', demoRow: 'minmax(24rem, 55%)'},
+  tailwind: {build: 'own-config', demoRow: 'minmax(24rem, 55%)'},
 };
 
 /** The examples built with their own vite.config.ts. */
