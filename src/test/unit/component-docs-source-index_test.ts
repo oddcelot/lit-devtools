@@ -188,3 +188,46 @@ test('merges mixin members between the class and its base', () => {
     ['value', 'Base'],
   ]);
 });
+
+test('lists modules with their ancestry and where names lead', () => {
+  const {docs, add} = index();
+  add('/app/src/base.ts', BASE);
+  add(
+    '/app/src/x-a.ts?v=2',
+    `
+    import {Base} from './base.js';
+    import {Gone} from './gone.js';
+    class Local extends Base {}
+    @customElement('x-a')
+    export class XA extends Local {}
+  `,
+    {'./base.js': '/app/src/base.ts?v=1'}
+  );
+  const modules = docs.modules();
+  expect(modules.map((m) => m.id)).toEqual([
+    '/app/src/base.ts',
+    '/app/src/x-a.ts',
+  ]);
+  const xa = modules[1];
+  const [local, cls] = xa.module.classes;
+  expect(xa.moduleOf(cls.superclass!)).toBe('/app/src/x-a.ts');
+  expect(xa.moduleOf(local.superclass!)).toBe('/app/src/base.ts');
+  expect(xa.moduleOf({name: 'Gone', specifier: './gone.js'})).toBeUndefined();
+  expect(xa.ancestorsOf(cls).map((a) => [a.name, a.id])).toEqual([
+    ['Local', '/app/src/x-a.ts'],
+    ['Base', '/app/src/base.ts'],
+  ]);
+});
+
+test('subscribers hear each set and each delete that dropped a module', () => {
+  const {docs, add} = index();
+  let calls = 0;
+  const unsubscribe = docs.subscribe(() => calls++);
+  add('/app/src/base.ts', BASE);
+  docs.delete('/app/src/base.ts?v=2');
+  docs.delete('/app/src/base.ts');
+  expect(calls).toBe(2);
+  unsubscribe();
+  add('/app/src/base.ts', BASE);
+  expect(calls).toBe(2);
+});

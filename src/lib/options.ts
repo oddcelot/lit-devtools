@@ -9,8 +9,14 @@ import {SETTINGS, type SourcedKey} from './setting-definitions.js';
 import {type CssSheetBuild, resolveCssSheetBuild} from './css-sheet-build.js';
 import {ENV_PREFIX, envBool, envEnum, envNum} from './env.js';
 import type {ChildStateMode} from './runtime/child-state.js';
+import {
+  type ManifestOptions,
+  type ResolvedManifest,
+  resolveManifest,
+} from './manifest-options.js';
 
 export type {CssSheetBuild} from './css-sheet-build.js';
+export type {ManifestOptions} from './manifest-options.js';
 
 /**
  * On-page HMR feedback: a small pulsing indicator in the corner of the host
@@ -143,6 +149,16 @@ export interface LitPluginOptions {
    * answer. Defaults to `true`.
    */
   devtoolsWorkspace?: boolean | string;
+
+  /**
+   * Write a Custom Elements Manifest (`custom-elements.json`, schema 2.1)
+   * from the project's own sources: the components' tags, JSDoc, reactive
+   * properties and attributes, read the way the DevTools panel reads them.
+   * `true` emits it from `vite build` and serves it from the dev server; an
+   * object picks each output, and `write` also keeps a copy in the project.
+   * Defaults to `false`.
+   */
+  manifest?: boolean | ManifestOptions;
 }
 
 /** Plugin options after merging explicit options, env vars, and defaults. */
@@ -157,6 +173,7 @@ export interface ResolvedOptions {
   timeline: boolean;
   cssSheetBuild: CssSheetBuild;
   devtoolsWorkspace: boolean | string;
+  manifest: ResolvedManifest | false;
   /**
    * Which layer each panel-visible setting came from. Source-overlay keys are
    * present only when the overlay is enabled.
@@ -366,6 +383,7 @@ export const resolveOptions = (
     timeline: timeline.value,
     cssSheetBuild,
     devtoolsWorkspace,
+    manifest: resolveManifest(options.manifest),
     sources,
   };
 };

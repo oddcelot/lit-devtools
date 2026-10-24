@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: 'The lit-devtools command: dev, mcp and build, with their flags and their optional peers.'
+description: 'The lit-devtools command: dev, manifest, mcp and build, with their flags and their optional peers.'
 sidebar:
   order: 5
 ---
@@ -8,8 +8,8 @@ sidebar:
 import {CardGrid, LinkCard} from '@astrojs/starlight/components';
 import Since from '../../../components/Since.astro';
 
-The `lit-devtools` command runs the panel on its own or bridges it to a coding
-agent. It needs two optional peers, and it talks to a dev server you already
+The `lit-devtools` command runs the panel on its own, writes a Custom Elements
+Manifest, or bridges the panel to a coding agent. It needs two optional peers, and it talks to a dev server you already
 started.
 
 ## Install the peers
@@ -130,6 +130,32 @@ const disconnect = await connectToDevServer('http://localhost:5180/');
 Pass `{authToken}` as the second argument to skip the code prompt. From another
 origin, also pass `{connectionMeta}` (the JSON the server serves at
 `/__connection.json`), since the browser blocks the page from fetching it.
+
+## lit-devtools manifest
+
+<Since v="0.24.0" />
+
+Writes a Custom Elements Manifest from every script under `src`, the same
+reading the [`manifest`](/reference/options/#manifest) option does.
+
+```sh frame="terminal"
+npx lit-devtools manifest --src src --src lib --out dist/custom-elements.json
+```
+
+| Flag               | Repeatable | Meaning                                                 |
+| ------------------ | ---------- | ------------------------------------------------------- |
+| `[root]`           | no         | The project folder; defaults to the current one         |
+| `--src <dir>`      | yes        | Folder to read, relative to the root; defaults to `src` |
+| `--out <file>`     | no         | File to write; defaults to `custom-elements.json`       |
+| `--stdout`         | no         | Print the manifest instead of writing it                |
+| `--config <file>`  | no         | Vite config to resolve imports with                     |
+| `--no-vite-config` | no         | Resolve imports without any Vite config                 |
+
+Imports resolve through a Vite server in middleware mode, which loads your
+`vite.config` as `vite` would, so aliases apply. It reads `.js`, `.ts`, `.jsx`
+and `.tsx` files and their `m`/`c` variants. It skips declaration files,
+dotfiles, `node_modules` and `dist`. As with the option's `write`, an empty
+`customElements` field in `package.json` is set to the file it wrote.
 
 ## lit-devtools mcp
 

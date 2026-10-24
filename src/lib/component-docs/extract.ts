@@ -92,10 +92,22 @@ export interface MixinDocs {
   docs: ClassDocsBody;
 }
 
+/**
+ * A class or mixin the module exports: `name` is what importers ask for
+ * (`default` for the default export), `local` the declaration's name in the
+ * module (`default` for an anonymous `export default class`).
+ */
+export interface ModuleExport {
+  name: string;
+  local: string;
+}
+
 export interface ModuleDocs {
   classes: ClassDocs[];
   /** Absent when the module declares none. */
   mixins?: MixinDocs[];
+  /** The classes and mixins above it exports; absent when it exports none. */
+  exports?: ModuleExport[];
 }
 
 // --- imports and registrations ---------------------------------------------
@@ -323,6 +335,41 @@ const mixinDocs = (
   return result;
 };
 
+// --- exports ---------------------------------------------------------------
+
+/** The names a top-level `export` statement binds, as export to local. */
+const exportedBindings = (statement: Node): ModuleExport[] => {
+  const declaration = child(statement, 'declaration');
+  if (statement.type === 'ExportDefaultDeclaration') {
+    const local =
+      declaration?.type === 'Identifier'
+        ? nameOf(declaration)
+        : (nameOf(child(declaration, 'id')) ?? 'default');
+    return local === undefined ? [] : [{name: 'default', local}];
+  }
+  if (statement.type !== 'ExportNamedDeclaration') return [];
+  // `export {A} from './a.js'` re-exports another module's declaration.
+  if (child(statement, 'source') !== undefined) return [];
+  if (declaration?.type === 'VariableDeclaration')
+    return nodes(declaration.declarations).flatMap((d) => {
+      const name = nameOf(child(d, 'id'));
+      return name === undefined ? [] : [{name, local: name}];
+    });
+  const declared = nameOf(child(declaration, 'id'));
+  if (declared !== undefined) return [{name: declared, local: declared}];
+  return nodes(statement.specifiers).flatMap((spec) => {
+    const local = nameOf(child(spec, 'local'));
+    const name = nameOf(child(spec, 'exported'));
+    return local === undefined || name === undefined ? [] : [{name, local}];
+  });
+};
+
+/** The exports of `program` that name one of `declared`. */
+const exportsOf = (program: Node, declared: Set<string>): ModuleExport[] =>
+  nodes(program.body)
+    .flatMap(exportedBindings)
+    .filter((binding) => declared.has(binding.local));
+
 /**
  * The classes `code` declares at its top level, with their docs. `id` is the
  * module's id; its extension picks the parser's language.
@@ -347,11 +394,17 @@ export const extractModuleDocs = (code: string, id: string): ModuleDocs => {
     const docs = mixinDocs(code, site, context.imports);
     return docs === undefined ? [] : [docs];
   });
+  const classes = classSites(program).flatMap((site) => {
+    const docs = classDocs(code, site, context);
+    return docs === undefined ? [] : [docs];
+  });
+  const exports = exportsOf(
+    program,
+    new Set([...classes, ...mixins].map((declaration) => declaration.name))
+  );
   return {
-    classes: classSites(program).flatMap((site) => {
-      const docs = classDocs(code, site, context);
-      return docs === undefined ? [] : [docs];
-    }),
+    classes,
     ...(mixins.length > 0 ? {mixins} : {}),
+    ...(exports.length > 0 ? {exports} : {}),
   };
 };
