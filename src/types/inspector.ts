@@ -675,17 +675,18 @@ export type InspectorCommand =
    */
   | {type: 'anatomy-focus'; focus: AnatomyFocus | null}
   /**
-   * Opt-in live tree: when enabled, the runtime watches the DOM and pushes a
-   * fresh `tree` message whenever the component hierarchy changes. Off by
-   * default (the panel otherwise refreshes on demand / on pick).
+   * Live tree: when enabled, the runtime watches the DOM and pushes a fresh
+   * `tree` message whenever the component hierarchy changes, paced by what
+   * a rebuild costs and held while the Timeline records. The Components
+   * view turns it on while it is open; off otherwise.
    */
   | {type: 'observe'; enabled: boolean}
   /**
    * The last panel watching this page is gone: take down what panels left on
-   * it (outlines, anatomy, breakpoints, Live and the watch). Sent by a host
-   * that sees a panel close before the page can, such as the browser
-   * extension's background. Ignored while a panel on the in-page channel is
-   * still connected.
+   * it (outlines, anatomy, breakpoints, the tree observer and the watch).
+   * Sent by a host that sees a panel close before the page can, such as the
+   * browser extension's background. Ignored while a panel on the in-page
+   * channel is still connected.
    */
   | {type: 'release'}
   /**

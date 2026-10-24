@@ -67,7 +67,7 @@ const mount = async (picker = false, roots: InspectorTreeNode[] = tree) => {
   return {
     el,
     root,
-    pick: () => root.querySelector<HTMLElement>('lit-button.pick'),
+    pick: () => root.querySelector<HTMLElement>('lit-icon-button.pick'),
     rows: () => [...root.querySelectorAll<HTMLElement>('.row')],
     inspects: () =>
       calls.filter((c) => c.name === 'inspect').map((c) => c.args[0]),
@@ -107,6 +107,25 @@ test('Pick starts the picker in the page', async () => {
   await flush(el);
   expect(inspects()).toContainEqual({type: 'pick'});
   expect(pick()!.classList.contains('active')).toBe(true);
+  // The button inside carries it: the host has no role.
+  expect(
+    pick()!
+      .shadowRoot!.querySelector('[part~="base"]')!
+      .getAttribute('aria-pressed')
+  ).toBe('true');
+});
+
+test('groups the toggles that stay on, with Pick apart by the filter', async () => {
+  const {root, pick} = await mount(true);
+  const group = root.querySelector('wa-button-group.toggles')!;
+  expect(
+    [...group.querySelectorAll('lit-button')].map((b) => b.className.trim())
+  ).toEqual(['flash', 'anatomy']);
+  expect(group.contains(pick())).toBe(false);
+  expect(pick()!.nextElementSibling?.classList.contains('tree-filter')).toBe(
+    true
+  );
+  expect(pick()!.getAttribute('label')).toBe('Pick an element');
 });
 
 test('a pick from the page selects it and asks to be brought forward', async () => {
@@ -321,19 +340,33 @@ test('Anatomy turned off stays off', async () => {
 // The session's rules are `components-session_test.ts`'s; these check the
 // element wires them to the page, the shell and storage.
 
-test('pausing Live remembers it and pulls one fresh tree', async () => {
-  const {el, root, inspects} = await mount();
-  const before = inspects().length;
-  root.querySelector<HTMLElement>('lit-button.live')!.click();
-  await flush(el);
-  expect(inspects().slice(before)).toEqual([
-    {type: 'observe', enabled: false},
-    {type: 'tree'},
-  ]);
-  expect(localStorage.getItem(LIVE_LS_KEY)).toBe('false');
+test('keeps the tree live, whatever an older version stored', async () => {
+  // Left behind by the Live toggle, which is gone.
+  localStorage.setItem(LIVE_LS_KEY, 'false');
+  const {root, inspects} = await mount();
+  expect(inspects()).toContainEqual({type: 'observe', enabled: true});
+  expect(root.querySelector('lit-button.live')).toBeNull();
 });
 
-test('never arms Live in a snapshot', async () => {
+test('holds tree updates while the pointer is over the tree', async () => {
+  const {el, root, rows} = await mount();
+  const treeEl = root.querySelector<HTMLElement>('.tree')!;
+  const banner = {id: 9, tagName: 'x-banner', children: []};
+  treeEl.dispatchEvent(new MouseEvent('mouseenter'));
+  push('inspector-message', {type: 'tree', roots: [banner, ...tree]});
+  await flush(el);
+  expect(rows().map((r) => r.querySelector('.tag')!.textContent)).toEqual([
+    '<x-app>',
+  ]);
+  treeEl.dispatchEvent(new MouseEvent('mouseleave'));
+  await flush(el);
+  expect(rows().map((r) => r.querySelector('.tag')!.textContent)).toEqual([
+    '<x-banner>',
+    '<x-app>',
+  ]);
+});
+
+test('never observes the tree in a snapshot', async () => {
   setSnapshot(true);
   const {inspects} = await mount();
   expect(inspects()).toEqual([]);

@@ -154,8 +154,8 @@ export const sendToPage = (command: InspectorCommand): void => {
 
 /**
  * Connect the lazy in-page channel. The page only learns the panel is gone
- * over it, so Live mode, which the page must stop when the panel leaves,
- * touches it even if the user never hovers the tree.
+ * over it, so the live tree, which the page must stop observing when the
+ * panel leaves, touches it even if the user never hovers the tree.
  */
 export const touchPageChannel = (): void => {
   if (!isSnapshot()) inPageConnected();

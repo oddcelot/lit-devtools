@@ -402,10 +402,10 @@ through the dev server, and check the browser console for a failed script.
 pre-bundled dependency outside Vite's transform, or lit loaded after the runtime
 announced itself.
 
-**Fix.** Wait or navigate (with **Live** on, the tree picks up components as
-they render; if you paused it, turn it back on), and check Settings, About, for
-the Lit packages (`lit-html`, `lit-element`, `@lit/reactive-element`) the
-runtime detected.
+**Fix.** Wait or navigate (the tree picks up components as they render, once
+the pointer is off it and, while the Timeline records, once recording stops),
+and check Settings, About, for the Lit packages (`lit-html`, `lit-element`,
+`@lit/reactive-element`) the runtime detected.
 
 ### A source link opens nothing in your editor
 

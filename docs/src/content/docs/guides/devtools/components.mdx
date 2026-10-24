@@ -375,8 +375,8 @@ from your source. A snapshot carries neither, so it shows none.
 
 ## Pick an element on the page
 
-Press **⌖ Pick** in the toolbar, or **Meta+Shift+E** (**⌘⇧E** on a Mac),
-which is also in the DevTools command palette as _Pick Lit Element_. Move the
+Press **⌖ Pick**, the crosshair beside the filter, or **Meta+Shift+E**
+(**⌘⇧E** on a Mac), which is also in the DevTools command palette as _Pick Lit Element_. Move the
 pointer over the page and click the element you want. **↑** and **↓** step
 out to the element around the outlined one and back.
 
@@ -397,26 +397,31 @@ tree; hold Ctrl or ⌘ while clicking to open it in your editor instead.
 
 ## Follow changes live
 
-**Live** is on by default: a `MutationObserver` in the page re-pushes the tree
-as the component hierarchy changes, including inside shadow roots. Changes to
-text and plain markup are ignored, so they cost no tree rebuild.
+The tree is always live: a `MutationObserver` in the page re-pushes it as the
+component hierarchy changes, including inside shadow roots. Changes to text
+and plain markup are ignored, so they cost no tree rebuild.
 
-Toggle Live off to pause the tree, for example to click through a list that
-keeps re-rendering, or to keep the observer's work out of a timeline recording
-on a heavy page. Pausing takes one last snapshot of the tree; turning Live back
-on brings it up to date. The choice is remembered per browser.
-
-Live follows any change to the page, whatever makes it. A client-side router,
+It follows any change to the page, whatever makes it. A client-side router,
 htmx, or Turbo Drive swapping in a whole new `<body>`, as webawesome.com does,
-all update the tree a moment after the page changes. With Live off, the tree
-refreshes itself twice after a client-side navigation, at 150 ms and 1 s. A
-route that renders later than that stays out until you refresh or turn Live on.
+all update the tree a moment after the page changes.
+
+While the pointer is over the tree, updates wait, so the rows you are aiming
+at stay put and a list that keeps re-rendering can still be clicked through.
+Moving the pointer off the tree brings it up to date in one go. The selection
+is kept either way.
 
 The observer itself is cheap: it reports added and removed elements, never
-text or attribute changes. The cost is the tree rebuild after a change. The
-runtime waits 100 ms after the last change, rebuilds once, and sends the tree
-only when it differs. A page that keeps inserting components, such as a large
-virtualised list, rebuilds about every 100 ms while it does.
+text or attribute changes. The cost is the tree rebuild after a change, and
+the runtime paces those by what they cost: the next rebuild waits at least
+100 ms, or five times as long as the last one took if that is more, and the
+tree is sent only when it differs. A page that keeps changing still gets a
+fresh tree on that beat, and a page with a large tree spends no more than a
+small share of its main thread on it.
+
+While the [Timeline](/guides/devtools/timeline/) records, the tree does not
+rebuild at all, so its work stays out of the recording; it catches up once
+recording stops. The page cannot tell when the browser's own Performance panel
+is recording, so there only the pacing applies.
 
 A Lit component with a closed shadow root, set with
 `shadowRootOptions = {mode: 'closed'}`, is listed and watched like any other:
@@ -424,14 +429,15 @@ Lit keeps the root on the element as `renderRoot`, and the tree reads it
 there. A closed root attached by anything other than Lit stays hidden, and
 elements rendered inside it are missing from the tree.
 
-Closing the panel stops the page observer, and reopening it with Live on
-starts it again. That holds for a panel opened as its own tab too: closing the
-tab, or leaving it for another page, stops Live and clears the anatomy overlay
-and any outline the panel drew.
+Closing the panel stops the page observer, and reopening it starts it again.
+That holds for a panel opened as its own tab too: closing the tab, or leaving
+it for another page, stops the observer and clears the anatomy overlay and any
+outline the panel drew.
 
 ## Flash elements that update
 
-**⚡ Flash** draws a short fading outline over every Lit element that finishes
+**⚡ Flash**, one of the two switches grouped at the right of the toolbar,
+draws a short fading outline over every Lit element that finishes
 an update, so re-render churn shows up on the page itself rather than only in
 the [Updates tab](/guides/devtools/updates/). It is off by
 default and does not depend on recording. Leave it on while you click around
@@ -459,7 +465,8 @@ boot and they survive a reload.
 
 <Since v="0.15.0" />
 
-**Anatomy** draws the selected element's composition on the page: a grey
+**Anatomy**, the other switch in that group, draws the selected element's
+composition on the page: a grey
 outline round the element, one coloured region per slot, and a dashed box per
 `::part` export. Each region carries a label such as `slot "title"`,
 `default slot` or `::part(body)`. The toggle follows the selection, so picking

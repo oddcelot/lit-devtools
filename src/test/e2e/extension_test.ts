@@ -617,7 +617,7 @@ test("the Lit tab shows the page's components, picks, and follows a reload", asy
 
   // Pick: the panel's toggle reaches the page's picker through the port, and
   // the pick comes back the same way and selects the element.
-  await panel.locator('components-view lit-button.pick').click();
+  await panel.locator('components-view lit-icon-button.pick').click();
   await expect
     .poll(() =>
       page.evaluate(() =>

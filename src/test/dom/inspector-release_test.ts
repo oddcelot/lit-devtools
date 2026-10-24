@@ -8,6 +8,7 @@ import {
   INSPECT_DATA_CHANNEL,
   type PageBreakpoints,
 } from '../../types/inspector.js';
+import {CHANNEL_RECORDING_CHANGED} from '../../types/timeline.js';
 
 // The real in-page channel never connects under happy-dom; this lets a test
 // play "the panel connected / disconnected". install.ts only uses `events.on`.
@@ -86,7 +87,7 @@ const make = () => {
   return document.createElement(tag);
 };
 
-// The runtime debounces tree pushes by 100 ms.
+// The runtime paces tree pushes at no less than 100 ms apart.
 const settle = () => new Promise((r) => setTimeout(r, 250));
 
 const hasOwnUpdated = (el: Element) =>
@@ -201,6 +202,33 @@ test('a release command leaves a connected in-page panel alone', async () => {
   const before = trees(carrier);
   document.body.append(make());
   await settle();
+  expect(trees(carrier)).toBeGreaterThan(before);
+});
+
+test('holds tree pushes while the Timeline records, then catches up', async () => {
+  const {carrier} = await load();
+  fire('panel:connected', 'p1');
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: true});
+  carrier.deliver(CHANNEL_RECORDING_CHANGED, {recording: true});
+  const before = trees(carrier);
+  document.body.append(make());
+  await settle();
+  expect(trees(carrier)).toBe(before);
+  carrier.deliver(CHANNEL_RECORDING_CHANGED, {recording: false});
+  await settle();
+  expect(trees(carrier)).toBe(before + 1);
+});
+
+test('a page that keeps changing still gets fresh trees', async () => {
+  const {carrier} = await load();
+  fire('panel:connected', 'p1');
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'observe', enabled: true});
+  const before = trees(carrier);
+  // A change every 30 ms would starve a debounce that restarts on each one.
+  for (let i = 0; i < 12; i++) {
+    document.body.append(make());
+    await new Promise((r) => setTimeout(r, 30));
+  }
   expect(trees(carrier)).toBeGreaterThan(before);
 });
 

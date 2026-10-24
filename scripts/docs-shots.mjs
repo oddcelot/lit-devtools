@@ -379,7 +379,7 @@ const SHOTS = [
     capture: async (ctx) => {
       const app = await ctx.openApp();
       const panel = await ctx.openPanel('#tab=components');
-      const pick = componentsView(panel).locator('css=lit-button.pick');
+      const pick = componentsView(panel).locator('css=lit-icon-button.pick');
       await pick.waitFor();
       await pick.click();
       await app.bringToFront();
