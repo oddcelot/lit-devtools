@@ -31,6 +31,7 @@ import equals from '@phosphor-icons/core/assets/regular/equals.svg?raw';
 import exportIcon from '@phosphor-icons/core/assets/regular/export.svg?raw';
 import fileCode from '@phosphor-icons/core/assets/regular/file-code.svg?raw';
 import gear from '@phosphor-icons/core/assets/regular/gear.svg?raw';
+import info from '@phosphor-icons/core/assets/regular/info.svg?raw';
 import lightning from '@phosphor-icons/core/assets/regular/lightning.svg?raw';
 import magnifyingGlass from '@phosphor-icons/core/assets/regular/magnifying-glass.svg?raw';
 import pencilSimple from '@phosphor-icons/core/assets/regular/pencil-simple.svg?raw';
@@ -69,6 +70,7 @@ const ICONS = {
   export: exportIcon,
   'file-code': fileCode,
   gear,
+  info,
   lightning,
   'magnifying-glass': magnifyingGlass,
   notification,

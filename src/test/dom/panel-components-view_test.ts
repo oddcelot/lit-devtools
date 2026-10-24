@@ -3182,3 +3182,93 @@ test('details-only shows just the details, for the element the host inspector se
     resetFollowedElement();
   }
 });
+
+const withPrivate = (stokes = '0') => ({
+  ...filterable(),
+  privateFields: [
+    {name: 'stokes', value: stokes, type: 'number'},
+    {name: 'cache', value: 'Map(1)', type: 'Map', expandable: true},
+  ],
+});
+
+test('lists #private fields after State, read-only', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: withPrivate()});
+  await flush(el);
+  expect(sections(root)).toEqual([
+    'Properties 1 open',
+    'State 1 open',
+    'Private 2 open',
+    'Attributes 1 open',
+    'Instance 2 open',
+  ]);
+  const section = root.querySelector('details[data-section="Private"]')!;
+  expect(
+    [...section.querySelectorAll('.entry > .name')].map((n) =>
+      n.textContent!.replace(/\s+/g, ' ').trim()
+    )
+  ).toEqual(['#stokes', '#cache']);
+  expect(section.querySelector('[data-key="r:stokes"]')).not.toBeNull();
+  expect(section.querySelector('lit-input')).toBeNull();
+  expect(section.querySelector('.origin')?.getAttribute('data-tip')).toMatch(
+    /hmr\.privateFields/
+  );
+});
+
+test('no Private section without #private fields', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: filterable()});
+  await flush(el);
+  expect(root.querySelector('details[data-section="Private"]')).toBeNull();
+});
+
+test('the filter matches a #private field by its #name', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: withPrivate()});
+  await flush(el);
+  await typeFilter(el, root, '#sto');
+  expect(sections(root)).toEqual(['Private 1/2 open']);
+});
+
+test('a #private field flashes when it changes, and folds', async () => {
+  const animate = vi.fn();
+  const original = Object.getOwnPropertyDescriptor(
+    HTMLElement.prototype,
+    'animate'
+  );
+  Object.defineProperty(HTMLElement.prototype, 'animate', {
+    value: animate,
+    configurable: true,
+  });
+  try {
+    const {el, root} = await mount(true);
+    push('inspector-message', {type: 'pick', id: 2});
+    push('inspector-message', {type: 'details', details: withPrivate('0')});
+    await flush(el);
+    push('inspector-message', {type: 'details', details: withPrivate('2')});
+    await flush(el);
+    expect(
+      animate.mock.contexts.map((row) => (row as HTMLElement).dataset['key'])
+    ).toEqual(['r:stokes']);
+
+    const section = root.querySelector<HTMLDetailsElement>(
+      'details[data-section="Private"]'
+    )!;
+    section.open = false;
+    section.dispatchEvent(new Event('toggle'));
+    await flush(el);
+    expect(sections(root)).toContain('Private 2 folded');
+    expect(JSON.parse(localStorage.getItem(COLLAPSED_LS_KEY)!)).toEqual([
+      'Private',
+    ]);
+  } finally {
+    if (original === undefined) {
+      delete (HTMLElement.prototype as {animate?: unknown}).animate;
+    } else {
+      Object.defineProperty(HTMLElement.prototype, 'animate', original);
+    }
+  }
+});
