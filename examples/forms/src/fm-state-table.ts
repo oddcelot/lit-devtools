@@ -48,20 +48,17 @@ export class FmStateTable extends LitElement {
   /** The `id` of the form, in the same root as the table. */
   @property() for = '';
 
-  // Plain `private`, not `#`: a hot patch that re-creates this element
-  // copies `#` fields to the new one, and these belong to this instance (the
-  // listener is bound to it, and the old one clears the form on disconnect).
-  private form?: HTMLFormElement;
-  private frame = 0;
+  #form?: HTMLFormElement;
+  #frame = 0;
 
   override connectedCallback() {
     super.connectedCallback();
     const root = this.getRootNode() as Document | ShadowRoot;
     const form = root.getElementById(this.for);
     if (form instanceof HTMLFormElement) {
-      this.form = form;
+      this.#form = form;
       for (const type of EVENTS) {
-        form.addEventListener(type, this.refresh, true);
+        form.addEventListener(type, this.#refresh, true);
       }
     }
   }
@@ -69,21 +66,21 @@ export class FmStateTable extends LitElement {
   override disconnectedCallback() {
     super.disconnectedCallback();
     for (const type of EVENTS) {
-      this.form?.removeEventListener(type, this.refresh, true);
+      this.#form?.removeEventListener(type, this.#refresh, true);
     }
-    this.form = undefined;
+    this.#form = undefined;
   }
 
   // The controls set their states when they update, after the event, and
   // a reset lands after its event too. Read them a frame later, once for
   // a burst of events (a failed submit fires `invalid` at every control).
-  private refresh = () => {
-    cancelAnimationFrame(this.frame);
-    this.frame = requestAnimationFrame(() => this.requestUpdate());
+  #refresh = () => {
+    cancelAnimationFrame(this.#frame);
+    this.#frame = requestAnimationFrame(() => this.requestUpdate());
   };
 
   override render() {
-    const controls = [...(this.form?.elements ?? [])].filter(
+    const controls = [...(this.#form?.elements ?? [])].filter(
       (el): el is FormControl<unknown> => el instanceof FormControl
     );
     return html`
@@ -112,7 +109,7 @@ export class FmStateTable extends LitElement {
 
   // The controls' states are first set after their own first update.
   override firstUpdated() {
-    this.refresh();
+    this.#refresh();
   }
 }
 
