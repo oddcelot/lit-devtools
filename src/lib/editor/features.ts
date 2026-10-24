@@ -7,6 +7,12 @@
 
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
 import {
+  type EventHandler,
+  memberAccessAt,
+  membersOf,
+  eventHandlers,
+} from './handlers.js';
+import {
   type Binding,
   type CursorContext,
   type DocumentKind,
@@ -387,6 +393,70 @@ const valueCompletions = async (
   }));
 };
 
+/** The type of the event a handler's attribute names, when it's known. */
+const handlerType = async (
+  source: DocsSource,
+  file: string,
+  handler: EventHandler
+): Promise<string | undefined> => {
+  const {element, attribute} = handler;
+  const candidates = await candidatesFor(source, file, element.tag, '@');
+  return candidates.find(({entry}) => entry.name === attribute.name)?.entry
+    .type;
+};
+
+/** `ev.` and `ev.detail.` in an inline handler, from the event's type. */
+const memberCompletions = async (
+  source: DocsSource,
+  request: FeatureRequest
+): Promise<Completion[]> => {
+  const {file, code: text, kind, offset, templateTags} = request;
+  const access = memberAccessAt(text, kind, offset, {templateTags});
+  if (!access) return [];
+  const type = await handlerType(source, file, access.handler);
+  if (!type) return [];
+  return membersOf(type, access.path).map((member, i) => ({
+    label: member.name,
+    kind: COMPLETION_KIND.property,
+    detail: member.type,
+    sortText: order(i),
+    start: access.start,
+    end: access.end,
+    newText: member.name,
+  }));
+};
+
+/** An untyped inline handler, the type its event has, and the edit that writes it. */
+export interface HandlerType {
+  handler: EventHandler;
+  type: string;
+  edit: {start: number; end: number; newText: string};
+}
+
+/**
+ * The inline handlers whose parameter has no type but whose event has one:
+ * for an inlay hint showing it, and a code action writing it in.
+ */
+export const handlerTypes = async (
+  source: DocsSource,
+  request: Omit<FeatureRequest, 'offset'>
+): Promise<HandlerType[]> => {
+  const {file, code: text, kind, templateTags} = request;
+  const untyped = eventHandlers(text, kind, {templateTags}).filter(
+    (handler) => !handler.param.typed
+  );
+  const typed = await Promise.all(
+    untyped.map(async (handler) => {
+      const type = await handlerType(source, file, handler);
+      if (!type) return [];
+      const {name, start, end, parenthesized} = handler.param;
+      const newText = parenthesized ? `${name}: ${type}` : `(${name}: ${type})`;
+      return [{handler, type, edit: {start, end, newText}}];
+    })
+  );
+  return typed.flat();
+};
+
 /** The completion items for the cursor, or none outside a start tag. */
 export const completionsAt = async (
   source: DocsSource,
@@ -394,7 +464,7 @@ export const completionsAt = async (
 ): Promise<Completion[]> => {
   const {file, code: text, kind, offset, templateTags} = request;
   const context = contextAt(text, kind, offset, {templateTags});
-  if (!context) return [];
+  if (!context) return memberCompletions(source, request);
   if (context.kind === 'tag') return tagCompletions(source, file, context);
   return context.kind === 'attribute'
     ? attributeCompletions(source, file, context)

@@ -3,6 +3,7 @@ import type {ComponentDocs} from '../../types/component-docs.js';
 import {
   type DocsSource,
   completionsAt,
+  handlerTypes,
   hoverAt,
   literalValues,
 } from '../../lib/editor/features.js';
@@ -337,4 +338,57 @@ test('drops the indent of wrapped tag lines, but not inside fenced code', async 
   expect(hover?.markdown).toBe(
     '**`@go`** event of `<x-button>`\n\nFires when it\ngoes.\n```js\nif (x) {\n    run();\n}\n```'
   );
+});
+
+describe('inline event handlers', () => {
+  const card: ComponentDocs = {
+    ...button,
+    events: [
+      {name: 'add-to-cart', type: 'CustomEvent<{id: string; price: number}>'},
+    ],
+  };
+  const handlerSource: DocsSource = {
+    get: async (_file, tag) =>
+      tag === 'x-card' ? {...card, tagName: 'x-card'} : null,
+    tags: async () => ['x-card'],
+    globals: () => ({
+      attributes: [],
+      events: [{name: 'click', type: 'MouseEvent'}],
+    }),
+  };
+
+  test("completes the detail's keys after ev.detail.", async () => {
+    const items = await completionsAt(
+      handlerSource,
+      lit('<main @add-to-cart=${(ev) => ev.detail.‸}>')
+    );
+    expect(items.map((item) => [item.label, item.detail])).toEqual([
+      ['id', 'string'],
+      ['price', 'number'],
+    ]);
+  });
+
+  test('lists untyped handlers with the edit that types them', async () => {
+    const text =
+      'html`<main @add-to-cart=${(ev) => go(ev)} @click=${e => f(e)} @x=${(a: A) => a}>`';
+    const found = await handlerTypes(handlerSource, {
+      file: '/app/src/a.ts',
+      code: text,
+      kind: 'script',
+    });
+    expect(
+      found.map(({type, edit}) => ({
+        type,
+        replaces: text.slice(edit.start, edit.end),
+        newText: edit.newText,
+      }))
+    ).toEqual([
+      {
+        type: 'CustomEvent<{id: string; price: number}>',
+        replaces: 'ev',
+        newText: 'ev: CustomEvent<{id: string; price: number}>',
+      },
+      {type: 'MouseEvent', replaces: 'e', newText: '(e: MouseEvent)'},
+    ]);
+  });
 });
