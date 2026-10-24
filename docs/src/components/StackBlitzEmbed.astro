@@ -69,6 +69,17 @@ const query = (extra: Record<string, string>) => {
   }
   {
     live && (
+      <p class="live-hint not-content">
+        Live runs without a dev server, so it can't edit files.{' '}
+        <button type="button" data-view="stackblitz">
+          Switch to StackBlitz
+        </button>{' '}
+        to make the edits above.
+      </p>
+    )
+  }
+  {
+    live && (
       <live-demo class="live" data-src={live}>
         <iframe credentialless title={`${title}, live with the DevTools panel`} />
       </live-demo>
@@ -244,6 +255,9 @@ const query = (extra: Record<string, string>) => {
     };
     for (const b of buttons)
       b.addEventListener('click', () => show(b.dataset.view ?? 'live'));
+    figure
+      .querySelector<HTMLButtonElement>('.live-hint button')
+      ?.addEventListener('click', () => show('stackblitz'));
     const embed = figure.querySelector<HTMLElement>('stackblitz-embed');
     if (sessionStorage.getItem(PENDING) === embed?.dataset.src)
       show('stackblitz');
@@ -264,7 +278,8 @@ const query = (extra: Record<string, string>) => {
     background: var(--sl-color-gray-6);
   }
   .stackblitz-embed[data-view='live'] stackblitz-embed,
-  .stackblitz-embed[data-view='stackblitz'] live-demo {
+  .stackblitz-embed[data-view='stackblitz'] live-demo,
+  .stackblitz-embed[data-view='stackblitz'] .live-hint {
     display: none;
   }
   live-demo {
@@ -341,6 +356,20 @@ const query = (extra: Record<string, string>) => {
   .views button[aria-pressed='true'] {
     background: var(--sl-color-accent);
     color: var(--sl-color-text-invert);
+  }
+  .live-hint {
+    margin: 0 0 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .live-hint button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--sl-color-text-accent);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
   }
   .stackblitz-embed figcaption {
     display: flex;

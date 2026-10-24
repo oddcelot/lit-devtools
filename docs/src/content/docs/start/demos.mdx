@@ -27,8 +27,8 @@ press **Stuck? Reload the demo**.
 ## Lit flame
 
 One component, edited while it runs. Turn its colours, stoke it and blow it
-out, then edit `src/lit-flame.ts` and watch its state, `#private` field and
-colours survive. The
+out; then, on **StackBlitz**, edit `src/lit-flame.ts` and watch its state,
+`#private` field and colours survive. The
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/flame)
 lists edits to try.
 
@@ -51,7 +51,8 @@ the same.
 
 A component built from [Web Awesome](https://webawesome.com) elements, a
 third-party Lit library. Add items to the packing list, tick a few and type
-into the input, then edit `src/packing-list.ts`: the plugin patches your
+into the input; then, on **StackBlitz**, edit `src/packing-list.ts`: the
+plugin patches your
 component and leaves the library's elements alone, so their checked boxes and
 half-typed text survive too. See the
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/web-awesome).
@@ -81,9 +82,10 @@ the `add-to-cart` event to the cart button's. See the
 ## CSS
 
 One card per way of delivering CSS to a shadow root, with real UnoCSS
-utilities shared as one adopted sheet. Each card counts its renders. Change
-`--brand` in `src/tokens.css` and every card recolours with no badge moving;
-edit a card's own `.css` file and only that card re-renders. See the
+utilities shared as one adopted sheet. Each card counts its renders. On
+**StackBlitz**, change `--brand` in `src/tokens.css` and every card recolours
+with no badge moving; edit a card's own `.css` file and only that card
+re-renders. See the
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/css).
 
 <StackBlitzEmbed
@@ -95,9 +97,9 @@ edit a card's own `.css` file and only that card re-renders. See the
 ## Tailwind
 
 Tailwind v4 utilities shared as one adopted sheet across three components,
-each counting its renders. Change `--color-brand` in `src/tailwind.css` and
-everything recolours with no badge moving; add a class to a component and
-the sheet gains it in place. See the
+each counting its renders. On **StackBlitz**, change `--color-brand` in
+`src/tailwind.css` and everything recolours with no badge moving; add a class
+to a component and the sheet gains it in place. See the
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/tailwind).
 
 <StackBlitzEmbed
@@ -113,8 +115,9 @@ A text field, a switch, a star rating and a tag list built on one
 submit while invalid, reset with the form and follow a disabled
 `<fieldset>`, and show what they are doing as `:state()` custom states.
 Every rule of the form, including those that span fields, is one valibot
-schema over the controls' typed values. Submit the form empty, then edit a
-control while it is filled in, and the values stay. See the
+schema over the controls' typed values. Submit the form empty, fill it in,
+then, on **StackBlitz**, edit a control's source while it is filled in, and
+the values stay. See the
 [example's README](https://github.com/oddcelot/vite-plugin-lit/tree/main/examples/forms).
 
 <StackBlitzEmbed
