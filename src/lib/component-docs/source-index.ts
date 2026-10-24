@@ -38,6 +38,11 @@ export interface SourceDocsIndex {
   get(tagName: string): ComponentDocs | undefined;
   /** Every stored module, for writing the index out as a manifest. */
   modules(): IndexedModule[];
+  /**
+   * Calls `listener` after each `set` and each `delete` that dropped a
+   * module. Returns the function that unsubscribes it.
+   */
+  subscribe(listener: () => void): () => void;
 }
 
 /** A class or mixin another class inherits members from. */
@@ -131,6 +136,10 @@ export const createSourceDocsIndex = (
   relative: (id: string) => string
 ): SourceDocsIndex => {
   const modules = new Map<string, Entry>();
+  const listeners = new Set<() => void>();
+  const changed = () => {
+    for (const listener of listeners) listener();
+  };
 
   /** The module `ref`, written in module `from`, points at. */
   const moduleOf = (from: string, ref: ClassRef): string | undefined => {
@@ -221,9 +230,10 @@ export const createSourceDocsIndex = (
   return {
     set(id, module, superclassIds) {
       modules.set(stripQuery(id), {module, superclassIds});
+      changed();
     },
     delete(id) {
-      modules.delete(stripQuery(id));
+      if (modules.delete(stripQuery(id))) changed();
     },
     get(tagName) {
       const start = locate(tagName);
@@ -236,6 +246,10 @@ export const createSourceDocsIndex = (
         moduleOf: (ref) => moduleOf(id, ref),
         ancestorsOf: (cls) => ancestorsOf({id, cls}),
       }));
+    },
+    subscribe(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
     },
   };
 };

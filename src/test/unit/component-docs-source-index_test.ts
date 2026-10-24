@@ -218,3 +218,16 @@ test('lists modules with their ancestry and where names lead', () => {
     ['Base', '/app/src/base.ts'],
   ]);
 });
+
+test('subscribers hear each set and each delete that dropped a module', () => {
+  const {docs, add} = index();
+  let calls = 0;
+  const unsubscribe = docs.subscribe(() => calls++);
+  add('/app/src/base.ts', BASE);
+  docs.delete('/app/src/base.ts?v=2');
+  docs.delete('/app/src/base.ts');
+  expect(calls).toBe(2);
+  unsubscribe();
+  add('/app/src/base.ts', BASE);
+  expect(calls).toBe(2);
+});
