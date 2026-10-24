@@ -260,7 +260,7 @@ const SHOTS = [
     async capture({app, openPanel}) {
       const panel = await record(app, await openPanel('timeline'));
       await panel
-        .locator('lit-devtools-panel lit-segmented-tabs')
+        .locator('lit-devtools-panel lit-tabs')
         .first()
         .getByText('Updates', {exact: true})
         .click();

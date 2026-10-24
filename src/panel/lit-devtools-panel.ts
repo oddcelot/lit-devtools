@@ -15,16 +15,16 @@ import {onDeepLink, writeHashLink} from './deep-link.js';
 import {PanelLocation} from './panel-location.js';
 import type {DeepLinkTab} from './deep-link.js';
 import './devtools-settings.js';
-import '../../packages/lit-components/src/segmented-tabs.js';
+import '../../packages/lit-components/src/tabs.js';
 import '../../packages/lit-components/src/button.js';
 import '../../packages/lit-components/src/icon-button.js';
 import '../../packages/lit-components/src/callout.js';
 import './wa-icons.js';
-import type {SegmentedTabItem} from '../../packages/lit-components/src/segmented-tabs.js';
+import type {TabItem as LitTabItem} from '../../packages/lit-components/src/tabs.js';
 import type {IconName} from './wa-icons.js';
 
 /** A header tab, its icon one the panel registers. */
-type TabItem = SegmentedTabItem & {icon?: IconName};
+type TabItem = LitTabItem & {icon?: IconName};
 
 /**
  * Tabs hosted by the panel. The Timeline is the first; this list is the
@@ -273,11 +273,11 @@ export class LitDevtoolsPanel extends LitElement {
     return html`
       <header>
         ${this._renderBrand()}
-        <lit-segmented-tabs
+        <lit-tabs
           .items=${this._tabs}
           .value=${this._location.tab}
           @change=${this._onTabChange}
-        ></lit-segmented-tabs>
+        ></lit-tabs>
       </header>
       ${
         this._pageChange === null

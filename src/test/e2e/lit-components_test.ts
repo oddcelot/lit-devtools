@@ -98,7 +98,7 @@ test('the kitchen sink renders every element with no errors', async () => {
       'lit-details',
       'lit-icon',
       'lit-copy-prompt',
-      'lit-segmented-tabs',
+      'lit-tabs',
       'lit-stat-card',
       'lit-state-row',
       'lit-tree-node',
@@ -278,14 +278,11 @@ test('lit-button opens a wa-dropdown as its trigger', async () => {
 
 test('lit-icon gets the spacing and colour Web Awesome gives wa-icon', async () => {
   // wa-tab spaces a slotted wa-icon from its label by 0.5em.
-  const margin = await page.$eval(
-    '#lit-segmented-tabs lit-segmented-tabs',
-    (el) => {
-      const icon = el.shadowRoot!.querySelector('wa-tab > lit-icon')!;
-      const style = getComputedStyle(icon);
-      return {end: style.marginInlineEnd, size: style.fontSize};
-    }
-  );
+  const margin = await page.$eval('#lit-tabs lit-tabs', (el) => {
+    const icon = el.shadowRoot!.querySelector('wa-tab > lit-icon')!;
+    const style = getComputedStyle(icon);
+    return {end: style.marginInlineEnd, size: style.fontSize};
+  });
   expect(parseFloat(margin.end)).toBeCloseTo(parseFloat(margin.size) / 2, 1);
   // wa-input mutes an icon in its start slot.
   await mount(`<lit-input id="muted"><lit-icon slot="start" name="magnifying-glass"></lit-icon></lit-input>

@@ -10,7 +10,7 @@ import './icon.js';
 import './icon-button.js';
 import './input.js';
 import './run-gate.js';
-import './segmented-tabs.js';
+import './tabs.js';
 import './select.js';
 import './split-panel.js';
 import './stat-card.js';
