@@ -122,6 +122,8 @@ export default defineConfig({
 In dev, a private member becomes a symbol-keyed property. It no longer throws
 when read from the wrong object, and `Object.getOwnPropertySymbols()` lists it.
 Turn the rewrite off if a test or a library relies on the brand check in dev.
+The rewrite is also what lets the DevTools panel show `#private` fields under
+**Private** in the Components details; with it off, that section is gone.
 
 **Type:** `boolean` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_HMR_PRIVATE_FIELDS`

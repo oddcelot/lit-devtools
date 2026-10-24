@@ -119,6 +119,17 @@ class first, then each base class and mixin up the chain. A property a subclass
 redeclares sits with the subclass. A mixin's class is often anonymous and reads
 `(anonymous class)`.
 
+**Private** lists the element's native `#private` fields, after State, each
+named `#name` with its live value. Nothing outside a class can read a real
+`#private` field, but in dev the plugin rewrites them to symbol-keyed
+properties so HMR can patch the class
+([`hmr.privateFields`](/reference/options/#hmrprivatefields)), and the panel
+reads those. The rows are read-only, private methods and accessors are left
+out, and a field a base class and a subclass both declare reads
+`#name (Subclass)` the second time. A production build keeps real `#private`
+fields, so the section is absent there, and with the Lit Inspector extension
+on a page the plugin didn't serve.
+
 Values are coloured like code: keys, strings, numbers, keywords and class
 names each take their own colour. A value too long for its row moves to its
 own line under the name, and an object or array too wide for that line opens
