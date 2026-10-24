@@ -369,6 +369,58 @@ describe('JavaScript', () => {
   });
 });
 
+describe('dispatched events', () => {
+  test('events the class dispatches join the @fires ones', () => {
+    const cls = only(`
+      /** @fires change - Documented. */
+      class X extends LitElement {
+        pick() {
+          this.dispatchEvent(new CustomEvent('pick', {detail: 1}));
+          this.dispatchEvent(new Event('change'));
+          this.dispatchEvent(new KeyboardEvent('keydown'));
+          this.dispatchEvent(new CustomEvent('pick'));
+          other.dispatchEvent(new CustomEvent('elsewhere'));
+          this.dispatchEvent(event);
+          this.dispatchEvent(new CustomEvent(name));
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {name: 'change', description: 'Documented.'},
+      {name: 'pick', type: 'CustomEvent'},
+      {name: 'keydown', type: 'KeyboardEvent'},
+    ]);
+  });
+});
+
+describe('constructor assignments', () => {
+  test('names the class does not declare, with the value as default', () => {
+    const cls = only(`
+      class X extends Base {
+        @property() size = 'm';
+        private count = 0;
+        constructor() {
+          super();
+          this.variant = 'neutral';
+          this.size = 'l';
+          this.count = 1;
+          this.appearance = 'outlined';
+          this.variant = 'brand';
+          this.handlers[0] = null;
+          this.total += 1;
+          if (x) this.hidden = true;
+        }
+      }
+    `);
+    expect(cls.docs.assigned).toEqual([
+      {name: 'variant', default: "'brand'"},
+      {name: 'appearance', default: "'outlined'"},
+    ]);
+    // Not merged into the class's own properties until ancestry is known.
+    expect(cls.docs.properties.map((p) => p.name)).toEqual(['size']);
+  });
+});
+
 describe('reflects', () => {
   test('a reflecting property says so; its attribute does not', () => {
     const cls = only(`

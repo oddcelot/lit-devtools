@@ -14,6 +14,7 @@
  */
 
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
+import {applyAssigned} from './members.js';
 import type {
   ClassDocs,
   ClassDocsBody,
@@ -90,7 +91,7 @@ interface LocatedMixin {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples' | 'methods'
+  'summary' | 'description' | 'deprecated' | 'examples' | 'methods' | 'assigned'
 >;
 
 const LISTS: ListKey[] = [
@@ -216,7 +217,7 @@ export const createSourceDocsIndex = (
 
   const docsFor = (tagName: string, start: Located): ComponentDocs => {
     // Methods are for the manifest; the panel's docs have no place for them.
-    const {methods: _, ...body} = structuredClone(start.cls.docs);
+    const {methods: _, assigned, ...body} = structuredClone(start.cls.docs);
     const docs: ComponentDocs = {
       ...body,
       tagName,
@@ -226,6 +227,7 @@ export const createSourceDocsIndex = (
     for (const ancestor of ancestorsOf(start))
       for (const list of LISTS)
         docs[list] = mergeList(docs[list], ancestor.docs[list], ancestor.name);
+    docs.properties = applyAssigned(docs.properties, assigned);
     return docs;
   };
 

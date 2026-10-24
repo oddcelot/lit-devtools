@@ -43,7 +43,7 @@ import {
   namedEntry,
   tagText,
 } from './jsdoc.js';
-import {attributesOf, propertiesOf} from './members.js';
+import {assignedOf, attributesOf, propertiesOf} from './members.js';
 import {type MethodDocs, methodsOf} from './methods.js';
 
 /**
@@ -53,7 +53,15 @@ import {type MethodDocs, methodsOf} from './methods.js';
 export type ClassDocsBody = Omit<
   ComponentDocs,
   'tagName' | 'className' | 'origin'
-> & {methods?: MethodDocs[]};
+> & {
+  methods?: MethodDocs[];
+  /**
+   * Names the constructor assigns but the class doesn't declare, with the
+   * value as default; merged into `properties` once inheritance is known,
+   * by `applyAssigned`.
+   */
+  assigned?: DocEntry[];
+};
 
 export interface ClassDocs {
   name: string;
@@ -178,12 +186,54 @@ const taggedEntries = (
     .filter((t) => tags.includes(t.tag))
     .map((t) => read(t.text));
 
+/** `new CustomEvent('name', …)` (or any `…Event`): the event's name and class. */
+const constructedEvent = (
+  node: Node | undefined
+): {name: string; type: string} | undefined => {
+  if (node?.type !== 'NewExpression') return undefined;
+  const type = nameOf(child(node, 'callee'));
+  const name = stringLiteral(nodes(node.arguments)[0]);
+  return type?.endsWith('Event') && name !== undefined
+    ? {name, type}
+    : undefined;
+};
+
+/** Whether `node` is a `this.dispatchEvent(…)` call. */
+const isThisDispatch = (node: Node): boolean => {
+  if (node.type !== 'CallExpression') return false;
+  const callee = child(node, 'callee');
+  return (
+    callee?.type === 'MemberExpression' &&
+    child(callee, 'object')?.type === 'ThisExpression' &&
+    nameOf(child(callee, 'property')) === 'dispatchEvent'
+  );
+};
+
+/**
+ * The events the class dispatches itself, `this.dispatchEvent(new
+ * CustomEvent('name'))`, that no `@fires` tag names. An event built
+ * elsewhere and passed in by variable isn't seen.
+ */
+const dispatchedEvents = (cls: Node, documented: DocEntry[]): DocEntry[] => {
+  const names = new Set(documented.map((entry) => entry.name));
+  const found: DocEntry[] = [];
+  for (const node of walk(child(cls, 'body'))) {
+    if (!isThisDispatch(node)) continue;
+    const event = constructedEvent(nodes(node.arguments)[0]);
+    if (event === undefined || names.has(event.name)) continue;
+    names.add(event.name);
+    found.push(event);
+  }
+  return found;
+};
+
 const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
+  const fired = taggedEntries(doc, ['fires', 'event']);
   const properties = propertiesOf(code, cls);
   const docs: ClassDocsBody = {
     properties,
     attributes: attributesOf(properties),
-    events: taggedEntries(doc, ['fires', 'event']),
+    events: [...fired, ...dispatchedEvents(cls, fired)],
     slots: taggedEntries(doc, ['slot']),
     cssParts: taggedEntries(doc, ['csspart']),
     cssProperties: taggedEntries(
@@ -200,6 +250,8 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   if (examples.length > 0) docs.examples = examples;
   const methods = methodsOf(code, cls);
   if (methods.length > 0) docs.methods = methods;
+  const assigned = assignedOf(code, cls);
+  if (assigned.length > 0) docs.assigned = assigned;
   return docs;
 };
 

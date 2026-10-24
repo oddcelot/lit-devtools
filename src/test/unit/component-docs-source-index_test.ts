@@ -231,3 +231,40 @@ test('subscribers hear each set and each delete that dropped a module', () => {
   add('/app/src/base.ts', BASE);
   expect(calls).toBe(2);
 });
+
+test('a constructor assignment re-defaults an inherited property or adds one', () => {
+  const {docs, add} = index();
+  add('/app/src/base.ts', BASE);
+  add(
+    '/app/src/x-c.ts',
+    `
+    import {Base} from './base.js';
+    @customElement('x-c')
+    export class XC extends Base {
+      constructor() {
+        super();
+        this.value = 'set';
+        this.tone = 'warm';
+      }
+    }
+  `,
+    {'./base.js': '/app/src/base.ts'}
+  );
+  expect(docs.get('x-c')!.properties).toEqual([
+    {
+      inheritedFrom: 'Base',
+      name: 'value',
+      description: 'The base value.',
+      default: "'set'",
+      counterpart: 'value',
+    },
+    {
+      inheritedFrom: 'Base',
+      name: 'size',
+      description: 'Overridden below.',
+      default: "'m'",
+      counterpart: 'size',
+    },
+    {name: 'tone', default: "'warm'"},
+  ]);
+});

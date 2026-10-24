@@ -304,3 +304,34 @@ test('modules sharing a path merge; ones without a path are left out', () => {
   // A mixin in no file is still named, without a module.
   expect(module.declarations[1].mixins).toEqual([{name: 'Sized'}]);
 });
+
+test('constructor assignments re-default inherited fields or add their own', () => {
+  const p = index();
+  p.add('/app/src/base.ts', BASE);
+  p.add(
+    '/app/src/x-d.ts',
+    `
+    import Base from './base.js';
+    @customElement('x-d')
+    export class XD extends Base {
+      constructor() {
+        super();
+        this.value = 'set';
+        this.tone = 'warm';
+      }
+    }
+  `,
+    {'./base.js': '/app/src/base.ts'}
+  );
+  const xd = p.manifest().modules[1].declarations as {
+    members: {name: string; default?: string; inheritedFrom?: unknown}[];
+  }[];
+  expect(
+    xd[0].members.map((m) => [m.name, m.default, m.inheritedFrom !== undefined])
+  ).toEqual([
+    ['value', "'set'", true],
+    ['tone', "'warm'", false],
+    ['reset', undefined, true],
+    ['focus', undefined, true],
+  ]);
+});
