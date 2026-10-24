@@ -9,6 +9,7 @@
  * a named type such as `Item` is TypeScript's to know.
  */
 
+import {type Member, detailOf, objectMembers} from './type-text.js';
 import {
   type DocumentKind,
   type MarkupAttribute,
@@ -143,11 +144,6 @@ export const memberAccessAt = (
 
 // --- type text ---------------------------------------------------------------
 
-export interface Member {
-  name: string;
-  type: string;
-}
-
 /** What every event has, whatever its class. */
 const EVENT_MEMBERS: Member[] = [
   {name: 'type', type: 'string'},
@@ -162,38 +158,6 @@ const EVENT_MEMBERS: Member[] = [
   {name: 'stopImmediatePropagation', type: '() => void'},
   {name: 'composedPath', type: '() => EventTarget[]'},
 ];
-
-/** `text` split at `separators` outside any brackets. */
-const splitTopLevel = (text: string, separators: string): string[] => {
-  const parts: string[] = [];
-  let depth = 0;
-  let from = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    if ('{[(<'.includes(char)) depth++;
-    else if ('}])>'.includes(char)) depth--;
-    else if (depth === 0 && separators.includes(char)) {
-      parts.push(text.slice(from, i));
-      from = i + 1;
-    }
-  }
-  return [...parts, text.slice(from)].map((p) => p.trim()).filter(Boolean);
-};
-
-/** The keys of an object shape, `{id: string; at?: number}`. */
-const objectMembers = (type: string): Member[] | undefined => {
-  const body = /^\{([\s\S]*)\}$/.exec(type.trim())?.[1];
-  if (body === undefined) return undefined;
-  return splitTopLevel(body, ';,').flatMap((field) => {
-    const [key, ...rest] = splitTopLevel(field, ':');
-    const name = key?.replace(/\?$/, '');
-    return name && rest.length > 0 ? [{name, type: rest.join(': ')}] : [];
-  });
-};
-
-/** The type argument of `CustomEvent<T>`, or undefined for any other event. */
-const detailOf = (eventType: string): string | undefined =>
-  /^CustomEvent<([\s\S]+)>$/.exec(eventType.trim())?.[1];
 
 /**
  * The members of `eventType` reached through `path`: the event's own for
