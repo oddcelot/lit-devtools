@@ -369,8 +369,12 @@ export class XButton extends LitElement {
 ```
 
 The class comment may use `@summary`, `@deprecated`, `@fires` (or `@event`),
-`@slot`, `@csspart`, `@cssprop` (or `@cssproperty`) and `@cssstate`, each as
-`name - description` with an optional `{Type}` first. An event the class
+`@slot`, `@csspart`, `@cssprop` (or `@cssproperty`), `@cssstate`, `@attr` (or
+`@attribute`) and `@prop` (or `@property`), each as `name - description` with
+an optional `{Type}` first. `@attr` and `@prop` add an entry the code doesn't
+declare, or fill in the description and type of one it does. `@tag x-y` names
+the tag of a class the module doesn't register, and `@default` on a property
+gives the default it has no initializer for. An event the class
 dispatches itself, as `this.dispatchEvent(new CustomEvent('pick'))`, is listed
 even without a `@fires` tag. A property's comment
 gives its description and `@deprecated`, its type annotation the type, its

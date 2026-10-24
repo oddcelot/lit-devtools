@@ -369,6 +369,81 @@ describe('JavaScript', () => {
   });
 });
 
+describe('@attr, @prop, @default and @tag', () => {
+  test('class tags add entries or complete the ones the code declares', () => {
+    const cls = only(`
+      /**
+       * @tag x-tagged
+       * @attr {'on' | 'off'} mode - Set by attributeChangedCallback.
+       * @attribute size - Overridden: the code names it.
+       * @prop {number} total - A property the code sets up by hand.
+       * @property {string} label - Fills the missing description.
+       */
+      class X extends LitElement {
+        @property() label;
+        /** Own description. */
+        @property() size = 'm';
+      }
+    `);
+    expect(cls.tagName).toBe('x-tagged');
+    expect(cls.docs.properties).toEqual([
+      {
+        name: 'label',
+        description: 'Fills the missing description.',
+        type: 'string',
+        counterpart: 'label',
+      },
+      {
+        name: 'size',
+        description: 'Own description.',
+        default: "'m'",
+        counterpart: 'size',
+      },
+      {
+        name: 'total',
+        type: 'number',
+        description: 'A property the code sets up by hand.',
+      },
+    ]);
+    expect(
+      cls.docs.attributes.map((a) => [a.name, a.description, a.type])
+    ).toEqual([
+      ['label', 'Fills the missing description.', 'string'],
+      ['size', 'Own description.', undefined],
+      ['mode', 'Set by attributeChangedCallback.', "'on' | 'off'"],
+    ]);
+  });
+
+  test('@default gives a default where the code has none', () => {
+    const cls = only(`
+      class X extends LitElement {
+        static properties = {
+          /** @default 'auto' */
+          mode: {type: String},
+        };
+        /** @default 3 */
+        @property({type: Number}) count;
+        /** @default 9 */
+        @property() initialized = 1;
+      }
+    `);
+    expect(cls.docs.properties.map((p) => [p.name, p.default])).toEqual([
+      ['count', '3'],
+      ['initialized', '1'],
+      ['mode', "'auto'"],
+    ]);
+  });
+
+  test('a registered tag wins over @tag', () => {
+    const cls = only(`
+      /** @tag x-doc */
+      @customElement('x-real')
+      class X extends LitElement {}
+    `);
+    expect(cls.tagName).toBe('x-real');
+  });
+});
+
 describe('dispatched events', () => {
   test('events the class dispatches join the @fires ones', () => {
     const cls = only(`
