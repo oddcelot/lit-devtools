@@ -339,9 +339,19 @@ const renderScreenshots = async (browser) => {
         await panel.goto(
           `chrome-extension://${id}/panel.html?tabId=${tabId}#tab=${tab}`
         );
+        // Attached, not visible: a footer notice can stand in for the line.
         await panel
           .locator('#page', {hasText: 'Lit runtime connected'})
-          .waitFor({timeout: 15_000});
+          .waitFor({state: 'attached', timeout: 15_000});
+        // In a tab of its own the panel has no Sources panel, so on a
+        // production site it says nothing can open a location; inside
+        // DevTools it wouldn't. Both notices arrive after async checks, so
+        // let those settle, then dismiss whichever is up.
+        await panel.waitForTimeout(1500);
+        for (const later of ['#editor-notice-later', '#manifest-nudge-later']) {
+          const button = panel.locator(later);
+          if (await button.isVisible()) await button.dispatchEvent('click');
+        }
         return panel;
       };
       const pages = await shot.capture({app, openPanel});
