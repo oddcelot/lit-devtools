@@ -105,7 +105,7 @@ export class TimelineTracks extends LitElement {
       }
       .axis {
         flex-shrink: 0;
-        height: var(--lit-devtools-row-height, 22px);
+        height: var(--lit-devtools-row-height);
         border-bottom: 1px solid var(--lit-devtools-border);
         color: var(--lit-devtools-text-muted);
       }
@@ -190,7 +190,7 @@ export class TimelineTracks extends LitElement {
       }
       .range-label {
         position: absolute;
-        top: 22px;
+        top: var(--lit-devtools-row-height);
         padding: 0 var(--lit-devtools-space-2);
         background: var(--lit-devtools-surface-low);
         border: 1px solid var(--lit-devtools-accent-ring);
@@ -211,7 +211,7 @@ export class TimelineTracks extends LitElement {
         border-bottom: 1px solid var(--lit-devtools-border);
       }
       .lane .gutter {
-        min-height: var(--lit-devtools-row-height, 22px);
+        min-height: var(--lit-devtools-row-height);
         color: var(--lit-devtools-text-secondary);
         cursor: default;
       }

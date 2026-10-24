@@ -94,6 +94,11 @@
   --space-14: 80px;
   --space-16: 96px;
 
+  /* ---- Density ---- */
+  /* Tree and list rows: WCAG 2.5.8's 24px minimum target, since a row is
+     what gets clicked. */
+  --row-height: 24px;
+
   /* ---- Radius · square corners; pills are the one round shape ---- */
   --radius-xs: 0;
   --radius-sm: 0;
