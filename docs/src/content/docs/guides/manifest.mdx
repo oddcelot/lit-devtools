@@ -1,0 +1,126 @@
+---
+title: Publish a Custom Elements Manifest
+description: Write custom-elements.json from your Lit components with the manifest option or the lit-devtools manifest command, for editors, Storybook and the people who install your package.
+sidebar:
+  label: Custom Elements Manifest
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+import Since from '../../../components/Since.astro';
+
+<Since v="0.24.0" />
+
+Ship a `custom-elements.json` that documents your components, written from the
+same source reading the DevTools panel uses. Skip this page if you already
+generate one with the analyzer and are happy with it.
+
+A Custom Elements Manifest is a JSON file that lists each element's tag,
+properties, attributes, events, slots, parts and CSS properties. Editors,
+Storybook and documentation sites read it, and a package points at it with the
+`customElements` field in its `package.json`.
+
+## Turn it on
+
+Set `manifest: true`. `vite build` then emits `custom-elements.json` beside the
+bundle, and the dev server serves it at `/custom-elements.json`.
+
+```ts title="vite.config.ts" {5}
+import {defineConfig} from 'vite';
+import {litPlugin} from '@oddsquad/vite-plugin-lit';
+
+export default defineConfig({
+  plugins: [litPlugin({manifest: true})],
+});
+```
+
+The build reads every module of the bundle, so its manifest covers each
+component the bundle contains. The dev server lists the modules it has
+transformed so far, which are the ones your open pages loaded. It links the
+manifest in each page's head, so the browser extension shows the docs too.
+
+## Write what the manifest reads
+
+Document a component with JSDoc on the class and its fields:
+
+```ts title="src/x-button.ts"
+import {LitElement, html} from 'lit';
+import {customElement, property} from 'lit/decorators.js';
+
+/**
+ * A button that submits the form it sits in.
+ *
+ * @summary The form's submit button.
+ * @fires submit-start - Before the form is sent.
+ * @slot - The label.
+ * @csspart base - The native button.
+ * @cssprop [--x-button-gap=4px] - Space between icon and label.
+ */
+@customElement('x-button')
+export class XButton extends LitElement {
+  /** How much room the button takes. */
+  @property({reflect: true}) size: 'small' | 'large' = 'small';
+
+  render() {
+    return html`<button part="base"><slot></slot></button>`;
+  }
+}
+```
+
+The class comment gives the description and each tagged entry. A field's
+comment gives its description, its type annotation the type, and its
+initializer the default. `@property()` names the attribute it maps to, and
+`@state()` and private members stay out. The
+[components guide](/guides/devtools/components/#your-own-components) lists
+every tag the reader understands.
+
+A class lists the members it inherits from your own base classes and mixins,
+each marked `inheritedFrom`, so tools need no inheritance walk. Types are the
+text you wrote; nothing is inferred from the checker.
+
+## Keep a copy in your package
+
+Add `write` to keep the file in your project as well. The dev server rewrites
+it as you edit, and `vite build` rewrites it from every module of the bundle.
+
+```ts title="vite.config.ts" {6}
+import {defineConfig} from 'vite';
+import {litPlugin} from '@oddsquad/vite-plugin-lit';
+
+export default defineConfig({
+  plugins: [litPlugin({manifest: {write: true}})],
+});
+```
+
+When your `package.json` has no `customElements` field yet, the plugin sets it
+to the file it wrote. A field you already set is left alone.
+
+## Write it from the command line
+
+`lit-devtools manifest` reads every script under `src`, not only the ones a
+build reached, and writes `custom-elements.json`. Run it before you publish:
+
+```json title="package.json" {3}
+{
+  "scripts": {
+    "prepublishOnly": "lit-devtools manifest"
+  }
+}
+```
+
+It resolves imports through your Vite config, so aliases work. The
+[CLI reference](/reference/cli/#lit-devtools-manifest) lists its flags.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Options: manifest"
+    description="Each output, its default and how to name its file."
+    href="/reference/options/#manifest"
+  />
+  <LinkCard
+    title="Inspect components"
+    description="Read the same docs in the DevTools panel."
+    href="/guides/devtools/components/"
+  />
+</CardGrid>

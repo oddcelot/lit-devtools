@@ -393,11 +393,11 @@ The dev server looks for manifests in two places: your project's own package,
 and every package it lists as a dependency. A package points at its manifest
 with the `customElements` field in its `package.json`, or keeps a
 `custom-elements.json` next to it. So components from a library such as Web
-Awesome come documented with nothing to set up. You can still have a tool such
-as the
+Awesome come documented with nothing to set up. For the components the dev
+server hasn't transformed, write a manifest for your own package with the
+plugin's [`manifest`](/guides/manifest/) option, or a tool such as the
 [Custom Elements Manifest analyzer](https://custom-elements-manifest.open-wc.org/analyzer/getting-started/)
-or [`cem`](https://bennypowers.dev/cem/) write one for your own package, for
-the components the dev server hasn't transformed. When a manifest is
+or [`cem`](https://bennypowers.dev/cem/). When a manifest is
 regenerated while the server runs, the pane updates within a second or so.
 
 The browser extension has no disk to read and doesn't see the dev server's
@@ -407,8 +407,9 @@ beside the page's scripts, and ones you add in its Settings, from the same
 site only; see
 [the extension guide](/guides/devtools/browser-extension/#read-component-documentation).
 On pages it serves, the Vite plugin adds those links for every manifest it
-found, so the extension shows the same library docs there, but not docs read
-from your source. A snapshot carries neither, so it shows none.
+found, so the extension shows the same library docs there. Docs read from your
+source reach it only with the [`manifest`](/guides/manifest/) option, whose dev
+endpoint each page links too. A snapshot carries neither, so it shows none.
 
 ## Pick an element on the page
 

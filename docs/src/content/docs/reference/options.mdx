@@ -39,6 +39,10 @@ environment variable, and where to read more.
 | `timeline`                    | `boolean`                                     | `false`      | `LIT_PLUGIN_TIMELINE`                   |
 | `cssSheetBuild`               | `'auto' \| 'url' \| 'inline' \| 'inline-raw'` | `'auto'`     | `LIT_PLUGIN_CSS_SHEET_BUILD`            |
 | `devtoolsWorkspace`           | `boolean \| string`                           | `true`       | `LIT_PLUGIN_DEVTOOLS_WORKSPACE`         |
+| `manifest`                    | `boolean \| ManifestOptions`                  | `false`      | —                                       |
+| `manifest.build`              | `boolean \| string`                           | `true`       | —                                       |
+| `manifest.dev`                | `boolean \| string`                           | `true`       | —                                       |
+| `manifest.write`              | `boolean \| string`                           | `false`      | —                                       |
 
 ## hmr
 
@@ -506,6 +510,57 @@ requests from the network on to Vite.
 
 **Type:** `boolean | string` · **Default:** `true` · **Env:**
 `LIT_PLUGIN_DEVTOOLS_WORKSPACE`
+
+## manifest
+
+<Since v="0.24.0" />
+
+Writes a Custom Elements Manifest (`custom-elements.json`, schema 2.1) from
+your components' source: tags, JSDoc, reactive properties and attributes, read
+the way the DevTools panel reads them.
+
+```ts title="vite.config.ts" {5}
+import {defineConfig} from 'vite';
+import {litPlugin} from '@oddsquad/vite-plugin-lit';
+
+export default defineConfig({
+  plugins: [litPlugin({manifest: {write: 'docs/custom-elements.json'}})],
+});
+```
+
+`true` turns on `build` and `dev`. An object picks each output; the ones it
+leaves out keep their defaults.
+
+**Type:** `boolean | ManifestOptions` · **Default:** `false` · **Env:** —
+
+See also: [Publish a Custom Elements Manifest](/guides/manifest/).
+
+### manifest.build
+
+`vite build` emits the manifest as an asset. A string names the file, relative
+to `build.outDir`.
+
+**Type:** `boolean | string` · **Default:** `true` (`custom-elements.json`) ·
+**Env:** —
+
+### manifest.dev
+
+The dev server serves the manifest at this path, rewritten as modules change,
+and links it in each page's head as `<link rel="custom-elements-manifest">`. It
+lists the modules the server has transformed so far.
+
+**Type:** `boolean | string` · **Default:** `true` (`/custom-elements.json`) ·
+**Env:** —
+
+### manifest.write
+
+Keeps a manifest file in your project. The dev server rewrites it as modules
+change, and `vite build` rewrites it from every module of the bundle. A string
+names the file, relative to Vite's `root`. When the root's `package.json` has
+no `customElements` field, the plugin sets it to this file.
+
+**Type:** `boolean | string` · **Default:** `false` (`true` writes
+`custom-elements.json`) · **Env:** —
 
 ## Astro options
 
