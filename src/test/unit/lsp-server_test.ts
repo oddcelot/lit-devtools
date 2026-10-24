@@ -260,6 +260,39 @@ describe('the language server', () => {
     ]);
   });
 
+  test('reports a method handler whose parameter does not fit the event', async () => {
+    const uri = pathToFileURL(join(root, 'src/mismatch.ts')).href;
+    const text = [
+      "import {LitElement, html} from 'lit';",
+      'class App extends LitElement {',
+      '  render() {',
+      '    return html`<main @pick=${this.#onPick}></main>`;',
+      '  }',
+      '  #onPick(e: CustomEvent<{thing: string}>) {}',
+      '}',
+      '',
+    ].join('\n');
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const published = await client.waitFor(
+      (n) =>
+        n.method === 'textDocument/publishDiagnostics' &&
+        n.params.uri === uri &&
+        n.params.diagnostics.length > 0
+    );
+    expect(published.params.diagnostics).toEqual([
+      {
+        range: {start: {line: 3, character: 30}, end: {line: 3, character: 42}},
+        severity: 1,
+        source: 'lit',
+        code: 'event-type',
+        message:
+          "`#onPick` takes `CustomEvent<{thing: string}>`, but `pick` sends `CustomEvent<{size: 'small' | 'large'; at: number}>`: `detail.thing` is missing.",
+      },
+    ]);
+  });
+
   test('reads a component typed into a buffer, before it is saved', async () => {
     const uri = pathToFileURL(join(root, 'src/x-chip.ts')).href;
     client.notify('textDocument/didOpen', {
