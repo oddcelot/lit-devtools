@@ -33,7 +33,8 @@ Across an edit to a component module, these survive:
   parent edit changes the template literal a child sits in, Lit re-creates the
   child element, and the plugin copies the old child's reactive properties and
   `#private` fields onto the new one before it first renders. Properties the
-  template binds keep their new values. See
+  template binds keep their new values, and so do `#private` listeners and
+  whatever the new element set up in its `connectedCallback`. See
   [`hmr.childState`](/reference/options/#hmrchildstate).
 - **Adopted stylesheets.** Constructed sheets stay the same objects, so
   nothing is re-parsed and nothing is re-adopted.
