@@ -27,6 +27,10 @@ export const liveExamples: Record<string, LiveExample> = {
     load: () => import('../../../examples/fernhouse/src/main.ts'),
     demoRow: 'minmax(24rem, 55%)',
   },
+  'web-awesome': {
+    load: () => import('../../../examples/web-awesome/src/main.ts'),
+    demoRow: 'minmax(26rem, 55%)',
+  },
 };
 
 interface LiveExample {
