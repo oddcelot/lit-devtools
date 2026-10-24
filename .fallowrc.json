@@ -70,6 +70,10 @@
     "docs/public/**"
   ],
   "ignoreDependencies": [
+    // packages/lit-language-server bundles the editor code from src/lib,
+    // which imports these; fallow can't see across that bundle.
+    "oxc-parser",
+    "oxc-resolver",
     // CI calls ./node_modules/.bin/jsr for the publish dry run.
     "jsr",
     // Pinned so StackBlitz finds the wasm binding; see pnpm-workspace.yaml.

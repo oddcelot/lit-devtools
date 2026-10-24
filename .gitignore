@@ -36,3 +36,6 @@ lit-devtools-snapshot/
 
 # Private keys, such as the CRX signing key: never in the repo
 *.pem
+
+# Built by vp pack in the package.
+/packages/lit-language-server/dist/
