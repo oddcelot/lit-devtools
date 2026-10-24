@@ -46,13 +46,11 @@ const ownBuild =
       // hooks are in (demo-runtime.ts). An example built with its own config
       // names that build, which loads the same way.
       const {liveExample = '', liveBuild} = document.documentElement.dataset;
-      const example = liveExamples[liveExample];
       const load =
-        typeof example === 'function'
-          ? example
-          : liveBuild !== undefined
-            ? () => import(/* @vite-ignore */ liveBuild)
-            : undefined;
+        liveExamples[liveExample]?.load ??
+        (liveBuild !== undefined
+          ? () => import(/* @vite-ignore */ liveBuild)
+          : undefined);
       if (load !== undefined) await startDemoPage(load);
     </script>
   </body>

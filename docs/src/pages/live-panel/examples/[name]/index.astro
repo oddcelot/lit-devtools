@@ -6,7 +6,7 @@
  */
 import LivePanelPage from '../../../../components/LivePanelPage.astro';
 import {examplePage} from '../../../../lib/live-example-page';
-import {liveExamplePaths} from '../../../../lib/live-examples';
+import {liveExamplePaths, liveExamples} from '../../../../lib/live-examples';
 
 export const getStaticPaths = liveExamplePaths;
 
@@ -14,4 +14,4 @@ const {name} = Astro.params;
 const {title} = examplePage(name, '/');
 ---
 
-<LivePanelPage demo={title} />
+<LivePanelPage demo={title} demoRow={liveExamples[name]?.demoRow} />

@@ -4,6 +4,12 @@ These are the files you end up with after
 [Build your first hot-reloading component](https://vite-plugin-lit.oddsquad.dev/start/first-component/).
 The docs page imports them with `?raw`, so what you read there is what is here.
 
+`src/index.css` and `public/favicon.svg` are not the tutorial's: the template
+ships them, `index.html` links them, and no step changes them. They are here
+so that `index.html` finds what it links (the docs publish this directory as
+a live demo, too); the favicon is the Lit flame rather than the template's
+Vite logo.
+
 This directory is not a runnable project on its own: it carries no
 `package.json` and no lockfile, because the tutorial scaffolds those with
 `npm create vite`. To verify these files, scaffold the template and copy them

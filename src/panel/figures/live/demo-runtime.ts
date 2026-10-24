@@ -13,6 +13,7 @@
  */
 import {installDefineSites} from '../../../lib/runtime/define-sites.js';
 import {installTemplateSites} from '../../../lib/runtime/template-sites.js';
+import {installInternalsHook} from '../../../lib/runtime/element-internals.js';
 import {forgetOwnLit} from '../../../lib/runtime/own-lit.js';
 import '../../../lib/runtime/timeline/install.js';
 import '../../../lib/runtime/inspector/install.js';
@@ -41,6 +42,9 @@ export const startDemoPage = async (
   if (scheme !== null) document.documentElement.style.colorScheme = scheme;
   installDefineSites();
   installTemplateSites();
+  // Custom states and form values live in ElementInternals, which only the
+  // element holds: the hook has to be there when it attaches them.
+  installInternalsHook();
   forgetOwnLit();
 
   // The panel page posts the port once this frame has loaded; the runtime

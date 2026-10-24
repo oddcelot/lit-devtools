@@ -1,7 +1,7 @@
 /**
  * The examples published as live demos: the DevTools panel inspecting
  * examples/<name>/ at /live-panel/examples/<name>/, with no dev server
- * (src/pages/live-panel/examples/). One line here publishes an example.
+ * (src/pages/live-panel/examples/). One entry here publishes an example.
  *
  * Each entry loads the module the example's index.html runs. The demo page
  * takes the rest of index.html, its styles and markup, as it is, and
@@ -16,10 +16,39 @@
  * built apart with its own vite.config.ts, from the entry its index.html
  * runs, and the demo page loads that build (src/lib/live-examples-own-build.mjs).
  */
-type LiveExample = (() => Promise<unknown>) | {build: 'own-config'};
+interface LiveExample {
+  /** Loads the module the example's index.html runs; absent for an example
+   *  built with its own config. */
+  load?: () => Promise<unknown>;
+  /** Build the example apart, with its own vite.config.ts. */
+  build?: 'own-config';
+  /** The demo frame's row above the panel, as a grid track size, for an
+   *  example whose page needs more (or less) than LivePanelPage's default
+   *  to show what there is to click. */
+  demoRow?: string;
+}
 
 export const liveExamples: Record<string, LiveExample> = {
-  flame: () => import('../../../examples/flame/src/lit-flame.ts'),
+  flame: {
+    load: () => import('../../../examples/flame/src/lit-flame.ts'),
+    demoRow: 'minmax(24rem, 50%)',
+  },
+  forms: {
+    load: () => import('../../../examples/forms/src/main.ts'),
+    demoRow: 'minmax(24rem, 55%)',
+  },
+  fernhouse: {
+    load: () => import('../../../examples/fernhouse/src/main.ts'),
+    demoRow: 'minmax(24rem, 55%)',
+  },
+  'web-awesome': {
+    load: () => import('../../../examples/web-awesome/src/main.ts'),
+    demoRow: 'minmax(26rem, 55%)',
+  },
+  tutorial: {
+    load: () => import('../../../examples/tutorial/src/my-element.ts'),
+    demoRow: 'minmax(18rem, 45%)',
+  },
   css: {build: 'own-config'},
   tailwind: {build: 'own-config'},
 };
@@ -27,7 +56,7 @@ export const liveExamples: Record<string, LiveExample> = {
 /** The examples built with their own vite.config.ts. */
 export const ownConfigExamples = (): string[] =>
   Object.keys(liveExamples).filter(
-    (name) => typeof liveExamples[name] !== 'function'
+    (name) => liveExamples[name]?.build === 'own-config'
   );
 
 /** The examples published as live demos, as `getStaticPaths()` lists them. */
