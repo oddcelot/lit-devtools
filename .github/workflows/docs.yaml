@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'examples/**'
       - 'README.md'
       - 'CHANGELOG.md'
       - 'pnpm-lock.yaml'
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'docs/**'
+      - 'examples/**'
       - 'README.md'
       - 'CHANGELOG.md'
       - 'pnpm-lock.yaml'

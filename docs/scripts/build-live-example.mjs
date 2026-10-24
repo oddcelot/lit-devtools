@@ -59,6 +59,9 @@ await build({
   build: {
     outDir: resolve(outDir),
     emptyOutDir: false,
+    // Unminified, so the panel shows the example's own class and field
+    // names, as it does for the examples the docs bundle.
+    minify: false,
     assetsDir: '_live',
     rolldownOptions: {
       input: {'live-example': entry},
