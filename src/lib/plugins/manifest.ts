@@ -41,7 +41,7 @@ const scanInDev = async (
     {realDir},
   ] = await Promise.all([
     import('../component-docs/scan.js'),
-    import('./component-docs.js'),
+    import('../component-docs/index-module.js'),
     import('node:fs/promises'),
     import('node:path'),
     import('vite'),
@@ -126,7 +126,7 @@ export const litManifest = (
     async transform(code, id, transformOptions) {
       if (!readsInBuild() || !ctx.shouldTransform(id, transformOptions))
         return null;
-      const {indexModule} = await import('./component-docs.js');
+      const {indexModule} = await import('../component-docs/index-module.js');
       await indexModule(this, await loadIndex(), code, id);
       return null;
     },

@@ -6,7 +6,7 @@
 import {realpathSync} from 'node:fs';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {dirname, posix, relative, resolve} from 'node:path';
-import {normalizePath} from 'vite';
+import {normalizePath} from './paths.js';
 import type {SourceDocsIndex} from './source-index.js';
 import {type ManifestPaths, writeManifest} from './write-manifest.js';
 

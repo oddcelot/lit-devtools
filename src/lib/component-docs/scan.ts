@@ -7,15 +7,11 @@
 
 import {readFile, readdir} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {
-  type PluginOption,
-  createServer,
-  loadConfigFromFile,
-  normalizePath,
-} from 'vite';
-import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
+import {type PluginOption, createServer, loadConfigFromFile} from 'vite';
+import {type ImportResolver, indexModule} from './index-module.js';
 import {nodeDocsFs} from './load.js';
 import {realDir} from './manifest-file.js';
+import {normalizePath} from './paths.js';
 import {createPackageAncestors} from './package-ancestors.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
