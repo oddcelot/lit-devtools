@@ -7,7 +7,12 @@
 
 import {readFile, readdir} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {type PluginOption, createServer, loadConfigFromFile} from 'vite';
+import {
+  type PluginOption,
+  createServer,
+  loadConfigFromFile,
+  normalizePath,
+} from 'vite';
 import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
@@ -17,6 +22,10 @@ const DECLARATION_RE = /\.d\.[cm]?ts$/;
 /** Folders never read: dependencies, build output, tool caches. */
 const SKIPPED_DIRS = new Set(['node_modules', 'dist']);
 
+/** Whether `file` is a script a scan reads: not a declaration file. */
+export const isScannedScript = (file: string): boolean =>
+  SCRIPT_RE.test(file) && !DECLARATION_RE.test(file);
+
 async function* scripts(dir: string): AsyncGenerator<string> {
   const entries = await readdir(dir, {withFileTypes: true}).catch(() => []);
   for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
@@ -24,8 +33,7 @@ async function* scripts(dir: string): AsyncGenerator<string> {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) {
       if (!SKIPPED_DIRS.has(entry.name)) yield* scripts(path);
-    } else if (SCRIPT_RE.test(entry.name) && !DECLARATION_RE.test(entry.name))
-      yield path;
+    } else if (isScannedScript(entry.name)) yield path;
   }
 }
 
@@ -52,6 +60,27 @@ const foreignPlugins = async (
     else if (plugin && !isOwnPlugin(plugin.name)) out.push(plugin);
   }
   return out;
+};
+
+/**
+ * Reads every script under `dirs` (relative to `root`) into `index`, imports
+ * resolved by `resolver`. Returns how many files it read.
+ */
+export const indexDirs = async (
+  resolver: ImportResolver,
+  index: SourceDocsIndex,
+  root: string,
+  dirs: readonly string[]
+): Promise<number> => {
+  let files = 0;
+  for (const dir of dirs) {
+    for await (const file of scripts(resolve(root, dir))) {
+      files++;
+      const id = normalizePath(file);
+      await indexModule(resolver, index, await readFile(file, 'utf8'), id);
+    }
+  }
+  return files;
 };
 
 /** The index of every script under `dirs`, and how many files were read. */
@@ -86,16 +115,9 @@ export const scanSources = async (
     resolve: (specifier, importer) =>
       server.pluginContainer.resolveId(specifier, importer),
   };
-  let files = 0;
   try {
-    for (const dir of options.dirs) {
-      for await (const file of scripts(resolve(root, dir))) {
-        files++;
-        await indexModule(context, index, await readFile(file, 'utf8'), file);
-      }
-    }
+    return {index, files: await indexDirs(context, index, root, options.dirs)};
   } finally {
     await server.close();
   }
-  return {index, files};
 };

@@ -43,6 +43,7 @@ environment variable, and where to read more.
 | `manifest.build`              | `boolean \| string`                           | `true`       | —                                       |
 | `manifest.dev`                | `boolean \| string`                           | `true`       | —                                       |
 | `manifest.write`              | `boolean \| string`                           | `false`      | —                                       |
+| `manifest.scan`               | `false \| string[]`                           | `['src']`    | —                                       |
 
 ## hmr
 
@@ -549,7 +550,8 @@ are left out.
 
 The dev server serves the manifest at this path, rewritten as modules change,
 and links it in each page's head as `<link rel="custom-elements-manifest">`. It
-lists the modules the server has transformed so far.
+lists the scripts under [`manifest.scan`](#manifestscan) and every module the
+server transforms.
 
 **Type:** `boolean | string` · **Default:** `true` (`/custom-elements.json`) ·
 **Env:** —
@@ -564,6 +566,15 @@ no `customElements` field, the plugin sets it to this file.
 
 **Type:** `boolean | string` · **Default:** `false` (`true` writes
 `custom-elements.json`) · **Env:** —
+
+### manifest.scan
+
+Folders, relative to Vite's `root`, whose scripts the dev server reads when it
+starts and reads again when they change on disk. Its manifest (`dev` and
+`write`) then lists components no page has loaded yet. `false` lists only the
+modules pages load. A build reads the modules of its bundle and ignores this.
+
+**Type:** `false | string[]` · **Default:** `['src']` · **Env:** —
 
 ## Astro options
 
