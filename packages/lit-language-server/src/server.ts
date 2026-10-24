@@ -5,6 +5,7 @@
  * when a config file changes.
  */
 
+import htmlData from '@vscode/web-custom-data/data/browsers.html-data.json' with {type: 'json'};
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
@@ -26,10 +27,15 @@ import {
 } from 'vscode-languageserver/node';
 import {
   type Completion,
+  type DocsSource,
   type FeatureRequest,
   completionsAt,
   hoverAt,
 } from '../../../src/lib/editor/features.js';
+import {
+  type HtmlData,
+  createHtmlDocs,
+} from '../../../src/lib/editor/html-data.js';
 import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
 import {findWorkspace} from '../../../src/lib/editor/workspace-packages.js';
@@ -42,6 +48,25 @@ const SCRIPT_RE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
 
 const CONFIG_RE =
   /(?:^|\/)(?:lit-devtools\.config\.(?:[cm]?[jt]s|json)|vite\.config\.[cm]?[jt]s|package\.json|pnpm-workspace\.yaml)$/;
+
+const html = createHtmlDocs(htmlData as HtmlData);
+
+/**
+ * Where a document's docs come from. In a template, standard elements and
+ * what every element accepts come from HTML's data as well; an HTML file
+ * leaves those to the editor's own HTML server, which would repeat them.
+ */
+const docsSourceFor = (workspace: Workspace, kind: DocumentKind): DocsSource =>
+  kind === 'html'
+    ? workspace
+    : {
+        get: async (file, tag) =>
+          (await workspace.get(file, tag)) ?? html.get(tag),
+        tags: async (file) => [
+          ...new Set([...(await workspace.tags(file)), ...html.tags()]),
+        ],
+        globals: () => html.globals,
+      };
 
 /** What kind of markup document a file is, or undefined when it holds none. */
 const kindOf = (document: TextDocument): DocumentKind | undefined => {
@@ -79,6 +104,7 @@ const toItem = (document: TextDocument, item: Completion): CompletionItem => ({
     ? {documentation: {kind: MarkupKind.Markdown, value: item.documentation}}
     : {}),
   ...(item.deprecated ? {tags: [1]} : {}),
+  ...(item.sortText ? {sortText: item.sortText} : {}),
   textEdit: {
     range: {
       start: document.positionAt(item.start),
@@ -176,7 +202,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
     uri: string,
     position: Position
   ): Promise<
-    | {document: TextDocument; workspace: Workspace; request: FeatureRequest}
+    | {document: TextDocument; source: DocsSource; request: FeatureRequest}
     | undefined
   > => {
     const document = documents.get(uri);
@@ -190,7 +216,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
     const code = document.getText();
     return {
       document,
-      workspace,
+      source: docsSourceFor(workspace, kind),
       request: {file, code, kind, offset, templateTags},
     };
   };
@@ -240,14 +266,14 @@ export const startServer = (streams?: ServerStreams): Connection => {
   connection.onCompletion(async ({textDocument, position}) => {
     const found = await requestFor(textDocument.uri, position);
     if (!found) return [];
-    const items = await completionsAt(found.workspace, found.request);
+    const items = await completionsAt(found.source, found.request);
     return items.map((item) => toItem(found.document, item));
   });
 
   connection.onHover(
     async ({textDocument, position}): Promise<LspHover | null> => {
       const found = await requestFor(textDocument.uri, position);
-      const hover = found && (await hoverAt(found.workspace, found.request));
+      const hover = found && (await hoverAt(found.source, found.request));
       if (!found || !hover) return null;
       return {
         contents: {kind: MarkupKind.Markdown, value: hover.markdown},

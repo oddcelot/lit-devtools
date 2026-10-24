@@ -129,14 +129,15 @@ describe('the language server', () => {
       textDocument: {uri: appUri()},
       position,
     });
-    expect(items).toMatchObject([
-      {
-        label: 'size',
-        detail: "'small' | 'large'",
-        documentation: {kind: 'markdown'},
-        textEdit: {range: {start: position, end: position}, newText: 'size'},
-      },
-    ]);
+    expect(items[0]).toMatchObject({
+      label: 'size',
+      detail: "'small' | 'large'",
+      documentation: {kind: 'markdown'},
+      sortText: '00000',
+      textEdit: {range: {start: position, end: position}, newText: 'size'},
+    });
+    // Global attributes follow the element's own.
+    expect(items.map((item: {label: string}) => item.label)).toContain('id');
   });
 
   test('hovers a tag', async () => {
@@ -150,6 +151,56 @@ describe('the language server', () => {
       start: {line: 1, character: 6},
       end: {line: 1, character: 14},
     });
+  });
+
+  test('hovers a standard element in a template', async () => {
+    const uri = pathToFileURL(join(root, 'src/native.ts')).href;
+    const {text, position} = at(
+      "import {html} from 'lit';\nhtml`<butt‸on></button>`;\n"
+    );
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const hover = await client.request('textDocument/hover', {
+      textDocument: {uri},
+      position,
+    });
+    expect(hover.contents.value).toMatch(
+      /^\*\*`<button>`\*\*\n\nThe button element/
+    );
+  });
+
+  test('offers DOM events after @ on any element', async () => {
+    const uri = pathToFileURL(join(root, 'src/events.ts')).href;
+    const {text, position} = at(
+      "import {html} from 'lit';\nhtml`<main @‸></main>`;\n"
+    );
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const items = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      {
+        textDocument: {uri},
+        position,
+      }
+    );
+    expect(items.map((item) => item.label)).toEqual(
+      expect.arrayContaining(['click', 'input', 'keydown'])
+    );
+  });
+
+  test('leaves standard elements in an HTML file to the HTML server', async () => {
+    const uri = pathToFileURL(join(root, 'index.html')).href;
+    const {text, position} = at('<!doctype html>\n<butt‸on></button>\n');
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'html', version: 1, text},
+    });
+    const hover = await client.request('textDocument/hover', {
+      textDocument: {uri},
+      position,
+    });
+    expect(hover).toBeNull();
   });
 
   test('reads a component typed into a buffer, before it is saved', async () => {
@@ -174,7 +225,12 @@ describe('the language server', () => {
         position,
       }
     );
-    expect(items.map((item) => item.label)).toEqual(['x-button', 'x-chip']);
+    // Components first, then standard elements.
+    expect(items.map((item) => item.label).slice(0, 2)).toEqual([
+      'x-button',
+      'x-chip',
+    ]);
+    expect(items.map((item) => item.label)).toContain('div');
   });
 
   test('reports settings problems on the config file', async () => {
