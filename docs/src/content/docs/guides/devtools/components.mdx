@@ -392,9 +392,15 @@ your project, even in another module. Mixins are followed too: in
 `extends Sized(Base)`, the members of your project's `Sized` mixin are listed
 as inherited from `Sized`, ahead of `Base`'s. A mixin counts when it is a
 top-level function that returns a class, either directly or as a class it
-declares and returns. A mixin from a package, such as `SignalWatcher`, is
-skipped and the walk carries on to the base class. Docs read from source win over a manifest for the same tag, and an edit
-shows as soon as its hot patch lands.
+declares and returns.
+
+A class or mixin from a package is read from that package's manifest, so a
+component that extends Web Awesome's `WaBadge` lists the badge's properties,
+slots and events as inherited from `WaBadge`. One from a package without a
+manifest, such as `SignalWatcher`, is skipped, and the walk carries on to the
+base class. A property the constructor re-defaults is listed as the
+component's own. Docs read from source win over a manifest for the same tag,
+and an edit shows as soon as its hot patch lands.
 
 ### Libraries and manifests
 

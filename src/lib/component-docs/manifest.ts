@@ -189,3 +189,67 @@ export const docsFromManifest = (
   }
   return result;
 };
+
+/** A class or mixin a package's manifest declares, read as docs to inherit. */
+export interface ManifestDeclaration {
+  /** Its declared name. */
+  name: string;
+  /** The manifest's path for the module that declares it. */
+  module: string;
+  docs: Omit<ComponentDocs, 'tagName' | 'className' | 'origin'>;
+}
+
+const declarationOf = (
+  modules: Json[],
+  modulePath: string,
+  name: string
+): {module: Json; declaration: Json} | undefined => {
+  const named = (module: Json, wanted: string) => {
+    const declaration = asArray(module.declarations).find(
+      (d): d is Json => isRecord(d) && d.name === wanted
+    );
+    return declaration === undefined ? undefined : {module, declaration};
+  };
+  const own = modules.find((m) => m.path === modulePath);
+  if (own !== undefined) {
+    // `default` and renamed exports name a declaration through `exports`.
+    const exported = asArray(own.exports).find(
+      (e): e is Json => isRecord(e) && e.name === name
+    );
+    const local =
+      exported !== undefined && isRecord(exported.declaration)
+        ? text(exported.declaration.name)
+        : undefined;
+    const found = named(own, local ?? name);
+    if (found !== undefined) return found;
+  }
+  // A manifest written from source may name the module by its source path.
+  for (const module of modules) {
+    const found = named(module, name);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+};
+
+/**
+ * The class or mixin `name` that module `modulePath` of `manifest` exports,
+ * found by its module's path first and by name anywhere after. Never throws.
+ */
+export const declarationFromManifest = (
+  manifest: unknown,
+  modulePath: string,
+  name: string
+): ManifestDeclaration | undefined => {
+  if (!isRecord(manifest)) return undefined;
+  const modules = asArray(manifest.modules).filter(isRecord);
+  const found = declarationOf(modules, modulePath, name);
+  if (found === undefined) return undefined;
+  const module = typeof found.module.path === 'string' ? found.module.path : '';
+  const {
+    tagName: _tag,
+    className,
+    origin: _origin,
+    ...docs
+  } = declarationDocs(found.declaration, '', {manifest: '', module});
+  return {name: className, module, docs};
+};

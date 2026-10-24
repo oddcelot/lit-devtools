@@ -201,6 +201,23 @@ const manifestSource = (
   return source;
 };
 
+/**
+ * The manifest of the package in `packageDir`, named by its `customElements`
+ * field or beside its `package.json`, if there is one.
+ */
+export const packageManifest = (
+  fs: DocsFs,
+  packageDir: string
+): ManifestSource | undefined => {
+  const packageJson = readJson(fs, join(packageDir, 'package.json'));
+  if (packageJson === undefined) return undefined;
+  const name =
+    typeof packageJson.name === 'string' && packageJson.name !== ''
+      ? packageJson.name
+      : undefined;
+  return manifestSource(fs, packageDir, packageJson, name, false);
+};
+
 /** The first `package.json` at `root` or above it. */
 const findProjectPackage = (fs: DocsFs, root: string): string | undefined =>
   walkUp(root)

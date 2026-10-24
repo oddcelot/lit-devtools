@@ -274,8 +274,8 @@ export const assignedOf = (code: string, cls: Node): DocEntry[] => {
 
 /**
  * `properties`, own and inherited, with the constructor's `assigned`
- * values: each overrides the default of the property it names, and one that
- * names none is added as a field of the class.
+ * values: each overrides the default of the property it names, which makes
+ * it the class's own, and one that names none is added as a field.
  */
 export const applyAssigned = (
   properties: DocEntry[],
@@ -285,8 +285,13 @@ export const applyAssigned = (
   const result = [...properties];
   for (const entry of assigned) {
     const at = result.findIndex((p) => p.name === entry.name);
-    if (at === -1) result.push({...entry});
-    else result[at] = {...result[at], default: entry.default!};
+    if (at === -1) {
+      result.push({...entry});
+      continue;
+    }
+    // Re-defaulted, the property is the class's own, as the analyzer reads it.
+    const {inheritedFrom: _, ...declared} = result[at];
+    result[at] = {...declared, default: entry.default!};
   }
   return result;
 };

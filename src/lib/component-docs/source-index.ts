@@ -15,6 +15,7 @@
 
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
 import {applyAssigned} from './members.js';
+import type {PackageAncestors} from './package-ancestors.js';
 import type {
   ClassDocs,
   ClassDocsBody,
@@ -52,6 +53,8 @@ export interface Ancestor {
   /** The module that declares it. */
   id: string;
   docs: ClassDocsBody;
+  /** Set when it comes from a dependency's manifest: where that names it. */
+  fromPackage?: {package: string; module: string};
 }
 
 export interface IndexedModule {
@@ -132,9 +135,12 @@ const mergeList = (
 /**
  * @param relative Turns a module id into the path the panel shows, relative
  *   to the Vite root.
+ * @param packages Finds a superclass or mixin the walk reaches in a
+ *   dependency in that package's manifest; without it the walk stops there.
  */
 export const createSourceDocsIndex = (
-  relative: (id: string) => string
+  relative: (id: string) => string,
+  packages?: PackageAncestors
 ): SourceDocsIndex => {
   const modules = new Map<string, Entry>();
   const listeners = new Set<() => void>();
@@ -173,32 +179,58 @@ export const createSourceDocsIndex = (
     return mixin === undefined ? undefined : {id, mixin};
   };
 
+  /** `ref`, written in module `from`, found in a dependency's manifest. */
+  const fromPackage = (from: string, ref: ClassRef): Ancestor | undefined => {
+    const id = ref.specifier === undefined ? undefined : moduleOf(from, ref);
+    const found = id === undefined ? undefined : packages?.(id, ref.name);
+    return found === undefined
+      ? undefined
+      : {
+          name: found.name,
+          id: id!,
+          docs: found.docs,
+          fromPackage: {package: found.package, module: found.module},
+        };
+  };
+
   /**
    * The mixins `refs` (written in module `from`) apply, outermost first, each
-   * followed by the mixins it applies in turn. `seen` ends a cycle.
+   * followed by the mixins it applies in turn; one from a package is read
+   * from its manifest. `seen` ends a cycle.
    */
   const mixinsOf = (
     from: string,
     refs: readonly ClassRef[] | undefined,
     seen: Set<string>
-  ): LocatedMixin[] =>
-    (refs ?? []).flatMap((ref) => {
+  ): Ancestor[] =>
+    (refs ?? []).flatMap((ref): Ancestor[] => {
       const at = mixinOf(from, ref);
-      if (at === undefined) return [];
+      if (at === undefined) return [fromPackage(from, ref) ?? []].flat();
       const key = `${at.id}#mixin:${at.mixin.name}`;
       if (seen.has(key)) return [];
       seen.add(key);
-      return [at, ...mixinsOf(at.id, at.mixin.mixins, seen)];
+      return [
+        {name: at.mixin.name, id: at.id, docs: at.mixin.docs},
+        ...mixinsOf(at.id, at.mixin.mixins, seen),
+      ];
     });
 
   const ancestorsOf = (start: Located): Ancestor[] => {
     const ancestors: Ancestor[] = [];
     const seen = new Set([`${start.id}#${start.cls.name}`]);
     for (let at: Located | undefined = start; at !== undefined;) {
-      for (const {id, mixin} of mixinsOf(at.id, at.cls.mixins, seen))
-        ancestors.push({name: mixin.name, id, docs: mixin.docs});
-      at = superclassOf(at);
-      if (at === undefined) break;
+      ancestors.push(...mixinsOf(at.id, at.cls.mixins, seen));
+      const next = superclassOf(at);
+      if (next === undefined) {
+        // A package's manifest already folds in what its class inherits.
+        const outside =
+          at.cls.superclass === undefined
+            ? undefined
+            : fromPackage(at.id, at.cls.superclass);
+        if (outside !== undefined) ancestors.push(outside);
+        break;
+      }
+      at = next;
       const key = `${at.id}#${at.cls.name}`;
       if (seen.has(key)) break;
       seen.add(key);
