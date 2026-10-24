@@ -168,7 +168,15 @@ test('the inspector shows a #private field and follows it live', async () => {
   const latest = await watchPrivate(f);
   await expect
     .poll(() => latest()?.privateFields, {timeout: 10_000})
-    .toEqual([{name: 'count', value: '3', type: 'number'}]);
+    .toEqual([
+      {
+        name: 'count',
+        key: expect.stringMatching(/:HmrPrivate#count$/),
+        value: '3',
+        type: 'number',
+        editable: 'number',
+      },
+    ]);
 
   await f.page.click('hmr-private #bump');
   await expect

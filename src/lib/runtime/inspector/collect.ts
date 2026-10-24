@@ -17,7 +17,11 @@ import {
 } from './listed.js';
 import {collectAnatomy, shadowOf} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
-import {collectPrivateFields, privateValue} from './private-fields.js';
+import {
+  collectPrivateFields,
+  privateValue,
+  setPrivateField,
+} from './private-fields.js';
 import {readInternals} from '../element-internals.js';
 import {serialize, typeTag} from './serialize.js';
 import {
@@ -45,6 +49,7 @@ import type {
   ValuePath,
   ValueSegment,
 } from '../../../types/inspector.js';
+import {PRIVATE_KEY_PREFIX} from '../../../types/inspector.js';
 import {CALL_SITE_ATTR, SOURCE_META_KEY, readCallSite} from '../source-meta.js';
 import {defineFramesOf, defineIdOf} from '../define-sites.js';
 import {templateSiteOf} from '../template-sites.js';
@@ -549,7 +554,8 @@ const setOwnProp = (
  * primitive of the same type is written, so a command cannot set arbitrary
  * fields or change a property's type. With `keys`, the leaf at that path
  * inside the property's live value is written instead. Returns whether it
- * was applied.
+ * was applied. A `name` that is a `#private` field's key writes that field
+ * (see `setPrivateField`), never a leaf inside it.
  */
 export const setProp = (
   el: Element,
@@ -557,6 +563,9 @@ export const setProp = (
   value: string | number | boolean,
   keys: ValueSegment[] = []
 ): boolean => {
+  if (name.startsWith(PRIVATE_KEY_PREFIX)) {
+    return keys.length === 0 && setPrivateField(el, name, value);
+  }
   return keys.length === 0
     ? setOwnProp(el, name, value)
     : setNestedProp(el, name, value, keys);

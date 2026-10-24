@@ -253,13 +253,31 @@ export interface InspectorPrivateField {
    * declare a field of that name, the later one reads `name (Class)`.
    */
   name: string;
+  /**
+   * The description of the symbol the field is keyed by, which names its
+   * file and class as well (see {@link PRIVATE_KEY_PREFIX}): what a
+   * `set-prop` command passes as `name` to write it. Absent from an older
+   * runtime.
+   */
+  key?: string;
   /** Serialized preview of the value. */
   value: string;
   /** A short type tag. */
   type: string;
   /** As {@link InspectorProp.expandable}. */
   expandable?: boolean;
+  /** As {@link InspectorProp.editable}, by its {@link key}. */
+  editable?: 'string' | 'number' | 'boolean';
+  /** As {@link InspectorProp.override}. */
+  override?: InspectorPropOverride;
 }
+
+/**
+ * What the description of a `#private` field's symbol starts with, under the
+ * dev server's private-fields rewrite: the rest is `<file>:<class>#<name>`.
+ * Kept in step with `plugins/private-fields.ts`.
+ */
+export const PRIVATE_KEY_PREFIX = '@oddsquad/vite-plugin-lit#private:';
 
 /**
  * A `@lit/context` provider or consumer on the element: the context key as
@@ -669,6 +687,8 @@ export type InspectorCommand =
    * Set a string, number or boolean on the reactive property `name` on
    * element `id`, then answer with fresh details. Applied only to a declared
    * property of that primitive type; anything else leaves the value as it was.
+   * A `name` that is a `#private` field's {@link InspectorPrivateField.key}
+   * writes that field instead, under the same rule, with no `keys`.
    * It is kept as an override (see {@link InspectorPropOverride}), switched
    * on. With `keys`, the primitive is written into the live object, array or
    * `Map` the property holds, at the end of that path: the steps from the
