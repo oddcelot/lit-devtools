@@ -3,6 +3,74 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.23.0 — 2026-10-24
+
+The Components panel now shows what a component keeps to itself: its
+`#private` fields, readable and editable under the dev server, and the custom
+states, form value and validity of a form-associated element. The tree no
+longer has a Live switch; it stays live, holds still under the pointer and
+paces itself on busy pages. The panel's rows, colours and fields got easier
+to read and hit, and the docs run the examples live beside the panel. Nothing
+needs action to upgrade.
+
+### Added
+
+- **The Components panel shows and edits a component's `#private` fields.**
+  Under the dev server, a Private section after State lists each native
+  `#private` field as `#name` with its live value. A string, number or
+  boolean has the same edit button as a property, kept as an override you can
+  switch off, pin across reloads or remove, and the component re-renders with
+  it. Agents read them through `lit_component-details` and set them through
+  `lit_set-prop`. They come from the `hmr.privateFields` rewrite, so turning
+  that off hides them.
+- **The Components details show custom states and form values.** An element
+  that calls `attachInternals()` gets an Internals section with the states
+  `:state()` matches, the value it last passed to `setFormValue()`, and its
+  validity and validation message, kept live as they change. Agents read the
+  same through `lit_component-details`.
+- **Try the examples live in the docs.** The Demos page opens flame, Web
+  Awesome, Fernhouse, CSS, Tailwind, Forms and the tutorial's app running in
+  your browser with the DevTools panel under them, with nothing to boot and a
+  zoom control; StackBlitz is one switch away for editing their files.
+
+### Changed
+
+- **The live component tree keeps up with busy pages without slowing them.**
+  A page that changes constantly still gets a fresh tree every so often,
+  rebuilds space themselves out by how long the last one took, and none run
+  while the Timeline is recording.
+- **The Components toolbar sets Pick apart from the switches.** Pick is a
+  crosshair beside the tag filter, and Flash and Anatomy, which stay on until
+  you turn them off, sit together as one group at the right.
+- **Tree and list rows are easier to hit.** Rows in the component tree and
+  the timeline list are 24px tall, the minimum target size WCAG asks for.
+- **Element references and functions no longer share a colour.** Tags and
+  element refs are teal, functions stay blue, in both colour schemes.
+
+### Fixed
+
+- **A link to a component opens its details even before the page is ready.**
+  Opening the panel on `#tab=components&component=N` before the page
+  connected, or before its components defined, no longer shows "This element
+  is no longer in the page" for an element that is there.
+- **Settings' About shows the page's Lit even when opened first.** A panel
+  opened on the Settings tab before the page connected said "lit: not
+  detected" until the tab was reopened; it now lists the page's Lit packages
+  as soon as the page connects.
+- **Disabled fields no longer pass for empty ones.** A disabled select or
+  input is dimmed, filled and dash-outlined with a not-allowed cursor, and the
+  tags of a multi-select read as live rather than greyed out.
+- **The Lit tab's footer buttons work in a narrow panel.** A long notice no
+  longer covers its own "Don't show again" or "Not now": the text is cut
+  short instead, and shows whole when you hover it.
+
+### Removed
+
+- **The Components tab's Live toggle is gone; the tree is always live.** It
+  stays still while the pointer is over it, so the row under the pointer does
+  not move, and catches up when the pointer leaves. A tree paused in an
+  earlier version comes back live.
+
 ## 0.22.0 — 2026-10-24
 
 The Lit DevTools now run in any server. `createLitDevtools()` serves the
