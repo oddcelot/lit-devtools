@@ -76,6 +76,9 @@ const files: Record<string, string> = {
     export class XButton extends LitElement {
       /** How big. */
       @property() size: 'small' | 'large' = 'small';
+      pick() {
+        this.dispatchEvent(new CustomEvent('pick', {detail: {size: this.size, at: 1}}));
+      }
     }
   `,
 };
@@ -201,6 +204,60 @@ describe('the language server', () => {
       position,
     });
     expect(hover).toBeNull();
+  });
+
+  test('types an inline handler: member completion, code action, inlay hint', async () => {
+    const uri = pathToFileURL(join(root, 'src/handler.ts')).href;
+    const {text, position} = at(
+      "import {html} from 'lit';\nhtml`<main @pick=${(ev) => ev.detail.‸}></main>`;\n"
+    );
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const items = await client.request<{label: string; detail: string}[]>(
+      'textDocument/completion',
+      {textDocument: {uri}, position}
+    );
+    expect(items.map((item) => [item.label, item.detail])).toEqual([
+      ['size', "'small' | 'large'"],
+      ['at', 'number'],
+    ]);
+    const type = "CustomEvent<{size: 'small' | 'large'; at: number}>";
+    const whole = {
+      start: {line: 0, character: 0},
+      end: {line: 2, character: 0},
+    };
+    const actions = await client.request('textDocument/codeAction', {
+      textDocument: {uri},
+      range: whole,
+      context: {diagnostics: []},
+    });
+    expect(actions).toMatchObject([
+      {
+        title: `Add event type ${type}`,
+        kind: 'quickfix',
+        edit: {
+          changes: {
+            [uri]: [
+              {
+                range: {
+                  start: {line: 1, character: 20},
+                  end: {line: 1, character: 22},
+                },
+                newText: `ev: ${type}`,
+              },
+            ],
+          },
+        },
+      },
+    ]);
+    const hints = await client.request('textDocument/inlayHint', {
+      textDocument: {uri},
+      range: whole,
+    });
+    expect(hints).toEqual([
+      {position: {line: 1, character: 22}, label: `: ${type}`, kind: 1},
+    ]);
   });
 
   test('reads a component typed into a buffer, before it is saved', async () => {
