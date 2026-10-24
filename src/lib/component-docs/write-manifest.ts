@@ -11,7 +11,8 @@
  * global. Types are the text written in the source; nothing is inferred.
  *
  * Pure: `path` decides how a module id is written, and the output is sorted
- * by it, so the same sources give the same file.
+ * by it, so the same sources give the same file. Source modules that share a
+ * path, such as two bundled into one chunk, are one module of the manifest.
  */
 
 import type {DocEntry} from '../../types/component-docs.js';
@@ -171,13 +172,23 @@ const heading = (docs: ClassDocsBody): Json => {
   return out;
 };
 
-/**
- * @param path Turns a module id into the manifest's module path, e.g. relative
- *   to the project root.
- */
+export interface ManifestPaths {
+  /**
+   * Turns a module id into the manifest's module path, e.g. relative to the
+   * project root; `undefined` leaves the module out, and a reference to it
+   * names no module.
+   */
+  path: (id: string) => string | undefined;
+  /**
+   * Whether the file `path` gives for module `id` exports `name`. Unset, every
+   * export the source declares is kept.
+   */
+  exported?: (id: string, name: string) => boolean;
+}
+
 export const writeManifest = (
   modules: readonly IndexedModule[],
-  path: (id: string) => string
+  {path, exported = () => true}: ManifestPaths
 ): Manifest => {
   const byId = new Map(modules.map((m) => [m.id, m]));
 
@@ -196,15 +207,20 @@ export const writeManifest = (
     if (ref.specifier === undefined && !declares(at, ref.name))
       return {name: ref.name, package: 'global:'};
     const id = at.moduleOf(ref);
-    if (id === undefined) return {name: ref.name};
-    return {name: declaredName(id, ref.name), module: path(id)};
+    return located(
+      id === undefined ? ref.name : declaredName(id, ref.name),
+      id
+    );
+  };
+
+  /** `name`, with the path of module `id` when it has one. */
+  const located = (name: string, id: string | undefined): Reference => {
+    const module = id === undefined ? undefined : path(id);
+    return module === undefined ? {name} : {name, module};
   };
 
   const inherited = (ancestors: Ancestor[]) =>
-    ancestors.map((a) => ({
-      from: {name: a.name, module: path(a.id)},
-      docs: a.docs,
-    }));
+    ancestors.map((a) => ({from: located(a.name, a.id), docs: a.docs}));
 
   const classDeclaration = (at: IndexedModule, cls: ClassDocs): Json => {
     const out: Json = {kind: 'class', name: cls.name, ...heading(cls.docs)};
@@ -226,42 +242,55 @@ export const writeManifest = (
     return {...out, ...lists(mixin.docs, [])};
   };
 
-  const moduleEntry = (at: IndexedModule): Json => {
-    const modulePath = path(at.id);
-    const {classes, mixins = [], exports = []} = at.module;
+  const declarationsOf = (at: IndexedModule): Json[] => [
+    ...at.module.classes.map((cls) => classDeclaration(at, cls)),
+    ...(at.module.mixins ?? []).map((mixin) => mixinDeclaration(at, mixin)),
+  ];
+
+  const exportsOf = (at: IndexedModule, modulePath: string): Json[] => {
     const declaration = (name: string) => ({name, module: modulePath});
-    return {
-      kind: 'javascript-module',
-      path: modulePath,
-      declarations: [
-        ...classes.map((cls) => classDeclaration(at, cls)),
-        ...mixins.map((mixin) => mixinDeclaration(at, mixin)),
-      ],
-      exports: [
-        ...exports.map((e) => ({
+    return [
+      ...(at.module.exports ?? [])
+        .filter((e) => exported(at.id, e.name))
+        .map((e) => ({
           kind: 'js',
           name: e.name,
           declaration: declaration(e.local),
         })),
-        ...classes.flatMap((cls) =>
-          cls.tagName === undefined
-            ? []
-            : [
-                {
-                  kind: 'custom-element-definition',
-                  name: cls.tagName,
-                  declaration: declaration(cls.name),
-                },
-              ]
-        ),
-      ],
-    };
+      ...at.module.classes.flatMap((cls) =>
+        cls.tagName === undefined
+          ? []
+          : [
+              {
+                kind: 'custom-element-definition',
+                name: cls.tagName,
+                declaration: declaration(cls.name),
+              },
+            ]
+      ),
+    ];
   };
+
+  const byPath = new Map<string, IndexedModule[]>();
+  for (const at of modules) {
+    const modulePath = path(at.id);
+    if (modulePath === undefined) continue;
+    byPath.set(modulePath, [...(byPath.get(modulePath) ?? []), at]);
+  }
 
   return {
     schemaVersion: SCHEMA_VERSION,
-    modules: [...modules]
-      .sort((a, b) => (path(a.id) < path(b.id) ? -1 : 1))
-      .map(moduleEntry),
+    modules: [...byPath]
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([modulePath, sources]) => {
+        // Bundled together, in a stable order whatever order they were read.
+        const ordered = [...sources].sort((a, b) => (a.id < b.id ? -1 : 1));
+        return {
+          kind: 'javascript-module',
+          path: modulePath,
+          declarations: ordered.flatMap(declarationsOf),
+          exports: ordered.flatMap((at) => exportsOf(at, modulePath)),
+        };
+      }),
   };
 };
