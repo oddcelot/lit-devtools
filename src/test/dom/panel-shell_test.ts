@@ -309,7 +309,7 @@ test('a page change drops the Components tree and HMR history, and asks the new 
 });
 
 test('a page change asks the new page for the selection, not the old details', async () => {
-  const {el, view} = await mount();
+  const {el, view} = await mount('', [{id: 7, tagName: 'x-app', children: []}]);
   const components = view<ComponentsView>('components-view')!;
   components.location.apply({componentId: 7});
   await flush(el);

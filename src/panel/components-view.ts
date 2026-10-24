@@ -1648,14 +1648,18 @@ export class ComponentsView extends LitElement {
   @property({type: Boolean, attribute: 'details-only'}) detailsOnly = false;
   private _unfollow: (() => void) | null = null;
 
-  // A link that names an element: select it now. The tree may not hold it
-  // yet; the session reveals it once a fresh tree arrives.
-  protected readonly _locationController = new LocationController(this, () => {
+  // A link that names an element: select it once the page's tree holds it.
+  // Until then the link stays held, and each tree the session takes in
+  // tries again (see `_followRequest`).
+  protected readonly _locationController = new LocationController(this, () =>
+    this._followRequest()
+  );
+
+  private _followRequest(): void {
     const id = this.location.requested('components');
-    if (id === undefined) return;
-    this._session.select(id);
+    if (id === undefined || !this._session.follow(id)) return;
     this.location.resolve('components', id);
-  });
+  }
   /**
    * Whether the page has a picker to toggle, as `get-meta` reports it: the
    * source overlay under Vite (only with `sourceOverlay` on), the standalone
@@ -1766,6 +1770,7 @@ export class ComponentsView extends LitElement {
       this.requestUpdate();
     });
     this._unsubscribeSession = this._session.subscribe(() => {
+      this._followRequest();
       this.requestUpdate();
       this._reportIncompatibilities();
       this._reportWarnings();
