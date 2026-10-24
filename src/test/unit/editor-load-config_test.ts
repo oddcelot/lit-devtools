@@ -29,6 +29,7 @@ describe('loadLanguageServerConfig', () => {
       ignoreAttributes: [],
       entries: [],
       templateTags: ['html', 'svg'],
+      cssTemplateTags: ['css'],
       diagnostics: {
         'unknown-element': 'warning',
         'unknown-attribute': 'warning',
@@ -36,6 +37,7 @@ describe('loadLanguageServerConfig', () => {
         'invalid-value': 'warning',
         'missing-import': 'off',
         'event-type': 'error',
+        css: 'warning',
       },
       source: 'default',
       watched: [],
