@@ -127,7 +127,8 @@ const tabs = [
     // Open on the second item, so the tree is expanded and its properties
     // show. Ids are stable here, the cart being the page's only tree: 2 is
     // its second item. The panel holds the link until the cart's tree has it.
-    live.src = `${live.dataset.src}?scheme=${scheme}#tab=components&component=2`;
+    // About is folded so the properties are in view without scrolling.
+    live.src = `${live.dataset.src}?scheme=${scheme}&collapse=About#tab=components&component=2`;
   };
   whenNear(live, () => {
     load();

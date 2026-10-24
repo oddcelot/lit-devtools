@@ -87,6 +87,7 @@ import {
   propKey,
 } from './details-diff.js';
 import {internalsRows} from './internals-rows.js';
+import {readCollapsed, writeCollapsed} from './collapsed-sections.js';
 import {
   fullSourceTip,
   manifestModuleOf,
@@ -127,25 +128,8 @@ const readAnatomy = (): boolean => {
   }
 };
 
-/** localStorage key listing the details sections the user folded. */
-const COLLAPSED_LS_KEY = 'lit-devtools-components-collapsed';
 /** About text longer than this starts clamped to a few lines. */
 const ABOUT_CLAMP_CHARS = 240;
-
-const readCollapsed = (): ReadonlySet<string> => {
-  try {
-    const list: unknown = JSON.parse(
-      localStorage.getItem(COLLAPSED_LS_KEY) ?? '[]'
-    );
-    return new Set(
-      Array.isArray(list)
-        ? list.filter((x): x is string => typeof x === 'string')
-        : []
-    );
-  } catch {
-    return new Set();
-  }
-};
 
 const readDetailsWidth = (): number => {
   try {
@@ -3682,11 +3666,7 @@ export class ComponentsView extends LitElement {
     if (collapsed) next.add(label);
     else next.delete(label);
     this._collapsed = next;
-    try {
-      localStorage.setItem(COLLAPSED_LS_KEY, JSON.stringify([...next]));
-    } catch {
-      // Storage unavailable: the fold just won't be remembered.
-    }
+    writeCollapsed(next);
   }
 
   /**
