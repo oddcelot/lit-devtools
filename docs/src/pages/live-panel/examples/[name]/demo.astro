@@ -22,9 +22,9 @@ const {title, head, body} = examplePage(name, base);
 // An example built with its own vite.config.ts: its build, beside this page
 // (src/lib/live-examples-own-build.mjs).
 const ownBuild =
-  typeof liveExamples[name] === 'function'
-    ? undefined
-    : `${base}_live/live-example.js`;
+  liveExamples[name]?.build === 'own-config'
+    ? `${base}_live/live-example.js`
+    : undefined;
 ---
 
 <!doctype html>
@@ -35,19 +35,20 @@ const ownBuild =
     <meta name="robots" content="noindex" />
     <title>{title}</title>
     <Fragment set:html={head} />
+    {ownBuild && <link rel="stylesheet" href={`${base}_live/live-example.css`} />}
   </head>
   <body>
     <Fragment set:html={body} />
     <script>
       import {startDemoPage} from '../../../../../../src/panel/figures/live/demo-runtime.ts';
-      import {liveExamples} from '../../../../lib/live-examples';
+      import {liveExampleLoaders} from '../../../../lib/live-example-loaders';
 
       // The page names its example; its entry loads once the runtime's
       // hooks are in (demo-runtime.ts). An example built with its own config
       // names that build, which loads the same way.
       const {liveExample = '', liveBuild} = document.documentElement.dataset;
       const load =
-        liveExamples[liveExample]?.load ??
+        liveExampleLoaders[liveExample] ??
         (liveBuild !== undefined
           ? () => import(/* @vite-ignore */ liveBuild)
           : undefined);

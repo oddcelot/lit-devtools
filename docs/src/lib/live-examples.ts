@@ -1,9 +1,12 @@
 /**
  * The examples published as live demos: the DevTools panel inspecting
  * examples/<name>/ at /live-panel/examples/<name>/, with no dev server
- * (src/pages/live-panel/examples/). One entry here publishes an example.
+ * (src/pages/live-panel/examples/). An entry here publishes an example,
+ * with its entry module's loader in live-example-loaders.ts.
  *
- * Each entry loads the module the example's index.html runs. The demo page
+ * This module holds no imports of the examples on purpose: the pages that
+ * read it (the Demos page, the panel pages) would otherwise take every
+ * example's global CSS, such as Web Awesome's native styles. The demo page
  * takes the rest of index.html, its styles and markup, as it is, and
  * serves the example's public/ files beside itself (see
  * `liveExamplesPublic` in astro.config.mjs). The example's Lit resolves to
@@ -17,9 +20,6 @@
  * runs, and the demo page loads that build (src/lib/live-examples-own-build.mjs).
  */
 interface LiveExample {
-  /** Loads the module the example's index.html runs; absent for an example
-   *  built with its own config. */
-  load?: () => Promise<unknown>;
   /** Build the example apart, with its own vite.config.ts. */
   build?: 'own-config';
   /** The demo frame's row above the panel, as a grid track size, for an
@@ -30,23 +30,18 @@ interface LiveExample {
 
 export const liveExamples: Record<string, LiveExample> = {
   flame: {
-    load: () => import('../../../examples/flame/src/lit-flame.ts'),
     demoRow: 'minmax(24rem, 50%)',
   },
   forms: {
-    load: () => import('../../../examples/forms/src/main.ts'),
     demoRow: 'minmax(24rem, 55%)',
   },
   fernhouse: {
-    load: () => import('../../../examples/fernhouse/src/main.ts'),
     demoRow: 'minmax(24rem, 55%)',
   },
-  'web-awesome': {
-    load: () => import('../../../examples/web-awesome/src/main.ts'),
-    demoRow: 'minmax(26rem, 55%)',
-  },
+  // Own config: its global webawesome.css would otherwise reach every
+  // demo frame, which share one client script.
+  'web-awesome': {build: 'own-config', demoRow: 'minmax(26rem, 55%)'},
   tutorial: {
-    load: () => import('../../../examples/tutorial/src/my-element.ts'),
     demoRow: 'minmax(18rem, 45%)',
   },
   css: {build: 'own-config', demoRow: 'minmax(24rem, 55%)'},

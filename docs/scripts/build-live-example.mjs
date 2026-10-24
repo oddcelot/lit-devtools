@@ -18,9 +18,13 @@
  * - `liveDemoDevLit()` resolves the example's Lit to the development build,
  *   so the Timeline's render lanes fill;
  * - its public/ files are left to `liveExamplesPublic` in astro.config.mjs;
- * - `base` is the demo page's URL, and everything goes under `_live/`.
+ * - `base` is the demo page's URL, and everything goes under `_live/`;
+ * - CSS the entry imports itself, such as a library's global stylesheet,
+ *   is `_live/live-example.css`, which the demo page links (Vite injects
+ *   only the CSS of chunks it loads later). An entry without any gets an
+ *   empty one, so the link always resolves.
  */
-import {readFileSync} from 'node:fs';
+import {existsSync, readFileSync, writeFileSync} from 'node:fs';
 import {createRequire} from 'node:module';
 import {join, resolve} from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
@@ -65,7 +69,16 @@ await build({
     assetsDir: '_live',
     rolldownOptions: {
       input: {'live-example': entry},
-      output: {entryFileNames: '_live/[name].js'},
+      output: {
+        entryFileNames: '_live/[name].js',
+        assetFileNames: (asset) =>
+          asset.names.includes('live-example.css')
+            ? '_live/live-example.css'
+            : '_live/[name]-[hash][extname]',
+      },
     },
   },
 });
+
+const css = join(resolve(outDir), '_live/live-example.css');
+if (!existsSync(css)) writeFileSync(css, '');
