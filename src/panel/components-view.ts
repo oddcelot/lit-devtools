@@ -79,7 +79,14 @@ import {formatLines, type ValueToken} from './value-format.js';
 import {filterTree, type TreeFilterResult} from './tree-filter.js';
 import {ValueExpansion} from './value-expansion.js';
 import {copyText} from './copy-text.js';
-import {attrKey, changedRows, extraKey, propKey} from './details-diff.js';
+import {
+  attrKey,
+  changedRows,
+  extraKey,
+  internalsKey,
+  propKey,
+} from './details-diff.js';
+import {internalsRows} from './internals-rows.js';
 import {
   fullSourceTip,
   manifestModuleOf,
@@ -3451,6 +3458,33 @@ export class ComponentsView extends LitElement {
   }
 
   /**
+   * The Internals section: what the element keeps in its ElementInternals
+   * (custom states, the form value, validity), for one that attached them.
+   */
+  private _internalsView(d: InspectorDetails): {
+    shown: number;
+    section: TemplateResult | typeof nothing;
+  } {
+    const all = d.internals === undefined ? [] : internalsRows(d.internals);
+    const kept = all.filter((r) => this._matches(r.name, r.value));
+    const section = this._renderSection(
+      'Internals',
+      kept.length,
+      all.length,
+      html`<div class="kv">
+        ${kept.map((r) =>
+          this._renderEntry(this._mark(r.name), r.value, {
+            code: r.code,
+            key: internalsKey(r.name),
+            copy: r.value,
+          })
+        )}
+      </div>`
+    );
+    return {shown: kept.length, section};
+  }
+
+  /**
    * The Dispatched section: how many events of each type the element
    * dispatched on itself in the recording. Counts only; which listeners ran
    * is not recorded.
@@ -3723,6 +3757,7 @@ export class ComponentsView extends LitElement {
     const allWarnings = d.warnings ?? [];
     const warnings = this._warningsView(d);
     const dispatched = this._dispatchedView(d);
+    const internals = this._internalsView(d);
     this._shownActivity = {id: d.id, activity: this._activityOf(d.id)};
     const docs = this._docsView(d);
     const anatomyHit =
@@ -3736,7 +3771,8 @@ export class ComponentsView extends LitElement {
         attributes.length +
         extras.length +
         warnings.shown +
-        dispatched.shown >
+        dispatched.shown +
+        internals.shown >
         0 ||
       anatomyHit ||
       docs.anyMatch;
@@ -3878,7 +3914,8 @@ export class ComponentsView extends LitElement {
           </div>
         `
       )}
-      ${this._renderDocSections(docs)} ${dispatched.section}
+      ${internals.section} ${this._renderDocSections(docs)}
+      ${dispatched.section}
       ${this._renderSection(
         'Instance',
         extras.length,

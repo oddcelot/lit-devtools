@@ -1,4 +1,5 @@
 import type {InspectorDetails} from '../types/inspector.js';
+import {internalsRows} from './internals-rows.js';
 
 /**
  * The key a details row is known by across refreshes: its section and name.
@@ -7,6 +8,7 @@ import type {InspectorDetails} from '../types/inspector.js';
 export const propKey = (name: string) => `p:${name}`;
 export const attrKey = (name: string) => `a:${name}`;
 export const extraKey = (name: string) => `e:${name}`;
+export const internalsKey = (name: string) => `i:${name}`;
 
 const rows = (d: InspectorDetails): Map<string, string> => {
   const m = new Map<string, string>();
@@ -14,6 +16,11 @@ const rows = (d: InspectorDetails): Map<string, string> => {
   for (const a of d.attributes) m.set(attrKey(a.name), a.value);
   for (const e of d.extras ?? []) {
     m.set(extraKey(e.name), `${e.status ?? ''}\u0000${e.value}`);
+  }
+  if (d.internals !== undefined) {
+    for (const r of internalsRows(d.internals)) {
+      m.set(internalsKey(r.name), r.value);
+    }
   }
   return m;
 };

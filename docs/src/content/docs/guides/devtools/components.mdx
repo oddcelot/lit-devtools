@@ -255,6 +255,21 @@ row of its own when Lit said nothing, as under a production build. The
 [Updates tab](/guides/devtools/updates/#read-one-components-updates)
 lists those updates.
 
+**Internals** shows what a custom element keeps in its `ElementInternals`,
+for an element that called `attachInternals()`. **states** lists its custom
+states, the names `:state()` matches, so you can see why
+`fm-switch:state(dirty)` applies without running the query in the console.
+A form-associated element also shows its **value**, the last value it passed
+to `setFormValue()` (a `File` reads as its name, size and type, a `FormData`
+as its entries), and **state** when that call passed one. **validity** reads
+`valid` or names the `ValidityState` flags that are set, such as
+`valueMissing`, with the **validationMessage** under it. The rows follow the
+element live, including a state added in a focus handler that renders
+nothing. Internals are private to the element, so the runtime sees them by
+wrapping `attachInternals()` before the app loads; an element that attached
+them earlier, or a page without the plugin's runtime, shows no section.
+Agents get the same data in the `internals` field of `lit_component-details`.
+
 **Dispatched** counts the events the element dispatched on itself in the
 recording, per type, most frequent first. It needs the Custom events layer,
 which is off by default, and stays hidden until the element dispatched
