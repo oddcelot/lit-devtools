@@ -393,6 +393,34 @@ describe('dispatched events', () => {
   });
 });
 
+describe('constructor assignments', () => {
+  test('names the class does not declare, with the value as default', () => {
+    const cls = only(`
+      class X extends Base {
+        @property() size = 'm';
+        private count = 0;
+        constructor() {
+          super();
+          this.variant = 'neutral';
+          this.size = 'l';
+          this.count = 1;
+          this.appearance = 'outlined';
+          this.variant = 'brand';
+          this.handlers[0] = null;
+          this.total += 1;
+          if (x) this.hidden = true;
+        }
+      }
+    `);
+    expect(cls.docs.assigned).toEqual([
+      {name: 'variant', default: "'brand'"},
+      {name: 'appearance', default: "'outlined'"},
+    ]);
+    // Not merged into the class's own properties until ancestry is known.
+    expect(cls.docs.properties.map((p) => p.name)).toEqual(['size']);
+  });
+});
+
 describe('reflects', () => {
   test('a reflecting property says so; its attribute does not', () => {
     const cls = only(`

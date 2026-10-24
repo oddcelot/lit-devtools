@@ -106,7 +106,7 @@ const cssProperty = (entry: DocEntry): Json => {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples' | 'methods'
+  'summary' | 'description' | 'deprecated' | 'examples' | 'methods' | 'assigned'
 >;
 
 /** Each list of a body, its manifest key and how an entry is written. */
@@ -142,6 +142,23 @@ const merged = <T extends {name: string}>(
   return written;
 };
 
+/**
+ * Written fields with the constructor's assignments: each re-defaults the
+ * field it names, own or inherited, or is added as a field of the class.
+ */
+const applyAssignedFields = (
+  fields: Json[],
+  assigned: readonly DocEntry[] | undefined
+): Json[] => {
+  const result = [...fields];
+  for (const entry of assigned ?? []) {
+    const at = result.findIndex((f) => f.name === entry.name);
+    if (at === -1) result.push(field(entry));
+    else result[at] = {...result[at], default: entry.default};
+  }
+  return result;
+};
+
 /** A body's lists as manifest keys, own entries first, then inherited ones it doesn't redeclare. */
 const lists = (docs: ClassDocsBody, ancestors: Inherited[]): Json => {
   const out: Json = {};
@@ -153,6 +170,11 @@ const lists = (docs: ClassDocsBody, ancestors: Inherited[]): Json => {
     );
     if (written.length > 0) out[manifestKey] = written;
   }
+  const fields = applyAssignedFields(
+    (out.members as Json[] | undefined) ?? [],
+    docs.assigned
+  );
+  if (fields.length > 0) out.members = fields;
   // Methods share `members` with the fields, after them.
   const methods = merged(
     docs.methods ?? [],

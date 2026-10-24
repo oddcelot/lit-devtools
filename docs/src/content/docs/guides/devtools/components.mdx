@@ -376,7 +376,9 @@ even without a `@fires` tag. A property's comment
 gives its description and `@deprecated`, its type annotation the type, its
 initializer the default, and `@property()` the attribute it maps to.
 `@state()` fields and private, protected, `#private` and static members are
-left out. The tag comes from `@customElement()` or a `customElements.define()`
+left out. A `this.variant = 'neutral'` line in the constructor sets the default
+of the property it names, even one inherited from a library, and adds the
+property when no class declares it. The tag comes from `@customElement()` or a `customElements.define()`
 call in the same module, and plain JavaScript with `static properties` and
 `@type` works too.
 

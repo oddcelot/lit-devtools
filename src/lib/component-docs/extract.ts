@@ -43,7 +43,7 @@ import {
   namedEntry,
   tagText,
 } from './jsdoc.js';
-import {attributesOf, propertiesOf} from './members.js';
+import {assignedOf, attributesOf, propertiesOf} from './members.js';
 import {type MethodDocs, methodsOf} from './methods.js';
 
 /**
@@ -53,7 +53,15 @@ import {type MethodDocs, methodsOf} from './methods.js';
 export type ClassDocsBody = Omit<
   ComponentDocs,
   'tagName' | 'className' | 'origin'
-> & {methods?: MethodDocs[]};
+> & {
+  methods?: MethodDocs[];
+  /**
+   * Names the constructor assigns but the class doesn't declare, with the
+   * value as default; merged into `properties` once inheritance is known,
+   * by `applyAssigned`.
+   */
+  assigned?: DocEntry[];
+};
 
 export interface ClassDocs {
   name: string;
@@ -242,6 +250,8 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   if (examples.length > 0) docs.examples = examples;
   const methods = methodsOf(code, cls);
   if (methods.length > 0) docs.methods = methods;
+  const assigned = assignedOf(code, cls);
+  if (assigned.length > 0) docs.assigned = assigned;
   return docs;
 };
 

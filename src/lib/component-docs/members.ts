@@ -217,6 +217,79 @@ export const propertiesOf = (code: string, cls: Node): DocEntry[] => {
   return result;
 };
 
+/** Names of every instance member the class body declares, whatever its access. */
+const declaredNames = (body: Node[]): Set<string> =>
+  new Set(
+    body.flatMap((member) => {
+      const name = nameOf(child(member, 'key'));
+      return name === undefined || member.static === true ? [] : [name];
+    })
+  );
+
+/** The name `this.name` writes to, for a plain (not computed) member. */
+const thisMember = (target: Node | undefined): string | undefined => {
+  const isThis = child(target, 'object')?.type === 'ThisExpression';
+  const key = child(target, 'property');
+  return isThis && target?.computed !== true && key?.type === 'Identifier'
+    ? nameOf(key)
+    : undefined;
+};
+
+/** `this.name = value` as a statement: the name and the value's source. */
+const thisAssignment = (
+  code: string,
+  statement: Node
+): DocEntry | undefined => {
+  const expression = child(statement, 'expression');
+  const isAssignment =
+    expression?.type === 'AssignmentExpression' && expression.operator === '=';
+  const name = isAssignment ? thisMember(child(expression, 'left')) : undefined;
+  const value = sliceOf(code, child(expression, 'right'));
+  return name === undefined || value === undefined
+    ? undefined
+    : {name, default: value};
+};
+
+/**
+ * What the constructor assigns at its top level (`this.variant = 'neutral'`)
+ * to a name the class doesn't declare, with the value as the default: an
+ * inherited property it re-defaults, or a field it adds. `applyAssigned`
+ * decides which once the class's ancestry is known.
+ */
+export const assignedOf = (code: string, cls: Node): DocEntry[] => {
+  const body = nodes(child(cls, 'body')?.body);
+  const ctor = body.find(
+    (m) => m.type === 'MethodDefinition' && m.kind === 'constructor'
+  );
+  const declared = declaredNames(body);
+  const found = new Map<string, DocEntry>();
+  for (const statement of nodes(child(child(ctor, 'value'), 'body')?.body)) {
+    const entry = thisAssignment(code, statement);
+    if (entry !== undefined && !declared.has(entry.name))
+      found.set(entry.name, entry);
+  }
+  return [...found.values()];
+};
+
+/**
+ * `properties`, own and inherited, with the constructor's `assigned`
+ * values: each overrides the default of the property it names, and one that
+ * names none is added as a field of the class.
+ */
+export const applyAssigned = (
+  properties: DocEntry[],
+  assigned: readonly DocEntry[] | undefined
+): DocEntry[] => {
+  if (assigned === undefined) return properties;
+  const result = [...properties];
+  for (const entry of assigned) {
+    const at = result.findIndex((p) => p.name === entry.name);
+    if (at === -1) result.push({...entry});
+    else result[at] = {...result[at], default: entry.default!};
+  }
+  return result;
+};
+
 /** An attribute entry per property that has one. */
 export const attributesOf = (properties: DocEntry[]): DocEntry[] =>
   properties.flatMap((property) => {
