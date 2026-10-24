@@ -38,7 +38,10 @@ const {demoRow = 'minmax(10rem, 40%)'} = Astro.props;
         border-bottom: 1px solid var(--lit-devtools-border);
         background: var(--lit-devtools-bg);
       }
+      /* The panel fills a viewport of its own (height: 100vh); here it
+         shares one with the demo, so it takes its grid row instead. */
       lit-devtools-panel {
+        height: auto;
         min-height: 0;
       }
     </style>
