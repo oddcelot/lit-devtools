@@ -178,7 +178,9 @@
   --code-string: #c3e88d;
   --code-number: #f78c6c;
   --code-property: #b2ccd6;
-  --code-tag: #89ddff;
+  /* Teal, not Material's #89ddff: that sat by --code-callee's blue, and a
+     state row's element ref and function read as one colour. */
+  --code-tag: #7fdbca;
   /* #616161 in the design system: 3:1 on ink-2, too faint for a null. */
   --code-comment: #8a8a8a;
   --code-callee: #82aaff;
@@ -236,7 +238,7 @@
     --code-string: #3c7a0b;
     --code-number: #b8470f;
     --code-property: #4a5d68;
-    --code-tag: #00779a;
+    --code-tag: #007366;
     --code-comment: #6a737d;
     --code-callee: #2b56c9;
 
@@ -296,7 +298,7 @@
   --code-string: #3c7a0b;
   --code-number: #b8470f;
   --code-property: #4a5d68;
-  --code-tag: #00779a;
+  --code-tag: #007366;
   --code-comment: #6a737d;
   --code-callee: #2b56c9;
 
