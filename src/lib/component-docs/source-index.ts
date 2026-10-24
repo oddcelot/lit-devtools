@@ -36,6 +36,35 @@ export interface SourceDocsIndex {
   ): void;
   delete(id: string): void;
   get(tagName: string): ComponentDocs | undefined;
+  /** Every stored module, for writing the index out as a manifest. */
+  modules(): IndexedModule[];
+}
+
+/** A class or mixin another class inherits members from. */
+export interface Ancestor {
+  name: string;
+  /** The module that declares it. */
+  id: string;
+  docs: ClassDocsBody;
+}
+
+export interface IndexedModule {
+  /** The module id, without its query. */
+  id: string;
+  module: ModuleDocs;
+  /**
+   * The module a class or mixin named in this one is declared in: this one
+   * for a local name, the resolved id for an import, `undefined` for an
+   * import that didn't resolve.
+   */
+  moduleOf(ref: ClassRef): string | undefined;
+  /**
+   * What `cls`, declared in this module, inherits members from, in the order
+   * its members are merged: its mixins outermost first, each followed by the
+   * mixins it applies, then its superclass and that one's mixins, and so on
+   * while they are in the index.
+   */
+  ancestorsOf(cls: ClassDocs): Ancestor[];
 }
 
 interface Entry {
@@ -142,15 +171,31 @@ export const createSourceDocsIndex = (
     from: string,
     refs: readonly ClassRef[] | undefined,
     seen: Set<string>
-  ): MixinDocs[] =>
+  ): LocatedMixin[] =>
     (refs ?? []).flatMap((ref) => {
       const at = mixinOf(from, ref);
       if (at === undefined) return [];
       const key = `${at.id}#mixin:${at.mixin.name}`;
       if (seen.has(key)) return [];
       seen.add(key);
-      return [at.mixin, ...mixinsOf(at.id, at.mixin.mixins, seen)];
+      return [at, ...mixinsOf(at.id, at.mixin.mixins, seen)];
     });
+
+  const ancestorsOf = (start: Located): Ancestor[] => {
+    const ancestors: Ancestor[] = [];
+    const seen = new Set([`${start.id}#${start.cls.name}`]);
+    for (let at: Located | undefined = start; at !== undefined;) {
+      for (const {id, mixin} of mixinsOf(at.id, at.cls.mixins, seen))
+        ancestors.push({name: mixin.name, id, docs: mixin.docs});
+      at = superclassOf(at);
+      if (at === undefined) break;
+      const key = `${at.id}#${at.cls.name}`;
+      if (seen.has(key)) break;
+      seen.add(key);
+      ancestors.push({name: at.cls.name, id: at.id, docs: at.cls.docs});
+    }
+    return ancestors;
+  };
 
   const locate = (tagName: string): Located | undefined => {
     for (const [id, entry] of modules) {
@@ -167,21 +212,9 @@ export const createSourceDocsIndex = (
       className: start.cls.name,
       origin: {manifest: '', module: relative(start.id), source: true},
     };
-    const inherit = (body: ClassDocsBody, from: string): void => {
+    for (const ancestor of ancestorsOf(start))
       for (const list of LISTS)
-        docs[list] = mergeList(docs[list], body[list], from);
-    };
-    const seen = new Set([`${start.id}#${start.cls.name}`]);
-    for (let at: Located | undefined = start; at !== undefined;) {
-      for (const mixin of mixinsOf(at.id, at.cls.mixins, seen))
-        inherit(mixin.docs, mixin.name);
-      at = superclassOf(at);
-      if (at === undefined) break;
-      const key = `${at.id}#${at.cls.name}`;
-      if (seen.has(key)) break;
-      seen.add(key);
-      inherit(at.cls.docs, at.cls.name);
-    }
+        docs[list] = mergeList(docs[list], ancestor.docs[list], ancestor.name);
     return docs;
   };
 
@@ -195,6 +228,14 @@ export const createSourceDocsIndex = (
     get(tagName) {
       const start = locate(tagName);
       return start === undefined ? undefined : docsFor(tagName, start);
+    },
+    modules() {
+      return [...modules].map(([id, entry]) => ({
+        id,
+        module: entry.module,
+        moduleOf: (ref) => moduleOf(id, ref),
+        ancestorsOf: (cls) => ancestorsOf({id, cls}),
+      }));
     },
   };
 };
