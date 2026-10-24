@@ -36,9 +36,9 @@ const {title, head, body} = examplePage(
 
       // The page names its example; its entry loads once the runtime's
       // hooks are in (demo-runtime.ts).
-      const load =
+      const example =
         liveExamples[document.documentElement.dataset['liveExample'] ?? ''];
-      if (load !== undefined) await startDemoPage(load);
+      if (example !== undefined) await startDemoPage(example.load);
     </script>
   </body>
 </html>

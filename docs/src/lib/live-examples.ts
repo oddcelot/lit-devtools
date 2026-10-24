@@ -1,7 +1,7 @@
 /**
  * The examples published as live demos: the DevTools panel inspecting
  * examples/<name>/ at /live-panel/examples/<name>/, with no dev server
- * (src/pages/live-panel/examples/). One line here publishes an example.
+ * (src/pages/live-panel/examples/). One entry here publishes an example.
  *
  * Each entry loads the module the example's index.html runs. The demo page
  * takes the rest of index.html, its styles and markup, as it is, and
@@ -14,9 +14,21 @@
  * example's: an example that needs a plugin of its own (Tailwind, UnoCSS)
  * needs it in the docs too.
  */
-export const liveExamples: Record<string, () => Promise<unknown>> = {
-  flame: () => import('../../../examples/flame/src/lit-flame.ts'),
+export const liveExamples: Record<string, LiveExample> = {
+  flame: {
+    load: () => import('../../../examples/flame/src/lit-flame.ts'),
+    demoRow: 'minmax(24rem, 50%)',
+  },
 };
+
+interface LiveExample {
+  /** Loads the module the example's index.html runs. */
+  load: () => Promise<unknown>;
+  /** The demo frame's row above the panel, as a grid track size, for an
+   *  example whose page needs more (or less) than LivePanelPage's default
+   *  to show what there is to click. */
+  demoRow?: string;
+}
 
 /** The examples published as live demos, as `getStaticPaths()` lists them. */
 export const liveExamplePaths = () =>
