@@ -180,5 +180,7 @@ test('litPlugin() hands its options to whoever loads the Vite config', () => {
   const plugin = litPlugin(options).find(
     (p) => p.name === 'lit-plugin-options'
   );
-  expect((plugin?.api as {options?: unknown}).options).toBe(options);
+  expect((plugin?.api as {options?: unknown} | undefined)?.options).toBe(
+    options
+  );
 });
