@@ -183,7 +183,7 @@ const memberEntry = (
   if (reactive?.state === true || isHidden(doc)) return undefined;
   const entry = describe({name}, doc);
   put(entry, 'type', memberType(code, member, doc, reactive));
-  put(entry, 'default', initializerOf(code, member));
+  put(entry, 'default', initializerOf(code, member) ?? tagText(doc, 'default'));
   put(entry, 'counterpart', attributeOf(name, reactive));
   if (entry.counterpart !== undefined && reactive?.reflect)
     entry.reflects = true;
@@ -195,6 +195,7 @@ const staticEntry = (property: StaticProperty): DocEntry | undefined => {
   if (property.state === true || isHidden(property.doc)) return undefined;
   const entry = describe({name: property.name}, property.doc);
   put(entry, 'type', jsDocType(property.doc) ?? property.type);
+  put(entry, 'default', tagText(property.doc, 'default'));
   put(entry, 'counterpart', attributeOf(property.name, property));
   if (entry.counterpart !== undefined && property.reflect)
     entry.reflects = true;

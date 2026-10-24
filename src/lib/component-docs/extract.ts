@@ -227,12 +227,34 @@ const dispatchedEvents = (cls: Node, documented: DocEntry[]): DocEntry[] => {
   return found;
 };
 
+/**
+ * `entries` completed by the class comment's `tagged` ones: a tag naming an
+ * entry fills the description and type it lacks, and one naming none adds
+ * it. So `@attr` and `@prop` document what the code declares, or what it
+ * handles some other way.
+ */
+const completedBy = (entries: DocEntry[], tagged: DocEntry[]): DocEntry[] => {
+  const result = [...entries];
+  for (const tag of tagged) {
+    const at = result.findIndex((entry) => entry.name === tag.name);
+    if (at === -1) result.push(tag);
+    else result[at] = {...tag, ...result[at]};
+  }
+  return result;
+};
+
 const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   const fired = taggedEntries(doc, ['fires', 'event']);
-  const properties = propertiesOf(code, cls);
+  const properties = completedBy(
+    propertiesOf(code, cls),
+    taggedEntries(doc, ['prop', 'property'])
+  );
   const docs: ClassDocsBody = {
     properties,
-    attributes: attributesOf(properties),
+    attributes: completedBy(
+      attributesOf(properties),
+      taggedEntries(doc, ['attr', 'attribute'])
+    ),
     events: [...fired, ...dispatchedEvents(cls, fired)],
     slots: taggedEntries(doc, ['slot']),
     cssParts: taggedEntries(doc, ['csspart']),
@@ -254,6 +276,10 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   if (assigned.length > 0) docs.assigned = assigned;
   return docs;
 };
+
+/** A `@tag x-y` or `@tagname x-y` on the class, for a tag defined elsewhere. */
+const documentedTag = (doc: JsDoc | undefined): string | undefined =>
+  (tagText(doc, 'tag') ?? tagText(doc, 'tagname'))?.split(/\s/, 1)[0];
 
 /**
  * What `cls` extends: through any mixin calls (`A(B(Base))`) to the class
@@ -304,15 +330,14 @@ const classDocs = (
   const isDefault = wrapper?.type === 'ExportDefaultDeclaration';
   const name = nameOf(child(cls, 'id')) ?? (isDefault ? 'default' : undefined);
   if (name === undefined) return undefined;
-  const result: ClassDocs = {
-    name,
-    docs: bodyOf(code, cls, docOf(code, cls, wrapper)),
-  };
+  const doc = docOf(code, cls, wrapper);
+  const result: ClassDocs = {name, docs: bodyOf(code, cls, doc)};
   put(
     result,
     'tagName',
     stringLiteral(findDecorator(cls, 'customElement')?.args[0]) ??
-      context.defined.get(name)
+      context.defined.get(name) ??
+      documentedTag(doc)
   );
   if (isDefault) result.isDefaultExport = true;
   Object.assign(result, heritageOf(cls, context.imports));
