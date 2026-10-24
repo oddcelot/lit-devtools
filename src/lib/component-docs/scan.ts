@@ -14,6 +14,7 @@ import {
   normalizePath,
 } from 'vite';
 import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
+import {realDir} from './manifest-file.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
 const SCRIPT_RE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
@@ -74,7 +75,8 @@ export const indexDirs = async (
 ): Promise<number> => {
   let files = 0;
   for (const dir of dirs) {
-    for await (const file of scripts(resolve(root, dir))) {
+    // Under the real path, as Vite resolves the imports that lead here.
+    for await (const file of scripts(realDir(resolve(root, dir)))) {
       files++;
       const id = normalizePath(file);
       await indexModule(resolver, index, await readFile(file, 'utf8'), id);
