@@ -26,6 +26,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@vscode/web-custom-data": "^0.6.3",
     "oxc-parser": "^0.150.0",
     "oxc-resolver": "^11.24.2",
     "vscode-languageserver": "^11.0.0",
