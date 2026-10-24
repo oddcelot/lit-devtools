@@ -17,6 +17,7 @@ import {
 } from './listed.js';
 import {collectAnatomy, shadowOf} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
+import {collectPrivateFields, privateValue} from './private-fields.js';
 import {readInternals} from '../element-internals.js';
 import {serialize, typeTag} from './serialize.js';
 import {
@@ -401,6 +402,7 @@ const statusOf = (
 /** The sections that are present only when they have something to say. */
 const insightsOf = (el: Element): Partial<InspectorDetails> => {
   const extras = collectExtras(el);
+  const privateFields = collectPrivateFields(el);
   const anatomy = collectAnatomy(el);
   const internals = readInternals(el);
   const warnings = warningsFor(
@@ -410,6 +412,7 @@ const insightsOf = (el: Element): Partial<InspectorDetails> => {
   return {
     ...(anatomy !== undefined ? {anatomy} : {}),
     ...(extras.length > 0 ? {extras} : {}),
+    ...(privateFields.length > 0 ? {privateFields} : {}),
     ...(internals !== undefined ? {internals} : {}),
     ...(warnings.length > 0 ? {warnings} : {}),
   };
@@ -441,8 +444,8 @@ export const collectDetails = (el: Element): InspectorDetails => {
 /**
  * The value at `path` on `el`, or undefined when a step no longer resolves
  * (the value changed shape since the panel saw it). Only declared reactive
- * properties and listed extras are reachable, so a path cannot read
- * arbitrary fields.
+ * properties, listed extras and listed private fields are reachable, so a
+ * path cannot read arbitrary fields.
  */
 export const valueAt = (
   el: Element,
@@ -457,6 +460,8 @@ export const valueAt = (
     } catch {
       return undefined;
     }
+  } else if (path.section === 'private') {
+    at = privateValue(el, path.name);
   } else {
     at = extraValue(el, path.name);
   }

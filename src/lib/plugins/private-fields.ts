@@ -258,6 +258,8 @@ export const rewritePrivateNames = (
     if (!scope.names.has(name)) {
       const ident = `${prefix}${symbolCount++}`;
       scope.names.set(name, ident);
+      // The inspector reads instances' private fields by this description
+      // (`runtime/inspector/private-fields.ts`); change both together.
       decls.push(
         `const ${ident} = Symbol.for(${JSON.stringify(
           `@oddsquad/vite-plugin-lit#private:${file}:${classKey}#${name}`
