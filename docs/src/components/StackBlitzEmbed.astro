@@ -60,7 +60,7 @@ const query = (extra: Record<string, string>) => {
         <div class="zoom" role="group" aria-label="Zoom the live demo">
           <button type="button" data-step="-1" aria-label="Zoom out">−</button>
           <button type="button" class="level" aria-label="Reset zoom">
-            100%
+            <span class="value">100%</span>
           </button>
           <button type="button" data-step="1" aria-label="Zoom in">+</button>
         </div>
@@ -209,8 +209,8 @@ const query = (extra: Record<string, string>) => {
     for (const demo of document.querySelectorAll<HTMLElement>('live-demo'))
       demo.style.setProperty('--zoom', String(zoom));
     for (const bar of document.querySelectorAll<HTMLElement>('.zoom')) {
-      const level = bar.querySelector<HTMLButtonElement>('.level');
-      if (level !== null) level.textContent = `${Math.round(zoom * 100)}%`;
+      const value = bar.querySelector('.level .value');
+      if (value !== null) value.textContent = `${Math.round(zoom * 100)}%`;
       for (const b of bar.querySelectorAll<HTMLButtonElement>('[data-step]'))
         b.disabled =
           b.dataset.step === '-1' ? zoom === ZOOMS[0] : zoom === ZOOMS.at(-1);
@@ -319,6 +319,20 @@ const query = (extra: Record<string, string>) => {
   .zoom button {
     min-width: 2rem;
     font-variant-numeric: tabular-nums;
+  }
+  /* As wide as "100%" at every level, so the bar doesn't shift: the widest
+     label sits hidden in the same grid cell as the value. */
+  .zoom .level {
+    display: inline-grid;
+    justify-items: center;
+  }
+  .zoom .level::before {
+    content: '100%';
+    visibility: hidden;
+  }
+  .zoom .level::before,
+  .zoom .level .value {
+    grid-area: 1 / 1;
   }
   .zoom button:disabled {
     opacity: 0.4;
