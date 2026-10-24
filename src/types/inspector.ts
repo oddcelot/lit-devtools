@@ -405,6 +405,40 @@ export interface InspectorWarning {
   message: string;
 }
 
+/**
+ * A value handed to `ElementInternals.setFormValue()`, summarized: a string
+ * is clipped, a `File` is its name, size and type, a `FormData` its entries.
+ */
+export type InspectorFormValue =
+  | {type: 'null'}
+  | {type: 'string'; value: string}
+  | {type: 'file'; name: string; size: number; mime: string}
+  | {
+      type: 'form-data';
+      entries: Array<{name: string; value: InspectorFormValue}>;
+      /** Entries past the ones listed. */
+      more?: number;
+    };
+
+/**
+ * What an element keeps in its `ElementInternals`, read through the page
+ * runtime's hook on `attachInternals` (internals are not reachable from
+ * outside the element otherwise).
+ */
+export interface InspectorInternals {
+  /** Its custom states, as `:state()` matches them, in insertion order. */
+  states: string[];
+  /** The last value passed to `setFormValue()`; absent before the first call. */
+  value?: InspectorFormValue;
+  /** The `state` argument of that call, when it passed one. */
+  state?: InspectorFormValue;
+  /**
+   * Its validity, for a form-associated element: whether it is valid, the
+   * `ValidityState` flags that are set, and `validationMessage`.
+   */
+  validity?: {valid: boolean; flags: string[]; message: string};
+}
+
 /** Full detail snapshot for a single inspected element. */
 /**
  * Names an element so a later load of the page can find it again, when ids
@@ -471,6 +505,11 @@ export interface InspectorDetails {
    * Absent when there is none.
    */
   extras?: InspectorExtra[];
+  /**
+   * Custom states, form value and validity, for an element that called
+   * `attachInternals()` after the runtime loaded. Absent otherwise.
+   */
+  internals?: InspectorInternals;
   /**
    * Lit dev-mode warnings about this component. Absent when there are none,
    * and always absent under a production build of Lit, which issues none.

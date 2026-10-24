@@ -50,6 +50,7 @@ import {forgetWaiting, onRestored, saveOverrides} from './override-store.js';
 import {anatomyById, clearAnatomy, focusAnatomy} from './anatomy-overlay.js';
 import {shadowOf} from './anatomy.js';
 import {onProviderChange} from './extras.js';
+import {onInternalsChange} from '../element-internals.js';
 import {onLitWarning} from '../timeline/lit-warnings.js';
 import {clearBreakpoints, setBreakpoint} from './breakpoints.js';
 import {
@@ -361,6 +362,9 @@ if (installs) {
     // A provider's raw `setValue` does not update its host; re-wrapped on each
     // update, which may have added a provider or hot-patched one.
     let releaseProviders = onProviderChange(el, onSlotChange);
+    // Custom states and the form value change through the element's
+    // internals, often without an update (a focus handler adding a state).
+    const releaseInternals = onInternalsChange(el, onSlotChange);
     // A light child whose slot name no slot has is assigned nowhere, so its
     // arrival, removal or renaming fires no `slotchange`: the Anatomy list of
     // content that isn't rendered would go stale. Light children only.
@@ -397,6 +401,7 @@ if (installs) {
       restore: () => {
         children.disconnect();
         releaseProviders();
+        releaseInternals();
         const cur = ref.deref();
         if (cur === undefined) return;
         shadowOf(cur)?.removeEventListener('slotchange', onSlotChange);
