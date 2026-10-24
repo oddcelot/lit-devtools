@@ -59,7 +59,7 @@ const button: ComponentDocs = {
 
 const source: DocsSource = {
   get: async (_file, tag) => (tag === 'x-button' ? button : null),
-  sourceTags: () => ['x-button', 'x-other'],
+  tags: async () => ['x-button', 'x-other'],
 };
 
 /** Runs a feature at `‸` in a Lit template. */

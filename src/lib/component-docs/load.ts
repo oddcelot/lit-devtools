@@ -70,6 +70,8 @@ export const nodeDocsFs = async (): Promise<DocsFs> => {
 export interface ComponentDocsIndex {
   /** The tag's docs from the first manifest that has it, project first. */
   get(tagName: string): Promise<ComponentDocs | null>;
+  /** Every tag the manifests document, once each, project's first. */
+  tags(): Promise<string[]>;
 }
 
 // --- paths -----------------------------------------------------------------
@@ -350,6 +352,15 @@ export const createComponentDocsIndex = (options: {
         if (match !== undefined) return match;
       }
       return null;
+    },
+    async tags() {
+      const root = options.root();
+      if (root === undefined) return [];
+      const fs = await options.fs();
+      const tags = sourcesFor(fs, root).flatMap((source) =>
+        docsOf(fs, source).map((docs) => docs.tagName)
+      );
+      return [...new Set(tags)];
     },
   };
 };

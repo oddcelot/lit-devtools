@@ -45,7 +45,7 @@ export interface Hover {
 /** Where the docs come from: a `Workspace`, or anything shaped like it. */
 export interface DocsSource {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
-  sourceTags(): string[];
+  tags(file: string): Promise<string[]>;
 }
 
 export interface FeatureRequest {
@@ -233,7 +233,7 @@ const tagCompletions = async (
   file: string,
   context: Extract<CursorContext, {kind: 'tag'}>
 ): Promise<Completion[]> => {
-  const tags = source.sourceTags();
+  const tags = await source.tags(file);
   const docs = await Promise.all(tags.map((tag) => source.get(file, tag)));
   return tags.map((tag, i) => tagCompletion(tag, docs[i], context));
 };
