@@ -166,8 +166,8 @@ const merged = <T extends {name: string}>(
 
 /**
  * Written fields with the constructor's assignments: each re-defaults the
- * field it names, own or inherited, which makes it the class's own, or is
- * added as a field of the class.
+ * field it names, own or inherited (which stays inherited), or is added as
+ * a field of the class.
  */
 const applyAssignedFields = (
   fields: Json[],
@@ -176,12 +176,8 @@ const applyAssignedFields = (
   const result = [...fields];
   for (const entry of assigned ?? []) {
     const at = result.findIndex((f) => f.name === entry.name);
-    if (at === -1) {
-      result.push(field(entry));
-      continue;
-    }
-    const {inheritedFrom: _, ...declared} = result[at];
-    result[at] = {...declared, default: entry.default};
+    if (at === -1) result.push(field(entry));
+    else result[at] = {...result[at], default: entry.default};
   }
   return result;
 };

@@ -329,7 +329,7 @@ test('constructor assignments re-default inherited fields or add their own', () 
   expect(
     xd[0].members.map((m) => [m.name, m.default, m.inheritedFrom !== undefined])
   ).toEqual([
-    ['value', "'set'", false],
+    ['value', "'set'", true],
     ['tone', "'warm'", false],
     ['reset', undefined, true],
     ['focus', undefined, true],
