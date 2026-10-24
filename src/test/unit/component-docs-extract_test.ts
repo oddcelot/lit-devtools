@@ -444,6 +444,47 @@ describe('@attr, @prop, @default and @tag', () => {
   });
 });
 
+describe('observedAttributes', () => {
+  test('a getter or a field lists the attributes, which @attr describes', () => {
+    const getter = only(`
+      /** @attr mode - How it shows. */
+      class X extends HTMLElement {
+        static get observedAttributes() {
+          return ['mode', 'size', dynamic];
+        }
+      }
+    `);
+    expect(getter.docs.attributes).toEqual([
+      {name: 'mode', description: 'How it shows.'},
+      {name: 'size'},
+    ]);
+    const field = only(`
+      class Y extends HTMLElement {
+        static observedAttributes = ['open'];
+      }
+    `);
+    expect(field.docs.attributes).toEqual([{name: 'open'}]);
+  });
+
+  test('an observed attribute a property already maps keeps its entry', () => {
+    const cls = only(`
+      class X extends LitElement {
+        static observedAttributes = ['label'];
+        /** The label. */
+        @property() label = '';
+      }
+    `);
+    expect(cls.docs.attributes).toEqual([
+      {
+        name: 'label',
+        description: 'The label.',
+        default: "''",
+        counterpart: 'label',
+      },
+    ]);
+  });
+});
+
 describe('dispatched events', () => {
   test('events the class dispatches join the @fires ones', () => {
     const cls = only(`

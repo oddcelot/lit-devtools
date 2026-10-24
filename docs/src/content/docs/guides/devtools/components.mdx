@@ -384,7 +384,8 @@ left out. A `this.variant = 'neutral'` line in the constructor sets the default
 of the property it names, even one inherited from a library, and adds the
 property when no class declares it. The tag comes from `@customElement()` or a `customElements.define()`
 call in the same module, and plain JavaScript with `static properties` and
-`@type` works too.
+`@type` works too. A vanilla element's attributes come from its
+`observedAttributes` list.
 
 A component inherits the members of the classes it extends when those live in
 your project, even in another module. Mixins are followed too: in
