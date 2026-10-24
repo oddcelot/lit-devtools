@@ -180,7 +180,9 @@ export const designDarkCSS = `
   --lit-devtools-code-string: #c3e88d;
   --lit-devtools-code-number: #f78c6c;
   --lit-devtools-code-property: #b2ccd6;
-  --lit-devtools-code-tag: #89ddff;
+  /* Teal, not Material's #89ddff: that sat by --lit-devtools-code-callee's blue, and a
+     state row's element ref and function read as one colour. */
+  --lit-devtools-code-tag: #7fdbca;
   /* #616161 in the design system: 3:1 on ink-2, too faint for a null. */
   --lit-devtools-code-comment: #8a8a8a;
   --lit-devtools-code-callee: #82aaff;
@@ -235,7 +237,7 @@ export const designLightCSS = `
   --lit-devtools-code-string: #3c7a0b;
   --lit-devtools-code-number: #b8470f;
   --lit-devtools-code-property: #4a5d68;
-  --lit-devtools-code-tag: #00779a;
+  --lit-devtools-code-tag: #007366;
   --lit-devtools-code-comment: #6a737d;
   --lit-devtools-code-callee: #2b56c9;
 `;
