@@ -54,8 +54,16 @@ export interface Hover {
 export interface DocsSource {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   tags(file: string): Promise<string[]>;
-  /** What every element accepts: global attributes and DOM events. */
-  globals?(): {attributes: DocEntry[]; events: DocEntry[]};
+  /**
+   * What every element like `tagName` accepts: global attributes and DOM
+   * events, which differ between HTML and SVG elements.
+   */
+  globals?(tagName: string): {
+    attributes: DocEntry[];
+    events: DocEntry[];
+    /** How a hover names these attributes; `global attribute` by default. */
+    label?: string;
+  };
 }
 
 export interface FeatureRequest {
@@ -242,8 +250,9 @@ const sharedCandidates = async (
   tagName: string,
   binding: Binding
 ): Promise<Candidate[]> => {
-  const globals = source.globals?.() ?? {attributes: [], events: []};
+  const globals = source.globals?.(tagName) ?? {attributes: [], events: []};
   const as = (headline: string) => (entry: DocEntry) => ({entry, headline});
+  const label = globals.label ?? 'global attribute';
   if (binding === '@') {
     return [
       ...(await bubblingEvents(source, file, tagName)),
@@ -251,9 +260,9 @@ const sharedCandidates = async (
     ];
   }
   if (binding === '?') {
-    return globals.attributes.filter(isBoolean).map(as('global attribute'));
+    return globals.attributes.filter(isBoolean).map(as(label));
   }
-  return binding === '' ? globals.attributes.map(as('global attribute')) : [];
+  return binding === '' ? globals.attributes.map(as(label)) : [];
 };
 
 /** Everything `tagName` accepts under a binding prefix: its own entries first, each name once. */

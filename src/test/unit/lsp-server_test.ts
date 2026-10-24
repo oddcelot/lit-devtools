@@ -177,6 +177,62 @@ describe('the language server', () => {
     );
   });
 
+  test('knows SVG elements and their attributes in a template', async () => {
+    const uri = pathToFileURL(join(root, 'src/icon.ts')).href;
+    const lines = [
+      "import {html} from 'lit';",
+      'html`<svg viewBox="0 0 28 28"><path d="M3 9Z" stroke-linejoin="" /></svg>`;',
+      'html`<div ></div>`;',
+      '',
+    ];
+    client.notify('textDocument/didOpen', {
+      textDocument: {
+        uri,
+        languageId: 'typescript',
+        version: 1,
+        text: lines.join('\n'),
+      },
+    });
+    const at = (line: number, after: string) => ({
+      textDocument: {uri},
+      position: {line, character: lines[line].indexOf(after) + after.length},
+    });
+    const hover = await client.request('textDocument/hover', at(1, '<pa'));
+    expect(hover.contents.value).toMatch(
+      /^\*\*`<path>`\*\*\n\nSVG element\. The generic shape/
+    );
+    const values = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      at(1, 'stroke-linejoin="')
+    );
+    expect(values.map((item) => item.label)).toEqual([
+      'miter',
+      'miter-clip',
+      'round',
+      'bevel',
+      'arcs',
+    ]);
+    const onPath = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      at(1, '<path ')
+    );
+    expect(onPath.map((item) => item.label)).toEqual(
+      expect.arrayContaining(['pathLength', 'stroke-width'])
+    );
+    const shared = await client.request(
+      'textDocument/hover',
+      at(1, 'stroke-line')
+    );
+    expect(shared.contents.value).toMatch(
+      /^\*\*`stroke-linejoin`\*\* attribute of every SVG element/
+    );
+    const onDiv = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      at(2, '<div ')
+    );
+    expect(onDiv.map((item) => item.label)).not.toContain('stroke-width');
+  });
+
   test('offers DOM events after @ on any element', async () => {
     const uri = pathToFileURL(join(root, 'src/events.ts')).href;
     const {text, position} = at(

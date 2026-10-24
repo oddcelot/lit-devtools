@@ -29,6 +29,7 @@
     "@vscode/web-custom-data": "^0.6.3",
     "oxc-parser": "^0.150.0",
     "oxc-resolver": "^11.24.2",
+    "svg-element-attributes": "^2.2.0",
     "vscode-css-languageservice": "^6.3.10",
     "vscode-languageserver": "^11.0.0",
     "vscode-languageserver-textdocument": "^1.0.16"

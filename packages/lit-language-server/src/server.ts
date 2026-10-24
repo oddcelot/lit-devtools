@@ -6,6 +6,7 @@
  */
 
 import htmlData from '@vscode/web-custom-data/data/browsers.html-data.json' with {type: 'json'};
+import {svgElementAttributes} from 'svg-element-attributes';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
@@ -40,6 +41,7 @@ import {
   type HtmlData,
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
+import {svgData} from '../../../src/lib/editor/svg-data.js';
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
 import {eventTypeProblems} from '../../../src/lib/editor/diagnostics.js';
 import {cssCompletions, cssDiagnostics, cssHover, forgetCss} from './css.js';
@@ -58,22 +60,38 @@ const CONFIG_RE =
   /(?:^|\/)(?:lit-devtools\.config\.(?:[cm]?[jt]s|json)|vite\.config\.[cm]?[jt]s|package\.json|pnpm-workspace\.yaml)$/;
 
 const html = createHtmlDocs(htmlData as HtmlData);
+const svg = createHtmlDocs(svgData(svgElementAttributes));
+
+/** An SVG element, unless HTML has one of the same name (`a`, `title`). */
+const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
+
+/** SVG elements share SVG's core and presentation attributes, and the DOM events. */
+const svgGlobals = {
+  attributes: svg.globals.attributes,
+  events: html.globals.events,
+  label: 'attribute of every SVG element',
+};
 
 /**
- * Where a document's docs come from. In a template, standard elements and
- * what every element accepts come from HTML's data as well; an HTML file
- * leaves those to the editor's own HTML server, which would repeat them.
+ * Where a document's docs come from. In a template, standard HTML and SVG
+ * elements and what every element accepts come from their data as well; an
+ * HTML file leaves those to the editor's own HTML server, which would
+ * repeat them.
  */
 const docsSourceFor = (workspace: Workspace, kind: DocumentKind): DocsSource =>
   kind === 'html'
     ? workspace
     : {
         get: async (file, tag) =>
-          (await workspace.get(file, tag)) ?? html.get(tag),
+          (await workspace.get(file, tag)) ?? html.get(tag) ?? svg.get(tag),
         tags: async (file) => [
-          ...new Set([...(await workspace.tags(file)), ...html.tags()]),
+          ...new Set([
+            ...(await workspace.tags(file)),
+            ...html.tags(),
+            ...svg.tags(),
+          ]),
         ],
-        globals: () => html.globals,
+        globals: (tag) => (isSvg(tag) ? svgGlobals : html.globals),
       };
 
 /** What kind of markup document a file is, or undefined when it holds none. */
