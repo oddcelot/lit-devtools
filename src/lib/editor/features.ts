@@ -29,6 +29,8 @@ export interface Completion {
   /** Markdown. */
   documentation?: string;
   deprecated?: boolean;
+  /** Keeps the order the items come in: own entries before shared ones. */
+  sortText?: string;
   /** The text replaced, as document offsets. */
   start: number;
   end: number;
@@ -46,6 +48,8 @@ export interface Hover {
 export interface DocsSource {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   tags(file: string): Promise<string[]>;
+  /** What every element accepts: global attributes and DOM events. */
+  globals?(): {attributes: DocEntry[]; events: DocEntry[]};
 }
 
 export interface FeatureRequest {
@@ -136,9 +140,9 @@ const WHAT: Record<Binding, string> = {
 
 /** The hover over one attribute, property or event. */
 const entryMarkdown = (
-  docs: ComponentDocs,
   entry: DocEntry,
-  binding: Binding
+  binding: Binding,
+  headline: string
 ): string => {
   const facts = [
     entry.type ? `Type ${code(entry.type)}` : '',
@@ -150,7 +154,7 @@ const entryMarkdown = (
     entry.inheritedFrom ? `From ${code(entry.inheritedFrom)}` : '',
   ].filter(Boolean);
   return [
-    `**${code(`${binding}${entry.name}`)}** ${WHAT[binding]} of ${code(`<${docs.tagName}>`)}`,
+    `**${code(`${binding}${entry.name}`)}** ${headline}`,
     ...deprecation(entry.deprecated),
     entry.description ? links(entry.description) : '',
     facts.join(' · '),
@@ -161,16 +165,89 @@ const entryMarkdown = (
 
 // --- lookups ---------------------------------------------------------------
 
+const isBoolean = (entry: DocEntry): boolean =>
+  /\bboolean\b/.test(entry.type ?? '');
+
 /** The entries a binding prefix names: attributes, properties or events. */
 const entriesFor = (docs: ComponentDocs, binding: Binding): DocEntry[] => {
   if (binding === '.') return docs.properties;
   if (binding === '@') return docs.events;
-  if (binding === '?') {
-    return docs.attributes.filter((entry) =>
-      /\bboolean\b/.test(entry.type ?? '')
-    );
-  }
+  if (binding === '?') return docs.attributes.filter(isBoolean);
   return docs.attributes;
+};
+
+/** An entry an element accepts, and the hover's words for whose it is. */
+interface Candidate {
+  entry: DocEntry;
+  headline: string;
+}
+
+/**
+ * The custom events the components `file` can use fire, other than
+ * `except`'s own: they bubble, so any element can listen for them.
+ */
+const bubblingEvents = async (
+  source: DocsSource,
+  file: string,
+  except: string
+): Promise<Candidate[]> => {
+  const tags = (await source.tags(file)).filter((tag) => tag !== except);
+  const docs = await Promise.all(tags.map((tag) => source.get(file, tag)));
+  const byName = new Map<string, {entry: DocEntry; firedBy: string[]}>();
+  for (const component of docs) {
+    for (const entry of component?.events ?? []) {
+      const seen = byName.get(entry.name);
+      if (seen) seen.firedBy.push(component!.tagName);
+      else byName.set(entry.name, {entry, firedBy: [component!.tagName]});
+    }
+  }
+  return [...byName.values()].map(({entry, firedBy}) => ({
+    entry,
+    headline: `event fired by ${firedBy.map((tag) => code(`<${tag}>`)).join(', ')}`,
+  }));
+};
+
+/** What every element accepts under a binding prefix. */
+const sharedCandidates = async (
+  source: DocsSource,
+  file: string,
+  tagName: string,
+  binding: Binding
+): Promise<Candidate[]> => {
+  const globals = source.globals?.() ?? {attributes: [], events: []};
+  const as = (headline: string) => (entry: DocEntry) => ({entry, headline});
+  if (binding === '@') {
+    return [
+      ...(await bubblingEvents(source, file, tagName)),
+      ...globals.events.map(as('DOM event')),
+    ];
+  }
+  if (binding === '?') {
+    return globals.attributes.filter(isBoolean).map(as('global attribute'));
+  }
+  return binding === '' ? globals.attributes.map(as('global attribute')) : [];
+};
+
+/** Everything `tagName` accepts under a binding prefix: its own entries first, each name once. */
+const candidatesFor = async (
+  source: DocsSource,
+  file: string,
+  tagName: string,
+  binding: Binding
+): Promise<Candidate[]> => {
+  const docs = await source.get(file, tagName);
+  const own = docs
+    ? entriesFor(docs, binding).map((entry) => ({
+        entry,
+        headline: `${WHAT[binding]} of ${code(`<${docs.tagName}>`)}`,
+      }))
+    : [];
+  const all = [
+    ...own,
+    ...(await sharedCandidates(source, file, tagName, binding)),
+  ];
+  const seen = new Set<string>();
+  return all.filter(({entry}) => !seen.has(entry.name) && seen.add(entry.name));
 };
 
 const KIND_OF: Record<Binding, number> = {
@@ -204,6 +281,8 @@ const writtenNames = (
       .map((attribute) => `${attribute.binding}${attribute.name}`)
   );
 
+const order = (index: number): string => String(index).padStart(5, '0');
+
 // --- completion ------------------------------------------------------------
 
 const tagCompletion = (
@@ -235,37 +314,49 @@ const tagCompletions = async (
 ): Promise<Completion[]> => {
   const tags = await source.tags(file);
   const docs = await Promise.all(tags.map((tag) => source.get(file, tag)));
-  return tags.map((tag, i) => tagCompletion(tag, docs[i], context));
+  return tags.map((tag, i) => ({
+    ...tagCompletion(tag, docs[i], context),
+    sortText: order(i),
+  }));
 };
 
-const attributeCompletions = (
-  docs: ComponentDocs,
+const attributeCompletions = async (
+  source: DocsSource,
+  file: string,
   context: Extract<CursorContext, {kind: 'attribute'}>
-): Completion[] => {
-  const written = writtenNames(context.element, context);
-  return entriesFor(docs, context.binding)
-    .filter((entry) => !written.has(`${context.binding}${entry.name}`))
-    .map((entry) => ({
+): Promise<Completion[]> => {
+  const {binding, element} = context;
+  const written = writtenNames(element, context);
+  const candidates = await candidatesFor(source, file, element.tag, binding);
+  return candidates
+    .filter(({entry}) => !written.has(`${binding}${entry.name}`))
+    .map(({entry, headline}, i) => ({
       label: entry.name,
-      kind: KIND_OF[context.binding],
+      kind: KIND_OF[binding],
       ...(entry.type ? {detail: entry.type} : {}),
-      documentation: entryMarkdown(docs, entry, context.binding),
+      documentation: entryMarkdown(entry, binding, headline),
       ...(entry.deprecated ? {deprecated: true} : {}),
+      sortText: order(i),
       start: context.start,
       end: context.end,
       newText: entry.name,
     }));
 };
 
-const valueCompletions = (
-  docs: ComponentDocs,
+const valueCompletions = async (
+  source: DocsSource,
+  file: string,
   context: Extract<CursorContext, {kind: 'value'}>
-): Completion[] => {
-  const {attribute} = context;
-  const entry = entriesFor(docs, attribute.binding).find(
-    (candidate) => candidate.name === attribute.name
+): Promise<Completion[]> => {
+  const {attribute, element} = context;
+  const candidates = await candidatesFor(
+    source,
+    file,
+    element.tag,
+    attribute.binding
   );
-  return literalValues(entry?.type).map((value) => ({
+  const found = candidates.find(({entry}) => entry.name === attribute.name);
+  return literalValues(found?.entry.type).map((value) => ({
     label: value,
     kind: COMPLETION_KIND.value,
     start: context.start,
@@ -283,11 +374,9 @@ export const completionsAt = async (
   const context = contextAt(text, kind, offset, {templateTags});
   if (!context) return [];
   if (context.kind === 'tag') return tagCompletions(source, file, context);
-  const docs = await source.get(file, context.element.tag);
-  if (!docs) return [];
   return context.kind === 'attribute'
-    ? attributeCompletions(docs, context)
-    : valueCompletions(docs, context);
+    ? attributeCompletions(source, file, context)
+    : valueCompletions(source, file, context);
 };
 
 // --- hover -----------------------------------------------------------------
@@ -300,22 +389,24 @@ export const hoverAt = async (
   const {file, code: text, kind, offset, templateTags} = request;
   const context = contextAt(text, kind, offset, {templateTags});
   if (!context || context.kind === 'value') return undefined;
-  const docs = await source.get(file, context.element.tag);
-  if (!docs) return undefined;
+  const {start, end} = context;
   if (context.kind === 'tag') {
-    return {
-      markdown: componentMarkdown(docs),
-      start: context.start,
-      end: context.end,
-    };
+    const docs = await source.get(file, context.element.tag);
+    return docs ? {markdown: componentMarkdown(docs), start, end} : undefined;
   }
-  const name = text.slice(context.start, context.end);
-  const entry = entriesFor(docs, context.binding).find((e) => e.name === name);
-  return entry
+  const name = text.slice(start, end);
+  const candidates = await candidatesFor(
+    source,
+    file,
+    context.element.tag,
+    context.binding
+  );
+  const found = candidates.find(({entry}) => entry.name === name);
+  return found
     ? {
-        markdown: entryMarkdown(docs, entry, context.binding),
-        start: context.start,
-        end: context.end,
+        markdown: entryMarkdown(found.entry, context.binding, found.headline),
+        start,
+        end,
       }
     : undefined;
 };

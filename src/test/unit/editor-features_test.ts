@@ -176,3 +176,97 @@ test('literalValues reads string literals only', () => {
   expect(literalValues(`'a' | "b" | number | undefined`)).toEqual(['a', 'b']);
   expect(literalValues(undefined)).toEqual([]);
 });
+
+describe('with native elements, globals and bubbling events', () => {
+  const card: ComponentDocs = {
+    ...button,
+    tagName: 'x-card',
+    className: 'XCard',
+    attributes: [],
+    properties: [],
+    events: [{name: 'add-to-cart', description: 'Adds it.'}],
+  };
+  const div: ComponentDocs = {
+    ...button,
+    tagName: 'div',
+    className: '',
+    summary: undefined,
+    description: 'A division.',
+    attributes: [],
+    properties: [],
+    events: [],
+    slots: [],
+    cssParts: [],
+    origin: {manifest: '', module: ''},
+  };
+  const all: Record<string, ComponentDocs> = {
+    'x-button': button,
+    'x-card': card,
+    div,
+  };
+  const full: DocsSource = {
+    get: async (_file, tag) => all[tag] ?? null,
+    tags: async () => ['x-button', 'x-card', 'div'],
+    globals: () => ({
+      attributes: [{name: 'id'}, {name: 'hidden', type: 'boolean'}],
+      events: [{name: 'click', description: 'A click.'}],
+    }),
+  };
+  const labelsIn = async (inner: string) =>
+    (await completionsAt(full, lit(inner))).map((item) => item.label);
+
+  test('own attributes, then global ones', async () => {
+    expect(await labelsIn('<x-button ‸>')).toEqual([
+      'size',
+      'disabled',
+      'old',
+      'id',
+      'hidden',
+    ]);
+    expect(await labelsIn('<x-button ?‸>')).toEqual(['disabled', 'hidden']);
+  });
+
+  test('own events, then events other components fire, then DOM events', async () => {
+    expect(await labelsIn('<x-button @‸>')).toEqual([
+      'submit-start',
+      'add-to-cart',
+      'click',
+    ]);
+    expect(await labelsIn('<main @‸>')).toEqual([
+      'submit-start',
+      'add-to-cart',
+      'click',
+    ]);
+  });
+
+  test('keeps that order for the editor', async () => {
+    const items = await completionsAt(full, lit('<x-button @‸>'));
+    expect(items.map((item) => item.sortText)).toEqual([
+      '00000',
+      '00001',
+      '00002',
+    ]);
+  });
+
+  test('hovers an event by the components that fire it', async () => {
+    const hover = await hoverAt(full, lit('<main @add-to-c‸art=${f}>'));
+    expect(hover?.markdown).toBe(
+      '**`@add-to-cart`** event fired by `<x-card>`\n\nAdds it.'
+    );
+  });
+
+  test('hovers a global attribute and a DOM event', async () => {
+    expect((await hoverAt(full, lit('<div i‸d="a">')))?.markdown).toBe(
+      '**`id`** global attribute'
+    );
+    expect((await hoverAt(full, lit('<div @cli‸ck=${f}>')))?.markdown).toBe(
+      '**`@click`** DOM event\n\nA click.'
+    );
+  });
+
+  test('hovers a native element', async () => {
+    expect((await hoverAt(full, lit('<d‸iv>')))?.markdown).toBe(
+      '**`<div>`**\n\nA division.'
+    );
+  });
+});
