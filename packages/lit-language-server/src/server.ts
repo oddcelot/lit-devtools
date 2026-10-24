@@ -40,7 +40,9 @@ import {
   type HtmlData,
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
+import {eventTypeProblems} from '../../../src/lib/editor/diagnostics.js';
 import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
+import type {Severity} from '../../../src/lib/editor/config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
 import {findWorkspace} from '../../../src/lib/editor/workspace-packages.js';
 import {
@@ -82,6 +84,13 @@ const kindOf = (document: TextDocument): DocumentKind | undefined => {
 
 const fileOf = (uri: string): string | undefined =>
   uri.startsWith('file:') ? fileURLToPath(uri) : undefined;
+
+const SEVERITY: Record<Exclude<Severity, 'off'>, DiagnosticSeverity> = {
+  error: DiagnosticSeverity.Error,
+  warning: DiagnosticSeverity.Warning,
+  info: DiagnosticSeverity.Information,
+  hint: DiagnosticSeverity.Hint,
+};
 
 /** Settings problems as diagnostics on the first line of their file. */
 const diagnosticsOf = (messages: string[]): Diagnostic[] =>
@@ -163,6 +172,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
       if (file) await workspace?.update(file, document.getText());
     }
     await publishProblems();
+    scheduleDiagnostics();
   };
 
   /** The workspace `file` belongs to, read on first use. */
@@ -207,6 +217,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
   ): Promise<
     | {
         document: TextDocument;
+        workspace: Workspace;
         source: DocsSource;
         request: Omit<FeatureRequest, 'offset'>;
       }
@@ -221,6 +232,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
     const {templateTags} = workspace.configOf(file) ?? {};
     return {
       document,
+      workspace,
       source: docsSourceFor(workspace, kind),
       request: {file, code: document.getText(), kind, templateTags},
     };
@@ -251,6 +263,45 @@ export const startServer = (streams?: ServerStreams): Connection => {
       ({handler}) => handler.param.end >= from && handler.param.start <= to
     );
     return {document: found.document, within};
+  };
+
+  /** Publishes a document's problems, each at its rule's severity. */
+  const publishDocument = async (uri: string): Promise<void> => {
+    const found = await documentRequest(uri);
+    if (!found) return;
+    const {document, workspace, source, request} = found;
+    const severities = workspace.configOf(request.file)?.diagnostics;
+    const problems = await eventTypeProblems(source, request);
+    const diagnostics = problems.flatMap((problem): Diagnostic[] => {
+      const severity = severities?.[problem.rule] ?? 'error';
+      if (severity === 'off') return [];
+      return [
+        {
+          range: {
+            start: document.positionAt(problem.start),
+            end: document.positionAt(problem.end),
+          },
+          severity: SEVERITY[severity],
+          source: 'lit',
+          code: problem.rule,
+          message: problem.message,
+        },
+      ];
+    });
+    void connection.sendDiagnostics({uri, diagnostics});
+  };
+
+  /**
+   * Publishes every open document's problems once changes settle: an edit
+   * in one file can change what another's handlers should take.
+   */
+  let diagnosticsTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleDiagnostics = (): void => {
+    clearTimeout(diagnosticsTimer);
+    diagnosticsTimer = setTimeout(() => {
+      for (const document of documents.all())
+        void publishDocument(document.uri);
+    }, 200);
   };
 
   connection.onInitialize((params) => {
@@ -285,16 +336,20 @@ export const startServer = (streams?: ServerStreams): Connection => {
   documents.onDidChangeContent(async ({document}) => {
     const file = fileOf(document.uri);
     if (file) await (await workspaceOf(file))?.update(file, document.getText());
+    scheduleDiagnostics();
   });
 
   // A closed buffer's unsaved edits are gone; the file on disk counts again.
   documents.onDidClose(async ({document}) => {
+    void connection.sendDiagnostics({uri: document.uri, diagnostics: []});
     const file = fileOf(document.uri);
     if (file) await refreshFromDisk(await workspaceOf(file), file);
+    scheduleDiagnostics();
   });
 
   connection.onDidChangeWatchedFiles(async ({changes}) => {
     for (const change of changes) await onWatchedChange(change);
+    scheduleDiagnostics();
   });
 
   connection.onCompletion(async ({textDocument, position}) => {
@@ -352,6 +407,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
   });
 
   connection.onShutdown(async () => {
+    clearTimeout(diagnosticsTimer);
     for (const pending of workspaces.values()) await (await pending)?.close();
   });
 

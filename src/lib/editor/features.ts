@@ -393,17 +393,23 @@ const valueCompletions = async (
   }));
 };
 
-/** The type of the event a handler's attribute names, when it's known. */
-const handlerType = async (
+/** The type of the event `eventName` on `tagName`, when it's known. */
+export const eventTypeOf = async (
   source: DocsSource,
   file: string,
-  handler: EventHandler
+  tagName: string,
+  eventName: string
 ): Promise<string | undefined> => {
-  const {element, attribute} = handler;
-  const candidates = await candidatesFor(source, file, element.tag, '@');
-  return candidates.find(({entry}) => entry.name === attribute.name)?.entry
-    .type;
+  const candidates = await candidatesFor(source, file, tagName, '@');
+  return candidates.find(({entry}) => entry.name === eventName)?.entry.type;
 };
+
+const handlerType = (
+  source: DocsSource,
+  file: string,
+  {element, attribute}: EventHandler
+): Promise<string | undefined> =>
+  eventTypeOf(source, file, element.tag, attribute.name);
 
 /** `ev.` and `ev.detail.` in an inline handler, from the event's type. */
 const memberCompletions = async (
