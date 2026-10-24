@@ -1,7 +1,13 @@
 import {build, createServer} from 'vite';
 import {afterAll, expect, test} from 'vite-plus/test';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 import {litPlugin, type LitPluginOptions} from '../../index.js';
+import {scanSources} from '../../lib/component-docs/scan.js';
+import {manifestText} from '../../lib/component-docs/manifest-file.js';
 import {fsp, joinPath, tmpRoot} from './utils.js';
+
+const PACKAGE_ROOT = joinPath(import.meta.dirname, '../../..');
 
 /**
  * The `manifest` option end to end: real `vite build` and dev-server runs
@@ -208,4 +214,76 @@ test('a written copy at the endpoint URL is linked once', async () => {
   } finally {
     await server.close();
   }
+});
+
+/** The fixture with its base behind a `vite.config` alias and a stray file outside `src`. */
+const aliasedFixture = async (): Promise<string> => {
+  const root = await fixture();
+  await fsp.writeFile(
+    joinPath(root, 'vite.config.mjs'),
+    `export default {resolve: {alias: {'@base': '/src/base.ts'}}};\n`
+  );
+  const xa = joinPath(root, 'src/x-a.ts');
+  await fsp.writeFile(
+    xa,
+    (await fsp.readFile(xa, 'utf8')).replace("'./base.js'", "'@base'")
+  );
+  await fsp.writeFile(joinPath(root, 'other.ts'), 'export class Other {}\n');
+  await fsp.writeFile(joinPath(root, 'src/types.d.ts'), 'declare class D {}\n');
+  return root;
+};
+
+test('scanning reads every script under the folders, through the config', async () => {
+  const root = await aliasedFixture();
+  const {index, files} = await scanSources({root, dirs: ['src']});
+  expect(files).toBe(2);
+  const manifest = JSON.parse(manifestText(index, root)) as Record<
+    string,
+    unknown
+  >;
+  expect(declarations(manifest)).toEqual([
+    ['src/base.ts', ['Base']],
+    ['src/x-a.ts', ['XA']],
+  ]);
+  const xa = (manifest.modules as {declarations: Declaration[]}[])[1]
+    .declarations[0];
+  expect(xa.members?.map((m) => m.name)).toEqual(['label', 'value']);
+});
+
+test('without the config the alias does not resolve, and inheritance stops', async () => {
+  const root = await aliasedFixture();
+  const {index} = await scanSources({root, dirs: ['src'], configFile: false});
+  const manifest = JSON.parse(manifestText(index, root)) as Record<
+    string,
+    unknown
+  >;
+  const xa = (manifest.modules as {declarations: Declaration[]}[])[1]
+    .declarations[0];
+  expect(xa.members?.map((m) => m.name)).toEqual(['label']);
+});
+
+test('lit-devtools manifest writes the file', async () => {
+  const root = await aliasedFixture();
+  const exec = promisify(execFile);
+  const {stdout} = await exec(process.execPath, [
+    joinPath(PACKAGE_ROOT, 'bin.mjs'),
+    'manifest',
+    root,
+    '--src',
+    'src',
+    '--src',
+    '.',
+    '--out',
+    'elements.json',
+  ]);
+  expect(stdout).toContain('wrote elements.json');
+  const manifest = await readJson(joinPath(root, 'elements.json'));
+  expect(declarations(manifest).map(([path]) => path)).toEqual([
+    'other.ts',
+    'src/base.ts',
+    'src/x-a.ts',
+  ]);
+  expect((await readJson(joinPath(root, 'package.json'))).customElements).toBe(
+    'elements.json'
+  );
 });

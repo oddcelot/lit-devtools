@@ -179,6 +179,58 @@ const main = async () => {
     });
 
   cli
+    .command(
+      'manifest [root]',
+      "Write a Custom Elements Manifest from the project's sources"
+    )
+    .option(
+      '--src <dir>',
+      'Folder to read, relative to the root. Repeatable.',
+      {default: 'src'}
+    )
+    .option('--out <file>', 'File to write, relative to the root', {
+      default: 'custom-elements.json',
+    })
+    .option('--stdout', 'Print the manifest instead of writing it')
+    .option('--config <file>', 'Vite config to resolve imports with')
+    .option('--no-vite-config', 'Resolve imports without any Vite config')
+    .action(async (root = '.', flags) => {
+      // The same reading the plugin's `manifest` option does, over every
+      // script under `--src` rather than the modules a build or a page
+      // reached. Imports resolve through Vite, so aliases apply.
+      const [{scanSources}, {manifestText, writeManifestFile}, path] =
+        await Promise.all([
+          import('./lib/component-docs/scan.js'),
+          import('./lib/component-docs/manifest-file.js'),
+          import('node:path'),
+        ]);
+      const dir = path.resolve(String(root));
+      const {index, files} = await scanSources({
+        root: dir,
+        dirs: [flags.src].flat().map(String),
+        ...(flags.viteConfig === false
+          ? {configFile: false}
+          : flags.config !== undefined
+            ? {configFile: String(flags.config)}
+            : {}),
+      });
+      const text = manifestText(index, dir);
+      if (flags.stdout) {
+        process.stdout.write(text);
+        return;
+      }
+      const out = String(flags.out);
+      await writeManifestFile(dir, out, text, (message) =>
+        console.log(`[lit-devtools] ${message}`)
+      );
+      const count = index.modules().length;
+      console.log(
+        `[lit-devtools] wrote ${out}: ${count} module${count === 1 ? '' : 's'} ` +
+          `with classes, of ${files} read`
+      );
+    });
+
+  cli
     .command('mcp', 'Start a stdio MCP server proxying running dev servers')
     .option(
       '--port <port>',
