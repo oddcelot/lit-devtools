@@ -117,7 +117,7 @@ test('Pick starts the picker in the page', async () => {
 
 test('groups the toggles that stay on, with Pick apart by the filter', async () => {
   const {root, pick} = await mount(true);
-  const group = root.querySelector('wa-button-group.toggles')!;
+  const group = root.querySelector('[role="group"].toggles')!;
   expect(
     [...group.querySelectorAll('lit-button')].map((b) => b.className.trim())
   ).toEqual(['flash', 'anatomy']);

@@ -8,7 +8,6 @@ import {
 } from 'lit';
 import {customElement, property, state} from 'lit/decorators.js';
 import '../../packages/lit-components/src/badge.js';
-import '@awesome.me/webawesome/dist/components/button-group/button-group.js';
 import '../../packages/lit-components/src/button.js';
 import '../../packages/lit-components/src/icon-button.js';
 import '../../packages/lit-components/src/details.js';
@@ -727,6 +726,10 @@ export class ComponentsView extends LitElement {
         overflow: hidden;
         clip-path: inset(50%);
         white-space: nowrap;
+      }
+      .toolbar .toggles {
+        display: flex;
+        gap: var(--lit-devtools-space-2);
       }
       .toolbar lit-button,
       .toolbar lit-icon-button,
@@ -4130,7 +4133,7 @@ export class ComponentsView extends LitElement {
           <lit-icon slot="clear-icon" name="x"></lit-icon>
         </lit-input>
         <span class="spacer"></span>
-        <wa-button-group class="toggles" label="Draw on the page">
+        <span class="toggles" role="group" aria-label="Draw on the page">
           ${this._renderToggle(
             'flash',
             this._flash,
@@ -4151,7 +4154,7 @@ export class ComponentsView extends LitElement {
                   'Anatomy'
                 )
           }
-        </wa-button-group>
+        </span>
       </div>
       ${this._renderRuntimesBanner()}${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
       <lit-split-panel
