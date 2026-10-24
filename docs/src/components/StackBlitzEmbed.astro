@@ -12,9 +12,13 @@
  * The embed needs a cross-origin isolated page, which `coi-sw.js` provides
  * from the page's next load: the first Run reloads the page once, then
  * starts the embed. The caption has a button that reloads just the iframe,
- * next to a link that opens the project in a full StackBlitz tab, and, for
- * an example published as a live demo (src/lib/live-examples.ts), a link to
- * that: the DevTools panel inspecting the example, with nothing to boot.
+ * next to a link that opens the project in a full StackBlitz tab.
+ *
+ * An example published as a live demo (src/lib/live-examples.ts) opens on
+ * that instead: the DevTools panel inspecting the example, in an iframe of
+ * this site's own, with nothing to boot. A switch above it brings up the
+ * StackBlitz embed. The live frame is `credentialless`, so it still loads
+ * once the page is cross-origin isolated for StackBlitz.
  */
 import {liveDemoUrl} from '../lib/live-examples';
 interface Props {
@@ -41,7 +45,26 @@ const query = (extra: Record<string, string>) => {
 };
 ---
 
-<figure class="stackblitz-embed">
+<figure class="stackblitz-embed" data-view={live ? 'live' : 'stackblitz'}>
+  {
+    live && (
+      <div class="views" role="group" aria-label="Show the demo">
+        <button type="button" data-view="live" aria-pressed="true">
+          Live
+        </button>
+        <button type="button" data-view="stackblitz" aria-pressed="false">
+          StackBlitz
+        </button>
+      </div>
+    )
+  }
+  {
+    live && (
+      <live-demo class="live" data-src={live}>
+        <iframe credentialless title={`${title}, live with the DevTools panel`} />
+      </live-demo>
+    )
+  }
   <stackblitz-embed data-src={query({embed: '1', hideExplorer: '1'})}>
     <lit-run-gate data-title={title}>
       Runs on StackBlitz: starting it connects to stackblitz.com, which
@@ -56,7 +79,7 @@ const query = (extra: Record<string, string>) => {
       Stuck? Reload the demo
     </lit-button>
     <a href={query({})}>Open in StackBlitz</a>
-    {live && <a href={live}>Try it live</a>}
+    {live && <a href={live}>Open the live demo in a tab</a>}
   </figcaption>
 </figure>
 
@@ -65,6 +88,7 @@ const query = (extra: Record<string, string>) => {
   import type {LitRunGate} from '@oddsquad/lit-components/run-gate.js';
   import '@oddsquad/lit-components/button.js';
   import '@oddsquad/lit-components/run-gate.js';
+  import {whenNear} from '../lib/near-viewport';
 
   // A WebContainer embed runs only on a cross-origin isolated page, in a
   // `credentialless` iframe; otherwise StackBlitz shows "Unable to run
@@ -140,6 +164,48 @@ const query = (extra: Record<string, string>) => {
     }
   }
   customElements.define('stackblitz-embed', StackBlitzEmbed);
+
+  /**
+   * The live demo: its frame loads once it comes near the viewport, in the
+   * docs' colour scheme, and reloads when the theme switch changes it.
+   */
+  class LiveDemo extends HTMLElement {
+    connectedCallback() {
+      const frame = this.querySelector('iframe');
+      if (frame === null) return;
+      const load = () => {
+        const scheme = document.documentElement.dataset.theme ?? 'dark';
+        if (frame.dataset.scheme === scheme) return;
+        frame.dataset.scheme = scheme;
+        frame.src = `${this.dataset.src}?scheme=${scheme}`;
+      };
+      whenNear(this, () => {
+        load();
+        new MutationObserver(load).observe(document.documentElement, {
+          attributeFilter: ['data-theme'],
+        });
+      });
+    }
+  }
+  customElements.define('live-demo', LiveDemo);
+
+  // The Live / StackBlitz switch of an example that has both. A page
+  // reloaded to start an embed opens that embed's figure on StackBlitz.
+  for (const figure of document.querySelectorAll<HTMLElement>(
+    '.stackblitz-embed:has(.views)',
+  )) {
+    const buttons = figure.querySelectorAll<HTMLButtonElement>('.views button');
+    const show = (view: string) => {
+      figure.dataset.view = view;
+      for (const b of buttons)
+        b.setAttribute('aria-pressed', String(b.dataset.view === view));
+    };
+    for (const b of buttons)
+      b.addEventListener('click', () => show(b.dataset.view ?? 'live'));
+    const embed = figure.querySelector<HTMLElement>('stackblitz-embed');
+    if (sessionStorage.getItem(PENDING) === embed?.dataset.src)
+      show('stackblitz');
+  }
 </script>
 
 <style>
@@ -155,10 +221,44 @@ const query = (extra: Record<string, string>) => {
     overflow: hidden;
     background: var(--sl-color-gray-6);
   }
+  .stackblitz-embed[data-view='live'] stackblitz-embed,
+  .stackblitz-embed[data-view='stackblitz'] live-demo {
+    display: none;
+  }
+  live-demo {
+    display: block;
+    height: 40rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  live-demo iframe,
   stackblitz-embed :global(iframe) {
     width: 100%;
     height: 100%;
     border: 0;
+  }
+  .views {
+    display: inline-flex;
+    gap: 0.25rem;
+    margin-bottom: 0.5rem;
+    padding: 0.2rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: var(--radius-md);
+  }
+  .views button {
+    padding: 0.2rem 0.75rem;
+    border: 0;
+    border-radius: calc(var(--radius-md) - 0.2rem);
+    background: none;
+    color: var(--sl-color-gray-2);
+    font: inherit;
+    font-size: var(--sl-text-sm);
+    cursor: pointer;
+  }
+  .views button[aria-pressed='true'] {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-text-invert);
   }
   .stackblitz-embed figcaption {
     display: flex;
