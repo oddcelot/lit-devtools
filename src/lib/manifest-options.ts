@@ -16,8 +16,9 @@ export interface ManifestOptions {
   /**
    * The dev server serves the manifest at this path, kept current as
    * modules change, and links it in each page's head as
-   * `<link rel="custom-elements-manifest">`. It lists the modules the dev
-   * server has transformed so far. Defaults to `/custom-elements.json`.
+   * `<link rel="custom-elements-manifest">`. It lists the scripts under
+   * `scan` and every module the dev server transforms. Defaults to
+   * `/custom-elements.json`.
    */
   dev?: boolean | string;
 
@@ -29,6 +30,14 @@ export interface ManifestOptions {
    * file. Defaults to `false`; `true` writes `custom-elements.json`.
    */
   write?: boolean | string;
+
+  /**
+   * Folders, relative to Vite's root, whose scripts the dev server reads when
+   * it starts and follows as they change, so its manifest (`dev`, `write`)
+   * lists components no page has loaded yet. `false` lists only the modules
+   * pages load. Defaults to `['src']`.
+   */
+  scan?: false | string[];
 }
 
 /** Each output's file or path, or `false` when it is off. */
@@ -36,6 +45,8 @@ export interface ResolvedManifest {
   build: string | false;
   dev: string | false;
   write: string | false;
+  /** Folders the dev server reads up front; empty for none. */
+  scan: string[];
 }
 
 const FILE = 'custom-elements.json';
@@ -61,5 +72,6 @@ export const resolveManifest = (
     build: output(options.build, FILE, FILE),
     dev: dev === false || dev.startsWith('/') ? dev : `/${dev}`,
     write: output(options.write, false, FILE),
+    scan: options.scan === false ? [] : (options.scan ?? ['src']),
   };
 };

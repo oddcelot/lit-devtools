@@ -1,5 +1,10 @@
 import {resolve} from 'node:path';
-import type {HtmlTagDescriptor, Plugin, ResolvedConfig} from 'vite';
+import type {
+  HtmlTagDescriptor,
+  Plugin,
+  ResolvedConfig,
+  ViteDevServer,
+} from 'vite';
 import type {SourceDocsIndex} from '../component-docs/source-index.js';
 import type {ResolvedManifest} from '../manifest-options.js';
 import type {OptionsContext} from './context.js';
@@ -14,6 +19,59 @@ const manifestFile = () => import('../component-docs/manifest-file.js');
 /** The dev endpoint's URL under Vite's `base`. */
 export const endpointUrl = (base: string, path: string): string =>
   (base.endsWith('/') ? base : `${base}/`) + path.replace(/^\//, '');
+
+/**
+ * Reads every script under `dirs` into `index` in the background, and each
+ * one again when it is added, changed or removed on disk, so the dev
+ * server's manifest lists components no page has loaded. Modules a page
+ * loads are read by the component-docs plugin as well; both write the same
+ * entry.
+ */
+const scanInDev = async (
+  server: ViteDevServer,
+  index: SourceDocsIndex,
+  dirs: readonly string[]
+): Promise<void> => {
+  const [{indexDirs, isScannedScript}, {indexModule}, {readFile}, path, vite] =
+    await Promise.all([
+      import('../component-docs/scan.js'),
+      import('./component-docs.js'),
+      import('node:fs/promises'),
+      import('node:path'),
+      import('vite'),
+    ]);
+  const {root, logger} = server.config;
+  const resolver = {
+    resolve: (specifier: string, importer: string) =>
+      server.pluginContainer.resolveId(specifier, importer),
+  };
+  const folders = dirs.map((dir) =>
+    vite.normalizePath(path.resolve(root, dir) + path.sep)
+  );
+  const scanned = (file: string): boolean =>
+    isScannedScript(file) &&
+    !file.includes('/node_modules/') &&
+    folders.some((folder) => file.startsWith(folder));
+  const reread = (raw: string) => {
+    const file = vite.normalizePath(raw);
+    if (!scanned(file)) return;
+    readFile(file, 'utf8').then(
+      (code) => indexModule(resolver, index, code, file),
+      () => index.delete(file)
+    );
+  };
+  server.watcher.on('add', reread);
+  server.watcher.on('change', reread);
+  server.watcher.on('unlink', (raw) => {
+    const file = vite.normalizePath(raw);
+    if (scanned(file)) index.delete(file);
+  });
+  await indexDirs(resolver, index, root, dirs).catch((error: unknown) =>
+    logger.warn(
+      `[lit-plugin] could not read ${dirs.join(', ')}: ${String(error)}`
+    )
+  );
+};
 
 /**
  * Writes a Custom Elements Manifest from the project's own sources, to the
@@ -98,6 +156,9 @@ export const litManifest = (
       const index = await loadIndex();
       const {manifestText, writeManifestFile} = await manifestFile();
       const {root, logger} = server.config;
+      const listsDev = manifest.dev !== false || manifest.write !== false;
+      if (listsDev && manifest.scan.length > 0)
+        void scanInDev(server, index, manifest.scan);
       if (manifest.dev !== false) {
         const url = endpointUrl(server.config.base, manifest.dev);
         server.middlewares.use((req, res, next) => {

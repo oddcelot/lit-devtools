@@ -11,7 +11,15 @@ test('true turns on the build asset and the dev endpoint', () => {
     build: 'custom-elements.json',
     dev: '/custom-elements.json',
     write: false,
+    scan: ['src'],
   });
+});
+
+test('scan names the folders read up front, or none', () => {
+  expect(resolveManifest({scan: ['lib', 'src']})).toMatchObject({
+    scan: ['lib', 'src'],
+  });
+  expect(resolveManifest({scan: false})).toMatchObject({scan: []});
 });
 
 test('each output can be named or switched off', () => {
@@ -21,11 +29,13 @@ test('each output can be named or switched off', () => {
     build: false,
     dev: '/api/elements.json',
     write: 'custom-elements.json',
+    scan: ['src'],
   });
   expect(resolveManifest({dev: false, write: 'docs/x.json'})).toEqual({
     build: 'custom-elements.json',
     dev: false,
     write: 'docs/x.json',
+    scan: ['src'],
   });
 });
 

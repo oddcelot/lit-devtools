@@ -36,9 +36,11 @@ export default defineConfig({
 The build reads every module of the bundle, so its manifest covers each
 component the bundle contains. Each module path names the built file that
 holds the component, such as `dist/my-lib.js`, because that is what a consumer
-imports. The dev server lists the modules it has
-transformed so far, which are the ones your open pages loaded. It links the
-manifest in each page's head, so the browser extension shows the docs too.
+imports. The dev server reads every script under `src` when it starts and follows
+each change on disk, so its manifest lists your components before any page
+loads them. Set `scan` to the folders your components live in, or to `false`
+to list only what pages load. It links the manifest in each page's head, so
+the browser extension shows the docs too.
 
 ## Write what the manifest reads
 

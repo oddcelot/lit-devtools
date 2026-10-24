@@ -336,3 +336,64 @@ test('lit-devtools manifest writes the file', async () => {
     'elements.json'
   );
 });
+
+/** A dev server over `root`, listening, with the manifest it serves. */
+const devServer = async (
+  root: string,
+  manifest: LitPluginOptions['manifest']
+) => {
+  const server = await createServer({
+    root,
+    logLevel: 'silent',
+    configFile: false,
+    server: {port: 0, strictPort: false, ws: false},
+    plugins: [litPlugin({manifest, timeline: false})],
+  });
+  await server.listen();
+  const {port} = server.httpServer!.address() as {port: number};
+  const served = async () =>
+    declarations(
+      (await (
+        await fetch(`http://localhost:${port}/custom-elements.json`)
+      ).json()) as Record<string, unknown>
+    );
+  return {server, served};
+};
+
+test('the dev server lists what src holds before any page loads it', async () => {
+  const root = await fixture();
+  const {server, served} = await devServer(root, true);
+  try {
+    await expect.poll(served, {timeout: 5000}).toEqual([
+      ['src/base.ts', ['Base']],
+      ['src/x-a.ts', ['XA']],
+    ]);
+    // Inherited members resolve through the dev server's own resolver.
+    await fsp.writeFile(
+      joinPath(root, 'src/x-b.ts'),
+      `import {Base} from './base.js';\nexport class XB extends Base {}\ncustomElements.define('x-b', XB);\n`
+    );
+    await expect
+      .poll(served, {timeout: 5000})
+      .toContainEqual(['src/x-b.ts', ['XB']]);
+    await fsp.rm(joinPath(root, 'src/base.ts'));
+    await expect.poll(served, {timeout: 5000}).toEqual([
+      ['src/x-a.ts', ['XA']],
+      ['src/x-b.ts', ['XB']],
+    ]);
+  } finally {
+    await server.close();
+  }
+});
+
+test('scan: false lists only what pages load', async () => {
+  const root = await fixture();
+  const {server, served} = await devServer(root, {scan: false});
+  try {
+    expect(await served()).toEqual([]);
+    await server.transformRequest('/src/base.ts');
+    expect(await served()).toEqual([['src/base.ts', ['Base']]]);
+  } finally {
+    await server.close();
+  }
+});
