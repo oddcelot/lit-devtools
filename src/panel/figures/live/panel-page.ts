@@ -25,11 +25,15 @@
  * `?scheme=light|dark` pins both documents to a scheme, for a frame that
  * sits in a page of a known one (the kitchen sink's halves); without it they
  * follow the OS, or the panel's saved preference.
+ *
+ * `?collapse=About,Slots` folds those Components details sections on every
+ * load, so a small frame opens on what it is meant to show.
  */
 import {version} from '../../../../package.json';
 import {createLocalLitHost} from '../../../lib/devframe/port-link.js';
 import {useLocalClient} from '../../client.js';
 import {applyColorScheme} from '../../../lib/color-scheme.js';
+import {readCollapsed, writeCollapsed} from '../../collapsed-sections.js';
 import {LIVE_PORT_MESSAGE, messagePortLike} from './message-port.js';
 import {
   MANIFEST_LINK_REL,
@@ -61,9 +65,14 @@ const client = await createLocalLitHost({
   docsSource: (args) => linkedDocs.componentDocs(args),
 });
 useLocalClient(client);
+
+const params = new URLSearchParams(location.search);
+const fold = params.get('collapse')?.split(',').filter(Boolean) ?? [];
+if (fold.length > 0) writeCollapsed(new Set([...readCollapsed(), ...fold]));
+
 await import('../../main.js');
 
-const scheme = new URLSearchParams(location.search).get('scheme');
+const scheme = params.get('scheme');
 const pinned = scheme === 'light' || scheme === 'dark' ? scheme : null;
 if (pinned !== null) applyColorScheme(pinned);
 
