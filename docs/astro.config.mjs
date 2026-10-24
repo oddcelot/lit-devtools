@@ -14,6 +14,7 @@ import {fileURLToPath} from 'node:url';
 import {latestRelease} from './src/lib/latest-release.mjs';
 import {liveDemoDevLit} from './src/lib/live-demo-dev-lit.mjs';
 import {liveDemoPrivateFields} from './src/lib/live-demo-private-fields.mjs';
+import {liveDemoNoPageRuntime} from './src/lib/live-demo-no-page-runtime.mjs';
 import {liveExamplesOwnBuild} from './src/lib/live-examples-own-build.mjs';
 import {ownConfigExamples} from './src/lib/live-examples.ts';
 
@@ -119,7 +120,10 @@ export default defineConfig({
     // in Astro's dev toolbar while writing docs. Without the renderer
     // (`lit()`): no page server-renders a Lit component, and the renderer's
     // hydrate support would add ~15 KB to every page. The Web Awesome
-    // components are client-only and bring their own Lit.
+    // components are client-only and bring their own Lit. Not in the live
+    // panel's demo frames, which bring their own runtime: see
+    // liveDemoNoPageRuntime, which has to come first.
+    liveDemoNoPageRuntime(),
     litDevtools(),
     liveExamplesPublic(),
     liveExamplesOwnBuild(ownConfigExamples()),
