@@ -318,3 +318,23 @@ describe('event types', () => {
     ]);
   });
 });
+
+test('drops the indent of wrapped tag lines, but not inside fenced code', async () => {
+  const wrapped: ComponentDocs = {
+    ...button,
+    events: [
+      {
+        name: 'go',
+        description:
+          'Fires when it\n    goes.\n```js\nif (x) {\n    run();\n}\n```',
+      },
+    ],
+  };
+  const hover = await hoverAt(
+    {get: async () => wrapped, tags: async () => ['x-button']},
+    lit('<x-button @g‸o=${f}>')
+  );
+  expect(hover?.markdown).toBe(
+    '**`@go`** event of `<x-button>`\n\nFires when it\ngoes.\n```js\nif (x) {\n    run();\n}\n```'
+  );
+});

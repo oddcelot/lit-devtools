@@ -62,17 +62,26 @@ export interface FeatureRequest {
 
 // --- markdown --------------------------------------------------------------
 
-/** `{@link X}`, `{@link url text}` and `{@link X | text}` as markdown. */
+/**
+ * Doc prose as markdown: `{@link X}`, `{@link url text}` and `{@link X |
+ * text}` become code or links, and the indent JSDoc leaves on a wrapped
+ * tag's continuation lines goes, outside fenced code, so four spaces of it
+ * never turn a sentence into a code block.
+ */
 const links = (text: string): string =>
-  text.replace(
-    /\{@link(?:code|plain)?\s+([^}\s|]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
-    (_, target: string, label: string) => {
-      const shown = label.trim() || target;
-      return /^https?:\/\//.test(target)
-        ? `[${shown}](${target})`
-        : `\`${shown}\``;
-    }
-  );
+  text
+    .split(/(```[\s\S]*?```)/)
+    .map((part, i) => (i % 2 === 1 ? part : part.replace(/\n[ \t]+/g, '\n')))
+    .join('')
+    .replace(
+      /\{@link(?:code|plain)?\s+([^}\s|]+)(?:\s*\|\s*|\s+)?([^}]*)\}/g,
+      (_, target: string, label: string) => {
+        const shown = label.trim() || target;
+        return /^https?:\/\//.test(target)
+          ? `[${shown}](${target})`
+          : `\`${shown}\``;
+      }
+    );
 
 const deprecation = (value: boolean | string | undefined): string[] =>
   value === undefined || value === false
