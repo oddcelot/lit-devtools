@@ -40,7 +40,10 @@ const LISTS = [
   'cssProperties',
 ] as const;
 
-type Summary = Record<string, Record<(typeof LISTS)[number], string[]>>;
+type Summary = Record<
+  string,
+  Record<(typeof LISTS)[number] | 'packaged', string[]>
+>;
 
 interface Member {
   kind: string;
@@ -56,23 +59,27 @@ interface Declaration {
   [list: string]: unknown;
 }
 
-/**
- * The entries' names, leaving out what is inherited from a package: we read
- * dependencies' manifests, and the analyzer only does with `--dependencies`.
- */
+interface Entry {
+  name: string;
+  inheritedFrom?: {package?: string};
+}
+
 const names = (list: unknown): string[] =>
-  (
-    (list as
-      | {name: string; inheritedFrom?: {package?: string}}[]
-      | undefined) ?? []
-  )
-    .filter((e) => e.inheritedFrom?.package === undefined)
-    .map((e) => e.name)
-    .sort();
+  ((list as Entry[] | undefined) ?? []).map((e) => e.name).sort();
+
+/**
+ * Names a declaration inherits from a package. We read dependencies'
+ * manifests and the analyzer doesn't (without `--dependencies`): it lists
+ * those the constructor re-defaults as fields of the class, and the rest not
+ * at all. Both sides leave them out.
+ */
+const packaged = (d: Declaration): string[] =>
+  [d.members, d.attributes, d.events, d.slots, d.cssParts, d.cssProperties]
+    .flatMap((list) => (list as Entry[] | undefined) ?? [])
+    .filter((e) => e.inheritedFrom?.package !== undefined)
+    .map((e) => e.name);
 
 const isPublic = (kind: string) => (member: Member) =>
-  (member as {inheritedFrom?: {package?: string}}).inheritedFrom?.package ===
-    undefined &&
   member.kind === kind &&
   member.privacy === undefined &&
   member.static !== true &&
@@ -93,6 +100,7 @@ const summarize = (manifest: {
       slots: names(d.slots),
       cssParts: names(d.cssParts),
       cssProperties: names(d.cssProperties),
+      packaged: packaged(d),
     };
   }
   return out;
@@ -145,8 +153,9 @@ const tagDifferences = (
   ours: Summary[string]
 ): string[] =>
   LISTS.filter((list) => !(`${tag}.${list}` in KNOWN)).flatMap((list) => {
-    const a = theirs[list].join(', ');
-    const b = ours[list].join(', ');
+    const outside = (name: string) => !ours.packaged.includes(name);
+    const a = theirs[list].filter(outside).join(', ');
+    const b = ours[list].filter(outside).join(', ');
     return a === b ? [] : [`${tag}.${list}: analyzer [${a}], ours [${b}]`];
   });
 

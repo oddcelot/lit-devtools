@@ -118,8 +118,8 @@ test('a class extending a package element inherits from its manifest', () => {
   ).toEqual([
     ['label', undefined, "''"],
     ['autofocus', 'Focusable', undefined],
-    // Re-defaulted by the constructor, it is the class's own.
-    ['variant', undefined, "'neutral'"],
+    // The constructor re-defaults the inherited property.
+    ['variant', 'UiBadge', "'neutral'"],
     // The package's own `inheritedFrom` is kept.
     ['size', 'UiElement', undefined],
   ]);
