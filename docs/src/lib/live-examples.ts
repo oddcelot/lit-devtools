@@ -14,7 +14,9 @@
  * example's: an example that needs a plugin of its own (Tailwind, UnoCSS)
  * needs it in the docs too.
  */
-export const liveExamples: Record<string, () => Promise<unknown>> = {};
+export const liveExamples: Record<string, () => Promise<unknown>> = {
+  flame: () => import('../../../examples/flame/src/lit-flame.ts'),
+};
 
 /** The examples published as live demos, as `getStaticPaths()` lists them. */
 export const liveExamplePaths = () =>
