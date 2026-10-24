@@ -144,7 +144,7 @@ export class TimelineLayers extends LitElement {
         color: var(--lit-devtools-text-muted);
       }
       :host([compact]) .chip {
-        height: var(--lit-devtools-row-height, 22px);
+        height: var(--lit-devtools-row-height);
         padding: 0 var(--lit-devtools-space-3);
         background: transparent;
         font-size: var(--lit-devtools-text-2xs);

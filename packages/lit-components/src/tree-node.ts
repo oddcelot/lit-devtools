@@ -16,7 +16,8 @@ export class LitTreeNode extends LitElement {
       display: block;
       font-family: var(--font-mono);
       font-size: var(--text-xs);
-      line-height: 22px;
+      /* The row token, as the panel's own tree: a 24px target. */
+      line-height: var(--row-height);
     }
     .row {
       display: flex;

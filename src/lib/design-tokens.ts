@@ -94,6 +94,11 @@ export const designBaseCSS = `
   --lit-devtools-space-14: 80px;
   --lit-devtools-space-16: 96px;
 
+  /* ---- Density ---- */
+  /* Tree and list rows: WCAG 2.5.8's 24px minimum target, since a row is
+     what gets clicked. */
+  --lit-devtools-row-height: 24px;
+
   /* ---- Radius · square corners; pills are the one round shape ---- */
   --lit-devtools-radius-xs: 0;
   --lit-devtools-radius-sm: 0;

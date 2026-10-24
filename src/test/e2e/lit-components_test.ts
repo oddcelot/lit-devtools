@@ -187,6 +187,16 @@ test('lit-button type=submit submits its form', async () => {
   expect(await submitted).toBe(true);
 });
 
+test('lit-tree-node rows meet the 24px target size', async () => {
+  // WCAG 2.5.8: a row is the click target, so it may not be shorter.
+  await mount(`<lit-tree-node id="row" tag="my-app"></lit-tree-node>`);
+  const height = await page.$eval(
+    '#row',
+    (el) => el.shadowRoot!.querySelector('.row')!.getBoundingClientRect().height
+  );
+  expect(height).toBeGreaterThanOrEqual(24);
+});
+
 test('lit-input reports a missing required value', async () => {
   await mount(`<lit-input id="req" required></lit-input>`);
   expect(

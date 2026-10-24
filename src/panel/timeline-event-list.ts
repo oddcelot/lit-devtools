@@ -129,7 +129,7 @@ export class TimelineEventList extends LitElement {
       }
       /* Row height, not control height: the bar stays as dense as the rows. */
       .expand-all::part(base) {
-        height: var(--lit-devtools-row-height, 22px);
+        height: var(--lit-devtools-row-height);
         min-height: 0;
         font-size: inherit;
       }
@@ -147,6 +147,7 @@ export class TimelineEventList extends LitElement {
            absolute position also anchors the rail column inside the row. */
         box-sizing: border-box;
         width: 100%;
+        min-height: var(--lit-devtools-row-height);
         display: flex;
         align-items: baseline;
         gap: var(--lit-devtools-space-4);

@@ -30,15 +30,14 @@
 import {designBaseCSS, designDarkCSS, designLightCSS} from './design-tokens.js';
 
 /**
- * What the DevTools add on top of the design tokens: their control and row
- * sizes. The fonts are the design system's: the system sans, and Lilex for
+ * What the DevTools add on top of the design tokens: their control size (the
+ * row height is a design token, shared with `lit-tree-node`). The fonts are the design system's: the system sans, and Lilex for
  * code, which the panel bundles (src/panel/main.ts). The in-page UI loads no
  * font files, so its code falls back to the system monospace.
  */
 const devtoolsTokenCSS = `
-  /* ---- Shared sizing: toolbar controls and tree/list rows ---- */
+  /* ---- Shared sizing: toolbar controls ---- */
   --lit-devtools-control-height:  28px;
-  --lit-devtools-row-height:      22px;
 `;
 
 export const baseTokenCSS = `${designBaseCSS}${devtoolsTokenCSS}`;

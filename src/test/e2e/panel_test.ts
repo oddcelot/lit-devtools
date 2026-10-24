@@ -66,6 +66,13 @@ test('timeline rows span the full width of the list', async () => {
   for (const width of widths.rows) {
     expect(width).toBeGreaterThanOrEqual(widths.scroll - 1);
   }
+  // WCAG 2.5.8: each row is a click target, so it is at least 24px tall.
+  const heights = await page
+    .locator('timeline-event-list .row')
+    .evaluateAll((rows) =>
+      rows.map((row) => row.getBoundingClientRect().height)
+    );
+  for (const height of heights) expect(height).toBeGreaterThanOrEqual(24);
 });
 
 test('Clear leaves the empty state in view', async () => {
@@ -490,4 +497,15 @@ test('the selection is the same element after the page reloads', async () => {
     .poll(() => heading.textContent(), {timeout: 10_000})
     .toContain('hmr-properties');
   expect(panel.errors).toEqual([]);
+});
+
+test('component tree rows meet the 24px target size', async () => {
+  const {page} = panel;
+  await page.goto(`${fixture.origin}/__lit/#tab=components`);
+  const rows = page.locator('components-view .tree .row');
+  await rows.first().waitFor();
+  const heights = await rows.evaluateAll((rows) =>
+    rows.map((row) => row.getBoundingClientRect().height)
+  );
+  for (const height of heights) expect(height).toBeGreaterThanOrEqual(24);
 });
