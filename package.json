@@ -128,7 +128,8 @@
     "devframe": "^1.1.0",
     "es-module-lexer": "^3.0.2",
     "launch-editor": "^2.14.1",
-    "magic-string": "^1.4.2"
+    "magic-string": "^1.4.2",
+    "oxc-parser": "^0.150.0"
   },
   "peerDependencies": {
     "@devframes/agentic": "^1.0.0",
