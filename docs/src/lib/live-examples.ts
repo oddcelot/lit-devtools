@@ -31,6 +31,10 @@ export const liveExamples: Record<string, LiveExample> = {
     load: () => import('../../../examples/web-awesome/src/main.ts'),
     demoRow: 'minmax(26rem, 55%)',
   },
+  tutorial: {
+    load: () => import('../../../examples/tutorial/src/my-element.ts'),
+    demoRow: 'minmax(18rem, 45%)',
+  },
 };
 
 interface LiveExample {
