@@ -40,7 +40,9 @@ import {
   type HtmlData,
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
+import {cssDocCompletions} from '../../../src/lib/editor/css.js';
 import {eventTypeProblems} from '../../../src/lib/editor/diagnostics.js';
+import {cssCompletions, cssDiagnostics, cssHover, forgetCss} from './css.js';
 import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
 import type {Severity} from '../../../src/lib/editor/config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
@@ -220,6 +222,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
         workspace: Workspace;
         source: DocsSource;
         request: Omit<FeatureRequest, 'offset'>;
+        /** The CSS template tags; none in an HTML file. */
+        cssTags: readonly string[];
       }
     | undefined
   > => {
@@ -229,12 +233,13 @@ export const startServer = (streams?: ServerStreams): Connection => {
     if (!document || !file || !kind) return undefined;
     const workspace = await workspaceOf(file);
     if (!workspace) return undefined;
-    const {templateTags} = workspace.configOf(file) ?? {};
+    const {templateTags, cssTemplateTags} = workspace.configOf(file) ?? {};
     return {
       document,
       workspace,
       source: docsSourceFor(workspace, kind),
       request: {file, code: document.getText(), kind, templateTags},
+      cssTags: kind === 'script' ? (cssTemplateTags ?? ['css']) : [],
     };
   };
 
@@ -243,7 +248,12 @@ export const startServer = (streams?: ServerStreams): Connection => {
     uri: string,
     position: Position
   ): Promise<
-    | {document: TextDocument; source: DocsSource; request: FeatureRequest}
+    | {
+        document: TextDocument;
+        source: DocsSource;
+        request: FeatureRequest;
+        cssTags: readonly string[];
+      }
     | undefined
   > => {
     const found = await documentRequest(uri);
@@ -288,7 +298,20 @@ export const startServer = (streams?: ServerStreams): Connection => {
         },
       ];
     });
-    void connection.sendDiagnostics({uri, diagnostics});
+    const cssSeverity = severities?.css ?? 'warning';
+    const css =
+      cssSeverity === 'off'
+        ? []
+        : cssDiagnostics(document, found.cssTags).map((diagnostic) => ({
+            ...diagnostic,
+            severity: SEVERITY[cssSeverity],
+            source: 'lit',
+            code: 'css',
+          }));
+    void connection.sendDiagnostics({
+      uri,
+      diagnostics: [...diagnostics, ...css],
+    });
   };
 
   /**
@@ -324,7 +347,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
         completionProvider: {
-          triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'"],
+          triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'", ':', '(', '-'],
         },
         hoverProvider: true,
         codeActionProvider: {codeActionKinds: [CodeActionKind.QuickFix]},
@@ -342,6 +365,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
   // A closed buffer's unsaved edits are gone; the file on disk counts again.
   documents.onDidClose(async ({document}) => {
     void connection.sendDiagnostics({uri: document.uri, diagnostics: []});
+    forgetCss(document.uri);
     const file = fileOf(document.uri);
     if (file) await refreshFromDisk(await workspaceOf(file), file);
     scheduleDiagnostics();
@@ -355,13 +379,23 @@ export const startServer = (streams?: ServerStreams): Connection => {
   connection.onCompletion(async ({textDocument, position}) => {
     const found = await requestFor(textDocument.uri, position);
     if (!found) return [];
-    const items = await completionsAt(found.source, found.request);
-    return items.map((item) => toItem(found.document, item));
+    const {document, source, request} = found;
+    const css = cssCompletions(document, position, found.cssTags);
+    if (css) {
+      // The components' documented custom properties and parts first.
+      const {file, code, offset} = request;
+      const documented = await cssDocCompletions(source, file, code, offset);
+      return [...documented.map((item) => toItem(document, item)), ...css];
+    }
+    const items = await completionsAt(source, request);
+    return items.map((item) => toItem(document, item));
   });
 
   connection.onHover(
     async ({textDocument, position}): Promise<LspHover | null> => {
       const found = await requestFor(textDocument.uri, position);
+      const css = found && cssHover(found.document, position, found.cssTags);
+      if (css !== undefined) return css;
       const hover = found && (await hoverAt(found.source, found.request));
       if (!found || !hover) return null;
       return {

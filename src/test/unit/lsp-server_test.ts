@@ -71,7 +71,11 @@ const files: Record<string, string> = {
   'src/x-button.ts': `
     import {LitElement, html} from 'lit';
     import {customElement, property} from 'lit/decorators.js';
-    /** A button. */
+    /**
+     * A button.
+     * @cssprop [--x-button-gap=4px] - The gap.
+     * @csspart base - The button.
+     */
     @customElement('x-button')
     export class XButton extends LitElement {
       /** How big. */
@@ -291,6 +295,62 @@ describe('the language server', () => {
           "`#onPick` takes `CustomEvent<{thing: string}>`, but `pick` sends `CustomEvent<{size: 'small' | 'large'; at: number}>`: `detail.thing` is missing.",
       },
     ]);
+  });
+
+  test('answers CSS in css templates: completion, hover, problems', async () => {
+    const uri = pathToFileURL(join(root, 'src/styles.ts')).href;
+    const lines = [
+      "import {css} from 'lit';",
+      'const styles = css`',
+      '  :host { colo: red; }',
+      '  .a { margin: ${gap}; }',
+      '  .b { gap: var(--x-b); }',
+      '`;',
+      '',
+    ];
+    client.notify('textDocument/didOpen', {
+      textDocument: {
+        uri,
+        languageId: 'typescript',
+        version: 1,
+        text: lines.join('\n'),
+      },
+    });
+    const properties = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      {
+        textDocument: {uri},
+        position: {line: 2, character: 14},
+      }
+    );
+    expect(properties.map((item) => item.label)).toContain('color');
+    const documented = await client.request<{label: string}[]>(
+      'textDocument/completion',
+      {
+        textDocument: {uri},
+        position: {line: 4, character: 21},
+      }
+    );
+    expect(documented[0]).toMatchObject({
+      label: '--x-button-gap',
+      detail: '= 4px from <x-button>',
+    });
+    const hover = await client.request('textDocument/hover', {
+      textDocument: {uri},
+      position: {line: 3, character: 9},
+    });
+    expect(JSON.stringify(hover.contents)).toContain('margin');
+    const published = await client.waitFor(
+      (n) =>
+        n.method === 'textDocument/publishDiagnostics' &&
+        n.params.uri === uri &&
+        n.params.diagnostics.length > 0
+    );
+    // The unknown property is reported; the line with a hole isn't.
+    expect(published.params.diagnostics).toMatchObject([
+      {range: {start: {line: 2}}, severity: 2, source: 'lit', code: 'css'},
+    ]);
+    expect(published.params.diagnostics[0].message).toContain('colo');
   });
 
   test('reads a component typed into a buffer, before it is saved', async () => {
