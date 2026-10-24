@@ -17,6 +17,7 @@
 
 import {installDefineSites} from '../../src/lib/runtime/define-sites.js';
 import {installTemplateSites} from '../../src/lib/runtime/template-sites.js';
+import {installInternalsHook} from '../../src/lib/runtime/element-internals.js';
 import {forgetOwnLit} from '../../src/lib/runtime/own-lit.js';
 import '../../src/lib/runtime/timeline/install.js';
 import '../../src/lib/runtime/inspector/install.js';
@@ -33,6 +34,9 @@ installDefineSites();
 // Which template rendered an element, likewise: lit-html reports its
 // templates only to a hook that is set before it loads.
 installTemplateSites();
+// Custom states and form values live in ElementInternals, which only the
+// element holds: the hook has to be there when it attaches them.
+installInternalsHook();
 // The picker's LitElement brought a Lit of our own: not the page's to count.
 forgetOwnLit();
 attachWindowTransport();

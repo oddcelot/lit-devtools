@@ -418,6 +418,47 @@ test('lists instance state below the other tables', async () => {
   ).toBe(true);
 });
 
+test('lists custom states, form value and validity under Internals', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      internals: {
+        states: ['dirty', 'touched'],
+        value: {type: 'string', value: 'on'},
+        validity: {
+          valid: false,
+          flags: ['valueMissing'],
+          message: 'Fill this in.',
+        },
+      },
+    },
+  });
+  await flush(el);
+  const section = root.querySelector('details[data-section="Internals"]')!;
+  const rows = [...section.querySelectorAll('.entry')].map((r) =>
+    [...r.querySelectorAll(':scope > .name, :scope > .val')].map((c) =>
+      c.textContent!.replace(/\s+/g, ' ').trim()
+    )
+  );
+  expect(rows).toEqual([
+    ['states', 'dirty, touched'],
+    ['value', '"on"'],
+    ['validity', 'valueMissing'],
+    ['validationMessage', '"Fill this in."'],
+  ]);
+});
+
+test('leaves Internals out for an element without internals', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {type: 'details', details: detailsFor()});
+  await flush(el);
+  expect(root.querySelector('details[data-section="Internals"]')).toBeNull();
+});
+
 test('tags a value with its type only where the preview does not show it', async () => {
   const {el, root} = await mount(true);
   push('inspector-message', {type: 'pick', id: 2});

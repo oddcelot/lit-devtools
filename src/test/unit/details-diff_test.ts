@@ -52,6 +52,14 @@ test('a task that changes status alone counts as changed', () => {
   expect([...changedRows(details(), next)]).toEqual(['e:load']);
 });
 
+test('a custom state or form value that changes counts as changed', () => {
+  const prev = details({internals: {states: ['dirty']}});
+  const next = details({
+    internals: {states: ['dirty', 'touched'], value: {type: 'null'}},
+  });
+  expect([...changedRows(prev, next)]).toEqual(['i:states', 'i:value']);
+});
+
 test('a row that appears counts, one that leaves does not', () => {
   const next = details({attributes: [{name: 'hidden', value: ''}]});
   expect([...changedRows(details(), next)]).toEqual(['a:hidden']);

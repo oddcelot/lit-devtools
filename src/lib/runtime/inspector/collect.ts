@@ -17,6 +17,7 @@ import {
 } from './listed.js';
 import {collectAnatomy, shadowOf} from './anatomy.js';
 import {collectExtras, extraValue} from './extras.js';
+import {readInternals} from '../element-internals.js';
 import {serialize, typeTag} from './serialize.js';
 import {
   leafOverrideOf,
@@ -401,6 +402,7 @@ const statusOf = (
 const insightsOf = (el: Element): Partial<InspectorDetails> => {
   const extras = collectExtras(el);
   const anatomy = collectAnatomy(el);
+  const internals = readInternals(el);
   const warnings = warningsFor(
     el.localName,
     (el.constructor as {name?: string}).name
@@ -408,6 +410,7 @@ const insightsOf = (el: Element): Partial<InspectorDetails> => {
   return {
     ...(anatomy !== undefined ? {anatomy} : {}),
     ...(extras.length > 0 ? {extras} : {}),
+    ...(internals !== undefined ? {internals} : {}),
     ...(warnings.length > 0 ? {warnings} : {}),
   };
 };
