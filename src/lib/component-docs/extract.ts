@@ -257,6 +257,33 @@ const completedBy = (entries: DocEntry[], tagged: DocEntry[]): DocEntry[] => {
   return result;
 };
 
+/** The array a `static observedAttributes` field holds or its getter returns. */
+const observedArray = (member: Node): Node | undefined => {
+  if (member.static !== true) return undefined;
+  if (nameOf(child(member, 'key')) !== 'observedAttributes') return undefined;
+  const value = child(member, 'value');
+  if (member.kind !== 'get') return value;
+  const body = nodes(child(value, 'body')?.body);
+  return child(
+    body.find((s) => s.type === 'ReturnStatement'),
+    'argument'
+  );
+};
+
+/**
+ * The attributes a vanilla element observes, from the string literals of
+ * `static observedAttributes = [...]` or its getter's returned array.
+ */
+const observedAttributesOf = (cls: Node): DocEntry[] => {
+  const array = nodes(child(cls, 'body')?.body)
+    .map(observedArray)
+    .find((node) => node?.type === 'ArrayExpression');
+  return nodes(array?.elements).flatMap((element) => {
+    const name = stringLiteral(element);
+    return name === undefined ? [] : [{name}];
+  });
+};
+
 const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   const fired = taggedEntries(doc, ['fires', 'event']);
   const properties = completedBy(
@@ -266,7 +293,7 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   const docs: ClassDocsBody = {
     properties,
     attributes: completedBy(
-      attributesOf(properties),
+      completedBy(attributesOf(properties), observedAttributesOf(cls)),
       taggedEntries(doc, ['attr', 'attribute'])
     ),
     events: [...fired, ...dispatchedEvents(cls, fired)],

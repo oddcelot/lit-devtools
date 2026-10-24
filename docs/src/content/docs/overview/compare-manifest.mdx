@@ -40,7 +40,7 @@ barrel file. The versions were vite-plugin-lit 0.24,
 | Inherited members, marked `inheritedFrom` | Yes, across modules and mixins                        | Yes                                      | No                                               | No                                 |
 | Mixin declarations                        | Yes                                                   | Yes                                      | No                                               | Yes                                |
 | A vanilla `HTMLElement` element           | Yes                                                   | Yes                                      | No                                               | No                                 |
-| `observedAttributes`                      | No                                                    | Yes                                      | No                                               | No                                 |
+| `observedAttributes`                      | Yes                                                   | Yes                                      | No                                               | No                                 |
 | Barrel files (`export * from`)            | Resolved to each name, through chains of barrels      | Listed as a `*` export                   | Resolved to each name                            | Resolved to each name              |
 | Watch mode                                | The dev server, through HMR and a file watcher        | `--watch`                                | `--watch`                                        | No option                          |
 | Also does                                 | The same docs in the DevTools panel and Lit Inspector | A plugin API; FAST, Stencil and Catalyst | A language server, MCP, a dev server, `validate` | React and Vue wrappers             |
@@ -51,9 +51,8 @@ barrel file. The versions were vite-plugin-lit 0.24,
 
 ## CEM analyzer
 
-The analyzer is the reference most tools read against, and it reads the most
-syntax: `observedAttributes`, the `@attr`, `@prop` and `@default` tags, and
-frameworks beyond Lit through plugins. It lists private members and internal
+The analyzer is the reference most tools read against, and it reads the
+widest syntax, frameworks beyond Lit included, through plugins. It lists private members and internal
 state with their `privacy`, so a reader that wants the public API filters them
 out. Its paths name your source files, so a published package needs a plugin
 to point them at the built ones.
