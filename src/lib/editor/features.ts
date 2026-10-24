@@ -138,6 +138,19 @@ const WHAT: Record<Binding, string> = {
   '@': 'event',
 };
 
+/**
+ * An entry's type for its hover. An event's is what its listener receives:
+ * the event class, and a `CustomEvent`'s `detail` on its own.
+ */
+const typeFacts = (type: string | undefined, binding: Binding): string[] => {
+  if (!type) return [];
+  if (binding !== '@') return [`Type ${code(type)}`];
+  const generic = /^(\w+)<([\s\S]+)>$/.exec(type);
+  if (!generic) return [`Event ${code(type)}`];
+  const [, eventClass, detail] = generic;
+  return [`Event ${code(eventClass)}`, `${code('detail')} ${code(detail)}`];
+};
+
 /** The hover over one attribute, property or event. */
 const entryMarkdown = (
   entry: DocEntry,
@@ -145,7 +158,7 @@ const entryMarkdown = (
   headline: string
 ): string => {
   const facts = [
-    entry.type ? `Type ${code(entry.type)}` : '',
+    ...typeFacts(entry.type, binding),
     entry.default ? `Default ${code(entry.default)}` : '',
     entry.reflects ? 'Reflects to its attribute' : '',
     entry.counterpart

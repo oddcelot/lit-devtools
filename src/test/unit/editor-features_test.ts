@@ -270,3 +270,51 @@ describe('with native elements, globals and bubbling events', () => {
     );
   });
 });
+
+describe('event types', () => {
+  const typed: ComponentDocs = {
+    ...button,
+    events: [
+      {
+        name: 'add-to-cart',
+        description: 'Adds it.',
+        type: 'CustomEvent<{id: string; price: number}>',
+      },
+      {name: 'closed', type: 'Event'},
+    ],
+  };
+  const typedSource: DocsSource = {
+    get: async (_file, tag) => (tag === 'x-button' ? typed : null),
+    tags: async () => ['x-button'],
+    globals: () => ({
+      attributes: [],
+      events: [{name: 'click', type: 'MouseEvent'}],
+    }),
+  };
+  const hoverText = async (inner: string) =>
+    (await hoverAt(typedSource, lit(inner)))?.markdown;
+
+  test('a custom event shows its class and its detail apart', async () => {
+    expect(await hoverText('<x-button @add-to-c‸art=${f}>')).toBe(
+      '**`@add-to-cart`** event of `<x-button>`\n\nAdds it.\n\nEvent `CustomEvent` · `detail` `{id: string; price: number}`'
+    );
+  });
+
+  test('a plain event and a DOM event show their class', async () => {
+    expect(await hoverText('<x-button @clo‸sed=${f}>')).toBe(
+      '**`@closed`** event of `<x-button>`\n\nEvent `Event`'
+    );
+    expect(await hoverText('<x-button @cli‸ck=${f}>')).toBe(
+      '**`@click`** DOM event\n\nEvent `MouseEvent`'
+    );
+  });
+
+  test('completion details carry the type', async () => {
+    const items = await completionsAt(typedSource, lit('<x-button @‸>'));
+    expect(items.map((item) => [item.label, item.detail])).toEqual([
+      ['add-to-cart', 'CustomEvent<{id: string; price: number}>'],
+      ['closed', 'Event'],
+      ['click', 'MouseEvent'],
+    ]);
+  });
+});

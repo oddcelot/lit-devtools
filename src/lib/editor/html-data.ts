@@ -3,12 +3,13 @@
  * data format (`@vscode/web-custom-data`, which the language server bundles):
  * each element with its own attributes, and what every element accepts, the
  * global attributes and the DOM events (the `on…` handler attributes, named
- * as `@` bindings name them).
+ * as `@` bindings name them, typed by the interface the browser dispatches).
  *
  * The data comes in as an argument, so this module doesn't carry it.
  */
 
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
+import {DOM_EVENT_TYPES} from './dom-events.js';
 
 type Description = string | {kind?: string; value: string};
 
@@ -123,9 +124,11 @@ export const createHtmlDocs = (data: HtmlData): HtmlDocs => {
       attributes: globals
         .filter((a) => !isHandler(a))
         .map((a) => entryOf(a, sets)),
-      events: globals
-        .filter(isHandler)
-        .map((a) => entryOf(a, sets, a.name.slice(2))),
+      // Typed by the interface the browser dispatches, `Event` when unlisted.
+      events: globals.filter(isHandler).map((a) => ({
+        ...entryOf(a, sets, a.name.slice(2)),
+        type: DOM_EVENT_TYPES[a.name.slice(2)] ?? 'Event',
+      })),
     },
   };
 };
