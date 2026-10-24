@@ -538,7 +538,9 @@ See also: [Publish a Custom Elements Manifest](/guides/manifest/).
 ### manifest.build
 
 `vite build` emits the manifest as an asset. A string names the file, relative
-to `build.outDir`.
+to `build.outDir`. Module paths name the built chunks, relative to Vite's
+`root`; modules bundled into one chunk share its entry, and tree-shaken ones
+are left out.
 
 **Type:** `boolean | string` · **Default:** `true` (`custom-elements.json`) ·
 **Env:** —
@@ -555,7 +557,8 @@ lists the modules the server has transformed so far.
 ### manifest.write
 
 Keeps a manifest file in your project. The dev server rewrites it as modules
-change, and `vite build` rewrites it from every module of the bundle. A string
+change, with source paths. `vite build` rewrites it from every module of the
+bundle, with the built files' paths. A string
 names the file, relative to Vite's `root`. When the root's `package.json` has
 no `customElements` field, the plugin sets it to this file.
 
