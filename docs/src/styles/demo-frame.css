@@ -259,3 +259,22 @@ body {
     animation: none;
   }
 }
+
+/* Thin accent scrollbars, as on the docs around the frame (custom.css). */
+* {
+  scrollbar-width: thin;
+}
+:root {
+  scrollbar-color: var(--accent) transparent;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: var(--accent);
+}
