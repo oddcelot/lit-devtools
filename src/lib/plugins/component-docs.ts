@@ -1,4 +1,4 @@
-import type {Plugin, Rollup} from 'vite';
+import type {Plugin} from 'vite';
 import {extractModuleDocs} from '../component-docs/extract.js';
 import type {SourceDocsIndex} from '../component-docs/source-index.js';
 import type {OptionsContext} from './context.js';
@@ -9,8 +9,16 @@ import type {OptionsContext} from './context.js';
  * resolves the imported superclasses and mixins, so the index can follow
  * them to the module that declares them.
  */
+/** What `indexModule` resolves imports with: a plugin context, or anything shaped like its `resolve`. */
+export interface ImportResolver {
+  resolve(
+    specifier: string,
+    importer: string
+  ): Promise<{id: string; external?: boolean | 'absolute' | 'relative'} | null>;
+}
+
 export const indexModule = async (
-  context: Pick<Rollup.PluginContext, 'resolve'>,
+  context: ImportResolver,
   index: SourceDocsIndex,
   code: string,
   id: string
