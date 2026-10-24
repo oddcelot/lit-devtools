@@ -686,6 +686,14 @@ test('the Lit tab leaves out what needs a dev server', async () => {
   );
   expect(await panel.locator('#editor-folder-offer').isVisible()).toBe(false);
 
+  // A narrow panel cuts the text short, not the button after it, which a
+  // plain click reaches (no text lies over it).
+  const size = panel.viewportSize();
+  await panel.setViewportSize({width: 560, height: size?.height ?? 720});
+  await panel.locator('#editor-notice-later').click({timeout: 5000});
+  expect(await panel.locator('#editor-notice').isVisible()).toBe(false);
+  if (size !== null) await panel.setViewportSize(size);
+
   // No disk to write a snapshot to, so no button that could only fail.
   await panel.locator('timeline-view lit-button.record').waitFor({
     state: 'attached',

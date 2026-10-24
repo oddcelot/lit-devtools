@@ -350,7 +350,7 @@ const renderScreenshots = async (browser) => {
         await panel.waitForTimeout(1500);
         for (const later of ['#editor-notice-later', '#manifest-nudge-later']) {
           const button = panel.locator(later);
-          if (await button.isVisible()) await button.dispatchEvent('click');
+          if (await button.isVisible()) await button.click();
         }
         return panel;
       };
