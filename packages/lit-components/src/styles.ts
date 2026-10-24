@@ -1,4 +1,4 @@
-import type {CSSResult} from 'lit';
+import {type CSSResult, css, unsafeCSS} from 'lit';
 
 /**
  * A Web Awesome class's `css` (the styles WA builds a component's shadow
@@ -12,3 +12,24 @@ export const extendCss = (
   base: readonly CSSResult[] | undefined,
   ...more: CSSResult[]
 ): CSSResult[] => [...(base ?? []), ...more];
+
+/**
+ * The disabled look of a form field whose box is `box` in its shadow root.
+ * WA only halves a disabled field's opacity, which leaves it looking like an
+ * empty one showing its placeholder. A muted fill, a dashed outline and the
+ * not-allowed cursor tell the two apart at a glance, on top of WA's opacity.
+ */
+export const disabledField = (box: string): CSSResult => {
+  const selector = unsafeCSS(`:host([disabled]) ${box}`);
+  return css`
+    :host([disabled]) {
+      cursor: not-allowed;
+    }
+    ${selector} {
+      background-color: var(--wa-color-neutral-fill-quiet);
+      border-style: dashed;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  `;
+};

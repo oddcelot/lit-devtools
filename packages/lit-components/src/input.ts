@@ -1,6 +1,6 @@
 import WaInput from '@awesome.me/webawesome/dist/components/input/input.js';
 import {css} from 'lit';
-import {extendCss} from './styles.js';
+import {disabledField, extendCss} from './styles.js';
 import './icons.js';
 
 /**
@@ -19,7 +19,8 @@ export class LitInput extends WaInput {
       .end::slotted(lit-icon) {
         color: var(--wa-color-neutral-on-quiet);
       }
-    `
+    `,
+    disabledField('.text-field')
   );
 
   constructor() {
