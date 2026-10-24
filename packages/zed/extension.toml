@@ -1,0 +1,17 @@
+id = "lit"
+name = "Lit"
+version = "0.0.1"
+schema_version = 1
+authors = ["oddcelot"]
+description = "Completion and hover for Lit components in templates and HTML, read from your sources and your dependencies' Custom Elements Manifests."
+repository = "https://github.com/oddcelot/vite-plugin-lit"
+
+[language_servers.lit-language-server]
+name = "Lit Language Server"
+languages = ["HTML", "TypeScript", "TSX", "JavaScript"]
+
+[language_servers.lit-language-server.language_ids]
+"HTML" = "html"
+"TypeScript" = "typescript"
+"TSX" = "typescriptreact"
+"JavaScript" = "javascript"
