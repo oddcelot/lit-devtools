@@ -8,8 +8,12 @@
 interface Props {
   /** The demo frame's row, as a grid track size. */
   demoRow?: string;
+  /** What the demo is, after "Lit DevTools, live" in the page's title. */
+  demo?: string;
 }
-const {demoRow = 'minmax(10rem, 40%)'} = Astro.props;
+const {demoRow = 'minmax(10rem, 40%)', demo} = Astro.props;
+const title =
+  demo === undefined ? 'Lit DevTools, live' : `Lit DevTools, live: ${demo}`;
 ---
 
 <!doctype html>
@@ -18,7 +22,7 @@ const {demoRow = 'minmax(10rem, 40%)'} = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex" />
-    <title>Lit DevTools, live</title>
+    <title>{title}</title>
     <style is:global define:vars={{demoRow}}>
       * {
         box-sizing: border-box;

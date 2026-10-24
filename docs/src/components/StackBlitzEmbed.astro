@@ -12,8 +12,11 @@
  * The embed needs a cross-origin isolated page, which `coi-sw.js` provides
  * from the page's next load: the first Run reloads the page once, then
  * starts the embed. The caption has a button that reloads just the iframe,
- * next to a link that opens the project in a full StackBlitz tab.
+ * next to a link that opens the project in a full StackBlitz tab, and, for
+ * an example published as a live demo (src/lib/live-examples.ts), a link to
+ * that: the DevTools panel inspecting the example, with nothing to boot.
  */
+import {liveDemoUrl} from '../lib/live-examples';
 interface Props {
   /** Directory in the repo, such as `examples/flame`. */
   path: string;
@@ -26,6 +29,7 @@ interface Props {
 }
 
 const {path, title, file, startScript} = Astro.props;
+const live = liveDemoUrl(path);
 
 const project = `https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/${path}`;
 const query = (extra: Record<string, string>) => {
@@ -52,6 +56,7 @@ const query = (extra: Record<string, string>) => {
       Stuck? Reload the demo
     </lit-button>
     <a href={query({})}>Open in StackBlitz</a>
+    {live && <a href={live}>Try it live</a>}
   </figcaption>
 </figure>
 
