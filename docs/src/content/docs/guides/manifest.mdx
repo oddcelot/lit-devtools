@@ -69,9 +69,15 @@ export class XButton extends LitElement {
 The class comment gives the description and each tagged entry. A field's
 comment gives its description, its type annotation the type, and its
 initializer the default. `@property()` names the attribute it maps to, and
-`@state()` and private members stay out. The
-[components guide](/guides/devtools/components/#your-own-components) lists
+`reflect: true` marks it `reflects`. `@state()` and private members stay out.
+The [components guide](/guides/devtools/components/#your-own-components) lists
 every tag the reader understands.
+
+Public methods are listed too, with their parameters and return type. Types
+come from the annotations, or from `@param {Type} name - description` and
+`@returns {Type} description` in plain JavaScript. Lifecycle callbacks such as
+`render()`, `updated()` and `connectedCallback()` are how Lit calls your class,
+so they stay out.
 
 A class lists the members it inherits from your own base classes and mixins,
 each marked `inheritedFrom`, so tools need no inheritance walk. Types are the
