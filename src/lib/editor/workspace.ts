@@ -20,6 +20,11 @@ import {
 } from '../component-docs/load.js';
 import {realDir} from '../component-docs/manifest-file.js';
 import {createNodeResolver} from '../component-docs/node-resolver.js';
+import {
+  type ConfigProblem,
+  type ResolvedLanguageServerConfig,
+  loadLanguageServerConfig,
+} from './load-config.js';
 import {createPackageAncestors} from '../component-docs/package-ancestors.js';
 import {normalizePath} from '../component-docs/paths.js';
 import {indexDirs, isScannedScript} from '../component-docs/scan.js';
@@ -34,8 +39,13 @@ import {
 } from './workspace-packages.js';
 
 export interface WorkspaceOptions {
-  /** The folders to read in a package, relative to it; `src` by default. */
-  dirs?: (pkg: WorkspacePackage) => readonly string[];
+  /** Loads a package's settings; `loadLanguageServerConfig` by default. */
+  loadConfig?: (dir: string) => Promise<ResolvedLanguageServerConfig>;
+  /**
+   * Whether a package with a Vite config resolves imports through a Vite
+   * server, so its aliases apply. On by default.
+   */
+  viteResolution?: boolean;
 }
 
 export interface Workspace {
@@ -54,7 +64,57 @@ export interface Workspace {
   update(file: string, code: string): Promise<void>;
   /** Forgets a deleted file. */
   remove(file: string): void;
+  /** The settings of the package that holds `file`. */
+  configOf(file: string): ResolvedLanguageServerConfig | undefined;
+  /** Every package's settings problems. */
+  problems(): ConfigProblem[];
+  /** The config files whose change means the workspace should be read again. */
+  watched(): string[];
+  /** Stops the Vite servers some packages resolve with. */
+  close(): Promise<void>;
 }
+
+/** One package, read with its own settings and resolver. */
+interface PackageState {
+  pkg: WorkspacePackage;
+  config: ResolvedLanguageServerConfig;
+  resolver: ImportResolver;
+  close?: () => Promise<void>;
+  /** Its read folders, real and with a trailing `/`. */
+  folders: string[];
+}
+
+/**
+ * A package's settings and resolver: through its Vite config when it has one
+ * (unless `viteResolution` is off), so its aliases apply, else Node's. A Vite
+ * server that fails to start is a settings problem; Node's resolution stands
+ * in.
+ */
+const preparePackage = async (
+  pkg: WorkspacePackage,
+  options: WorkspaceOptions
+): Promise<PackageState> => {
+  const config = await (options.loadConfig ?? loadLanguageServerConfig)(
+    pkg.dir
+  );
+  const folders = config.scan.map((dir) => `${realDir(`${pkg.dir}/${dir}`)}/`);
+  const viteFile = config.viteConfigFile;
+  if (viteFile && options.viteResolution !== false) {
+    try {
+      const {createViteResolver} =
+        await import('../component-docs/vite-resolver.js');
+      const vite = await createViteResolver(pkg.dir, viteFile);
+      if (vite) return {pkg, config, folders, ...vite};
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      config.problems.push({
+        file: viteFile,
+        message: `Couldn't resolve through it, so Node's resolution is used: ${message}`,
+      });
+    }
+  }
+  return {pkg, config, folders, resolver: createNodeResolver()};
+};
 
 /**
  * Reads the workspace `from` (a file or folder) belongs to. Undefined outside
@@ -66,28 +126,28 @@ export const createWorkspace = async (
 ): Promise<Workspace | undefined> => {
   const layout = await findWorkspace(from);
   if (!layout) return undefined;
-  const packages = layout.packages.map((pkg) => ({
-    ...pkg,
-    dir: realDir(pkg.dir),
-  }));
-  const dirsOf = options.dirs ?? (() => ['src']);
   const fs = await nodeDocsFs();
   const sources = createSourceDocsIndex((id) => id, createPackageAncestors(fs));
-  const resolver = createNodeResolver();
-  const folders = packages.flatMap((pkg) =>
-    dirsOf(pkg).map((dir) => `${realDir(`${pkg.dir}/${dir}`)}/`)
-  );
+  const states: PackageState[] = [];
   let files = 0;
-  for (const pkg of packages) {
-    files += await indexDirs(resolver, sources, pkg.dir, dirsOf(pkg));
+  for (const pkg of layout.packages) {
+    const state = await preparePackage(
+      {...pkg, dir: realDir(pkg.dir)},
+      options
+    );
+    states.push(state);
+    files += await indexDirs(
+      state.resolver,
+      sources,
+      state.pkg.dir,
+      state.config.scan
+    );
   }
   return createWorkspaceView({
     root: realDir(layout.root),
-    packages,
+    states,
     files,
     sources,
-    resolver,
-    folders,
     manifests: (pkg) =>
       createComponentDocsIndex({root: () => pkg.dir, fs: () => fs}),
   });
@@ -95,14 +155,13 @@ export const createWorkspace = async (
 
 const createWorkspaceView = (parts: {
   root: string;
-  packages: WorkspacePackage[];
+  states: PackageState[];
   files: number;
   sources: SourceDocsIndex;
-  resolver: ImportResolver;
-  folders: string[];
   manifests: (pkg: WorkspacePackage) => ComponentDocsIndex;
 }): Workspace => {
-  const {sources, resolver, folders, packages} = parts;
+  const {sources, states} = parts;
+  const packages = states.map((state) => state.pkg);
   const manifestsByPackage = new Map<string, ComponentDocsIndex>();
   const manifestsOf = (pkg: WorkspacePackage): ComponentDocsIndex => {
     let index = manifestsByPackage.get(pkg.dir);
@@ -112,12 +171,22 @@ const createWorkspaceView = (parts: {
     }
     return index;
   };
-  const read = (file: string): string | undefined => {
+  const stateOf = (id: string): PackageState | undefined => {
+    const pkg = packageOf(packages, id);
+    return states.find((state) => state.pkg === pkg);
+  };
+  /** The id and package of a file a package reads, else undefined. */
+  const read = (file: string) => {
     const id = normalizePath(file);
-    return isScannedScript(id) &&
-      !id.includes('/node_modules/') &&
-      folders.some((folder) => id.startsWith(folder))
-      ? id
+    const state = stateOf(id);
+    const inFolders = states.some((s) =>
+      s.folders.some((folder) => id.startsWith(folder))
+    );
+    return state &&
+      inFolders &&
+      isScannedScript(id) &&
+      !id.includes('/node_modules/')
+      ? {id, state}
       : undefined;
   };
   return {
@@ -138,12 +207,24 @@ const createWorkspaceView = (parts: {
         )
         .sort(),
     async update(file, code) {
-      const id = read(file);
-      if (id) await indexModule(resolver, sources, code, id);
+      const target = read(file);
+      if (target) {
+        await indexModule(target.state.resolver, sources, code, target.id);
+      }
     },
     remove(file) {
-      const id = read(file);
-      if (id) sources.delete(id);
+      const target = read(file);
+      if (target) sources.delete(target.id);
+    },
+    configOf: (file) => stateOf(normalizePath(file))?.config,
+    problems: () => states.flatMap((state) => state.config.problems),
+    watched: () => [
+      ...new Set(states.flatMap((state) => state.config.watched)),
+    ],
+    async close() {
+      await Promise.all(
+        states.flatMap((state) => (state.close ? [state.close()] : []))
+      );
     },
   };
 };

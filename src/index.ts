@@ -6,3 +6,9 @@ export type {
   EditorConfig,
   SourceOverlayOptions,
 } from './lib/types.js';
+export type {
+  DiagnosticRule,
+  LanguageServerConfig,
+  LitDevtoolsConfig,
+  Severity,
+} from './lib/editor/config.js';

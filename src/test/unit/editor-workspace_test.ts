@@ -146,3 +146,71 @@ describe('createWorkspace', () => {
     expect(workspace?.sourceTags()).toEqual(['x-button']);
   });
 });
+
+describe('settings', () => {
+  let mono: string;
+
+  beforeAll(async () => {
+    mono = await realpath(await mkdtemp(join(tmpdir(), 'lit-ws-settings-')));
+    const tree: Record<string, string> = {
+      'package.json': '{"name": "mono", "workspaces": ["packages/*"]}',
+      // Reads lib, not src, and sets a rule with a mistake in it.
+      'packages/kit/package.json': '{"name": "kit"}',
+      'packages/kit/lit-devtools.config.json': JSON.stringify({
+        languageServer: {
+          scan: ['lib'],
+          diagnostics: {'unknown-element': 'loud'},
+        },
+      }),
+      'packages/kit/lib/x-kit.ts':
+        "import {customElement} from 'lit/decorators.js';\n@customElement('x-kit') export class XKit extends HTMLElement {}\n",
+      'packages/kit/src/x-skipped.ts':
+        "import {customElement} from 'lit/decorators.js';\n@customElement('x-skipped') export class S extends HTMLElement {}\n",
+      // Imports its base through an alias only its Vite config knows.
+      'packages/app/package.json': '{"name": "app", "type": "module"}',
+      'packages/app/vite.config.mjs':
+        "export default {resolve: {alias: {'#base': new URL('./src/shared/base.ts', import.meta.url).pathname}}};\n",
+      'packages/app/src/shared/base.ts':
+        "import {LitElement} from 'lit';\nimport {property} from 'lit/decorators.js';\nexport class Base extends LitElement {\n  /** Through the alias. */\n  @property() tone = '';\n}\n",
+      'packages/app/src/x-app.ts':
+        "import {customElement} from 'lit/decorators.js';\nimport {Base} from '#base';\n@customElement('x-app') export class XApp extends Base {}\n",
+    };
+    for (const [file, code] of Object.entries(tree)) {
+      await mkdir(dirname(join(mono, file)), {recursive: true});
+      await writeFile(join(mono, file), code);
+    }
+  });
+
+  afterAll(() => rm(mono, {recursive: true, force: true}));
+
+  test("reads each package's folders and reports its problems", async () => {
+    const workspace = await createWorkspace(mono);
+    expect(workspace?.sourceTags()).toEqual(['x-app', 'x-kit']);
+    const kitFile = join(mono, 'packages/kit/lib/x-kit.ts');
+    expect(workspace?.configOf(kitFile)?.scan).toEqual(['lib']);
+    expect(workspace?.problems()).toEqual([
+      {
+        file: join(mono, 'packages/kit/lit-devtools.config.json'),
+        message:
+          '`unknown-element` should be one of error, warning, info, hint, off.',
+      },
+    ]);
+    expect(workspace?.watched()).toEqual([
+      join(mono, 'packages/app/vite.config.mjs'),
+      join(mono, 'packages/kit/lit-devtools.config.json'),
+    ]);
+    await workspace?.close();
+  });
+
+  test("resolves through a package's Vite config, so its aliases apply", async () => {
+    const withVite = await createWorkspace(mono);
+    const app = join(mono, 'packages/app/src/x-app.ts');
+    expect((await withVite?.get(app, 'x-app'))?.properties).toMatchObject([
+      {name: 'tone', description: 'Through the alias.'},
+    ]);
+    await withVite?.close();
+    // Node's resolution doesn't know the alias.
+    const without = await createWorkspace(mono, {viteResolution: false});
+    expect((await without?.get(app, 'x-app'))?.properties).toEqual([]);
+  });
+});

@@ -1,3 +1,4 @@
+import type {LanguageServerConfig} from './editor/config.js';
 import type {SourceOverlayOptions} from './types.js';
 import type {
   FeatureSettings,
@@ -159,6 +160,14 @@ export interface LitPluginOptions {
    * Defaults to `false`.
    */
   manifest?: boolean | ManifestOptions;
+
+  /**
+   * Settings for the Lit language server in VS Code and Zed: where to read
+   * components, what to leave alone, how loud each diagnostic is. The plugin
+   * doesn't read it; the language server finds it in this config, where it
+   * takes precedence over a `lit-devtools.config.ts`. Experimental.
+   */
+  languageServer?: LanguageServerConfig;
 }
 
 /** Plugin options after merging explicit options, env vars, and defaults. */

@@ -6,7 +6,6 @@
  * otherwise.
  */
 
-import {existsSync} from 'node:fs';
 import {readFile, readdir} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
 import {type ImportResolver, indexModule} from './index-module.js';
@@ -16,6 +15,7 @@ import {realDir} from './manifest-file.js';
 import {normalizePath} from './paths.js';
 import {createPackageAncestors} from './package-ancestors.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
+import {findViteConfig} from './vite-config.js';
 
 const SCRIPT_RE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
 const DECLARATION_RE = /\.d\.[cm]?ts$/;
@@ -68,16 +68,6 @@ export const indexDirs = async (
   return files;
 };
 
-/** The config file names Vite looks for in the root, in its order. */
-const VITE_CONFIG_FILES = [
-  'vite.config.js',
-  'vite.config.mjs',
-  'vite.config.ts',
-  'vite.config.cjs',
-  'vite.config.mts',
-  'vite.config.cts',
-];
-
 /**
  * The resolver a scan uses: the project's Vite config's when it has one, so
  * its aliases and resolve conditions apply, and Node's otherwise. Vite is
@@ -89,7 +79,7 @@ const scanResolver = async (
 ): Promise<{resolver: ImportResolver; close?: () => Promise<void>}> => {
   const usesVite =
     configFile === undefined
-      ? VITE_CONFIG_FILES.some((name) => existsSync(join(root, name)))
+      ? findViteConfig(root) !== undefined
       : configFile !== false;
   const vite = usesVite
     ? await (
