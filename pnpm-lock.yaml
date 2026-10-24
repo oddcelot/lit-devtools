@@ -575,6 +575,9 @@ importers:
       oxc-resolver:
         specifier: ^11.24.2
         version: 11.24.2
+      svg-element-attributes:
+        specifier: ^2.2.0
+        version: 2.2.0
       vscode-css-languageservice:
         specifier: ^6.3.10
         version: 6.3.10
@@ -5121,6 +5124,9 @@ packages:
   supports-hyperlinks@4.5.0:
     resolution: {integrity: sha512-ZW2OvfeCXrNTbLakPUzjQG922EeGCOteFSVoek5DKStTh898wf7zgtuFlzQN8HfZCxC3Eh02yJVrRW51hADf+w==}
     engines: {node: '>=20'}
+
+  svg-element-attributes@2.2.0:
+    resolution: {integrity: sha512-t/7bOuynnY9XNkGAiMFq7nNsSqzoBQj4PZ1luVaSE1l2iZqAb1HctffddeQcKbXgYtBcHuzp6oauj5FWwo/mOw==}
 
   svgo@4.1.0:
     resolution: {integrity: sha512-bkxnTg1kSU0guhIBmibA6UUhrQmPVA1XsQLN+ylCd+UWzbnLkySOcXpyk1mrl05f+pcaCx2eHb+sp6BgMZWX+Q==}
@@ -10320,6 +10326,8 @@ snapshots:
     dependencies:
       has-flag: 5.0.1
       supports-color: 10.2.2
+
+  svg-element-attributes@2.2.0: {}
 
   svgo@4.1.0:
     dependencies:
