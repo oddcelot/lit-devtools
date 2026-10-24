@@ -369,6 +369,30 @@ describe('JavaScript', () => {
   });
 });
 
+describe('dispatched events', () => {
+  test('events the class dispatches join the @fires ones', () => {
+    const cls = only(`
+      /** @fires change - Documented. */
+      class X extends LitElement {
+        pick() {
+          this.dispatchEvent(new CustomEvent('pick', {detail: 1}));
+          this.dispatchEvent(new Event('change'));
+          this.dispatchEvent(new KeyboardEvent('keydown'));
+          this.dispatchEvent(new CustomEvent('pick'));
+          other.dispatchEvent(new CustomEvent('elsewhere'));
+          this.dispatchEvent(event);
+          this.dispatchEvent(new CustomEvent(name));
+        }
+      }
+    `);
+    expect(cls.docs.events).toEqual([
+      {name: 'change', description: 'Documented.'},
+      {name: 'pick', type: 'CustomEvent'},
+      {name: 'keydown', type: 'KeyboardEvent'},
+    ]);
+  });
+});
+
 describe('reflects', () => {
   test('a reflecting property says so; its attribute does not', () => {
     const cls = only(`

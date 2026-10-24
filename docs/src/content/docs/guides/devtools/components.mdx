@@ -340,7 +340,7 @@ for a library's:
 - A documented property, attribute, slot or part has a dotted underline;
   hover it to read the description. Turn on _inline descriptions_ under
   Components in the Settings tab to show each one under its row instead.
-- **Events** lists the events the class says it fires, with their type.
+- **Events** lists the events the class says it fires or dispatches, with their type.
 - **CSS properties** lists the custom properties it reads, with any default.
 - A `deprecated` chip beside the tag name repeats the reason given.
 
@@ -370,7 +370,9 @@ export class XButton extends LitElement {
 
 The class comment may use `@summary`, `@deprecated`, `@fires` (or `@event`),
 `@slot`, `@csspart`, `@cssprop` (or `@cssproperty`) and `@cssstate`, each as
-`name - description` with an optional `{Type}` first. A property's comment
+`name - description` with an optional `{Type}` first. An event the class
+dispatches itself, as `this.dispatchEvent(new CustomEvent('pick'))`, is listed
+even without a `@fires` tag. A property's comment
 gives its description and `@deprecated`, its type annotation the type, its
 initializer the default, and `@property()` the attribute it maps to.
 `@state()` fields and private, protected, `#private` and static members are
