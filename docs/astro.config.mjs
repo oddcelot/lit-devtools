@@ -9,7 +9,8 @@ import starlightChangelogs, {
 } from 'starlight-changelogs';
 // The redirect map for moved pages lives next to this file.
 import {redirects} from './redirects.mjs';
-import {existsSync, readFileSync} from 'node:fs';
+import {cpSync, existsSync, readdirSync, readFileSync, statSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {latestRelease} from './src/lib/latest-release.mjs';
 
 const latest = latestRelease(
@@ -21,16 +22,17 @@ const LIT_PACKAGE =
 const LIT_ROOT =
   /^(.*[\\/]node_modules[\\/](?:lit|lit-html|lit-element|@lit[\\/]reactive-element)[\\/])(?!development[\\/])(.+)$/;
 const DEV_LIT_IMPORTER =
-  /[\\/]playground[\\/]src[\\/]|[\\/]node_modules[\\/](?:lit|lit-html|lit-element|@lit[\\/]reactive-element)[\\/]development[\\/]/;
+  /[\\/](?:playground|examples[\\/][^\\/]+)[\\/]src[\\/]|[\\/]node_modules[\\/](?:lit|lit-html|lit-element|@lit[\\/]reactive-element)[\\/]development[\\/]/;
 
 /**
- * Lit's development build for the live panel's demo page
- * (/live-panel/demo/) and nothing else. Lit's production build emits no
- * render events, so the panel beside the demo would show empty Lit Render
- * lanes in its Timeline. The demo's components are the playground's, which
- * no other page bundles, so their Lit imports, and the imports inside Lit's
- * own `development/` files, resolve to `development/`: a copy of Lit of
- * their own, apart from the production one every other page shares.
+ * Lit's development build for the live panel's demo pages
+ * (/live-panel/demo/ and /live-panel/examples/<name>/demo/) and nothing
+ * else. Lit's production build emits no render events, so the panel beside
+ * a demo would show empty Lit Render lanes in its Timeline. The demos'
+ * components are the playground's and the examples', which no other page
+ * bundles, so their Lit imports, and the imports inside Lit's own
+ * `development/` files, resolve to `development/`: a copy of Lit of their
+ * own, apart from the production one every other page shares.
  */
 const liveDemoDevLit = () => ({
   name: 'live-demo-dev-lit',
@@ -47,6 +49,44 @@ const liveDemoDevLit = () => ({
     if (!match) return resolved;
     const dev = `${match[1]}development/${match[2]}`;
     return existsSync(dev) ? {...resolved, id: dev} : resolved;
+  },
+});
+
+/**
+ * The public/ files of each example published as a live demo
+ * (src/lib/live-examples.ts), served at its demo page's URL,
+ * /live-panel/examples/<name>/demo/, where the page's rewritten
+ * root-relative URLs look for them (src/lib/live-example-page.ts). The
+ * build copies them next to each demo page it wrote; the dev server hands
+ * those requests to Vite's file serving.
+ */
+const EXAMPLES = new URL('../examples/', import.meta.url);
+const EXAMPLE_PUBLIC_URL = /^\/live-panel\/examples\/([\w-]+)\/demo\/([^?#]+)/;
+const liveExamplesPublic = () => ({
+  name: 'live-examples-public',
+  hooks: {
+    'astro:server:setup': ({server}) => {
+      server.middlewares.use((req, _res, next) => {
+        const [, name, file] = req.url?.match(EXAMPLE_PUBLIC_URL) ?? [];
+        if (name !== undefined && !decodeURIComponent(file).includes('..')) {
+          const path = new URL(`${name}/public/${file}`, EXAMPLES);
+          if (existsSync(path) && statSync(path).isFile()) {
+            req.url = `/@fs${fileURLToPath(path)}`;
+          }
+        }
+        next();
+      });
+    },
+    'astro:build:done': ({dir}) => {
+      const built = new URL('live-panel/examples/', dir);
+      if (!existsSync(built)) return;
+      for (const name of readdirSync(built)) {
+        const files = new URL(`${name}/public/`, EXAMPLES);
+        if (existsSync(files)) {
+          cpSync(files, new URL(`${name}/demo/`, built), {recursive: true});
+        }
+      }
+    },
   },
 });
 
@@ -112,6 +152,7 @@ export default defineConfig({
     // hydrate support would add ~15 KB to every page. The Web Awesome
     // components are client-only and bring their own Lit.
     litDevtools(),
+    liveExamplesPublic(),
     starlight({
       title: 'vite-plugin-lit',
       // The Lit flame from the design system, beside the title rather than

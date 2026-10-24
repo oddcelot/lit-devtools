@@ -1,0 +1,17 @@
+---
+/**
+ * The live panel over one of the repo's examples (./demo.astro), for each
+ * example src/lib/live-examples.ts publishes. The docs link it next to the
+ * example's StackBlitz embed.
+ */
+import LivePanelPage from '../../../../components/LivePanelPage.astro';
+import {examplePage} from '../../../../lib/live-example-page';
+import {liveExamplePaths} from '../../../../lib/live-examples';
+
+export const getStaticPaths = liveExamplePaths;
+
+const {name} = Astro.params;
+const {title} = examplePage(name, '/');
+---
+
+<LivePanelPage demo={title} />

@@ -1,0 +1,44 @@
+---
+/**
+ * The page the live panel inspects for an example: examples/<name>/
+ * index.html's styles and markup (src/lib/live-example-page.ts), with the
+ * example's entry module loaded behind the page runtime instead of a dev
+ * server's client. Its public/ files are served beside it
+ * (`liveExamplesPublic` in astro.config.mjs), so its root-relative URLs,
+ * rewritten to this page's, find them.
+ */
+import {examplePage} from '../../../../lib/live-example-page';
+import {liveDemoUrl, liveExamplePaths} from '../../../../lib/live-examples';
+
+export const getStaticPaths = liveExamplePaths;
+
+const {name} = Astro.params;
+const {title, head, body} = examplePage(
+  name,
+  `${liveDemoUrl(`examples/${name}`)}demo/`
+);
+---
+
+<!doctype html>
+<html lang="en" data-live-example={name}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+    <Fragment set:html={head} />
+  </head>
+  <body>
+    <Fragment set:html={body} />
+    <script>
+      import {startDemoPage} from '../../../../../../src/panel/figures/live/demo-runtime.ts';
+      import {liveExamples} from '../../../../lib/live-examples';
+
+      // The page names its example; its entry loads once the runtime's
+      // hooks are in (demo-runtime.ts).
+      const load =
+        liveExamples[document.documentElement.dataset['liveExample'] ?? ''];
+      if (load !== undefined) await startDemoPage(load);
+    </script>
+  </body>
+</html>
