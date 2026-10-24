@@ -4,7 +4,7 @@
  * `@slot`, `@csspart`, `@cssprop`, `@cssstate`, `@summary`, `@deprecated`,
  * `@example`).
  *
- * Vite's `parseAst` drops comments, so the comment is found by looking back
+ * The parsed tree carries no comments, so the comment is found by looking back
  * from the declaration's first character (its first decorator, or the
  * `export` that wraps it). Only whitespace may sit between the two, which is
  * also what makes a comment a doc comment rather than a stray one above.

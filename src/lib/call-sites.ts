@@ -1,5 +1,6 @@
 import {parseAst} from 'vite';
 import type MagicString from 'magic-string';
+import {langOf} from './component-docs/parse.js';
 import {CALL_SITE_ATTR} from './runtime/source-meta.js';
 
 export {CALL_SITE_ATTR};
@@ -16,14 +17,6 @@ type State =
   | {kind: 'comment'}
   | {kind: 'tag'; quote: string | null; rawText: string | null}
   | {kind: 'raw'; name: string};
-
-export const langOf = (file: string): 'ts' | 'tsx' | 'js' | 'jsx' => {
-  const ext = /\.([cm]?[jt]sx?)$/.exec(file)?.[1] ?? 'js';
-  if (ext.endsWith('tsx')) return 'tsx';
-  if (ext.endsWith('ts')) return 'ts';
-  if (ext.endsWith('jsx')) return 'jsx';
-  return 'js';
-};
 
 interface Quasi {
   start: number;

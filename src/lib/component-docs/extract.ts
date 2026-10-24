@@ -21,9 +21,8 @@
  * Never throws: a module that doesn't parse documents nothing.
  */
 
-import {parseAst} from 'vite';
-import {langOf} from '../call-sites.js';
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
+import {parseModule} from './parse.js';
 import {
   type Node,
   child,
@@ -542,11 +541,7 @@ export const extractModuleDocs = (code: string, id: string): ModuleDocs => {
   const [file] = id.split('?', 1);
   let program: Node;
   try {
-    program = parseAst(
-      code,
-      {sourceType: 'module', lang: langOf(file)},
-      file
-    ) as unknown as Node;
+    program = parseModule(code, file);
   } catch {
     return {classes: []};
   }

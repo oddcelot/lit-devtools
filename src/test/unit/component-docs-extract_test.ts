@@ -812,3 +812,29 @@ describe('@example', () => {
     expect(examples(`/** A. */`)).toBeUndefined();
   });
 });
+
+describe('offsets', () => {
+  test('stay string offsets after text outside ASCII', () => {
+    const cls = only(`
+      /** Grüße 😀 aus Köln. */
+      const x = '日本語 🌿🌿';
+      /**
+       * The card. ✨
+       * @fires add-to-cart - Adds 🛒.
+       */
+      export class Card extends HTMLElement {
+        /** Prix en €. */
+        price = 0;
+      }
+      customElements.define('x-card', Card);
+    `);
+    expect(cls).toMatchObject({
+      tagName: 'x-card',
+      docs: {
+        description: 'The card. ✨',
+        events: [{name: 'add-to-cart', description: 'Adds 🛒.'}],
+        properties: [{name: 'price', description: 'Prix en €.'}],
+      },
+    });
+  });
+});

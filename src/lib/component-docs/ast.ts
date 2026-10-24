@@ -1,5 +1,5 @@
 /**
- * The small ESTree toolkit the source-docs extractor reads `parseAst` output
+ * The small ESTree toolkit the source-docs extractor reads `parseModule` output
  * with: typed child access, string and identifier reads, decorators, and the
  * doc comment that belongs to a declaration.
  */

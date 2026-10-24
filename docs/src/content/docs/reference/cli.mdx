@@ -151,8 +151,12 @@ npx lit-devtools manifest --src src --src lib --out dist/custom-elements.json
 | `--config <file>`  | no         | Vite config to resolve imports with                     |
 | `--no-vite-config` | no         | Resolve imports without any Vite config                 |
 
-Imports resolve through a Vite server in middleware mode, which loads your
-`vite.config` as `vite` would, so aliases apply. It reads `.js`, `.ts`, `.jsx`
+When the root has a `vite.config` (or `--config` names one), imports resolve
+through a Vite server in middleware mode, which loads it as `vite` would, so
+aliases apply. Without one, or with `--no-vite-config`, they resolve the way
+Node and TypeScript do: package `exports`, `.js` specifiers that name a `.ts`
+file, and the `paths` of the nearest `tsconfig.json`. Vite isn't loaded then,
+so the command works in a project that doesn't use it. It reads `.js`, `.ts`, `.jsx`
 and `.tsx` files and their `m`/`c` variants. It skips declaration files,
 dotfiles, `node_modules` and `dist`. As with the option's `write`, an empty
 `customElements` field in `package.json` is set to the file it wrote.

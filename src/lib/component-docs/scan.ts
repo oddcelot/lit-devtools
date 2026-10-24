@@ -1,21 +1,19 @@
 /**
  * Reads a project's sources into a source-docs index without building or
  * serving it, for the `lit-devtools manifest` command: every script under the
- * given folders, imports resolved by a Vite server in middleware mode, so the
- * project's `vite.config` aliases and resolve conditions apply.
+ * given folders. Imports resolve through the project's Vite config when it
+ * has one, so its aliases and resolve conditions apply, and Node's way
+ * otherwise.
  */
 
+import {existsSync} from 'node:fs';
 import {readFile, readdir} from 'node:fs/promises';
 import {join, resolve} from 'node:path';
-import {
-  type PluginOption,
-  createServer,
-  loadConfigFromFile,
-  normalizePath,
-} from 'vite';
-import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
+import {type ImportResolver, indexModule} from './index-module.js';
 import {nodeDocsFs} from './load.js';
+import {createNodeResolver} from './node-resolver.js';
 import {realDir} from './manifest-file.js';
+import {normalizePath} from './paths.js';
 import {createPackageAncestors} from './package-ancestors.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
@@ -48,23 +46,6 @@ export interface ScanOptions {
   configFile?: string | false;
 }
 
-/** This package's plugins: serving the panel or patching modules has no place in a scan. */
-const isOwnPlugin = (name: string): boolean =>
-  name.startsWith('lit-') || name === 'devframe:lit';
-
-/** `plugins` flattened, without this package's own. */
-const foreignPlugins = async (
-  plugins: PluginOption[]
-): Promise<PluginOption[]> => {
-  const out: PluginOption[] = [];
-  for (const option of plugins) {
-    const plugin = await option;
-    if (Array.isArray(plugin)) out.push(...(await foreignPlugins(plugin)));
-    else if (plugin && !isOwnPlugin(plugin.name)) out.push(plugin);
-  }
-  return out;
-};
-
 /**
  * Reads every script under `dirs` (relative to `root`) into `index`, imports
  * resolved by `resolver`. Returns how many files it read.
@@ -87,44 +68,50 @@ export const indexDirs = async (
   return files;
 };
 
+/** The config file names Vite looks for in the root, in its order. */
+const VITE_CONFIG_FILES = [
+  'vite.config.js',
+  'vite.config.mjs',
+  'vite.config.ts',
+  'vite.config.cjs',
+  'vite.config.mts',
+  'vite.config.cts',
+];
+
+/**
+ * The resolver a scan uses: the project's Vite config's when it has one, so
+ * its aliases and resolve conditions apply, and Node's otherwise. Vite is
+ * loaded only in the first case, so a project without it can be scanned.
+ */
+const scanResolver = async (
+  root: string,
+  configFile: string | false | undefined
+): Promise<{resolver: ImportResolver; close?: () => Promise<void>}> => {
+  const usesVite =
+    configFile === undefined
+      ? VITE_CONFIG_FILES.some((name) => existsSync(join(root, name)))
+      : configFile !== false;
+  const vite = usesVite
+    ? await (
+        await import('./vite-resolver.js')
+      ).createViteResolver(root, configFile || undefined)
+    : undefined;
+  return vite ?? {resolver: createNodeResolver()};
+};
+
 /** The index of every script under `dirs`, and how many files were read. */
 export const scanSources = async (
   options: ScanOptions
 ): Promise<{index: SourceDocsIndex; files: number}> => {
   const root = resolve(options.root);
-  // Loaded here rather than by `createServer`, so this package's plugins can
-  // be left out of it.
-  const loaded =
-    options.configFile === false
-      ? undefined
-      : await loadConfigFromFile(
-          {command: 'serve', mode: 'development'},
-          options.configFile,
-          root,
-          'silent'
-        );
-  const config = loaded?.config ?? {};
-  const server = await createServer({
-    ...config,
-    plugins: await foreignPlugins(config.plugins ?? []),
-    root,
-    configFile: false,
-    logLevel: 'error',
-    appType: 'custom',
-    server: {middlewareMode: true, ws: false, watch: null},
-    optimizeDeps: {noDiscovery: true, include: []},
-  });
+  const {resolver, close} = await scanResolver(root, options.configFile);
   const index = createSourceDocsIndex(
     (id) => id,
     createPackageAncestors(await nodeDocsFs())
   );
-  const context: ImportResolver = {
-    resolve: (specifier, importer) =>
-      server.pluginContainer.resolveId(specifier, importer),
-  };
   try {
-    return {index, files: await indexDirs(context, index, root, options.dirs)};
+    return {index, files: await indexDirs(resolver, index, root, options.dirs)};
   } finally {
-    await server.close();
+    await close?.();
   }
 };
