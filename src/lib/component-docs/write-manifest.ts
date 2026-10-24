@@ -42,6 +42,22 @@ export interface Manifest {
   modules: Json[];
 }
 
+/**
+ * A name imported from a package: the package's name, and the module inside
+ * it when the specifier names one (`@scope/kit/dist/badge.js`).
+ */
+const packageReference = (name: string, specifier: string): Reference => {
+  const parts = specifier.split('/');
+  const length = specifier.startsWith('@') ? 2 : 1;
+  const module = parts.slice(length).join('/');
+  const reference: Reference = {
+    name,
+    package: parts.slice(0, length).join('/'),
+  };
+  if (module !== '') reference.module = module;
+  return reference;
+};
+
 const isRelative = (specifier: string): boolean =>
   specifier.startsWith('.') || specifier.startsWith('/');
 
@@ -150,7 +166,8 @@ const merged = <T extends {name: string}>(
 
 /**
  * Written fields with the constructor's assignments: each re-defaults the
- * field it names, own or inherited, or is added as a field of the class.
+ * field it names, own or inherited, which makes it the class's own, or is
+ * added as a field of the class.
  */
 const applyAssignedFields = (
   fields: Json[],
@@ -159,8 +176,12 @@ const applyAssignedFields = (
   const result = [...fields];
   for (const entry of assigned ?? []) {
     const at = result.findIndex((f) => f.name === entry.name);
-    if (at === -1) result.push(field(entry));
-    else result[at] = {...result[at], default: entry.default};
+    if (at === -1) {
+      result.push(field(entry));
+      continue;
+    }
+    const {inheritedFrom: _, ...declared} = result[at];
+    result[at] = {...declared, default: entry.default};
   }
   return result;
 };
@@ -242,7 +263,7 @@ export const writeManifest = (
 
   const reference = (at: IndexedModule, ref: ClassRef): Reference => {
     if (ref.specifier !== undefined && !isRelative(ref.specifier))
-      return {name: ref.name, package: ref.specifier};
+      return packageReference(ref.name, ref.specifier);
     if (ref.specifier === undefined && !declares(at, ref.name))
       return {name: ref.name, package: 'global:'};
     const id = at.moduleOf(ref);
@@ -258,8 +279,25 @@ export const writeManifest = (
     return module === undefined ? {name} : {name, module};
   };
 
+  /**
+   * The superclass as its package's manifest names it, when the walk ended
+   * in one: the declared name, not the `default` it was imported as.
+   */
+  const packageSuperclass = (ancestors: Ancestor[]): Reference | undefined => {
+    const last = ancestors.at(-1);
+    return last?.fromPackage === undefined
+      ? undefined
+      : {name: last.name, ...last.fromPackage};
+  };
+
   const inherited = (ancestors: Ancestor[]) =>
-    ancestors.map((a) => ({from: located(a.name, a.id), docs: a.docs}));
+    ancestors.map((a) => ({
+      from:
+        a.fromPackage === undefined
+          ? located(a.name, a.id)
+          : {name: a.name, ...a.fromPackage},
+      docs: a.docs,
+    }));
 
   const classDeclaration = (at: IndexedModule, cls: ClassDocs): Json => {
     const out: Json = {kind: 'class', name: cls.name, ...heading(cls.docs)};
@@ -267,11 +305,13 @@ export const writeManifest = (
       out.customElement = true;
       out.tagName = cls.tagName;
     }
+    const ancestors = at.ancestorsOf(cls);
     if (cls.superclass !== undefined)
-      out.superclass = reference(at, cls.superclass);
+      out.superclass =
+        packageSuperclass(ancestors) ?? reference(at, cls.superclass);
     if (cls.mixins !== undefined)
       out.mixins = cls.mixins.map((ref) => reference(at, ref));
-    return {...out, ...lists(cls.docs, inherited(at.ancestorsOf(cls)))};
+    return {...out, ...lists(cls.docs, inherited(ancestors))};
   };
 
   const mixinDeclaration = (at: IndexedModule, mixin: MixinDocs): Json => {

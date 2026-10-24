@@ -251,8 +251,8 @@ test('a constructor assignment re-defaults an inherited property or adds one', (
     {'./base.js': '/app/src/base.ts'}
   );
   expect(docs.get('x-c')!.properties).toEqual([
+    // Re-defaulted, it is XC's own; the base's docs stay.
     {
-      inheritedFrom: 'Base',
       name: 'value',
       description: 'The base value.',
       default: "'set'",

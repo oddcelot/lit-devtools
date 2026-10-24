@@ -56,10 +56,23 @@ interface Declaration {
   [list: string]: unknown;
 }
 
+/**
+ * The entries' names, leaving out what is inherited from a package: we read
+ * dependencies' manifests, and the analyzer only does with `--dependencies`.
+ */
 const names = (list: unknown): string[] =>
-  ((list as {name: string}[] | undefined) ?? []).map((e) => e.name).sort();
+  (
+    (list as
+      | {name: string; inheritedFrom?: {package?: string}}[]
+      | undefined) ?? []
+  )
+    .filter((e) => e.inheritedFrom?.package === undefined)
+    .map((e) => e.name)
+    .sort();
 
 const isPublic = (kind: string) => (member: Member) =>
+  (member as {inheritedFrom?: {package?: string}}).inheritedFrom?.package ===
+    undefined &&
   member.kind === kind &&
   member.privacy === undefined &&
   member.static !== true &&

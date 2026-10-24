@@ -14,7 +14,9 @@ import {
   normalizePath,
 } from 'vite';
 import {type ImportResolver, indexModule} from '../plugins/component-docs.js';
+import {nodeDocsFs} from './load.js';
 import {realDir} from './manifest-file.js';
+import {createPackageAncestors} from './package-ancestors.js';
 import {createSourceDocsIndex, type SourceDocsIndex} from './source-index.js';
 
 const SCRIPT_RE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
@@ -112,7 +114,10 @@ export const scanSources = async (
     server: {middlewareMode: true, ws: false, watch: null},
     optimizeDeps: {noDiscovery: true, include: []},
   });
-  const index = createSourceDocsIndex((id) => id);
+  const index = createSourceDocsIndex(
+    (id) => id,
+    createPackageAncestors(await nodeDocsFs())
+  );
   const context: ImportResolver = {
     resolve: (specifier, importer) =>
       server.pluginContainer.resolveId(specifier, importer),

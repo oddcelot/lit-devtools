@@ -40,8 +40,15 @@ export const litPlugin = (options: LitPluginOptions = {}): Plugin[] => {
   // component-docs and devframe plugins, so loaded once for both.
   let sourceDocs: Promise<SourceDocsIndex> | undefined;
   const loadSourceDocs = () =>
-    (sourceDocs ??= import('./component-docs/source-index.js').then((m) =>
-      m.createSourceDocsIndex((id) => ctx.locator().toWire(id))
+    (sourceDocs ??= Promise.all([
+      import('./component-docs/source-index.js'),
+      import('./component-docs/package-ancestors.js'),
+      import('./component-docs/load.js').then((m) => m.nodeDocsFs()),
+    ]).then(([index, packages, fs]) =>
+      index.createSourceDocsIndex(
+        (id) => ctx.locator().toWire(id),
+        packages.createPackageAncestors(fs)
+      )
     ));
   const devtools = options.timeline !== false;
   // The dev server's manifest is written from the same index, so the
