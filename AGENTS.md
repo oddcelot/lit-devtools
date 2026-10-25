@@ -61,6 +61,26 @@ that is gone or the thing now possible. `/changelog entry` drafts it from the
 staged diff. A trailer with nothing folded under it still lands in the draft,
 with the body as a placeholder to rewrite.
 
+The language server (`packages/lit-language-server`, published as
+`@oddsquad/lit-language-server`) has its own versions and its own
+`packages/lit-language-server/CHANGELOG.md`. A commit that changes what the
+server does, including the shared editor code under `src/lib/editor/`, adds a
+`Changelog-Language-Server:` trailer with its entry folded under it, next to
+the plugin's `Changelog:` (`skip` when the plugin's users won't notice):
+
+```
+Changelog: skip
+Changelog-Language-Server: Fixed
+  **Hover shows inherited events.** An event a base class fires now appears
+  on the component that extends it.
+```
+
+`pnpm run changelog:language-server` drafts its section, a release commit
+bumps `packages/lit-language-server/package.json` and writes that section, and
+a `lit-language-server-v<version>` tag publishes it through
+`.github/workflows/release-language-server.yaml`, which also creates its
+GitHub Release.
+
 Work lands on a branch named for its kind (`feature/`, `fix/`, `docs/`) and
 merges with `--no-ff`. Release commits bump `package.json`, write the
 `CHANGELOG.md` section, and get a `v<version>` tag. Pushing that tag
