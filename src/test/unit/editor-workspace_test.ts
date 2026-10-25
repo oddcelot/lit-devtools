@@ -210,6 +210,19 @@ describe('settings', () => {
     await workspace?.close();
   });
 
+  test('locates a component and its base class, and lists the files to search', async () => {
+    const workspace = await createWorkspace(mono);
+    expect(workspace?.declarationsOf('x-app')).toEqual([
+      {file: join(mono, 'packages/app/src/x-app.ts'), name: 'XApp'},
+      {file: join(mono, 'packages/app/src/shared/base.ts'), name: 'Base'},
+    ]);
+    expect(workspace?.declarationsOf('x-nope')).toEqual([]);
+    expect(await workspace?.markupFiles()).toEqual(
+      expect.arrayContaining([join(mono, 'packages/kit/lib/x-kit.ts')])
+    );
+    await workspace?.close();
+  });
+
   test("resolves through a package's Vite config, so its aliases apply", async () => {
     const withVite = await createWorkspace(mono);
     const app = join(mono, 'packages/app/src/x-app.ts');

@@ -21,6 +21,7 @@ import {
   FileChangeType,
   type Hover as LspHover,
   InlayHintKind,
+  type Location,
   MarkupKind,
   type Position,
   ProposedFeatures,
@@ -42,6 +43,12 @@ import {
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
 import {svgData} from '../../../src/lib/editor/svg-data.js';
+import {
+  type NavigationSource,
+  type Span,
+  implementationAt,
+  referencesAt,
+} from '../../../src/lib/editor/navigation.js';
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
 import {eventTypeProblems} from '../../../src/lib/editor/diagnostics.js';
 import {cssCompletions, cssDiagnostics, cssHover, forgetCss} from './css.js';
@@ -268,6 +275,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
   ): Promise<
     | {
         document: TextDocument;
+        workspace: Workspace;
         source: DocsSource;
         request: FeatureRequest;
         cssTags: readonly string[];
@@ -278,6 +286,62 @@ export const startServer = (streams?: ServerStreams): Connection => {
     if (!found) return undefined;
     const offset = found.document.offsetAt(position);
     return {...found, request: {...found.request, offset}};
+  };
+
+  /** A file's text: its open buffer, else the file on disk. */
+  const readText = (file: string): Promise<string | undefined> => {
+    const open = documents.get(pathToFileURL(file).href);
+    return open
+      ? Promise.resolve(open.getText())
+      : readFile(file, 'utf8').catch(() => undefined);
+  };
+
+  const navigationFor = (workspace: Workspace): NavigationSource => ({
+    get: (file, tag) => workspace.get(file, tag),
+    declarationsOf: (tag) => workspace.declarationsOf(tag),
+    async files() {
+      const open = documents
+        .all()
+        .flatMap((document) => fileOf(document.uri) ?? []);
+      return [...new Set([...(await workspace.markupFiles()), ...open])];
+    },
+    readText,
+    templateTagsOf: (file) => workspace.configOf(file)?.templateTags,
+  });
+
+  /** Spans as locations, each file's offsets read against its text. */
+  const locationsOf = async (spans: Span[]): Promise<Location[]> => {
+    const texts = new Map<string, TextDocument>();
+    const locations: Location[] = [];
+    for (const span of spans) {
+      const uri = pathToFileURL(span.file).href;
+      let document = documents.get(uri) ?? texts.get(span.file);
+      if (!document) {
+        const code = await readText(span.file);
+        if (code === undefined) continue;
+        document = TextDocument.create(uri, '', 0, code);
+        texts.set(span.file, document);
+      }
+      locations.push({
+        uri,
+        range: {
+          start: document.positionAt(span.start),
+          end: document.positionAt(span.end),
+        },
+      });
+    }
+    return locations;
+  };
+
+  /** Where the name under the cursor is declared, for definition and implementation alike. */
+  const implementationOf = async (
+    uri: string,
+    position: Position
+  ): Promise<Location[]> => {
+    const found = await requestFor(uri, position);
+    if (!found) return [];
+    const source = navigationFor(found.workspace);
+    return locationsOf(await implementationAt(source, found.request));
   };
 
   /** The untyped inline handlers whose parameter falls in `range`. */
@@ -368,6 +432,9 @@ export const startServer = (streams?: ServerStreams): Connection => {
           triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'", ':', '(', '-'],
         },
         hoverProvider: true,
+        definitionProvider: true,
+        implementationProvider: true,
+        referencesProvider: true,
         codeActionProvider: {codeActionKinds: [CodeActionKind.QuickFix]},
         inlayHintProvider: true,
       },
@@ -425,6 +492,26 @@ export const startServer = (streams?: ServerStreams): Connection => {
       };
     }
   );
+
+  connection.onDefinition(({textDocument, position}) =>
+    implementationOf(textDocument.uri, position)
+  );
+
+  connection.onImplementation(({textDocument, position}) =>
+    implementationOf(textDocument.uri, position)
+  );
+
+  connection.onReferences(async ({textDocument, position, context}) => {
+    const found = await requestFor(textDocument.uri, position);
+    if (!found) return [];
+    const source = navigationFor(found.workspace);
+    const spans = await referencesAt(
+      source,
+      found.request,
+      context.includeDeclaration
+    );
+    return locationsOf(spans);
+  });
 
   // Writes an inline handler's event type in, so TypeScript can take over.
   connection.onCodeAction(async ({textDocument, range}) => {

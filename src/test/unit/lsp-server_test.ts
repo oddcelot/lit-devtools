@@ -85,6 +85,18 @@ const files: Record<string, string> = {
       }
     }
   `,
+  'index.html': '<x-button size="large"></x-button>\n',
+};
+
+/** The range of the `nth` `needle` in `code`, as LSP positions. */
+const rangeOf = (code: string, needle: string, nth = 0) => {
+  let offset = -1;
+  for (let i = 0; i <= nth; i++) offset = code.indexOf(needle, offset + 1);
+  const position = (at: number) => {
+    const lines = code.slice(0, at).split('\n');
+    return {line: lines.length - 1, character: lines.at(-1)!.length};
+  };
+  return {start: position(offset), end: position(offset + needle.length)};
 };
 
 beforeAll(async () => {
@@ -158,6 +170,63 @@ describe('the language server', () => {
       start: {line: 1, character: 6},
       end: {line: 1, character: 14},
     });
+  });
+
+  test('goes to where a tag, attribute or event is declared', async () => {
+    const uri = pathToFileURL(join(root, 'src/nav.ts')).href;
+    const text =
+      'import {html} from \'lit\';\nhtml`<x-button size="small" @pick=${() => {}}></x-button>`;\n';
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const source = files['src/x-button.ts'];
+    const button = pathToFileURL(join(root, 'src/x-button.ts')).href;
+    const goTo = (method: string, needle: string) =>
+      client.request(method, {
+        textDocument: {uri},
+        position: rangeOf(text, needle).start,
+      });
+    expect(await goTo('textDocument/implementation', 'x-button')).toEqual([
+      {uri: button, range: rangeOf(source, 'XButton')},
+    ]);
+    expect(await goTo('textDocument/implementation', 'size')).toEqual([
+      {uri: button, range: rangeOf(source, 'size')},
+    ]);
+    // Definition answers the same, so F12 works as well.
+    expect(await goTo('textDocument/definition', 'pick')).toEqual([
+      {uri: button, range: rangeOf(source, 'pick', 1)},
+    ]);
+  });
+
+  test('finds the uses of a tag and an attribute across files', async () => {
+    const uri = pathToFileURL(join(root, 'src/nav.ts')).href;
+    const page = pathToFileURL(join(root, 'index.html')).href;
+    const text =
+      'import {html} from \'lit\';\nhtml`<x-button size="small" @pick=${() => {}}></x-button>`;\n';
+    const references = (needle: string, includeDeclaration: boolean) =>
+      client.request<{uri: string; range: unknown}[]>(
+        'textDocument/references',
+        {
+          textDocument: {uri},
+          position: rangeOf(text, needle).start,
+          context: {includeDeclaration},
+        }
+      );
+    const tags = await references('x-button', false);
+    expect(tags.filter((ref) => ref.uri === uri)).toEqual([
+      {uri, range: rangeOf(text, 'x-button')},
+      {uri, range: rangeOf(text, 'x-button', 1)},
+    ]);
+    expect(tags.filter((ref) => ref.uri === page)).toHaveLength(2);
+    const sizes = await references('size', true);
+    const button = pathToFileURL(join(root, 'src/x-button.ts')).href;
+    expect(sizes).toEqual(
+      expect.arrayContaining([
+        {uri: button, range: rangeOf(files['src/x-button.ts'], 'size')},
+        {uri, range: rangeOf(text, 'size')},
+        {uri: page, range: rangeOf(files['index.html'], 'size')},
+      ])
+    );
   });
 
   test('hovers a standard element in a template', async () => {

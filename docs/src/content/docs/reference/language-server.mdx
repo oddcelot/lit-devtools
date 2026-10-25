@@ -1,6 +1,6 @@
 ---
 title: Language server
-description: 'What the Lit language server completes, shows on hover and reports in templates, HTML files and css templates, with its settings and rules.'
+description: 'What the Lit language server completes, shows on hover, finds and reports in templates, HTML files and css templates, with its settings and rules.'
 sidebar:
   badge:
     text: Experimental
@@ -80,6 +80,23 @@ An event's type comes from the dispatch when no `@fires {Type}` names one:
 `CustomEvent<T>`'s type argument, else the shape of the `detail` object,
 each key typed by the field it reads or the literal it holds. What can't be
 told without a type checker is `unknown`.
+
+## Go to implementation and find references
+
+| From                          | Go to implementation (and definition) goes to                                                 |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| A component's tag             | Its class                                                                                     |
+| An attribute or `.property`   | The field, accessor or `static properties` entry, in the class or the base class declaring it |
+| An attribute with no property | Its entry in `observedAttributes`                                                             |
+| An `@event`                   | The event name in the `new CustomEvent('…')` the class dispatches, else the class             |
+
+Find references, from the same places, lists every use in the workspace:
+opening and closing tags, and an attribute or property under either of its
+names (`size` and `.size` are one member). It searches every script it reads
+components from, the HTML files at each package's root, and any open file.
+
+A component from a dependency's manifest has no source to go to; its uses
+are still found.
 
 ## Event handlers
 
