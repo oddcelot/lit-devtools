@@ -368,6 +368,12 @@ test('the dev server lists what src holds before any page loads it', async () =>
       ['src/base.ts', ['Base']],
       ['src/x-a.ts', ['XA']],
     ]);
+    // What the watcher reports, for the message when the file isn't seen.
+    const events: string[] = [];
+    server.watcher.on('all', (event, file) => {
+      if (file.includes(root))
+        events.push(`${event} ${file.slice(root.length)}`);
+    });
     // Inherited members resolve through the dev server's own resolver.
     await fsp.writeFile(
       joinPath(root, 'src/x-b.ts'),
@@ -375,7 +381,11 @@ test('the dev server lists what src holds before any page loads it', async () =>
     );
     await expect
       .poll(served, {timeout: 5000})
-      .toContainEqual(['src/x-b.ts', ['XB']]);
+      .toContainEqual(['src/x-b.ts', ['XB']])
+      .catch((error: Error) => {
+        error.message += `\nwatcher events: ${JSON.stringify(events)}`;
+        throw error;
+      });
     await fsp.rm(joinPath(root, 'src/base.ts'));
     await expect.poll(served, {timeout: 5000}).toEqual([
       ['src/x-a.ts', ['XA']],
