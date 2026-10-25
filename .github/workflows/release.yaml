@@ -24,7 +24,8 @@ name: Release
 
 on:
   push:
-    tags: ['v*']
+    # `v` and a digit: `vscode-v*` tags are the VS Code extension's.
+    tags: ['v[0-9]*']
   workflow_dispatch:
     inputs:
       tag:
