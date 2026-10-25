@@ -1,4 +1,4 @@
-import {build, createServer} from 'vite';
+import {type ViteDevServer, build, createServer} from 'vite';
 import {afterAll, expect, test} from 'vite-plus/test';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
@@ -360,6 +360,34 @@ const devServer = async (
   return {server, served};
 };
 
+/**
+ * Waits until the dev server's watcher reports a change under `dir`. On a
+ * slow machine the watcher says ready before its watch on a subfolder is
+ * live (8 ms against more than 67 ms on CI), and a file written in that gap
+ * is never reported. The probe isn't a script, so the scan ignores it.
+ */
+const untilWatching = async (
+  server: ViteDevServer,
+  dir: string
+): Promise<void> => {
+  const probe = joinPath(dir, 'watch-probe.txt');
+  let seen = false;
+  const onEvent = (_event: string, file: string) => {
+    if (file.endsWith('/watch-probe.txt')) seen = true;
+  };
+  server.watcher.on('all', onEvent);
+  try {
+    for (let attempt = 0; attempt < 100 && !seen; attempt++) {
+      await fsp.writeFile(probe, String(attempt));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  } finally {
+    server.watcher.off('all', onEvent);
+    await fsp.rm(probe, {force: true});
+  }
+  expect(seen, `the watcher never reported ${probe}`).toBe(true);
+};
+
 test('the dev server lists what src holds before any page loads it', async () => {
   const root = await fixture();
   const {server, served} = await devServer(root, true);
@@ -368,6 +396,7 @@ test('the dev server lists what src holds before any page loads it', async () =>
       ['src/base.ts', ['Base']],
       ['src/x-a.ts', ['XA']],
     ]);
+    await untilWatching(server, joinPath(root, 'src'));
     // What the watcher reports, for the message when the file isn't seen.
     const events: string[] = [];
     server.watcher.on('all', (event, file) => {
