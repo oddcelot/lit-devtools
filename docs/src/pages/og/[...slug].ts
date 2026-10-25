@@ -46,7 +46,7 @@ export const getStaticPaths = (async () => {
         section: 'Changelog',
         title: 'What changed, release by release',
         description:
-          'Every vite-plugin-lit release since 0.3.0, newest first, with the fixes and features in each.',
+          'Every Lit DevTools release since 0.3.0, newest first, with the fixes and features in each.',
       },
     },
   };
@@ -188,7 +188,7 @@ export const GET: APIRoute<{card: Card}> = async ({
       'div',
       {display: 'flex', alignItems: 'center', gap: 20},
       {type: 'img', props: {src: flame, width: 52, height: 64}},
-      h('div', {fontSize: 34, fontWeight: 800}, 'vite-plugin-lit')
+      h('div', {fontSize: 34, fontWeight: 800}, 'Lit DevTools')
     ),
     h(
       'div',

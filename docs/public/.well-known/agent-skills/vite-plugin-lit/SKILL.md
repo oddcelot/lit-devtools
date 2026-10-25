@@ -3,7 +3,7 @@ name: vite-plugin-lit
 description: Set up and use @oddsquad/lit-devtools (the Lit Vite plugin, @oddsquad/vite-plugin-lit) in a Vite project with Lit components - true HMR that keeps component state, CSS delivered to shadow roots (?css-sheet, ?hmr-url, urlSheet()), and the Lit DevTools panel and its MCP server. Use when adding the plugin, typing its import queries, choosing how to ship CSS to Lit components, diagnosing why an edit reloaded the page instead of hot-patching, or connecting a coding agent to a running Lit app.
 ---
 
-# vite-plugin-lit
+# Lit DevTools
 
 `@oddsquad/lit-devtools` installs the Lit Vite plugin,
 `@oddsquad/vite-plugin-lit`, which hot-patches Lit components in a Vite dev

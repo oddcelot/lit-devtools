@@ -131,7 +131,7 @@ export default defineConfig({
     liveExamplesPublic(),
     liveExamplesOwnBuild(ownConfigExamples()),
     starlight({
-      title: 'vite-plugin-lit',
+      title: 'Lit DevTools',
       // The Lit flame from the design system, beside the title rather than
       // replacing it: this is a plugin for Lit, not Lit itself, and the
       // wordmark lockup would claim otherwise.
