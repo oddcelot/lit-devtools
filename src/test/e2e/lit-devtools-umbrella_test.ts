@@ -71,6 +71,7 @@ const files = (tarballs: Record<string, string>): Record<string, string> => ({
     "import {defineConfig} from '@oddsquad/lit-devtools';",
     "import {litPlugin} from '@oddsquad/lit-devtools/vite';",
     "import {litCss} from '@oddsquad/lit-devtools/build';",
+    "import {devCacheBust, urlSheet} from '@oddsquad/lit-devtools/css';",
     "import lit from '@oddsquad/lit-devtools/astro';",
     "import {unoSheet} from '@oddsquad/lit-devtools/uno';",
     "import {createLitDevtools} from '@oddsquad/lit-devtools/devframe';",
@@ -78,7 +79,8 @@ const files = (tarballs: Record<string, string>): Record<string, string> => ({
     "import sheet from './x.css?css-sheet';",
     '',
     'export const all = [defineConfig, litPlugin, litCss, lit, unoSheet,',
-    '  createLitDevtools, litDevtools.configs.recommended, sheet];',
+    '  createLitDevtools, litDevtools.configs.recommended, sheet,',
+    '  devCacheBust, urlSheet];',
     '',
   ].join('\n'),
   'index.html': [
@@ -89,6 +91,9 @@ const files = (tarballs: Record<string, string>): Record<string, string> => ({
   ].join('\n'),
   'src/x-hello.ts': [
     "import {LitElement, html} from 'lit';",
+    // The browser helpers, through the umbrella: the build resolves them.
+    "import {devCacheBust} from '@oddsquad/lit-devtools/css';",
+    "devCacheBust('/x.css');",
     'export class XHello extends LitElement {',
     '  render() {',
     '    return html`<p>hello</p>`;',

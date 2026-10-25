@@ -28,7 +28,13 @@ export const litHmr = (ctx: OptionsContext): Plugin => ({
     // lit family stays prebundle-eligible on purpose: the wrapper modules'
     // bare imports then resolve to the same URL every other importer gets —
     // single lit instance, single template cache.
-    return {optimizeDeps: {exclude: ['@oddsquad/vite-plugin-lit']}};
+    // @oddsquad/lit-devtools re-exports the CSS helpers, so it stays out
+    // too, or its `/css` would bundle a second copy of them.
+    return {
+      optimizeDeps: {
+        exclude: ['@oddsquad/vite-plugin-lit', '@oddsquad/lit-devtools'],
+      },
+    };
   },
   resolveId(id) {
     // Resolve the browser CSS helpers and indicator runtime to the copy
@@ -40,7 +46,11 @@ export const litHmr = (ctx: OptionsContext): Plugin => ({
     // consumers import them by name (see README "Stylesheets"), and Vite
     // only consults this hook for the exact string. A rename that misses
     // them turns the fallback into silently dead code.
-    if (id === '@oddsquad/vite-plugin-lit/css.js') {
+    // @oddsquad/lit-devtools/css is the same helpers, re-exported: one copy.
+    if (
+      id === '@oddsquad/vite-plugin-lit/css.js' ||
+      id === '@oddsquad/lit-devtools/css'
+    ) {
       return resolveRuntimeModule('css');
     }
     if (id === '@oddsquad/vite-plugin-lit/indicator.js') {
