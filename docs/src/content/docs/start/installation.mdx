@@ -1,6 +1,6 @@
 ---
 title: Installation
-description: Install @oddsquad/vite-plugin-lit, add it to vite.config.ts, register the ambient types, and confirm the dev server is patching.
+description: Install @oddsquad/lit-devtools, add its Vite plugin to vite.config.ts, register the ambient types, and confirm the dev server is patching.
 sidebar:
   order: 1
 ---
@@ -23,7 +23,7 @@ below, then reports which files it changed.
 
 <PackageManagers
   type="add"
-  pkg="@oddsquad/vite-plugin-lit"
+  pkg="@oddsquad/lit-devtools"
   dev
   pkgManagers={['npm', 'pnpm', 'yarn', 'bun']}
 />
@@ -32,13 +32,21 @@ Lit and Vite stay your dependencies.
 [Compatibility](/reference/compatibility/) lists the versions
 each release supports and the one dev mode it does not.
 
+`@oddsquad/lit-devtools` brings every part under one name: the Vite and
+Astro plugin, the [language server](/guides/language-server/)'s settings,
+and its [Oxlint rules](/guides/language-server/#check-it-in-ci-with-oxlint).
+Each part is also its own package, for a project that wants only one:
+`@oddsquad/vite-plugin-lit`, `@oddsquad/lit-language-server` and
+`@oddsquad/oxlint-plugin-lit`. The plugin's imports then drop the subpath:
+`@oddsquad/vite-plugin-lit` in place of `@oddsquad/lit-devtools/vite`.
+
 ## Add it to Vite
 
 Add `litPlugin()` to the `plugins` array. Nothing else moves.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin()],
@@ -71,8 +79,8 @@ Lightning CSS for `css` literals, and the no-op timeline stub.
 ```ts
 // vite.config.ts
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
-import {litCss} from '@oddsquad/vite-plugin-lit/build';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
+import {litCss} from '@oddsquad/lit-devtools/build';
 
 export default defineConfig(({command}) => ({
   plugins: [command === 'serve' ? litPlugin() : litCss()],
@@ -86,7 +94,7 @@ neither can start pulling in dev code unnoticed.
 ## Add the types
 
 The import queries ship ambient declarations in
-`@oddsquad/vite-plugin-lit/client`. Without them TypeScript cannot type
+`@oddsquad/lit-devtools/client`. Without them TypeScript cannot type
 `import sheet from './theme.css?css-sheet'`.
 
 The `types` array replaces TypeScript's default, so list `vite/client` next to
@@ -101,7 +109,7 @@ unchanged.
     "useDefineForClassFields": false,
     "module": "esnext",
     "lib": ["ES2023", "DOM"],
-    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"],
+    "types": ["vite/client", "@oddsquad/lit-devtools/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 
@@ -126,7 +134,7 @@ One `.d.ts` anywhere in your `include` does the same job, if you would rather
 not touch `types`:
 
 ```ts title="src/lit-plugin.d.ts"
-/// <reference types="@oddsquad/vite-plugin-lit/client" />
+/// <reference types="@oddsquad/lit-devtools/client" />
 ```
 
 ## Check it works

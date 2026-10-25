@@ -30,15 +30,15 @@ decorators are detected and fall back to a reload.
 Each one is imported only on the path that needs it, so the plugin installs and
 runs without any of them.
 
-| Package                | Range    | Unlocks                                                  |
-| ---------------------- | -------- | -------------------------------------------------------- |
-| `lightningcss`         | `^1.30`  | Lightning CSS processing of `css` template literals      |
-| `@vitejs/devtools-kit` | `^0.7.5` | Mounting the Lit panel into the Vite DevTools hub        |
-| `cac`                  | `^7`     | The `lit-devtools` command                               |
-| `@devframes/agentic`   | `1.0.0`  | `lit-devtools mcp`, the stdio bridge for coding agents   |
-| `astro`                | `^7.3`   | The Astro integration, `@oddsquad/vite-plugin-lit/astro` |
-| `@lit-labs/ssr`        | `^4.1`   | Its renderer, which renders Lit on the server            |
-| `@lit-labs/ssr-client` | `^1.1.8` | Its renderer's hydration in the browser                  |
+| Package                | Range    | Unlocks                                                |
+| ---------------------- | -------- | ------------------------------------------------------ |
+| `lightningcss`         | `^1.30`  | Lightning CSS processing of `css` template literals    |
+| `@vitejs/devtools-kit` | `^0.7.5` | Mounting the Lit panel into the Vite DevTools hub      |
+| `cac`                  | `^7`     | The `lit-devtools` command                             |
+| `@devframes/agentic`   | `1.0.0`  | `lit-devtools mcp`, the stdio bridge for coding agents |
+| `astro`                | `^7.3`   | The Astro integration, `@oddsquad/lit-devtools/astro`  |
+| `@lit-labs/ssr`        | `^4.1`   | Its renderer, which renders Lit on the server          |
+| `@lit-labs/ssr-client` | `^1.1.8` | Its renderer's hydration in the browser                |
 
 The panel also needs `@vitejs/devtools` active in the same Vite config, which is
 what serves the DevTools overlay the panel docks into.

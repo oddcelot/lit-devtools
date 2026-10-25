@@ -127,6 +127,9 @@ import {connectToDevServer} from '@oddsquad/vite-plugin-lit/connect.js';
 const disconnect = await connectToDevServer('http://localhost:5180/');
 ```
 
+Like the CSS helpers, `connect.js` comes from the Vite plugin's own package:
+with pnpm, add `@oddsquad/vite-plugin-lit` to the project to import it.
+
 Pass `{authToken}` as the second argument to skip the code prompt. From another
 origin, also pass `{connectionMeta}` (the JSON the server serves at
 `/__connection.json`), since the browser blocks the page from fetching it.

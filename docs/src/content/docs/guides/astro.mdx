@@ -29,17 +29,17 @@ integration needs Astro 7.3 or later.
 
 ```sh frame="terminal"
 npm install lit @lit-labs/ssr @lit-labs/ssr-client
-npm install -D @oddsquad/vite-plugin-lit
+npm install -D @oddsquad/lit-devtools
 ```
 
-Add `lit()` from `@oddsquad/vite-plugin-lit/astro`. It takes the plugin's
+Add `lit()` from `@oddsquad/lit-devtools/astro`. It takes the plugin's
 [options](/reference/options/), turns the timeline on, since
 the panel needs it, and has [three of its
 own](/reference/options/#astro-options).
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   integrations: [lit()],
@@ -123,7 +123,7 @@ Babel can't parse Lit's decorators:
 ```js title="astro.config.mjs"
 import {defineConfig} from 'astro/config';
 import preact from '@astrojs/preact';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   integrations: [preact({include: ['**/*.tsx']}), lit()],

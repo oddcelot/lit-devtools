@@ -37,7 +37,7 @@ lists everything it completes, shows and reports.
 ## Settings
 
 It needs none. In a Vite project, set `languageServer` in
-`litPlugin()` from `@oddsquad/vite-plugin-lit`; elsewhere, in a
+`litPlugin()` from `@oddsquad/lit-devtools/vite`; elsewhere, in a
 `lit-devtools.config.ts`:
 
 ```ts

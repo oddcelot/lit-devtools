@@ -325,13 +325,13 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             <li class="reveal">
               <span class="n">1</span>
               <h3>Install</h3>
-              <pre><code>npm i -D @oddsquad/vite-plugin-lit</code></pre>
+              <pre><code>npm i -D @oddsquad/lit-devtools</code></pre>
             </li>
             <li class="reveal">
               <span class="n">2</span>
               <h3>Add one line</h3>
               <pre><code><span class="c">// vite.config.ts</span>
-<span class="k">import</span> {'{'}litPlugin{'}'} <span class="k">from</span> <span class="s">'@oddsquad/vite-plugin-lit'</span>;
+<span class="k">import</span> {'{'}litPlugin{'}'} <span class="k">from</span> <span class="s">'@oddsquad/lit-devtools/vite'</span>;
 
 <span class="k">export default</span> defineConfig({'{'}
   plugins: [<mark>litPlugin()</mark>],
@@ -420,7 +420,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
           <h2>Project</h2>
           <a href="/reference/changelog/">Changelog</a>
           <a href="https://github.com/oddcelot/vite-plugin-lit">GitHub</a>
-          <a href="https://www.npmjs.com/package/@oddsquad/vite-plugin-lit">npm</a>
+          <a href="https://www.npmjs.com/package/@oddsquad/lit-devtools">npm</a>
         </nav>
       </div>
     </footer>

@@ -1,11 +1,12 @@
 ---
 name: vite-plugin-lit
-description: Set up and use @oddsquad/vite-plugin-lit in a Vite project with Lit components - true HMR that keeps component state, CSS delivered to shadow roots (?css-sheet, ?hmr-url, urlSheet()), and the Lit DevTools panel and its MCP server. Use when adding the plugin, typing its import queries, choosing how to ship CSS to Lit components, diagnosing why an edit reloaded the page instead of hot-patching, or connecting a coding agent to a running Lit app.
+description: Set up and use @oddsquad/lit-devtools (the Lit Vite plugin, @oddsquad/vite-plugin-lit) in a Vite project with Lit components - true HMR that keeps component state, CSS delivered to shadow roots (?css-sheet, ?hmr-url, urlSheet()), and the Lit DevTools panel and its MCP server. Use when adding the plugin, typing its import queries, choosing how to ship CSS to Lit components, diagnosing why an edit reloaded the page instead of hot-patching, or connecting a coding agent to a running Lit app.
 ---
 
 # vite-plugin-lit
 
-`@oddsquad/vite-plugin-lit` hot-patches Lit components in a Vite dev
+`@oddsquad/lit-devtools` installs the Lit Vite plugin,
+`@oddsquad/vite-plugin-lit`, which hot-patches Lit components in a Vite dev
 server: an edit lands in the running page without a reload, and focus,
 input values, reactive properties and child state survive. It also adds
 CSS import queries for shadow roots and an optional DevTools panel.
@@ -17,7 +18,7 @@ https://vite-plugin-lit.oddsquad.dev/llms-full.txt.
 ## Install
 
 ```sh
-npm i -D @oddsquad/vite-plugin-lit
+npm i -D @oddsquad/lit-devtools
 ```
 
 Lit and Vite stay the project's own dependencies.
@@ -25,7 +26,7 @@ Lit and Vite stay the project's own dependencies.
 ```ts
 // vite.config.ts
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin()],
@@ -34,7 +35,7 @@ export default defineConfig({
 
 Hot patching, the on-page indicator and the CSS queries are on from here;
 everything dev-only stays out of `vite build`. For a build that loads none
-of the dev code, use `litCss()` from `@oddsquad/vite-plugin-lit/build`
+of the dev code, use `litCss()` from `@oddsquad/lit-devtools/build`
 when `command !== 'serve'`.
 
 Register the query types. `types` replaces TypeScript's default list, so
@@ -43,12 +44,12 @@ keep `vite/client` beside it:
 ```json
 {
   "compilerOptions": {
-    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"]
+    "types": ["vite/client", "@oddsquad/lit-devtools/client"]
   }
 }
 ```
 
-or add `/// <reference types="@oddsquad/vite-plugin-lit/client" />` to any
+or add `/// <reference types="@oddsquad/lit-devtools/client" />` to any
 `.d.ts` in `include`.
 
 Verify: run the dev server, type into an input inside a component, edit
@@ -110,7 +111,7 @@ With the panel on, a coding agent can read the running app over MCP. One
 entry covers every dev server on the machine:
 
 ```sh
-claude mcp add lit-devtools -- npx -y @oddsquad/vite-plugin-lit mcp
+claude mcp add lit-devtools -- npx -y @oddsquad/lit-devtools mcp
 ```
 
 Start with `lit_update-summary` for "why did this re-render";

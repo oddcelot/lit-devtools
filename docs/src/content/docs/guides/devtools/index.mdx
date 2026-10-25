@@ -48,7 +48,7 @@ provides the host the panel docks into. You need both.
 
 ```ts title="vite.config.ts"
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 import {DevTools} from '@vitejs/devtools';
 
 export default defineConfig({
@@ -104,7 +104,7 @@ request handler for the panel, the page script and the RPC; mount it on a
 catch-all route and load the script first in each page's `<head>`:
 
 ```ts
-import {createLitDevtools} from '@oddsquad/vite-plugin-lit/devframe';
+import {createLitDevtools} from '@oddsquad/lit-devtools/devframe';
 import {Elysia} from 'elysia';
 
 const devtools = createLitDevtools();

@@ -47,8 +47,8 @@ it does.
 </Steps>
 
 The extension runs the project's own `@oddsquad/lit-language-server` when the
-project installs it, so the version matches the project, and the bundled copy
-otherwise. To run a different build, point the `lit.server.path` setting at
+project installs it, directly or through `@oddsquad/lit-devtools`, so the
+version matches the project, and the bundled copy otherwise. To run a different build, point the `lit.server.path` setting at
 its `dist/bin.mjs`. **Lit: Restart Language Server** picks the server again,
 and the **Lit Language Server** output channel says which one started.
 
@@ -104,7 +104,7 @@ is, set `languageServer` in your Vite config:
 
 ```ts title="vite.config.ts" {6-9}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [
@@ -138,17 +138,17 @@ merged key by key. A `.ts` config file needs Node 22.18 or later; a `.js` or
 
 ## Check it in CI with Oxlint
 
-The same problems can fail a lint run. Install the Oxlint plugin next to
-Oxlint and extend its recommended config, which turns each rule on at the
-severity the editor gives it:
+The same problems can fail a lint run. Install `@oddsquad/lit-devtools` next
+to Oxlint and extend its Oxlint plugin's recommended config, which turns each
+rule on at the severity the editor gives it:
 
 ```sh
-npm install -D oxlint @oddsquad/oxlint-plugin-lit
+npm install -D oxlint @oddsquad/lit-devtools
 ```
 
 ```ts title="oxlint.config.ts"
 import {defineConfig} from 'oxlint';
-import litDevtools from '@oddsquad/oxlint-plugin-lit';
+import litDevtools from '@oddsquad/lit-devtools/oxlint';
 
 export default defineConfig({
   extends: [litDevtools.configs.recommended],
@@ -156,13 +156,14 @@ export default defineConfig({
 });
 ```
 
-Rules set next to `extends` win, as `lit-devtools/css` does here. With Vite+, the same
-object goes under `lint` in `vite.config.ts`. In an `.oxlintrc.json`, list
-the plugin and its rules yourself:
+Rules set next to `extends` win, as `lit-devtools/css` does here. With
+Vite+, the same object goes under `lint` in `vite.config.ts`. A project that
+wants only the rules installs `@oddsquad/oxlint-plugin-lit` and imports from
+it instead. In an `.oxlintrc.json`, list the plugin and its rules yourself:
 
 ```json title=".oxlintrc.json"
 {
-  "jsPlugins": ["@oddsquad/oxlint-plugin-lit"],
+  "jsPlugins": ["@oddsquad/lit-devtools/oxlint"],
   "rules": {"lit-devtools/event-type": "error", "lit-devtools/css": "warn"}
 }
 ```

@@ -9,11 +9,11 @@
 const skill =
   'https://vite-plugin-lit.oddsquad.dev/.well-known/agent-skills/vite-plugin-lit/SKILL.md';
 
-const prompt = `Set up @oddsquad/vite-plugin-lit in this project, following the agent skill at ${skill}.
+const prompt = `Set up @oddsquad/lit-devtools in this project, following the agent skill at ${skill}.
 
 1. Install it as a dev dependency with the package manager this project already uses.
 2. Add litPlugin() to the plugins array in the Vite config. Leave the rest of the config as it is.
-3. Register the "@oddsquad/vite-plugin-lit/client" types in tsconfig.json, next to "vite/client" rather than instead of it.
+3. Register the "@oddsquad/lit-devtools/client" types in tsconfig.json, next to "vite/client" rather than instead of it.
 4. Start the dev server and check that the plugin's indicator appears on a page with a Lit component.
 
 Don't enable the DevTools panel or the source overlay unless I ask. When you're done, list the files you changed.`;

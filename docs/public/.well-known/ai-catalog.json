@@ -8,7 +8,7 @@
     {
       "identifier": "urn:air:vite-plugin-lit.oddsquad.dev:skill:vite-plugin-lit",
       "displayName": "vite-plugin-lit agent skill",
-      "description": "Set up @oddsquad/vite-plugin-lit, deliver CSS to Lit shadow roots, diagnose edits that reload instead of hot-patching, and connect a coding agent to the Lit DevTools MCP server.",
+      "description": "Set up @oddsquad/lit-devtools, deliver CSS to Lit shadow roots, diagnose edits that reload instead of hot-patching, and connect a coding agent to the Lit DevTools MCP server.",
       "type": "text/markdown",
       "url": "https://vite-plugin-lit.oddsquad.dev/.well-known/agent-skills/vite-plugin-lit/SKILL.md",
       "representativeQueries": [

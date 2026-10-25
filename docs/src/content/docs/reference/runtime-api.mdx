@@ -12,6 +12,13 @@ Two runtime entry points ship with the package: the CSS helpers under
 `virtual:lit-plugin/timeline`. Both are dependency-free and safe to import from
 component code.
 
+<Aside>
+  The CSS helpers come from the Vite plugin's own package, which
+  `@oddsquad/lit-devtools` installs but doesn't re-export. With pnpm, which
+  keeps a dependency's dependencies out of your `node_modules`, add
+  `@oddsquad/vite-plugin-lit` to the project too so the import resolves.
+</Aside>
+
 ## urlSheet()
 
 ```ts
@@ -163,7 +170,7 @@ The virtual module resolves to a no-op stub in any `vite build`, including a
 build with `timeline` enabled, because the events only ever travel over the dev
 server's HMR channel. It is also a stub in dev when `timeline` is off. Imports
 are safe to leave in component code. The ambient types ship in
-`@oddsquad/vite-plugin-lit/client`, the same declarations that cover the CSS
+`@oddsquad/lit-devtools/client`, the same declarations that cover the CSS
 queries.
 
 ## Related
