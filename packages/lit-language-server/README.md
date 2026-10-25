@@ -26,6 +26,10 @@ html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
   npm install -D @oddsquad/lit-language-server
   ```
 
+- **Oxlint:** add `@oddsquad/lit-language-server/oxlint` to `jsPlugins` and
+  turn on rules such as `lit/event-type`, so a lint run fails on the same
+  problems.
+
 [Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
 sets it up; the
 [reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
