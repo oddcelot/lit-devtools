@@ -22,10 +22,12 @@ import {
   type Binding,
   type CursorContext,
   type DocumentKind,
+  type MarkupAttribute,
   type MarkupElement,
   type MarkupRegion,
   contextAt,
   markupRegions,
+  nameStartOf,
   scanMarkup,
 } from './markup.js';
 import type {FeatureRequest} from './features.js';
@@ -65,19 +67,49 @@ type Target =
   | {kind: 'attribute'; tag: string; attribute: string}
   | {kind: 'event'; tag: string; event: string};
 
-const kindOfFile = (file: string): DocumentKind =>
-  file.endsWith('.html') ? 'html' : 'script';
+/** What kind of document a file is, from its extension. */
+export const kindOfFile = (file: string): DocumentKind => {
+  const ext = /\.(\w+)$/.exec(file)?.[1];
+  if (ext === 'html' || ext === 'astro' || ext === 'mdx') return ext;
+  return ext === 'jsx' || ext === 'tsx' ? 'jsx' : 'script';
+};
 
 /**
  * What a binding names: an attribute and its property are one member, so
  * `.open` and `open` find each other.
  */
+/**
+ * What a plain prop names in JSX or Astro: a property, else an attribute,
+ * else in JSX an `on<event>`.
+ */
+const propTarget = (
+  docs: ComponentDocs | null,
+  tag: string,
+  name: string,
+  dialect: 'jsx' | 'astro'
+): Target => {
+  const property = docs?.properties.find((entry) => entry.name === name);
+  if (property)
+    return {
+      kind: 'member',
+      tag,
+      property: name,
+      attribute: property.counterpart,
+    };
+  const event = name.startsWith('on') ? name.slice(2) : undefined;
+  if (dialect === 'jsx' && docs?.events.some((entry) => entry.name === event))
+    return {kind: 'event', tag, event: event!};
+  return targetOf(docs, tag, '', name);
+};
+
 const targetOf = (
   docs: ComponentDocs | null,
   tag: string,
   binding: Binding,
-  name: string
+  name: string,
+  dialect?: 'jsx' | 'astro'
 ): Target => {
+  if (dialect && binding === '') return propTarget(docs, tag, name, dialect);
   if (binding === '@') return {kind: 'event', tag, event: name};
   if (binding === '.') {
     const property = docs?.properties.find((entry) => entry.name === name);
@@ -107,7 +139,8 @@ const targetAt = async (
   const name = code.slice(context.start, context.end);
   if (!name) return undefined;
   const docs = await source.get(file, tag);
-  return {target: targetOf(docs, tag, context.binding, name), context};
+  const {binding, element} = context;
+  return {target: targetOf(docs, tag, binding, name, element.dialect), context};
 };
 
 // --- declarations -----------------------------------------------------------
@@ -268,7 +301,12 @@ const closingTags = (code: string, region: MarkupRegion, tag: string) => {
 };
 
 /** Whether a binding on an element names `target`. */
-const names = (target: Target, binding: Binding, name: string): boolean => {
+const names = (
+  target: Target,
+  {binding, name}: MarkupAttribute,
+  dialect: MarkupElement['dialect']
+): boolean => {
+  if (dialect && binding === '') return namesAsProp(target, name, dialect);
   if (target.kind === 'event') return binding === '@' && name === target.event;
   if (binding === '@') return false;
   if (target.kind === 'attribute')
@@ -277,15 +315,30 @@ const names = (target: Target, binding: Binding, name: string): boolean => {
   return binding === '.' ? name === target.property : name === target.attribute;
 };
 
+/** Whether a plain prop in JSX or Astro names `target`. */
+const namesAsProp = (
+  target: Target,
+  name: string,
+  dialect: 'jsx' | 'astro'
+): boolean => {
+  if (target.kind === 'event')
+    return dialect === 'jsx' && name === `on${target.event}`;
+  if (target.kind === 'attribute') return name === target.attribute;
+  return (
+    target.kind === 'member' &&
+    (name === target.property || name === target.attribute)
+  );
+};
+
 /** The uses of `target` on one element: its tag name, or its bindings that name it. */
 const elementUses = (element: MarkupElement, target: Target) => {
   if (element.tag.toLowerCase() !== target.tag.toLowerCase()) return [];
   if (target.kind === 'tag')
     return [{start: element.start + 1, end: element.nameEnd}];
   return element.attributes
-    .filter((attribute) => names(target, attribute.binding, attribute.name))
+    .filter((attribute) => names(target, attribute, element.dialect))
     .map((attribute) => ({
-      start: attribute.nameStart + attribute.binding.length,
+      start: nameStartOf(attribute),
       end: attribute.nameEnd,
     }));
 };

@@ -66,7 +66,8 @@ export interface Workspace {
   declarationsOf(tagName: string): {file: string; name: string}[];
   /**
    * The files whose markup can use a component: every script read from
-   * source, and the HTML files at each package's root.
+   * source, the HTML files at each package's root, and the HTML, Astro and
+   * MDX files in its read folders.
    */
   markupFiles(): Promise<string[]>;
   /** The tags `file` can use: from source, then its package's manifests. */
@@ -167,12 +168,28 @@ export const createWorkspace = async (
   });
 };
 
-/** The HTML files directly in a package's folder, such as its `index.html`. */
-const htmlFilesIn = async (pkg: WorkspacePackage): Promise<string[]> => {
-  const names = await readdir(pkg.dir).catch(() => []);
-  return names
+const PAGE_RE = /\.(?:html|astro|mdx)$/;
+
+/**
+ * The pages a package's components can be used in: HTML files in its own
+ * folder, such as its `index.html`, and HTML, Astro and MDX files in its read
+ * folders.
+ */
+const pagesIn = async (state: PackageState): Promise<string[]> => {
+  const list = (dir: string, recursive: boolean) =>
+    readdir(dir, {recursive}).catch(() => [] as string[]);
+  const top = (await list(state.pkg.dir, false))
     .filter((name) => name.endsWith('.html'))
-    .map((name) => `${pkg.dir}/${name}`);
+    .map((name) => `${state.pkg.dir}/${name}`);
+  const nested = await Promise.all(
+    state.config.scan.map(async (folder) => {
+      const dir = `${state.pkg.dir}/${folder}`;
+      return (await list(dir, true))
+        .filter((name) => PAGE_RE.test(name) && !name.includes('node_modules'))
+        .map((name) => `${dir}/${name}`);
+    })
+  );
+  return [...new Set([...top, ...nested.flat()])];
 };
 
 const createWorkspaceView = (parts: {
@@ -241,7 +258,7 @@ const createWorkspaceView = (parts: {
     sourceTags,
     declarationsOf,
     async markupFiles() {
-      const pages = await Promise.all(packages.map(htmlFilesIn));
+      const pages = await Promise.all(states.map(pagesIn));
       return [...sources.modules().map(({id}) => id), ...pages.flat()];
     },
     async tags(file) {
