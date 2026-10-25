@@ -1,0 +1,65 @@
+name: Release Zed extension
+
+# A `zed-v*` tag opens the pull request that updates the Lit extension in
+# zed-industries/extensions: it points the registry's submodule at the
+# tagged commit and sets its version. Zed reviews and merges it, then builds
+# and publishes the extension itself.
+#
+#   git tag zed-v0.0.2 && git push origin zed-v0.0.2
+#
+# The extension installs the language server from npm, so a server release
+# needs no extension release; tag one only when packages/zed changes.
+#
+# The first version is submitted by hand, as Zed asks of a new extension: a
+# pull request adding this repo as `extensions/lit`, with `path =
+# "packages/zed"`, to extensions.toml. Updates need a fork of
+# zed-industries/extensions at oddcelot/extensions and, in the `stores`
+# environment, ZED_COMMITTER_TOKEN: a personal access token with the `repo`
+# and `workflow` scopes that can push to that fork. Without it the job is
+# skipped with a notice.
+
+on:
+  push:
+    tags: ['zed-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    environment: stores
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check the tag matches the extension's version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' packages/zed/extension.toml)
+          if [ "$GITHUB_REF_NAME" != "zed-v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match packages/zed/extension.toml version $version"
+            exit 1
+          fi
+      - name: Check for the token
+        id: token
+        env:
+          COMMITTER_TOKEN: ${{ secrets.ZED_COMMITTER_TOKEN }}
+        run: |
+          if [ -z "$COMMITTER_TOKEN" ]; then
+            echo "::notice::The stores environment has no ZED_COMMITTER_TOKEN; skipping the pull request."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.token.outputs.present == 'true'
+        uses: huacnlee/zed-extension-action@8cd592a0d24e1e41157740f1a529aeabddc88a1b # v2.0.0
+        with:
+          extension-name: lit
+          push-to: oddcelot/extensions
+          # The default links a GitHub Release, which a zed tag doesn't get.
+          commit-message: |
+            Update {{extensionName}} to v{{version}}
+
+            https://github.com/{{owner}}/{{repo}}/tree/{{tag}}/packages/zed
+        env:
+          COMMITTER_TOKEN: ${{ secrets.ZED_COMMITTER_TOKEN }}
