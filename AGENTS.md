@@ -81,6 +81,19 @@ a `lit-language-server-v<version>` tag publishes it through
 `.github/workflows/release-language-server.yaml`, which also creates its
 GitHub Release.
 
+The editor extensions release on their own tags too. The VS Code extension
+(`packages/vscode`) keeps a hand-written `packages/vscode/CHANGELOG.md`; a
+release commit bumps its `package.json` and writes that section, and a
+`vscode-v<version>` tag runs `.github/workflows/release-vscode.yaml`, which
+packages one `.vsix` per platform, publishes them to the Marketplace and
+Open VSX, and creates the GitHub Release. It bundles the language server, so
+a server release that users should get needs an extension release as well.
+The Zed extension installs the server from npm, so it needs a release only
+when `packages/zed` changes: bump `packages/zed/extension.toml` and push a
+`zed-v<version>` tag, and `.github/workflows/release-zed.yaml` opens the
+update pull request to `zed-industries/extensions`. Both workflows say what
+they need set up in their headers.
+
 Work lands on a branch named for its kind (`feature/`, `fix/`, `docs/`) and
 merges with `--no-ff`. Release commits bump `package.json`, write the
 `CHANGELOG.md` section, and get a `v<version>` tag. Pushing that tag

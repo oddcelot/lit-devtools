@@ -1,0 +1,139 @@
+name: Release VS Code extension
+
+# A `vscode-v*` tag packages packages/vscode once per platform, publishes the
+# packages to the VS Code Marketplace and to Open VSX, and creates the GitHub
+# Release from that version's section of packages/vscode/CHANGELOG.md, with
+# the packages attached.
+#
+#   git tag vscode-v0.1.1 && git push origin vscode-v0.1.1
+#
+# The Marketplace allows only major.minor.patch versions, so there are no
+# pre-release tags.
+#
+# Publishing runs in the `stores` environment, which asks for approval:
+#
+# - Marketplace: the `oddsquad` publisher's personal access token as
+#   VSCE_PAT (Azure DevOps, scope Marketplace > Manage, all organizations).
+# - Open VSX: trusted publishing, so there's no token. The `oddsquad`
+#   namespace (`ovsx create-namespace oddsquad`, once) registers this repo,
+#   this file and the `stores` environment under
+#   https://open-vsx.org/user-settings/trusted-publishers; then set the
+#   `stores` environment's variable OPEN_VSX to `true`.
+#
+# A store that isn't set up is skipped with a notice, so a release can go
+# out to one before the other exists.
+
+on:
+  push:
+    tags: ['vscode-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      # No dependency cache: a release build shouldn't trust one.
+      - run: pnpm install --frozen-lockfile
+      - name: Check the tag matches the extension's version
+        run: |
+          version=$(node -p "require('./packages/vscode/package.json').version")
+          if [ "$GITHUB_REF_NAME" != "vscode-v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match packages/vscode version $version"
+            exit 1
+          fi
+      - name: Check its CHANGELOG.md has a section for it
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/vscode/CHANGELOG.md > /dev/null
+      # The same gate as ci.yaml's check job: the extension bundles the
+      # server and the editor code in src/lib, which the root's checks and
+      # unit tests cover.
+      - run: pnpm run build
+      - run: pnpm --filter ./docs run sync
+      - run: pnpm --filter ./docs exec astro sync
+      - run: pnpm exec vp check
+      - run: pnpm run test:unit
+      - run: pnpm --filter ./packages/vscode run build
+      # One package per platform, each with its native bindings.
+      - run: node scripts/package.mjs all
+        working-directory: packages/vscode
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: vsix
+          path: packages/vscode/*.vsix
+          if-no-files-found: error
+
+  publish:
+    needs: package
+    runs-on: ubuntu-latest
+    environment: stores
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - run: pnpm install --frozen-lockfile --filter ./packages/vscode
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: vsix
+          path: ${{ runner.temp }}/vsix
+      - name: Publish to the VS Code Marketplace
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "::notice::The stores environment has no VSCE_PAT; skipping the Marketplace."
+            exit 0
+          fi
+          pnpm exec vsce publish --skip-duplicate --packagePath "$RUNNER_TEMP"/vsix/*.vsix
+      - name: Publish to Open VSX
+        working-directory: packages/vscode
+        env:
+          OPEN_VSX: ${{ vars.OPEN_VSX }}
+        run: |
+          if [ "$OPEN_VSX" != true ]; then
+            echo "::notice::The stores environment doesn't set OPEN_VSX; skipping Open VSX."
+            exit 0
+          fi
+          pnpm exec ovsx publish --trusted-publishing --skip-duplicate \
+            --packagePath "$RUNNER_TEMP"/vsix/*.vsix
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: vsix
+          path: vsix
+      - run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/vscode/CHANGELOG.md > notes.md
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Not --latest: "latest" stays the plugin's release.
+          gh release create "$GITHUB_REF_NAME" --verify-tag --latest=false \
+            --title "VS Code extension ${GITHUB_REF_NAME#vscode-v}" \
+            --notes-file notes.md vsix/*.vsix
