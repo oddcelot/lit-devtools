@@ -5,8 +5,6 @@
  * when a config file changes.
  */
 
-import htmlData from '@vscode/web-custom-data/data/browsers.html-data.json' with {type: 'json'};
-import {svgElementAttributes} from 'svg-element-attributes';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
@@ -39,11 +37,6 @@ import {
   hoverAt,
 } from '../../../src/lib/editor/features.js';
 import {
-  type HtmlData,
-  createHtmlDocs,
-} from '../../../src/lib/editor/html-data.js';
-import {svgData} from '../../../src/lib/editor/svg-data.js';
-import {
   type NavigationSource,
   type Span,
   implementationAt,
@@ -51,10 +44,13 @@ import {
   referencesAt,
 } from '../../../src/lib/editor/navigation.js';
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
-import {eventTypeProblems} from '../../../src/lib/editor/diagnostics.js';
-import {cssCompletions, cssDiagnostics, cssHover, forgetCss} from './css.js';
+import {cssCompletions, cssHover, forgetCss} from './css.js';
+import {cssTagsFor, docsSourceFor, documentProblems} from './documents.js';
 import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
-import type {Severity} from '../../../src/lib/editor/config.js';
+import {
+  DEFAULT_SEVERITIES,
+  type Severity,
+} from '../../../src/lib/editor/config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
 import {findWorkspace} from '../../../src/lib/editor/workspace-packages.js';
 import {
@@ -66,41 +62,6 @@ const SCRIPT_RE = /\.(?:[cm]?[jt]s|[jt]sx)$/;
 
 const CONFIG_RE =
   /(?:^|\/)(?:lit-devtools\.config\.(?:[cm]?[jt]s|json)|vite\.config\.[cm]?[jt]s|package\.json|pnpm-workspace\.yaml)$/;
-
-const html = createHtmlDocs(htmlData as HtmlData);
-const svg = createHtmlDocs(svgData(svgElementAttributes));
-
-/** An SVG element, unless HTML has one of the same name (`a`, `title`). */
-const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
-
-/** SVG elements share SVG's core and presentation attributes, and the DOM events. */
-const svgGlobals = {
-  attributes: svg.globals.attributes,
-  events: html.globals.events,
-  label: 'attribute of every SVG element',
-};
-
-/**
- * Where a document's docs come from. In a Lit template, standard HTML and
- * SVG elements and what every element accepts come from their data as well;
- * HTML, JSX, Astro and MDX leave those to the editor's own support for the
- * language, which would repeat them.
- */
-const docsSourceFor = (workspace: Workspace, kind: DocumentKind): DocsSource =>
-  kind !== 'script'
-    ? workspace
-    : {
-        get: async (file, tag) =>
-          (await workspace.get(file, tag)) ?? html.get(tag) ?? svg.get(tag),
-        tags: async (file) => [
-          ...new Set([
-            ...(await workspace.tags(file)),
-            ...html.tags(),
-            ...svg.tags(),
-          ]),
-        ],
-        globals: (tag) => (isSvg(tag) ? svgGlobals : html.globals),
-      };
 
 const LANGUAGE_KINDS: Record<string, DocumentKind> = {
   html: 'html',
@@ -271,14 +232,18 @@ export const startServer = (streams?: ServerStreams): Connection => {
     if (!document || !file || !kind) return undefined;
     const workspace = await workspaceOf(file);
     if (!workspace) return undefined;
-    const {templateTags, cssTemplateTags} = workspace.configOf(file) ?? {};
+    const config = workspace.configOf(file);
     return {
       document,
       workspace,
       source: docsSourceFor(workspace, kind),
-      request: {file, code: document.getText(), kind, templateTags},
-      cssTags:
-        kind === 'script' || kind === 'jsx' ? (cssTemplateTags ?? ['css']) : [],
+      request: {
+        file,
+        code: document.getText(),
+        kind,
+        templateTags: config?.templateTags,
+      },
+      cssTags: cssTagsFor(kind, config),
     };
   };
 
@@ -375,11 +340,12 @@ export const startServer = (streams?: ServerStreams): Connection => {
   const publishDocument = async (uri: string): Promise<void> => {
     const found = await documentRequest(uri);
     if (!found) return;
-    const {document, workspace, source, request} = found;
+    const {document, workspace, source, request, cssTags} = found;
     const severities = workspace.configOf(request.file)?.diagnostics;
-    const problems = await eventTypeProblems(source, request);
+    const problems = await documentProblems(source, request, document, cssTags);
     const diagnostics = problems.flatMap((problem): Diagnostic[] => {
-      const severity = severities?.[problem.rule] ?? 'error';
+      const severity =
+        severities?.[problem.rule] ?? DEFAULT_SEVERITIES[problem.rule];
       if (severity === 'off') return [];
       return [
         {
@@ -394,19 +360,9 @@ export const startServer = (streams?: ServerStreams): Connection => {
         },
       ];
     });
-    const cssSeverity = severities?.css ?? 'warning';
-    const css =
-      cssSeverity === 'off'
-        ? []
-        : cssDiagnostics(document, found.cssTags).map((diagnostic) => ({
-            ...diagnostic,
-            severity: SEVERITY[cssSeverity],
-            source: 'lit',
-            code: 'css',
-          }));
     void connection.sendDiagnostics({
       uri,
-      diagnostics: [...diagnostics, ...css],
+      diagnostics,
     });
   };
 

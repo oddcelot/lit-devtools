@@ -29,6 +29,9 @@
     ".": {
       "types": "./dist/types/packages/lit-language-server/src/index.d.ts",
       "default": "./dist/index.mjs"
+    },
+    "./oxlint": {
+      "default": "./dist/oxlint.mjs"
     }
   },
   "files": [

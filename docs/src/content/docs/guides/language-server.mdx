@@ -136,6 +136,35 @@ merged key by key. A `.ts` config file needs Node 22.18 or later; a `.js` or
 `.json` one works on any. The
 [settings reference](/reference/language-server/#settings) lists every key.
 
+## Check it in CI with Oxlint
+
+The same problems can fail a lint run. Install the server and add its Oxlint
+plugin, then turn on the rules you want:
+
+```sh
+npm install -D @oddsquad/lit-language-server
+```
+
+```json title=".oxlintrc.json"
+{
+  "jsPlugins": ["@oddsquad/lit-language-server/oxlint"],
+  "rules": {
+    "lit/event-type": "error",
+    "lit/css": "warn"
+  }
+}
+```
+
+With Vite+, the same two keys go under `lint` in `vite.config.ts`.
+
+- Oxlint decides each rule's severity; the `diagnostics` setting is for the
+  editor only. `scan`, `ignoreTags` and the other settings apply to both.
+- Silence one spot with Oxlint's own comment,
+  `// oxlint-disable-next-line lit/event-type`.
+- Oxlint reads JavaScript and TypeScript files, so problems in HTML, Astro
+  and MDX pages still show only in the editor.
+- The first file waits while the plugin reads the workspace, once per run.
+
 ## Use it in a monorepo
 
 Open the monorepo at its root. The server finds the workspace from a
