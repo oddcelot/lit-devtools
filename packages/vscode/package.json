@@ -1,6 +1,6 @@
 {
-  "name": "lit",
-  "displayName": "Lit",
+  "name": "lit-devtools",
+  "displayName": "Lit DevTools",
   "version": "0.1.0",
   "private": true,
   "description": "Completion, hover, go to source, find references and diagnostics for Lit components in templates, HTML, JSX, Astro and MDX, read from your sources and your dependencies' Custom Elements Manifests.",

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Lit extension for VS Code. The language server it
+All notable changes to Lit DevTools for VS Code. The language server it
 runs has its own
 [changelog](https://github.com/oddcelot/vite-plugin-lit/blob/main/packages/lit-language-server/CHANGELOG.md).
 

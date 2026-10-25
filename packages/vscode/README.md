@@ -1,4 +1,4 @@
-# Lit for VS Code
+# Lit DevTools for VS Code
 
 Your editor, fluent in your Lit components. In `html` templates, HTML files,
 JSX, Astro and MDX, and `css` templates, VS Code completes your components' tags, attributes,
