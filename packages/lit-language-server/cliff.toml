@@ -1,0 +1,55 @@
+# Draft generator for packages/lit-language-server/CHANGELOG.md, the language
+# server's own changelog on its own versions. Like the plugin's (../../cliff.toml),
+# the file is hand-written prose and this only drafts it, from the commits
+# that carry a `Changelog-Language-Server:` trailer since the last
+# `lit-language-server-v*` tag:
+#
+#     Changelog: skip
+#     Changelog-Language-Server: Fixed
+#       **Hover shows inherited events.** …
+#
+#   pnpm run changelog:language-server
+#   pnpm run changelog:language-server --tag lit-language-server-v0.2.0
+
+[changelog]
+header = ""
+body = """
+## {{ version | default(value="Unreleased") | split(pat="-v") | last }} — {% if timestamp %}{{ timestamp | date(format="%Y-%m-%d") }}{% else %}{{ now() | date(format="%Y-%m-%d") }}{% endif %}
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+{% for commit in commits %}
+{%- set lines = commit.message | split(pat="\n") %}
+{%- set head = lines | first %}
+{%- if head is starting_with("Changelog-Entry") %}
+- {{ lines | slice(start=1) | join(sep=" ") | trim }}
+{%- else %}
+- **{{ head }}** <!-- no entry under the trailer; drafted from the body -->
+{%- for line in lines | slice(start=1) %}
+{%- if not line is starting_with("Changelog") and not line is starting_with("Co-Authored-By:") %}
+{{ "  " ~ line | trim_end }}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+{% endfor %}
+{%- endfor %}"""
+trim = true
+
+[git]
+conventional_commits = false
+filter_unconventional = false
+# Only commits with the language server's trailer reach the draft.
+filter_commits = true
+tag_pattern = "^lit-language-server-v[0-9]"
+commit_preprocessors = [
+  # A folded trailer: keep only the group and its entry lines.
+  #   "…\nChangelog-Language-Server: Fixed\n  **Entry.** text"
+  #   -> "Changelog-Entry: Fixed\n**Entry.** text"
+  { pattern = '(?s)^.*?\nChangelog-Language-Server: ?(\w+)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
+  { pattern = '(?m)^[ \t]+', replace = "" },
+]
+commit_parsers = [
+  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Added", group = "Added" },
+  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Changed", group = "Changed" },
+  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Fixed", group = "Fixed" },
+  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Removed", group = "Removed" },
+]
