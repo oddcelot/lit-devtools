@@ -399,7 +399,17 @@ test('the dev server lists what src holds before any page loads it', async () =>
             }
           }
         );
-        error.message += `\nwatcher events: ${JSON.stringify(events)}\nwatched: ${JSON.stringify(watched)}\ninotify: ${limits.join(' ')}`;
+        const watcher = server.watcher as unknown as {
+          options?: Record<string, unknown>;
+          _isIgnored?: (path: string) => boolean;
+        };
+        const options = JSON.stringify(watcher.options, (_, value: unknown) =>
+          typeof value === 'function'
+            ? `fn:${String(value).slice(0, 80)}`
+            : value
+        );
+        const ignored = watcher._isIgnored?.(joinPath(root, 'src/x-b.ts'));
+        error.message += `\nwatcher events: ${JSON.stringify(events)}\nwatched: ${JSON.stringify(watched)}\ninotify: ${limits.join(' ')}\ncacheDir: ${server.config.cacheDir}\nwatch config: ${JSON.stringify(server.config.server.watch)}\nchokidar options: ${options}\nx-b ignored: ${String(ignored)}`;
         throw error;
       });
     await fsp.rm(joinPath(root, 'src/base.ts'));
