@@ -68,5 +68,7 @@ allowBuilds:
   esbuild: true
   # The analyzer the manifest oracle test runs works without its native build.
   rs-module-lexer: false
+  # vsce only signs a package on a publish that asks to (`--sign-tool`).
+  '@vscode/vsce-sign': false
 minimumReleaseAgeExclude:
   - vite@8.3.2

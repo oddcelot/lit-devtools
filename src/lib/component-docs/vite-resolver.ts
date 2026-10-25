@@ -4,12 +4,9 @@
  * when the project has a Vite config.
  */
 
-import {
-  type Plugin,
-  type PluginOption,
-  createServer,
-  loadConfigFromFile,
-} from 'vite';
+import {pathToFileURL} from 'node:url';
+import {ResolverFactory} from 'oxc-resolver';
+import type {Plugin, PluginOption} from 'vite';
 import type {LitPluginOptions} from '../options.js';
 import type {ImportResolver} from './index-module.js';
 
@@ -32,13 +29,39 @@ const flatPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> => {
 const foreignPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> =>
   (await flatPlugins(plugins)).filter((plugin) => !isOwnPlugin(plugin.name));
 
-const loadConfig = (root: string, configFile: string | undefined) =>
-  loadConfigFromFile(
+type Vite = typeof import('vite');
+
+const viteResolver = new ResolverFactory({
+  conditionNames: ['node', 'import', 'default'],
+});
+
+/**
+ * The project's own Vite, so a server installed outside the project (the one
+ * the VS Code extension bundles) loads the version its config is written
+ * for; this package's, when the project's can't be found.
+ */
+const loadVite = async (root: string): Promise<Vite> => {
+  const {path} = viteResolver.sync(root, 'vite');
+  if (path) {
+    try {
+      return (await import(pathToFileURL(path).href)) as Vite;
+    } catch {
+      // Not loadable from here; fall back to this package's.
+    }
+  }
+  return import('vite');
+};
+
+const loadConfig = async (root: string, configFile: string | undefined) => {
+  const vite = await loadVite(root);
+  const loaded = await vite.loadConfigFromFile(
     {command: 'serve', mode: 'development'},
     configFile,
     root,
     'silent'
   );
+  return loaded ? {vite, ...loaded} : undefined;
+};
 
 /**
  * The options `litPlugin()` was given in the project's Vite config, read off
@@ -68,7 +91,7 @@ export const createViteResolver = async (
   // be left out of it.
   const loaded = await loadConfig(root, configFile);
   if (!loaded) return undefined;
-  const server = await createServer({
+  const server = await loaded.vite.createServer({
     ...loaded.config,
     plugins: await foreignPlugins(loaded.config.plugins ?? []),
     root,

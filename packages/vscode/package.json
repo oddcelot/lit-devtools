@@ -1,0 +1,83 @@
+{
+  "name": "lit",
+  "displayName": "Lit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Completion, hover and diagnostics for Lit components in templates and HTML, read from your sources and your dependencies' Custom Elements Manifests.",
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "lit",
+    "lit-element",
+    "web-components",
+    "custom-elements",
+    "custom-elements-manifest",
+    "html"
+  ],
+  "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/",
+  "bugs": "https://github.com/oddcelot/vite-plugin-lit/issues",
+  "license": "BSD-3-Clause",
+  "author": "oddcelot",
+  "publisher": "oddsquad",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oddcelot/vite-plugin-lit.git",
+    "directory": "packages/vscode"
+  },
+  "icon": "icon.png",
+  "main": "./dist/extension.cjs",
+  "scripts": {
+    "build": "vp pack && node scripts/stage-server.mjs",
+    "package": "node scripts/package.mjs"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "lit.restartServer",
+        "title": "Restart Language Server",
+        "category": "Lit"
+      }
+    ],
+    "configuration": {
+      "title": "Lit",
+      "properties": {
+        "lit.server.path": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "scope": "machine-overridable",
+          "markdownDescription": "Path to the language server's `dist/bin.mjs`, absolute or relative to the first workspace folder. Without it, the project's own `@oddsquad/lit-language-server` is used, else the copy bundled with the extension."
+        },
+        "lit.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Logs the messages between VS Code and the language server to its output channel."
+        }
+      }
+    }
+  },
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:javascript",
+    "onLanguage:javascriptreact",
+    "onLanguage:typescript",
+    "onLanguage:typescriptreact"
+  ],
+  "devDependencies": {
+    "@types/vscode": "~1.91.0",
+    "@vscode/vsce": "^4.0.0",
+    "vscode-languageclient": "^11.0.0"
+  },
+  "engines": {
+    "vscode": "^1.91.0"
+  }
+}

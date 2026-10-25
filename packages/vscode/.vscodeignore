@@ -1,0 +1,7 @@
+# Everything the extension runs is bundled into dist/.
+**
+!dist/**
+!icon.png
+!LICENSE
+!README.md
+!CHANGELOG.md
