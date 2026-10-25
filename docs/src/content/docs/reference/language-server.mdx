@@ -231,6 +231,25 @@ the config file is reported as ignored.
 `unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
 and `missing-import` are read and validated but not acted on yet.
 
+## Oxlint plugin
+
+`@oddsquad/lit-language-server/oxlint` reports the same problems in a lint
+run, one rule per problem kind, named `lit/<rule>`:
+
+| Rule             | Reports                                         |
+| ---------------- | ----------------------------------------------- |
+| `lit/event-type` | A handler whose parameter doesn't fit its event |
+| `lit/css`        | A problem in a `css` template                   |
+
+The rules are off until turned on in Oxlint's `rules`, which also sets their
+severity; the `diagnostics` setting applies to the editor only. The other
+settings are read as above. `// oxlint-disable` comments silence them. The
+plugin also registers `lit/unknown-element`, `lit/unknown-attribute`,
+`lit/unknown-binding`, `lit/invalid-value` and `lit/missing-import`, which
+report nothing yet. It reads JavaScript and TypeScript files only.
+[Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint)
+sets it up.
+
 ## Where its knowledge comes from
 
 | Source                                            | For                                                             |
