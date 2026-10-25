@@ -121,6 +121,11 @@ export default defineConfig({
       '/examples/',
       // Copied from the root CHANGELOG.md on every docs build.
       'docs/.generated/',
+      // @oddsquad/lit-devtools's re-exports: their types are the built
+      // packages', which CI's check doesn't build. The umbrella's e2e test
+      // (src/test/e2e/lit-devtools-umbrella_test.ts) type-checks every
+      // import against the packed packages instead.
+      'packages/lit-devtools/*.d.ts',
       // HyperFrames video projects, written and checked by their own CLI.
       '/assets/promo-video/',
       '/assets/promo-video-v2/',
