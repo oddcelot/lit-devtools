@@ -123,7 +123,10 @@
     "/devtools/**",
     // Written by unoSheet() in examples/css/vite.config.ts when Vite starts, and gitignored,
     // so it is missing from a fresh checkout until a dev server or build runs.
-    "./uno.generated.css*"
+    "./uno.generated.css*",
+    // packages/lit-language-server/src/oxlint.ts starts its worker from the
+    // built dist/oxlint-worker.mjs beside it; the source is oxlint-worker.ts.
+    "./oxlint-worker.mjs"
   ],
   "workspaces": {
     "patterns": [
