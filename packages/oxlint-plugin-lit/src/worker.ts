@@ -5,7 +5,7 @@
 
 import {parentPort} from 'node:worker_threads';
 import {createChecker} from './check.js';
-import type {CheckMessage} from './oxlint.js';
+import type {CheckMessage} from './index.js';
 
 const checker = createChecker();
 

@@ -41,3 +41,4 @@ lit-devtools-snapshot/
 
 # Built by vp pack in the package.
 /packages/lit-language-server/dist/
+/packages/oxlint-plugin-lit/dist/

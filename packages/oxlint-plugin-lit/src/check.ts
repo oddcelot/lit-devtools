@@ -1,6 +1,6 @@
 /**
- * The problems in files read from disk, as the server reports them for open
- * documents: what the lint plugin's worker answers with. It keeps one
+ * The problems in files read from disk, as the language server reports them
+ * for open documents: what the plugin's worker answers with. It keeps one
  * workspace per workspace root, read when a file in it is first checked.
  */
 
@@ -13,8 +13,12 @@ import {
   type Workspace,
   createWorkspace,
 } from '../../../src/lib/editor/workspace.js';
-import {forgetCss} from './css.js';
-import {cssTagsFor, docsSourceFor, documentProblems} from './documents.js';
+import {forgetCss} from '../../lit-language-server/src/css.js';
+import {
+  cssTagsFor,
+  docsSourceFor,
+  documentProblems,
+} from '../../lit-language-server/src/documents.js';
 
 export type {Problem};
 
