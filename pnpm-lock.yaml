@@ -564,6 +564,48 @@ importers:
         specifier: 'catalog:'
         version: 1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(@vitest/coverage-v8@5.0.1)(@vitest/ui@5.0.1)(esbuild@0.28.2)(happy-dom@20.14.5)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
 
+  packages/lit-devtools:
+    dependencies:
+      '@devframes/agentic':
+        specifier: ^1.0.0
+        version: 1.1.0(crossws@0.4.12(srvx@1.0.5))(devframe@1.1.0)
+      '@lit-labs/ssr':
+        specifier: ^4.1.0
+        version: 4.1.0(@types/node@26.6.3)
+      '@lit-labs/ssr-client':
+        specifier: ^1.1.8
+        version: 1.1.8
+      '@oddsquad/lit-language-server':
+        specifier: workspace:^
+        version: link:../lit-language-server
+      '@oddsquad/oxlint-plugin-lit':
+        specifier: workspace:^
+        version: link:../oxlint-plugin-lit
+      '@oddsquad/vite-plugin-lit':
+        specifier: workspace:^
+        version: link:../..
+      '@vitejs/devtools-kit':
+        specifier: ^0.7.5
+        version: 0.7.6(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(crossws@0.4.12(srvx@1.0.5))(srvx@1.0.5)
+      astro:
+        specifier: ^7.3.0
+        version: 7.3.5(@azure/identity@4.14.0(supports-color@10.2.2))(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)
+      cac:
+        specifier: ^7.0.0
+        version: 7.0.0
+      lightningcss:
+        specifier: ^1.30.0
+        version: 1.33.0
+      lit:
+        specifier: ^3.0.0
+        version: 3.3.3
+      unocss:
+        specifier: ^66.0.0
+        version: 66.10.5(@devframes/agentic@1.1.0)(@voidzero-dev/vite-plus-core@1.0.0)(cac@7.0.0)(rolldown@1.2.11)(srvx@1.0.5)
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@1.0.0
+        version: '@voidzero-dev/vite-plus-core@1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)'
+
   packages/lit-language-server:
     dependencies:
       '@vscode/web-custom-data':

@@ -81,7 +81,8 @@
     },
     "./client": {
       "types": "./client.d.ts"
-    }
+    },
+    "./bin": "./bin.mjs"
   },
   "repository": {
     "type": "git",
