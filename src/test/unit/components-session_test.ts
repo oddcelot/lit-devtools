@@ -92,6 +92,49 @@ describe('connecting', () => {
   });
 });
 
+describe('expanding all', () => {
+  const expanding = () =>
+    new ComponentsSession({send: () => {}}, {expandAll: true});
+
+  test('opens every node with children, and only with expandAll', () => {
+    const session = expanding();
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    expect([...session.expanded]).toEqual([1, 2]);
+
+    const {session: plain} = setup();
+    plain.connected({roots: tree, hmrIncompatibilities: []});
+    expect(plain.expanded.size).toBe(0);
+  });
+
+  test('keeps a node the user closed closed, and opens one that gains children', () => {
+    const session = expanding();
+    session.connected({roots: tree, hmrIncompatibilities: []});
+    session.toggleExpand(2);
+    // <x-item id=3> gains a child of its own.
+    const grown: InspectorTreeNode[] = [
+      {
+        id: 1,
+        tagName: 'x-app',
+        children: [
+          {
+            id: 2,
+            tagName: 'x-list',
+            children: [
+              {
+                id: 3,
+                tagName: 'x-item',
+                children: [{id: 4, tagName: 'x-icon', children: []}],
+              },
+            ],
+          },
+        ],
+      },
+    ];
+    session.receive({type: 'tree', roots: grown});
+    expect([...session.expanded]).toEqual([1, 3]);
+  });
+});
+
 describe('selecting', () => {
   test('reveals the element, then asks for the tree, its details and a watch', () => {
     const {session, events, drain} = setup();

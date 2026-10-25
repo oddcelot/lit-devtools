@@ -33,7 +33,9 @@ interface Props {
 }
 
 const {path, title, file, startScript} = Astro.props;
-const live = liveDemoUrl(path);
+// The panel opens with its whole Components tree expanded.
+const demo = liveDemoUrl(path);
+const live = demo && `${demo}?expand=all`;
 
 const project = `https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/${path}`;
 const query = (extra: Record<string, string>) => {
@@ -197,7 +199,9 @@ const query = (extra: Record<string, string>) => {
         const scheme = document.documentElement.dataset.theme ?? 'dark';
         if (frame.dataset.scheme === scheme) return;
         frame.dataset.scheme = scheme;
-        frame.src = `${this.dataset.src}?scheme=${scheme}`;
+        const src = new URL(this.dataset.src ?? '', location.href);
+        src.searchParams.set('scheme', scheme);
+        frame.src = src.href;
       };
       whenNear(this, () => {
         load();

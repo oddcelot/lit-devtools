@@ -40,7 +40,7 @@ const path = app === 'cart' ? '/live-panel/showcase/' : '/live-panel/';
     for (const frame of frames) {
       if (frame.dataset.scheme === scheme) continue;
       frame.dataset.scheme = scheme;
-      frame.src = `${frame.dataset.path}?scheme=${scheme}#tab=${frame.dataset.tab}`;
+      frame.src = `${frame.dataset.path}?scheme=${scheme}&expand=all#tab=${frame.dataset.tab}`;
     }
   };
   load();

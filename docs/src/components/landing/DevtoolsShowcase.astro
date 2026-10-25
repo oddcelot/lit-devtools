@@ -124,11 +124,11 @@ const tabs = [
     const scheme = document.documentElement.dataset.theme ?? 'dark';
     if (live.dataset.scheme === scheme) return;
     live.dataset.scheme = scheme;
-    // Open on the second item, so the tree is expanded and its properties
-    // show. Ids are stable here, the cart being the page's only tree: 2 is
+    // Open with the whole tree expanded, on the second item, so its
+    // properties show. Ids are stable here, the cart being the page's only tree: 2 is
     // its second item. The panel holds the link until the cart's tree has it.
     // About is folded so the properties are in view without scrolling.
-    live.src = `${live.dataset.src}?scheme=${scheme}&collapse=About#tab=components&component=2`;
+    live.src = `${live.dataset.src}?scheme=${scheme}&collapse=About&expand=all#tab=components&component=2`;
   };
   whenNear(live, () => {
     load();

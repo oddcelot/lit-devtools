@@ -91,6 +91,7 @@ import {
 } from './details-diff.js';
 import {internalsRows} from './internals-rows.js';
 import {readCollapsed, writeCollapsed} from './collapsed-sections.js';
+import {treeStartsExpanded} from './tree-expansion.js';
 import {
   fullSourceTip,
   manifestModuleOf,
@@ -1645,16 +1646,19 @@ export class ComponentsView extends LitElement {
    * The live tree, the selection, the picker and the HMR notices, and the
    * rules that keep the page in step with them. This element renders it.
    */
-  private readonly _session = new ComponentsSession({
-    send: sendToPage,
-    // A selection is part of "where the panel is": the shell writes it
-    // into the URL, and a link that drops it would reopen the wrong view.
-    onSelect: (id) => this.location.select('components', id),
-    // Bring this tab to the front so the pick is visible. Bringing the dock
-    // itself forward is the host's job: the node side activates it when it
-    // forwards the pick (see lib/devframe/vite.ts).
-    onPicked: () => this.location.setTab('components'),
-  });
+  private readonly _session = new ComponentsSession(
+    {
+      send: sendToPage,
+      // A selection is part of "where the panel is": the shell writes it
+      // into the URL, and a link that drops it would reopen the wrong view.
+      onSelect: (id) => this.location.select('components', id),
+      // Bring this tab to the front so the pick is visible. Bringing the dock
+      // itself forward is the host's job: the node side activates it when it
+      // forwards the pick (see lib/devframe/vite.ts).
+      onPicked: () => this.location.setTab('components'),
+    },
+    {expandAll: treeStartsExpanded()}
+  );
 
   /** Where the panel is; the shell hands its own in. */
   @property({attribute: false}) location = new PanelLocation();
