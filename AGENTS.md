@@ -44,16 +44,17 @@ page`, not `feat: flash updates`. The body explains why the change exists, for a
 reader of the git history who wasn't here; the changelog entry is separate,
 below.
 
-Every non-merge commit carries a `Changelog:` trailer next to `Co-Authored-By`;
-the commit-msg hook refuses one without it. A commit that should show up in
-`CHANGELOG.md` folds its user-facing entry under the trailer, on lines indented
-by two spaces:
+Every non-merge commit carries one `Changelog:` trailer next to
+`Co-Authored-By`; the commit-msg hook refuses one without it. It names the
+kind of change and the part of Lit DevTools it changes, and a commit that
+should show up in a changelog folds its user-facing entry under it, on lines
+indented by two spaces:
 
 ```
-Changelog: Fixed        # or Added | Changed | Removed
+Changelog: Fixed panel  # kind: Added | Changed | Fixed | Removed
   **Source links open in the editor you chose.** Clicks from the panel and
   the in-page overlay now pass the editor picked in config, env or Settings.
-Changelog: skip         # tests, docs, tooling, refactors
+Changelog: skip         # tests, docs plumbing, tooling, refactors
 ```
 
 The entry is one bullet from the user's side: a bold outcome, then the symptom
@@ -61,66 +62,71 @@ that is gone or the thing now possible. `/changelog entry` drafts it from the
 staged diff. A trailer with nothing folded under it still lands in the draft,
 with the body as a placeholder to rewrite.
 
-The language server (`packages/lit-language-server`, published as
-`@oddsquad/lit-language-server`) has its own versions and its own
-`packages/lit-language-server/CHANGELOG.md`. A commit that changes what the
-server does, including the shared editor code under `src/lib/editor/`, adds a
-`Changelog-Language-Server:` trailer with its entry folded under it, next to
-the plugin's `Changelog:` (`skip` when the plugin's users won't notice):
+| Part              | What it covers                                       | Shared heading            |
+| ----------------- | ---------------------------------------------------- | ------------------------- |
+| `plugin`          | the Vite plugin: HMR, CSS, the manifest, the CLI     | Vite & Astro plugin       |
+| `astro`           | the Astro integration                                | Vite & Astro plugin       |
+| `panel`           | the DevTools panel, under Vite or standalone         | DevTools panel            |
+| `inspector`       | Lit Inspector, the browser extension                 | Lit Inspector             |
+| `language-server` | `packages/lit-language-server` and `src/lib/editor/` | Editors & language server |
+| `vscode`          | `packages/vscode`                                    | Editors & language server |
+| `zed`             | `packages/zed`                                       | Editors & language server |
+| `oxlint`          | `packages/oxlint-plugin-lit`                         | Lint rules                |
+| `docs`            | the docs site and the examples                       | Docs & examples           |
 
-```
-Changelog: skip
-Changelog-Language-Server: Fixed
-  **Hover shows inherited events.** An event a base class fires now appears
-  on the component that extends it.
-```
+A change to two parts that users meet separately, such as an editor fix that
+also changes what the lint rules report, is two commits or one entry under
+the part most users see.
 
-`pnpm run changelog:language-server` drafts its section, a release commit
-bumps `packages/lit-language-server/package.json` and writes that section, and
-a `lit-language-server-v<version>` tag publishes it through
-`.github/workflows/release-language-server.yaml`, which also creates its
-GitHub Release.
+`CHANGELOG.md` is the changelog of Lit DevTools: `@oddsquad/lit-devtools`
+and everything it installs, organised by the shared headings above.
+`pnpm run changelog` drafts its section from every part. The language
+server, the Oxlint plugin and the VS Code extension keep their own
+changelogs on their own versions, drafted from their parts:
+`pnpm run changelog:language-server` (`language-server`),
+`changelog:oxlint-plugin` (`oxlint`) and `changelog:vscode` (`vscode`, and
+`language-server`, since it bundles the server).
 
-The Oxlint plugin (`packages/oxlint-plugin-lit`, published as
-`@oddsquad/oxlint-plugin-lit`) works the same way on its own versions: it
-bundles the server's document code and the shared editor code, so a change
-to what its rules report adds a `Changelog-Oxlint-Plugin:` trailer, often
-next to `Changelog-Language-Server:`. `pnpm run changelog:oxlint-plugin`
-drafts its section in `packages/oxlint-plugin-lit/CHANGELOG.md`, and an
-`oxlint-plugin-lit-v<version>` tag publishes it through
-`.github/workflows/release-oxlint-plugin.yaml`.
-
-`@oddsquad/lit-devtools` (`packages/lit-devtools`) re-exports those three
-and depends on them with `workspace:^`, which pnpm turns into their current
-versions as it packs. Its own changelog tracks what it exports and which
-versions it installs, under a `Changelog-Lit-Devtools:` trailer
-(`pnpm run changelog:lit-devtools`). Release it after the parts it should
-pick up: a `lit-devtools-v<version>` tag runs
-`.github/workflows/release-lit-devtools.yaml`, which stops if a part isn't
-on npm at the version it names. A change that makes one of its parts load
-the others by package name breaks it under pnpm, which
+`@oddsquad/lit-devtools` (`packages/lit-devtools`) re-exports the plugin,
+the server and the Oxlint plugin, and releases with the plugin at its
+version: a release commit bumps both `package.json` files (a unit test keeps
+them equal), and `release.yaml` publishes the umbrella right after the
+plugin, with the shared `CHANGELOG.md` copied in as it packs. It depends on
+the server and the Oxlint plugin with `workspace:^`, which pnpm turns into
+their current versions as it packs, so release those first; the job stops
+if one isn't on npm. A change that makes one of its parts load the others by
+package name breaks it under pnpm, which
 `src/test/e2e/lit-devtools-umbrella_test.ts` catches.
 
+The server and the Oxlint plugin release on their own tags: a release commit
+bumps the package's `package.json` and writes its section, and a
+`lit-language-server-v<version>` or `oxlint-plugin-lit-v<version>` tag
+publishes it through `release-language-server.yaml` or
+`release-oxlint-plugin.yaml`, which also create its GitHub Release (a version
+already on npm, such as a first one published by hand, only gets the
+release).
+
 The editor extensions release on their own tags too. The VS Code extension
-(`packages/vscode`) keeps a hand-written `packages/vscode/CHANGELOG.md`; a
-release commit bumps its `package.json` and writes that section, and a
-`vscode-v<version>` tag runs `.github/workflows/release-vscode.yaml`, which
-packages one `.vsix` per platform, publishes them to the Marketplace and
-Open VSX, and creates the GitHub Release. It bundles the language server, so
-a server release that users should get needs an extension release as well.
-The Zed extension installs the server from npm, so it needs a release only
-when `packages/zed` changes: bump `packages/zed/extension.toml` and push a
-`zed-v<version>` tag, and `.github/workflows/release-zed.yaml` opens the
-update pull request to `zed-industries/extensions`. Both workflows say what
-they need set up in their headers.
+(`packages/vscode`): a release commit bumps its `package.json` and writes its
+`packages/vscode/CHANGELOG.md` section, and a `vscode-v<version>` tag runs
+`.github/workflows/release-vscode.yaml`, which packages one `.vsix` per
+platform, publishes them to the Marketplace and Open VSX, and creates the
+GitHub Release. It bundles the language server, so a server release that
+users should get needs an extension release as well. The Zed extension
+installs the server from npm, so it needs a release only when `packages/zed`
+changes: bump `packages/zed/extension.toml` and push a `zed-v<version>` tag,
+and `.github/workflows/release-zed.yaml` opens the update pull request to
+`zed-industries/extensions`. Both workflows say what they need set up in
+their headers.
 
 Work lands on a branch named for its kind (`feature/`, `fix/`, `docs/`) and
-merges with `--no-ff`. Release commits bump `package.json`, write the
-`CHANGELOG.md` section, and get a `v<version>` tag. Pushing that tag
-(`git push origin main --follow-tags`) is the release:
-`.github/workflows/release.yaml` runs the gate, publishes to npm over trusted
-publishing, and creates the GitHub Release from the changelog section. Don't
-`pnpm publish` by hand.
+merges with `--no-ff`. Release commits bump `package.json` and
+`packages/lit-devtools/package.json`, write the `CHANGELOG.md` section, and
+get a `v<version>` tag. Pushing that tag (`git push origin main --follow-tags`)
+is the release: `.github/workflows/release.yaml` runs the gate, publishes the
+plugin and then `@oddsquad/lit-devtools` to npm over trusted publishing, and
+creates the GitHub Release from the changelog section. Don't `pnpm publish`
+by hand.
 
 A release can carry a video: commit the render of its HyperFrames project as
 `assets/release-<version>/renders/video.mp4`. Committed before the tag, the
@@ -136,8 +142,8 @@ inline (`docs/scripts/sync-changelog.mjs`).
 
 At release time, `/changelog release v0.6.0` assembles the section: it runs
 the draft, rewrites any entry that fell back to a commit body, writes the
-intro paragraph, inserts the section into `CHANGELOG.md` and bumps
-`package.json`, then stops for review. The draft alone is
+intro paragraph, inserts the section into `CHANGELOG.md` and bumps both
+`package.json` files, then stops for review. The draft alone is
 
 ```sh
 pnpm run changelog                    # heading reads "Unreleased"

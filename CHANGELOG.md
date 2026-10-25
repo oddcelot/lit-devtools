@@ -1,7 +1,12 @@
 # Changelog
 
-Notable changes per release. Versions before 0.3.0 predate this file; see the
-git history for those.
+Notable changes per release of Lit DevTools: `@oddsquad/lit-devtools` and the
+Vite plugin, `@oddsquad/vite-plugin-lit`, which release together at one
+version, with the language server, the Oxlint rules, the editor extensions
+and Lit Inspector they come with. From 0.25.0 each release is organised by
+part. The language server, the Oxlint plugin and the VS Code extension also
+keep changelogs of their own versions. Versions before 0.3.0 predate this
+file; see the git history for those.
 
 ## 0.24.0 — 2026-10-25
 

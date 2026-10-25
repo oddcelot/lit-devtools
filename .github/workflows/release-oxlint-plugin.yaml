@@ -63,7 +63,18 @@ jobs:
       # package.json's `devEngines` would stop it.
       - run: pnpm pack --out "$RUNNER_TEMP/package.tgz"
         working-directory: packages/oxlint-plugin-lit
+      # A version published by hand (a package's first) is tagged afterwards
+      # only for its GitHub Release.
+      - name: Check whether this version is on npm already
+        id: published
+        run: |
+          version=$(node -p "require('./packages/oxlint-plugin-lit/package.json').version")
+          if npm view "@oddsquad/oxlint-plugin-lit@$version" version > /dev/null 2>&1; then
+            echo "::notice::@oddsquad/oxlint-plugin-lit@$version is on npm already; not publishing it again."
+            echo "already=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Publish
+        if: steps.published.outputs.already != 'true'
         working-directory: ${{ runner.temp }}
         run: |
           case "$GITHUB_REF_NAME" in

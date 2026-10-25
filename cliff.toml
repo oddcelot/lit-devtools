@@ -1,21 +1,33 @@
-# Draft generator for CHANGELOG.md.
+# Draft generator for CHANGELOG.md, the changelog of Lit DevTools: the
+# @oddsquad/lit-devtools package and everything it installs.
 #
 # The committed changelog is hand-written prose — no generator produces the
 # release intro paragraph, and that is the point. This config answers the
-# tedious half: what landed since the last tag, under which heading, and with
+# tedious half: what landed since the last tag, under which part, and with
 # which entry. Generate a draft (`pnpm run changelog`), then edit it into the
 # file.
 #
 # Subjects here are plain sentences, not `feat:`/`fix:` prefixes, so the
-# grouping signal is a trailer in the commit body instead. The trailer can
-# carry the user-facing entry, folded under it with indented continuation
-# lines (standard git trailer folding):
+# signal is a trailer in the commit body: the kind of change, the part it
+# belongs to, and the user-facing entry folded under it with indented
+# continuation lines (standard git trailer folding):
 #
-#     Changelog: Fixed
+#     Changelog: Fixed panel
 #       **Source links open in the editor you chose.** Clicks from the
 #       overlay now pass the editor picked in Settings.
 #
 #     Changelog: skip         (plan-status bumps, tooling churn, merges)
+#
+# Parts and the heading each lands under:
+#   plugin, astro                  Vite & Astro plugin
+#   panel                          DevTools panel
+#   inspector                      Lit Inspector (the browser extension)
+#   language-server, vscode, zed   Editors & language server
+#   oxlint                         Lint rules
+#   docs                           Docs & examples
+# A trailer without a part (every commit before 0.25.0) counts as `plugin`.
+# The language server's, the Oxlint plugin's and the VS Code extension's own
+# changelogs draft from their parts with their own configs.
 #
 # A trailer without an entry still works: the draft falls back to the subject
 # and body and marks the entry as needing a rewrite. See the commit
@@ -23,25 +35,31 @@
 
 [changelog]
 header = ""
+# Groups sort by name, so each carries its order in a comment that
+# `striptags` removes from the heading. Inside a part, bullets go by kind.
 body = """
 ## {{ version | default(value="Unreleased") | trim_start_matches(pat="v") }} — {% if timestamp %}{{ timestamp | date(format="%Y-%m-%d") }}{% else %}{{ now() | date(format="%Y-%m-%d") }}{% endif %}
 {% for group, commits in commits | group_by(attribute="group") %}
-### {{ group }}
-{% for commit in commits %}
+### {{ group | striptags | trim }}
+{% for kind in ["Added", "Changed", "Fixed", "Removed"] %}
+{%- for commit in commits %}
+{%- if commit.message is containing("Changelog-Entry: " ~ kind) or commit.message is containing("Changelog: " ~ kind) %}
 {%- set lines = commit.message | split(pat="\n") %}
 {%- set head = lines | first %}
 {%- if head is starting_with("Changelog-Entry") %}
-- {{ lines | slice(start=1) | join(sep=" ") | trim }}
+- **{{ kind }}** — {{ lines | slice(start=1) | join(sep=" ") | trim }}
 {%- else %}
-- **{{ head }}** <!-- no entry under the trailer; drafted from the body -->
+- **{{ kind }}** — **{{ head }}** <!-- no entry under the trailer; drafted from the body -->
 {%- for line in lines | slice(start=1) %}
 {%- if not line is starting_with("Changelog:") and not line is starting_with("Co-Authored-By:") %}
 {{ "  " ~ line | trim_end }}
 {%- endif %}
 {%- endfor %}
 {%- endif %}
-{% endfor %}
-{%- endfor %}"""
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+{% endfor %}"""
 trim = true
 
 [git]
@@ -51,26 +69,31 @@ filter_unconventional = false
 # Only commits that opted in with a trailer reach the draft. The commit-msg
 # hook makes sure every non-merge commit opted in one way or the other.
 filter_commits = true
-# Anchored: the language server's `lit-language-server-v*` tags are not
-# plugin releases.
+# Anchored: the language server's, the Oxlint plugin's and the editors' own
+# tags (`lit-language-server-v*`, `vscode-v*`, …) are not these releases.
 tag_pattern = "^v[0-9]"
 commit_preprocessors = [
-  # A folded trailer: keep only the group and its entry lines, so the template
-  # can tell an authored entry from a body it has to fall back on. The
-  # trailer sits in the trailer block, usually right under Co-Authored-By,
-  # so it is found at the start of any line, not only after a blank one.
-  #   "Subject\n\nbody\n\nCo-Authored-By: …\nChangelog: Fixed\n  **Entry.** text"
-  #   -> "Changelog-Entry: Fixed\n**Entry.** text"
-  { pattern = '(?s)^.*?\nChangelog: ?(\w+)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
+  # A folded trailer: keep only its kind, part and entry lines, so the
+  # template can tell an authored entry from a body it has to fall back on.
+  # The trailer sits in the trailer block, usually right under
+  # Co-Authored-By, so it is found at the start of any line.
+  #   "Subject\n\nbody\n\nChangelog: Fixed panel\n  **Entry.** text"
+  #   -> "Changelog-Entry: Fixed panel\n**Entry.** text"
+  { pattern = '(?s)^.*?\nChangelog: ?(\w+( [\w-]+)?)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${3}" },
   { pattern = '(?m)^[ \t]+', replace = "" },
 ]
-# Features land as `--no-ff` merges; the merge itself carries no prose.
+# Features land as `--no-ff` merges; the merge itself carries no prose. The
+# first parser that matches wins, so the parts come before the fallback
+# that sends a trailer without a part to the plugin.
 commit_parsers = [
   # `body` matchers need conventional parsing to populate them; with prose
   # subjects the whole message (trailers included) lands in `message`.
   { message = "(?ms)^Changelog(-Entry)?: ?skip", skip = true },
-  { message = "(?ms)^Changelog(-Entry)?: ?Added", group = "Added" },
-  { message = "(?ms)^Changelog(-Entry)?: ?Changed", group = "Changed" },
-  { message = "(?ms)^Changelog(-Entry)?: ?Fixed", group = "Fixed" },
-  { message = "(?ms)^Changelog(-Entry)?: ?Removed", group = "Removed" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ (plugin|astro)$", group = "<!-- 1 -->Vite & Astro plugin" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ panel$", group = "<!-- 2 -->DevTools panel" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ inspector$", group = "<!-- 3 -->Lit Inspector" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ (language-server|vscode|zed)$", group = "<!-- 4 -->Editors & language server" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ oxlint$", group = "<!-- 5 -->Lint rules" },
+  { message = "(?ms)^Changelog(-Entry)?: ?\\w+ docs$", group = "<!-- 6 -->Docs & examples" },
+  { message = "(?ms)^Changelog(-Entry)?: ?(Added|Changed|Fixed|Removed)$", group = "<!-- 1 -->Vite & Astro plugin" },
 ]
