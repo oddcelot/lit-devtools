@@ -3,16 +3,9 @@
  * message's port, then wakes the waiting rule through its signal.
  */
 
-import {type MessagePort, parentPort} from 'node:worker_threads';
+import {parentPort} from 'node:worker_threads';
 import {createChecker} from './check.js';
-
-export interface CheckMessage {
-  file: string;
-  code: string;
-  port: MessagePort;
-  /** Set to 1 and notified once the answer is on the port. */
-  signal: Int32Array;
-}
+import type {CheckMessage} from './oxlint.js';
 
 const checker = createChecker();
 

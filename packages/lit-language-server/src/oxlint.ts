@@ -2,11 +2,11 @@
  * An Oxlint plugin reporting what the language server reports,
  * so a lint run fails on the problems the editor shows:
  *
- * ```json
- * {
- *   "jsPlugins": ["@oddsquad/lit-language-server/oxlint"],
- *   "rules": {"lit/event-type": "error", "lit/css": "warn"}
- * }
+ * ```ts
+ * import {defineConfig} from 'oxlint';
+ * import {recommended} from '@oddsquad/lit-language-server/oxlint';
+ *
+ * export default defineConfig({extends: [recommended]});
  * ```
  *
  * Lint rules are synchronous and the workspace is read asynchronously, so a
@@ -14,17 +14,29 @@
  * are on.
  */
 
+import {fileURLToPath} from 'node:url';
 import {
   MessageChannel,
+  type MessagePort,
   Worker,
   receiveMessageOnPort,
 } from 'node:worker_threads';
 import {
+  DEFAULT_SEVERITIES,
   DIAGNOSTIC_RULES,
   type DiagnosticRule,
+  type Severity,
 } from '../../../src/lib/editor/config.js';
-import type {Problem} from './check.js';
-import type {CheckMessage} from './oxlint-worker.js';
+import type {Problem} from '../../../src/lib/editor/diagnostics.js';
+
+/** What the plugin sends its worker (`oxlint-worker.ts`) for each file. */
+export interface CheckMessage {
+  file: string;
+  code: string;
+  port: MessagePort;
+  /** Set to 1 and notified once the answer is on the port. */
+  signal: Int32Array;
+}
 
 /** How long one file may take, which includes reading the workspace. */
 const TIMEOUT_MS = 120_000;
@@ -133,3 +145,32 @@ const plugin = {
 };
 
 export default plugin;
+
+/** An Oxlint config: the plugin, and its rules at their editor severities. */
+export interface LitOxlintConfig {
+  jsPlugins: string[];
+  rules: Record<`lit/${DiagnosticRule}`, 'error' | 'warn' | 'off'>;
+}
+
+const LINT_SEVERITY: Record<Severity, 'error' | 'warn' | 'off'> = {
+  error: 'error',
+  warning: 'warn',
+  info: 'warn',
+  hint: 'warn',
+  off: 'off',
+};
+
+/**
+ * The plugin with each rule at the severity the editor gives it, for
+ * `extends` in an `oxlint.config.ts`. It names this file by path, so it loads
+ * wherever the package is installed.
+ */
+export const recommended: LitOxlintConfig = {
+  jsPlugins: [fileURLToPath(import.meta.url)],
+  rules: Object.fromEntries(
+    DIAGNOSTIC_RULES.map((rule) => [
+      `lit/${rule}`,
+      LINT_SEVERITY[DEFAULT_SEVERITIES[rule]],
+    ])
+  ) as LitOxlintConfig['rules'],
+};
