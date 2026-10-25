@@ -23,8 +23,12 @@ name: Release VS Code extension
 #   https://open-vsx.org/user-settings/trusted-publishers; then set the
 #   `stores` environment's variable OPEN_VSX to `true`.
 #
-# A store that isn't set up is skipped with a notice, so a release can go
-# out to one before the other exists.
+# Both stores register a trusted publisher per extension, once it exists, so
+# the first version goes up by hand: `vsce publish --packagePath` with a PAT
+# or the publisher page's upload on the Marketplace, `ovsx publish
+# --packagePath -p <token>` on Open VSX (a namespace has to be claimed
+# before its extensions are active). A store that isn't set up is skipped
+# with a notice, so a release can go out to one before the other exists.
 
 on:
   push:
