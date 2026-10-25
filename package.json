@@ -99,6 +99,7 @@
     "coverage": "vp test run --project unit --project dom --coverage",
     "test:e2e": "pnpm run build && pnpm run build:extension && vp test run --project e2e",
     "changelog": "git-cliff --unreleased",
+    "changelog:language-server": "git-cliff --config packages/lit-language-server/cliff.toml --unreleased",
     "fallow": "fallow",
     "fallow:check": "fallow --health-baseline fallow-baselines/health.json",
     "fallow:coverage": "pnpm run coverage && fallow health --coverage .fallow/coverage",

@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`).
+description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Covers the plugin and the language server, which keeps its own changelog. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`, `/changelog release lit-language-server-v0.2.0`).
 ---
 
 # Changelog
@@ -24,6 +24,20 @@ Changelog: Fixed
   **Source links open in the editor you chose.** Clicks from the panel and
   the in-page overlay now pass the editor picked in config, env or Settings,
   so picking Cursor no longer opens VS Code.
+```
+
+When the change also alters what the language server does
+(`packages/lit-language-server`, or the editor code in `src/lib/editor/` it
+bundles), add its own entry under `Changelog-Language-Server:`, written for
+someone using the server in their editor. Its groups are the same, without
+`skip`; leave the trailer out when the server is untouched. A change only the
+server's users notice gets `Changelog: skip` for the plugin:
+
+```
+Changelog: skip
+Changelog-Language-Server: Fixed
+  **Hover shows inherited events.** An event a base class fires now appears
+  on the component that extends it.
 ```
 
 Rules for the entry:
@@ -69,3 +83,13 @@ that stays with the person.
 
 If the draft is empty, say so and stop: either HEAD is already tagged or every
 commit since the tag was `skip`.
+
+## `/changelog release lit-language-server-vX.Y.Z`
+
+The same steps for the language server's own changelog, with its own files:
+`pnpm run changelog:language-server --tag lit-language-server-vX.Y.Z` for
+the draft, `packages/lit-language-server/CHANGELOG.md` for the section
+(heading `## X.Y.Z — YYYY-MM-DD`), and the `version` in
+`packages/lit-language-server/package.json`. The release commit's subject is
+`Release the language server X.Y.Z`; the tag that publishes it is
+`lit-language-server-vX.Y.Z`.

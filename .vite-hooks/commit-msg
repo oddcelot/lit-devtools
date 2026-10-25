@@ -4,6 +4,15 @@
 f="$1"
 grep -qE '^Merge ' "$f" && exit 0
 group=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog: *//p' | head -1 | cut -d' ' -f1)
+# A change to the language server also carries `Changelog-Language-Server:`,
+# for packages/lit-language-server/CHANGELOG.md.
+server=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog-Language-Server: *//p' | head -1 | cut -d' ' -f1)
+case "$server" in
+  ""|Added|Changed|Fixed|Removed) ;;
+  *)
+    echo "commit-msg: unknown Changelog-Language-Server group '$server' (Added | Changed | Fixed | Removed)"
+    exit 1 ;;
+esac
 case "$group" in
   Added|Changed|Fixed|Removed|skip) exit 0 ;;
   "")

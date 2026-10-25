@@ -1,8 +1,9 @@
 name: Release language server
 
 # A `lit-language-server-v*` tag publishes packages/lit-language-server to
-# npm as @oddsquad/lit-language-server, on its own version: the plugin's `v*`
-# tags and release.yaml don't touch it.
+# npm as @oddsquad/lit-language-server, on its own version, and creates the
+# GitHub Release from that version's section of its own CHANGELOG.md: the
+# plugin's `v*` tags and release.yaml don't touch it.
 #
 #   git tag lit-language-server-v0.1.1 && git push origin lit-language-server-v0.1.1
 #
@@ -47,6 +48,8 @@ jobs:
             echo "::error::tag $GITHUB_REF_NAME does not match packages/lit-language-server version $version"
             exit 1
           fi
+      - name: Check its CHANGELOG.md has a section for it
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/lit-language-server/CHANGELOG.md > /dev/null
       # The same gate as ci.yaml's check job: the server bundles the editor
       # code in src/lib, which the root's checks and unit tests cover.
       - run: pnpm run build
@@ -67,3 +70,27 @@ jobs:
             lit-language-server-v*-*) npm publish package.tgz --access public --tag next ;;
             *) npm publish package.tgz --access public ;;
           esac
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/lit-language-server/CHANGELOG.md > notes.md
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          case "$GITHUB_REF_NAME" in lit-language-server-v*-*) prerelease=(--prerelease) ;; esac
+          # Not --latest: "latest" stays the plugin's release.
+          gh release create "$GITHUB_REF_NAME" --verify-tag --latest=false \
+            --title "Language server ${GITHUB_REF_NAME#lit-language-server-v}" \
+            --notes-file notes.md "${prerelease[@]}"
