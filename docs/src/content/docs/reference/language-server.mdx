@@ -233,24 +233,27 @@ and `missing-import` are read and validated but not acted on yet.
 
 ## Oxlint plugin
 
-`@oddsquad/lit-language-server/oxlint` reports the same problems in a lint
-run, one rule per problem kind, named `lit/<rule>`:
+`@oddsquad/oxlint-plugin-lit` reports the same problems in a lint run, one
+rule per problem kind, named `lit-devtools/<rule>` so they don't clash with
+eslint-plugin-lit's `lit/` rules:
 
-| Rule             | Reports                                         |
-| ---------------- | ----------------------------------------------- |
-| `lit/event-type` | A handler whose parameter doesn't fit its event |
-| `lit/css`        | A problem in a `css` template                   |
+| Rule                      | Reports                                         |
+| ------------------------- | ----------------------------------------------- |
+| `lit-devtools/event-type` | A handler whose parameter doesn't fit its event |
+| `lit-devtools/css`        | A problem in a `css` template                   |
 
-It also exports `recommended`, a config for `extends` in `oxlint.config.ts`
-or in Vite+'s `lint`: the plugin, with each rule at its default severity from
-the table above (`warning` becomes `warn`). Without it, the rules are off
-until turned on in Oxlint's `rules`. Either way Oxlint's config sets their
-severity; the `diagnostics` setting applies to the editor only. The other
-settings are read as above. `// oxlint-disable` comments silence them. The
-plugin also registers `lit/unknown-element`, `lit/unknown-attribute`,
-`lit/unknown-binding`, `lit/invalid-value` and `lit/missing-import`, which
-report nothing yet; `recommended` already turns on the ones the editor does.
-It reads JavaScript and TypeScript files only.
+Its default export has `configs.recommended`, a config for `extends` in
+`oxlint.config.ts` or in Vite+'s `lint`: the plugin, with each rule at its
+default severity from the table above (`warning` becomes `warn`). Without
+it, the rules are off until turned on in Oxlint's `rules`. Either way
+Oxlint's config sets their severity; the `diagnostics` setting applies to
+the editor only. The other settings are read as above. `// oxlint-disable`
+comments silence them. The plugin also registers
+`lit-devtools/unknown-element`, `lit-devtools/unknown-attribute`,
+`lit-devtools/unknown-binding`, `lit-devtools/invalid-value` and
+`lit-devtools/missing-import`, which report nothing yet; `recommended`
+already turns on the ones the editor does. It reads JavaScript and
+TypeScript files only.
 [Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint)
 sets it up.
 
