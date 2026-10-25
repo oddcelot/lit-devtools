@@ -5,9 +5,9 @@
  * stylesheet, so they have to be injected into the head from here — Starlight
  * owns that element, and `components.Head` is the seam it offers.
  *
- * Lilex, the code font, is not preloaded: it only appears once a code block
- * or an inline `code` scrolls into view. Body text is the system sans and
- * loads nothing.
+ * Lilex, the code font, is preloaded: it sets the headings, the sidebar and
+ * the table of contents, so every page shows it above the fold. Body text is
+ * the system sans and loads nothing.
  *
  * The changelog pages also get the video player: their release videos come
  * from CHANGELOG.md as markup (docs/scripts/sync-changelog.mjs), with no
@@ -29,6 +29,6 @@ const changelog = Astro.url.pathname.includes('/reference/changelog/');
 <Default />
 <SiteIcons />
 <WaScheme />
-<Font cssVariable="--font-lilex" />
+<Font cssVariable="--font-lilex" preload />
 {changelog && <VideoPlayerScript />}
 <WebMcpTools />

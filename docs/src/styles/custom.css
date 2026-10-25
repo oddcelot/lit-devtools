@@ -28,13 +28,26 @@
   --wa-font-family-code: var(--sl-font-mono);
 }
 
+/* Headings and the menus around the page (site title, sidebar, table of
+   contents) in Lilex, the code font; running text stays in the sans. */
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
+.hero h1,
+.content-panel h1,
+.site-title,
+.sidebar-content,
+starlight-toc,
+mobile-starlight-toc {
+  font-family: var(--sl-font-mono);
+}
+
 /* The design system runs extrabold with tight tracking at display sizes and
-   semibold below that. Starlight has no token for either, so set them here. */
+   semibold below that. Starlight has no token for either, so set them here.
+   Lilex tops out at bold and is monospaced, so display headings take 700
+   and keep their natural spacing. */
 .sl-markdown-content :is(h1, h2),
 .hero h1,
 .content-panel h1 {
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
 .sl-markdown-content :is(h3, h4, h5, h6) {

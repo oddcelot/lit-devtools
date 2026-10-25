@@ -109,7 +109,7 @@ export default defineConfig({
       name: 'Lilex',
       cssVariable: '--font-lilex',
       provider: fontProviders.fontsource(),
-      // Variable too; code is mostly 400, with bold for emphasis.
+      // Variable too; code is mostly 400, headings 600–700.
       weights: ['400 700'],
       styles: ['normal'],
       subsets: ['latin'],
