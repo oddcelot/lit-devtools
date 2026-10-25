@@ -8,6 +8,7 @@
  * so a component inherits from a base class in another workspace package.
  */
 
+import {readdir} from 'node:fs/promises';
 import type {ComponentDocs} from '../../types/component-docs.js';
 import {
   type ImportResolver,
@@ -57,6 +58,17 @@ export interface Workspace {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   /** The tags of every component read from source. */
   sourceTags(): string[];
+  /**
+   * The class that declares `tagName` in source, then the classes and mixins
+   * it inherits from in source, nearest first; empty for a component known
+   * only from a manifest.
+   */
+  declarationsOf(tagName: string): {file: string; name: string}[];
+  /**
+   * The files whose markup can use a component: every script read from
+   * source, and the HTML files at each package's root.
+   */
+  markupFiles(): Promise<string[]>;
   /** The tags `file` can use: from source, then its package's manifests. */
   tags(file: string): Promise<string[]>;
   /**
@@ -155,6 +167,14 @@ export const createWorkspace = async (
   });
 };
 
+/** The HTML files directly in a package's folder, such as its `index.html`. */
+const htmlFilesIn = async (pkg: WorkspacePackage): Promise<string[]> => {
+  const names = await readdir(pkg.dir).catch(() => []);
+  return names
+    .filter((name) => name.endsWith('.html'))
+    .map((name) => `${pkg.dir}/${name}`);
+};
+
 const createWorkspaceView = (parts: {
   root: string;
   states: PackageState[];
@@ -196,6 +216,18 @@ const createWorkspaceView = (parts: {
       .modules()
       .flatMap(({module}) => module.classes.flatMap((cls) => cls.tagName ?? []))
       .sort();
+  const declarationsOf = (tagName: string) => {
+    for (const indexed of sources.modules()) {
+      const cls = indexed.module.classes.find((c) => c.tagName === tagName);
+      if (!cls) continue;
+      const ancestors = indexed
+        .ancestorsOf(cls)
+        .filter((ancestor) => ancestor.fromPackage === undefined)
+        .map((ancestor) => ({file: ancestor.id, name: ancestor.name}));
+      return [{file: indexed.id, name: cls.name}, ...ancestors];
+    }
+    return [];
+  };
   return {
     root: parts.root,
     packages,
@@ -207,6 +239,11 @@ const createWorkspaceView = (parts: {
       return pkg ? manifestsOf(pkg).get(tagName) : null;
     },
     sourceTags,
+    declarationsOf,
+    async markupFiles() {
+      const pages = await Promise.all(packages.map(htmlFilesIn));
+      return [...sources.modules().map(({id}) => id), ...pages.flat()];
+    },
     async tags(file) {
       const pkg = packageOf(packages, normalizePath(file));
       const fromManifests = pkg ? await manifestsOf(pkg).tags() : [];
