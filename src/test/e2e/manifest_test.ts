@@ -378,6 +378,11 @@ test('the dev server lists what src holds before any page loads it', async () =>
     server.watcher.on('error', (error) =>
       events.push(`error ${String(error)}`)
     );
+    server.watcher.on('raw', (event, file, details) =>
+      events.push(
+        `raw ${event} ${String(file)} ${JSON.stringify(details).slice(0, 120)}`
+      )
+    );
     // Inherited members resolve through the dev server's own resolver.
     await fsp.writeFile(
       joinPath(root, 'src/x-b.ts'),
