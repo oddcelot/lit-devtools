@@ -113,10 +113,12 @@ jobs:
       - run: pnpm install --frozen-lockfile
       # pnpm writes the server's and the Oxlint plugin's current versions
       # into its dependencies as it packs; they release on their own tags.
+      # Outside the checkout, where package.json's `devEngines` would stop npm.
       - name: Check its parts are on npm at the versions it names
+        working-directory: ${{ runner.temp }}
         run: |
           for dir in . packages/lit-language-server packages/oxlint-plugin-lit; do
-            spec=$(node -p "const p = require('./$dir/package.json'); p.name + '@' + p.version")
+            spec=$(node -p "const p = require('$GITHUB_WORKSPACE/$dir/package.json'); p.name + '@' + p.version")
             if ! npm view "$spec" version > /dev/null 2>&1; then
               echo "::error::$spec isn't on npm; release it first"
               exit 1
