@@ -178,6 +178,23 @@ describe('litPlugin feature gating', () => {
     expect(text(tagsOf(plugins))).toContain('initSourceOverlay');
   });
 
+  test('the CSS helpers resolve to one copy, through either package', async () => {
+    const plugins = await run({});
+    const hmr = plugins.find((p) => p.name === 'lit-plugin')!;
+    const resolve = (id: string) => (hmr.resolveId as Hook).call({}, id);
+    expect(resolve('@oddsquad/vite-plugin-lit/css.js')).toMatch(/css\.[jt]s$/);
+    expect(resolve('@oddsquad/lit-devtools/css')).toBe(
+      resolve('@oddsquad/vite-plugin-lit/css.js')
+    );
+    const config = (hmr.config as Hook)() as {
+      optimizeDeps: {exclude: string[]};
+    };
+    expect(config.optimizeDeps.exclude).toEqual([
+      '@oddsquad/vite-plugin-lit',
+      '@oddsquad/lit-devtools',
+    ]);
+  });
+
   test('HMR off removes its virtual modules and private-field rewrite', async () => {
     const plugins = await run({hmr: false, timeline: false});
     const hmr = plugins.find((p) => p.name === 'lit-plugin')!;
