@@ -82,4 +82,11 @@ jobs:
       # instances; past the runner's 128 a new file watcher sets up without
       # error but never hears a change.
       - run: sudo sysctl -w fs.inotify.max_user_instances=1024 fs.inotify.max_user_watches=524288
+      # Experiment (vpl-fs9x): the dev scan test alone, and bare fs.watch.
+      - if: matrix.shard == 1
+        continue-on-error: true
+        run: |
+          node scripts/ci-watch-probe.mjs
+          pnpm run build
+          pnpm exec vp test run --project e2e src/test/e2e/manifest_test.ts -t "lists what src holds"
       - run: pnpm run test:e2e --shard=${{ matrix.shard }}/3
