@@ -199,6 +199,7 @@ export default defineConfig({
             },
             'guides/ecosystem',
             'guides/manifest',
+            'guides/language-server',
             'guides/astro',
             'guides/source-overlay',
             'guides/troubleshooting',

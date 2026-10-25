@@ -1,0 +1,218 @@
+---
+title: Language server
+description: 'What the Lit language server completes, shows on hover and reports in templates, HTML files and css templates, with its settings and rules.'
+sidebar:
+  badge:
+    text: Experimental
+    variant: caution
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+
+The Lit language server reads your components from source, as you type, and
+your dependencies' Custom Elements Manifests, and answers in `html` and `svg`
+templates, in HTML files and in `css` templates.
+[Use the language server](/guides/language-server/) sets it up.
+
+It reads the same JSDoc the [manifest](/guides/manifest/) does, so this
+component is the example below:
+
+```ts title="src/x-button.ts"
+/**
+ * A button that submits the form it sits in.
+ *
+ * @fires submit-start - Before the form is sent.
+ * @cssprop [--x-button-gap=4px] - Space between icon and label.
+ * @csspart base - The native button.
+ */
+@customElement('x-button')
+export class XButton extends LitElement {
+  /** How much room the button takes. */
+  @property({reflect: true}) size: 'small' | 'large' = 'small';
+
+  /** Arbitrary data, never an attribute. */
+  @property({attribute: false}) data: Record<string, unknown> = {};
+
+  #submit() {
+    this.dispatchEvent(
+      new CustomEvent('submit-start', {detail: {size: this.size, at: 0}})
+    );
+  }
+}
+```
+
+## Completion
+
+In an `html` template, `‸` marking the cursor:
+
+| You type                    | It offers                                                                                   |
+| --------------------------- | ------------------------------------------------------------------------------------------- |
+| `<x-‸`                      | Your components, the tags of your dependencies' manifests, then HTML and SVG elements       |
+| `<x-button ‸`               | Its attributes not yet written, then the global ones (`id`, `class`, `slot`…)               |
+| `<x-button .‸`              | Its properties: `size`, `data`                                                              |
+| `<x-button ?‸`              | Its boolean attributes, then the global boolean ones (`hidden`, `inert`…)                   |
+| `<x-button @‸`              | Its events, then the events your other components fire, then DOM events (`click`, `input`…) |
+| `<x-button size="‸"`        | The values of a union of string literals: `small`, `large`                                  |
+| `<path stroke-linejoin="‸"` | Fixed values of HTML and SVG attributes: `miter`, `round`, `bevel`…                         |
+
+Events bubble, so `@` on any element offers the custom events any of your
+components fires. A parent can listen for its children's events:
+
+```ts
+html`<form @submit-start=${this.#onStart}>…</form>`;
+//          ^ offered: <x-button> fires it
+```
+
+In HTML files the server completes your components and their attributes,
+and leaves standard elements to the editor's own HTML support.
+
+## Hover
+
+| Over                                | It shows                                                                                                              |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| A component's tag                   | Its summary, description, attributes, properties, events, slots, parts and CSS properties                             |
+| An attribute or `.property`         | Its type, default, the attribute or property it maps to, where it's inherited from                                    |
+| An `@event`                         | Who fires it, and what a listener receives: `Event` `CustomEvent` · `detail` `{size: 'small' \| 'large'; at: number}` |
+| An HTML or SVG element or attribute | Its description and a link to MDN                                                                                     |
+| A property in a `css` template      | Its description and browser support                                                                                   |
+
+An event's type comes from the dispatch when no `@fires {Type}` names one:
+`CustomEvent<T>`'s type argument, else the shape of the `detail` object,
+each key typed by the field it reads or the literal it holds. What can't be
+told without a type checker is `unknown`.
+
+## Event handlers
+
+In a template TypeScript gives an inline handler's parameter no type, since
+nothing tells it which event the binding is for. The server knows, and helps
+until the type is written:
+
+```ts
+html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
+//                              ^^ inlay hint: CustomEvent<{size: 'small' | 'large'; at: number}>
+//                                            completion after ev.detail.: size, at
+```
+
+- **Inlay hint.** The event's type after the untyped parameter.
+- **Quick fix, "Add event type".** Writes it in, after which TypeScript
+  completes and checks the handler itself:
+  ```ts
+  html`<x-button
+    @submit-start=${(ev: CustomEvent<{size: 'small' | 'large'; at: number}>) => go(ev)}
+  ></x-button>`;
+  ```
+- **Completion.** After `ev.`: `detail` and what every event has
+  (`target`, `preventDefault`…); after `ev.detail.`: the keys of its shape.
+
+## Problems it reports
+
+### A handler that doesn't fit its event
+
+A handler whose parameter expects something the event doesn't send is an
+error, `event-type`. It checks method references and typed inline handlers:
+
+```ts
+class App extends LitElement {
+  render() {
+    return html`<x-button @submit-start=${this.#onStart}></x-button>`;
+    //                                    ^^^^^^^^^^^^^ `#onStart` takes `CustomEvent<{thing: string}>`,
+    //  but `submit-start` sends `CustomEvent<{size: 'small' | 'large'; at: number}>`: `detail.thing` is missing.
+  }
+
+  #onStart(e: CustomEvent<{thing: string}>) {}
+}
+```
+
+It reports a `detail` key the handler expects that the event doesn't send,
+and one primitive type where another is sent (`string` for `number`), nested
+keys included. Fewer keys than sent, optional keys, named types such as
+`CustomEvent<Item>`, unions and other event classes are never reported: a
+reported conflict is a real one.
+
+### CSS in css templates
+
+Unknown properties and invalid values in a `css` template are warnings, `css`.
+Lines with a `${…}` aren't checked, since the CSS around a hole is often
+incomplete on purpose.
+
+```ts
+static styles = css`
+  :host { colo: red; }
+  /*      ^^^^ Unknown property: 'colo' */
+  .gap { margin: ${unsafeCSS(gap)}; }
+  /* not checked */
+`;
+```
+
+### Settings
+
+A mistake in the settings, such as an unknown key or severity, is a warning on
+the first line of the file that holds it. So is a `lit-devtools.config.ts` that
+a Vite config overrides.
+
+## CSS templates
+
+In a `css` template the server answers with VS Code's CSS language service:
+properties, values, selectors and at-rules complete, and hover shows their
+docs. It adds what only your components' docs know:
+
+```ts
+static styles = css`
+  .row { gap: var(--x‸); }
+  /*            offered: --x-button-gap = 4px, from <x-button> */
+  x-button::part(‸) {}
+  /*             offered: base */
+`;
+```
+
+## Settings
+
+Set them in `litPlugin({languageServer})` in a Vite config, or as
+`languageServer` in a `lit-devtools.config.{ts,mts,js,mjs,json}` in a project
+without one. When both exist, the Vite config's settings win as a whole and
+the config file is reported as ignored.
+
+| Setting            | Default                                        | Meaning                                                           |
+| ------------------ | ---------------------------------------------- | ----------------------------------------------------------------- |
+| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package          |
+| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs    |
+| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards               |
+| `ignoreAttributes` | `[]`                                           | Attributes accepted on any element, with `*` wildcards            |
+| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off` |
+| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                              |
+| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                 |
+
+| Rule         | Default   | Reports                                         |
+| ------------ | --------- | ----------------------------------------------- |
+| `event-type` | `error`   | A handler whose parameter doesn't fit its event |
+| `css`        | `warning` | A problem in a `css` template                   |
+
+`ignoreTags`, `ignoreAttributes`, `manifests`, `entries` and the rules
+`unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
+and `missing-import` are read and validated but not acted on yet.
+
+## Where its knowledge comes from
+
+| Source                                            | For                                                             |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| Your sources, read live from open buffers         | Your components, in every package of the workspace              |
+| Your dependencies' Custom Elements Manifests      | Components from libraries, in the packages that depend on them  |
+| VS Code's HTML data                               | HTML elements, attributes, global attributes and DOM events     |
+| `svg-element-attributes`, plus short descriptions | SVG elements and attributes                                     |
+| TypeScript's DOM event maps                       | The interface each DOM event dispatches (`click`: `MouseEvent`) |
+| VS Code's CSS language service                    | CSS in `css` templates                                          |
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Use the language server"
+    description="Set it up in Zed, configure it, and use it in a monorepo."
+    href="/guides/language-server/"
+  />
+  <LinkCard
+    title="Publish a Custom Elements Manifest"
+    description="The JSDoc the server reads, written to custom-elements.json."
+    href="/guides/manifest/"
+  />
+</CardGrid>
