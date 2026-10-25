@@ -3,7 +3,7 @@
 The smallest app that shows what `@oddsquad/vite-plugin-lit` is for: one Lit
 component, edited while it runs, keeping everything you did to it.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/flame?file=src/lit-flame.ts)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/flame?file=src/lit-flame.ts)
 
 `<lit-flame>` draws the Lit logo and gives you three things to change:
 

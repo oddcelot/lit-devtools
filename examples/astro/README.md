@@ -10,7 +10,7 @@ pnpm dev
 ```
 
 Or open it on
-[StackBlitz](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/astro?file=src/components/ssr-counter.ts),
+[StackBlitz](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/astro?file=src/components/ssr-counter.ts),
 which installs the latest release of the plugin from npm.
 
 Click the Lit logo in the dev toolbar to open the panel; the first time, it

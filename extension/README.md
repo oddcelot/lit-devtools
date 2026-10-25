@@ -64,7 +64,7 @@ takes one to four dot-separated integers, so a prerelease version such as
 
 ## Install from a release
 
-Every [GitHub release](https://github.com/oddcelot/vite-plugin-lit/releases)
+Every [GitHub release](https://github.com/oddcelot/lit-devtools/releases)
 carries a `lit-inspector-<version>.zip`, for running a build the Chrome Web
 Store doesn't have yet without building from source:
 

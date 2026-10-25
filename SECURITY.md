@@ -8,7 +8,7 @@ before reporting, in case the problem is already gone.
 ## Reporting a vulnerability
 
 Report it privately through
-[GitHub's private vulnerability reporting](https://github.com/oddcelot/vite-plugin-lit/security/advisories/new),
+[GitHub's private vulnerability reporting](https://github.com/oddcelot/lit-devtools/security/advisories/new),
 not in a public issue. Say what an attacker can do, which versions and
 setups are affected, and how to reproduce it.
 

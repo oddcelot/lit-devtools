@@ -12,7 +12,7 @@ name: Release language server
 # made once the package exists, so its first version was published by hand:
 #
 #   npm trust github @oddsquad/lit-language-server \
-#     --file release-language-server.yaml --repo oddcelot/vite-plugin-lit --allow-publish
+#     --file release-language-server.yaml --repo oddcelot/lit-devtools --allow-publish
 #
 # An entry that hasn't published within 48 hours expires; make it right
 # before the first tag.

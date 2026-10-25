@@ -37,7 +37,7 @@ const {path, title, file, startScript} = Astro.props;
 const demo = liveDemoUrl(path);
 const live = demo && `${demo}?expand=all`;
 
-const project = `https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/${path}`;
+const project = `https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/${path}`;
 const query = (extra: Record<string, string>) => {
   const params = new URLSearchParams(extra);
   if (file !== undefined) params.set('file', file);

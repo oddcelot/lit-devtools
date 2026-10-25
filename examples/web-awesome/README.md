@@ -4,7 +4,7 @@ A Lit component built from [Web Awesome](https://webawesome.com) elements,
 edited while it runs. The plugin patches your component and leaves the
 library's elements alone, so what they hold survives the edit too.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/web-awesome?file=src/packing-list.ts)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/web-awesome?file=src/packing-list.ts)
 
 `<packing-list>` is a card with a progress bar, an input, a checklist and a
 switch, all `<wa-*>` elements:

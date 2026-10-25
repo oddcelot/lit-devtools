@@ -83,7 +83,7 @@ Lit Inspector collects no data. Its only network requests fetch an enabled site'
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with, endorsed by, or produced by Google, Mozilla or the Lit project.
 
-Source code and issues: https://github.com/oddcelot/vite-plugin-lit
+Source code and issues: https://github.com/oddcelot/lit-devtools
 ```
 
 **Categories**
@@ -100,7 +100,7 @@ Leave empty, or a contact address you keep.
 
 **Support website**
 
-https://github.com/oddcelot/vite-plugin-lit/issues
+https://github.com/oddcelot/lit-devtools/issues
 
 **License**
 

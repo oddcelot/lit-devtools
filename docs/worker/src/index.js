@@ -8,7 +8,7 @@
 const siteLinks = [
   '</llms.txt>; rel="describedby"; type="text/plain"',
   '</sitemap-index.xml>; rel="sitemap"; type="application/xml"',
-  '<https://github.com/oddcelot/vite-plugin-lit>; rel="code-repository"',
+  '<https://github.com/oddcelot/lit-devtools>; rel="code-repository"',
 ];
 
 function linkHeader(pathname) {

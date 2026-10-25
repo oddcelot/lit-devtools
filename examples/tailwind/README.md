@@ -4,7 +4,7 @@ A page whose components share Tailwind v4 utilities as one adopted
 `CSSStyleSheet`. Add a class to a component and the shared sheet swaps in
 place; shadows, rings and gradients render inside shadow roots.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/tailwind?file=src/tailwind.css)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/tailwind?file=src/tailwind.css)
 
 - **`tailwind.css`** imports Tailwind's theme and utilities, and sets one
   colour, `--color-brand`. `@tailwindcss/vite` fills in the utilities your

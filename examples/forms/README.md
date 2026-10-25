@@ -7,7 +7,7 @@ the form and follow a disabled `<fieldset>`. What each one is doing is
 exposed as custom states, which CSS reads with `:state()`. Every rule of the
 form is one [valibot](https://valibot.dev) schema.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/forms?file=src/feedback-schema.ts)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/forms?file=src/feedback-schema.ts)
 
 The files in `src/`:
 

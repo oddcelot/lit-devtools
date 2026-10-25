@@ -145,7 +145,7 @@ export default defineConfig({
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/oddcelot/vite-plugin-lit',
+          href: 'https://github.com/oddcelot/lit-devtools',
         },
         {
           icon: 'npm',
@@ -159,7 +159,7 @@ export default defineConfig({
         {tag: 'meta', attrs: {name: 'twitter:site', content: '@oddcelot'}},
       ],
       editLink: {
-        baseUrl: 'https://github.com/oddcelot/vite-plugin-lit/edit/main/docs/',
+        baseUrl: 'https://github.com/oddcelot/lit-devtools/edit/main/docs/',
       },
       lastUpdated: true,
       // Adds each page's generated Open Graph image to its head.

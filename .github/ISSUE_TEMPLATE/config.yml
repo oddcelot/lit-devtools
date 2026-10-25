@@ -1,11 +1,11 @@
 blank_issues_enabled: true
 contact_links:
   - name: Ask a question
-    url: https://github.com/oddcelot/vite-plugin-lit/discussions/categories/q-a
+    url: https://github.com/oddcelot/lit-devtools/discussions/categories/q-a
     about: Setup help and how-do-I questions go to Discussions.
   - name: Troubleshooting
     url: https://vite-plugin-lit.oddsquad.dev/guides/troubleshooting/
     about: Common causes for full reloads, lost state and patching failures.
   - name: Report a vulnerability
-    url: https://github.com/oddcelot/vite-plugin-lit/security/advisories/new
+    url: https://github.com/oddcelot/lit-devtools/security/advisories/new
     about: Please report security issues privately, not as an issue.

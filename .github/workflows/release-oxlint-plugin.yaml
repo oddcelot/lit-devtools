@@ -12,7 +12,7 @@ name: Release Oxlint plugin
 # made once the package exists, so publish its first version by hand:
 #
 #   npm trust github @oddsquad/oxlint-plugin-lit \
-#     --file release-oxlint-plugin.yaml --repo oddcelot/vite-plugin-lit --allow-publish
+#     --file release-oxlint-plugin.yaml --repo oddcelot/lit-devtools --allow-publish
 #
 # An entry that hasn't published within 48 hours expires; make it right
 # before the first tag.
