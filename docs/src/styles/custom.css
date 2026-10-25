@@ -272,7 +272,7 @@ video-player {
 /* ------------------------------------------------- Comparison tables ---- */
 
 /* A comparison table wrapped in <div class="ours-first"> lists
-   vite-plugin-lit in its first data column; a soft accent fill marks it. */
+   Lit DevTools in its first data column; a soft accent fill marks it. */
 .ours-first :is(th, td):nth-child(2) {
   background: var(--lit-accent-soft);
 }

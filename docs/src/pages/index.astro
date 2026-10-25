@@ -28,7 +28,7 @@ import changelog from '../../../CHANGELOG.md?raw';
 import {latestRelease} from '../lib/latest-release.mjs';
 import {phosphor, type IconName} from '../lib/phosphor';
 
-const title = 'vite-plugin-lit: edit a Lit component, keep the page';
+const title = 'Lit DevTools: edit a Lit component, keep the page';
 const description =
   'True HMR for Lit in Vite: edits patch the running page and keep its state. Shared shadow-root stylesheets and a DevTools panel for every re-render.';
 const release = latestRelease(changelog);
@@ -106,7 +106,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={home} />
-    <meta property="og:site_name" content="vite-plugin-lit" />
+    <meta property="og:site_name" content="Lit DevTools" />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -151,7 +151,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             Edit a Lit component.<br /><span class="shine">Keep the page.</span>
           </h1>
           <p class="lede">
-            vite-plugin-lit patches your components in place when you save. The
+            Lit DevTools patches your components in place when you save. The
             count, the half-typed input, the open menu and the scroll position
             all stay where they were. One line in your Vite config.
           </p>
@@ -166,7 +166,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
         <div class="wrap wide reveal">
           <DemoFrame
             src="/demo/hmr/"
-            title="HMR demo: the same component with and without vite-plugin-lit"
+            title="HMR demo: the same component with and without Lit DevTools"
             height="33rem"
             narrowHeight="51rem"
             caption="<strong>This is the plugin's own patcher, running in your browser.</strong> Click the counter, type in a box, then make an edit."
@@ -202,7 +202,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
         <div class="wrap wide reveal">
           <DemoFrame
             src="/demo/sheets/"
-            title="Stylesheet demo: saving theme.css with and without vite-plugin-lit"
+            title="Stylesheet demo: saving theme.css with and without Lit DevTools"
             height="31rem"
             narrowHeight="46rem"
             caption="<strong>Select some tiles in both panes, then save an edit.</strong> The plugin pane runs <code>replaceSync()</code> on the shared sheet, as the dev server does on save; the counts and the restyle time are measured on this page."
@@ -370,7 +370,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             width={1920}
             height={1080}
             autoplay={false}
-            label="The vite-plugin-lit promo: a tour inside the Lit DevTools panel, from HMR that keeps a counter at 42, through editing a prop in the panel, one stylesheet recolouring a thousand shadow roots, component docs, the Timeline explaining each update and the panel in Astro, to the litPlugin() setup line"
+            label="The Lit DevTools promo: a tour inside the Lit DevTools panel, from HMR that keeps a counter at 42, through editing a prop in the panel, one stylesheet recolouring a thousand shadow roots, component docs, the Timeline explaining each update and the panel in Astro, to the litPlugin() setup line"
           />
         </div>
       </section>
@@ -394,13 +394,13 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
       <div class="wrap footer-grid">
         <div>
           <a class="brand" href="/">
-            <img src={flame.src} alt="" width="18" height="23" /> vite-plugin-lit
+            <img src={flame.src} alt="" width="18" height="23" /> Lit DevTools
           </a>
           <p>True HMR, shared stylesheets and DevTools for Lit in Vite.</p>
         </div>
         <nav aria-label="Overview">
           <h2>Overview</h2>
-          <a href="/overview/why/">Why vite-plugin-lit</a>
+          <a href="/overview/why/">Why Lit DevTools</a>
           <a href="/overview/tour/">Feature tour</a>
           <a href="/overview/compare/">Compared to alternatives</a>
         </nav>

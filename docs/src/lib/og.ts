@@ -61,7 +61,7 @@ export function ogImageFor(routeId: string, title: string): OgImage {
   const version = changelogVersion(routeId);
   if (version !== undefined) {
     const poster = releasePoster(version);
-    const alt = `vite-plugin-lit ${version}`;
+    const alt = `Lit DevTools ${version}`;
     return poster
       ? {
           path: poster,
@@ -76,7 +76,7 @@ export function ogImageFor(routeId: string, title: string): OgImage {
       path: `og/${CHANGELOG_BASE}.png`,
       width: OG_WIDTH,
       height: OG_HEIGHT,
-      alt: 'vite-plugin-lit changelog',
+      alt: 'Lit DevTools changelog',
     };
   }
   return {

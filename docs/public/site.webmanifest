@@ -1,6 +1,6 @@
 {
-  "name": "vite-plugin-lit",
-  "short_name": "vite-plugin-lit",
+  "name": "Lit DevTools",
+  "short_name": "Lit DevTools",
   "description": "True HMR for Lit components in Vite, shared shadow-root stylesheets, and a DevTools panel.",
   "start_url": "/",
   "display": "browser",
