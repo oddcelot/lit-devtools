@@ -348,11 +348,16 @@ const devServer = async (
     logLevel: 'silent',
     configFile: false,
     server: {port: 0, strictPort: false, ws: false},
-    // Experiment (vpl-fs9x): no optimizer writing node_modules/.vite.
-    optimizeDeps: {noDiscovery: true, include: []},
     plugins: [litPlugin({manifest, timeline: false})],
   });
+  const started = Date.now();
+  const timeline: string[] = ['created 0'];
+  const at = (label: string) =>
+    timeline.push(`${label} ${Date.now() - started}`);
+  server.watcher.once('ready', () => at('ready'));
+  server.watcher.on('raw', (event, file) => at(`raw ${event} ${String(file)}`));
   await server.listen();
+  at('listening');
   const {port} = server.httpServer!.address() as {port: number};
   const served = async () =>
     declarations(
@@ -360,12 +365,12 @@ const devServer = async (
         await fetch(`http://localhost:${port}/custom-elements.json`)
       ).json()) as Record<string, unknown>
     );
-  return {server, served};
+  return {server, served, at, timeline};
 };
 
 test('the dev server lists what src holds before any page loads it', async () => {
   const root = await fixture();
-  const {server, served} = await devServer(root, true);
+  const {server, served, at, timeline} = await devServer(root, true);
   try {
     await expect.poll(served, {timeout: 5000}).toEqual([
       ['src/base.ts', ['Base']],
@@ -386,6 +391,7 @@ test('the dev server lists what src holds before any page loads it', async () =>
       )
     );
     // Inherited members resolve through the dev server's own resolver.
+    at('write x-b');
     await fsp.writeFile(
       joinPath(root, 'src/x-b.ts'),
       `import {Base} from './base.js';\nexport class XB extends Base {}\ncustomElements.define('x-b', XB);\n`
@@ -393,7 +399,12 @@ test('the dev server lists what src holds before any page loads it', async () =>
     await expect
       .poll(served, {timeout: 5000})
       .toContainEqual(['src/x-b.ts', ['XB']])
-      .catch((error: Error) => {
+      .catch(async (error: Error) => {
+        at('poll gave up; write x-c');
+        await fsp.writeFile(joinPath(root, 'src/x-c.ts'), 'export {};\n');
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        at('end');
+        error.message += `\ntimeline: ${JSON.stringify(timeline)}`;
         const watched = Object.keys(server.watcher.getWatched()).filter((dir) =>
           dir.includes(root)
         );
