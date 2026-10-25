@@ -24,4 +24,5 @@ sources as you type and from your dependencies' Custom Elements Manifests.
 - **Typed event handlers.** An inlay hint shows an untyped handler's event,
   and a quick fix writes it in.
 - **Works with nothing installed.** The extension ships the language server,
-  and runs the project's own copy instead when it installs one.
+  and runs the project's own copy instead when it installs one, directly or
+  through `@oddsquad/lit-devtools`.

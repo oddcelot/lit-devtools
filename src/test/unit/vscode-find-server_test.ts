@@ -34,6 +34,18 @@ describe('findServer', () => {
     });
   });
 
+  test('finds the server through an installed @oddsquad/lit-devtools', () => {
+    const dir = '/a/node_modules/@oddsquad/lit-devtools';
+    const readText = files({
+      [`${dir}/package.json`]: '{"name": "@oddsquad/lit-devtools"}',
+      [`${dir}/bin/lit-language-server.mjs`]: '',
+    });
+    expect(findServer({folders: ['/a'], bundled, readText})).toEqual({
+      path: `${dir}/bin/lit-language-server.mjs`,
+      source: 'project',
+    });
+  });
+
   test("finds the repo's own package once it's built", () => {
     const dir = '/repo/packages/lit-language-server';
     const unbuilt = files({[`${dir}/package.json`]: manifest});
