@@ -1,29 +1,36 @@
-# Every non-merge commit says whether it belongs in the changelog. Untrailed
-# commits are silently left out of the draft, which is how the 0.5.0 section
-# had to be reconstructed by hand. See "Commits and the changelog" in AGENTS.md.
+# Every non-merge commit says whether it belongs in the changelog, and which
+# part of Lit DevTools it changes. Untrailed commits are silently left out of
+# the draft, which is how the 0.5.0 section had to be reconstructed by hand.
+# See "Commits and the changelog" in AGENTS.md.
 f="$1"
 grep -qE '^Merge ' "$f" && exit 0
-group=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog: *//p' | head -1 | cut -d' ' -f1)
-# A change to the language server, the Oxlint plugin or @oddsquad/lit-devtools
-# also carries its own trailer, `Changelog-Language-Server:`,
-# `Changelog-Oxlint-Plugin:` or `Changelog-Lit-Devtools:`, for that package's
-# CHANGELOG.md.
-for trailer in Changelog-Language-Server Changelog-Oxlint-Plugin Changelog-Lit-Devtools; do
-  value=$(git interpret-trailers --parse < "$f" | sed -n "s/^$trailer: *//p" | head -1 | cut -d' ' -f1)
-  case "$value" in
-    ""|Added|Changed|Fixed|Removed) ;;
-    *)
-      echo "commit-msg: unknown $trailer group '$value' (Added | Changed | Fixed | Removed)"
-      exit 1 ;;
-  esac
-done
-case "$group" in
-  Added|Changed|Fixed|Removed|skip) exit 0 ;;
+PARTS='plugin | astro | panel | inspector | language-server | vscode | zed | oxlint | docs'
+# `--parse` unfolds the entry onto the trailer's line, after the kind and part.
+value=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog: *//p' | head -1)
+kind=$(echo "$value" | cut -d' ' -f1)
+part=$(echo "$value" | cut -d' ' -f2)
+# The package trailers before 0.25.0 are a part now.
+if git interpret-trailers --parse < "$f" | grep -qE '^Changelog-(Language-Server|Oxlint-Plugin|Lit-Devtools):'; then
+  echo "commit-msg: name the part in the one Changelog trailer instead,"
+  echo "            e.g. 'Changelog: Fixed language-server' or 'Changelog: Fixed oxlint'"
+  exit 1
+fi
+case "$kind" in
+  skip) exit 0 ;;
+  Added|Changed|Fixed|Removed) ;;
   "")
-    echo "commit-msg: add a 'Changelog: Added | Changed | Fixed | Removed | skip' trailer"
-    echo "            (fold the user-facing entry under it on indented lines)"
+    echo "commit-msg: add a 'Changelog: <Added | Changed | Fixed | Removed> <part>' trailer,"
+    echo "            or 'Changelog: skip' (fold the user-facing entry under it on"
+    echo "            indented lines); parts: $PARTS"
     exit 1 ;;
   *)
-    echo "commit-msg: unknown Changelog group '$group' (Added | Changed | Fixed | Removed | skip)"
+    echo "commit-msg: unknown Changelog kind '$kind' (Added | Changed | Fixed | Removed | skip)"
+    exit 1 ;;
+esac
+case "$part" in
+  plugin|astro|panel|inspector|language-server|vscode|zed|oxlint|docs) exit 0 ;;
+  *)
+    echo "commit-msg: name the part after '$kind': 'Changelog: $kind <part>'"
+    echo "            parts: $PARTS"
     exit 1 ;;
 esac

@@ -1,12 +1,14 @@
 # Draft generator for packages/oxlint-plugin-lit/CHANGELOG.md, the Oxlint
-# plugin's own changelog on its own versions. Like the Vite plugin's (../../cliff.toml),
-# the file is hand-written prose and this only drafts it, from the commits
-# that carry a `Changelog-Oxlint-Plugin:` trailer since the last
-# `oxlint-plugin-lit-v*` tag:
+# plugin's own changelog on its own versions. Like the shared one
+# (../../cliff.toml), the file is hand-written prose and this only drafts it,
+# from the commits since the last `oxlint-plugin-lit-v*` tag whose trailer
+# names the `oxlint` part:
 #
-#     Changelog: skip
-#     Changelog-Oxlint-Plugin: Fixed
+#     Changelog: Fixed oxlint
 #       **Rules see inherited events.** …
+#
+# Commits before 0.25.0 carried their own `Changelog-Oxlint-Plugin:`
+# trailer, which still drafts.
 #
 #   pnpm run changelog:oxlint-plugin
 #   pnpm run changelog:oxlint-plugin --tag oxlint-plugin-lit-v0.2.0
@@ -37,19 +39,21 @@ trim = true
 [git]
 conventional_commits = false
 filter_unconventional = false
-# Only commits with the Oxlint plugin's trailer reach the draft.
+# Only commits whose trailer names `oxlint` reach the draft.
 filter_commits = true
 tag_pattern = "^oxlint-plugin-lit-v[0-9]"
 commit_preprocessors = [
-  # A folded trailer: keep only the group and its entry lines.
-  #   "…\nChangelog-Oxlint-Plugin: Fixed\n  **Entry.** text"
+  # A folded trailer for one of these parts: keep only its kind and entry.
+  #   "…\nChangelog: Fixed oxlint\n  **Entry.** text"
   #   -> "Changelog-Entry: Fixed\n**Entry.** text"
+  { pattern = '(?s)^.*?\nChangelog: ?(\w+) (?:oxlint)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
+  # The trailer commits before 0.25.0 carried.
   { pattern = '(?s)^.*?\nChangelog-Oxlint-Plugin: ?(\w+)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
   { pattern = '(?m)^[ \t]+', replace = "" },
 ]
 commit_parsers = [
-  { message = "(?ms)^Changelog(-Entry|-Oxlint-Plugin): ?Added", group = "Added" },
-  { message = "(?ms)^Changelog(-Entry|-Oxlint-Plugin): ?Changed", group = "Changed" },
-  { message = "(?ms)^Changelog(-Entry|-Oxlint-Plugin): ?Fixed", group = "Fixed" },
-  { message = "(?ms)^Changelog(-Entry|-Oxlint-Plugin): ?Removed", group = "Removed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Added|Changelog: ?Added (?:oxlint)$|Changelog-Oxlint-Plugin: ?Added)", group = "Added" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Changed|Changelog: ?Changed (?:oxlint)$|Changelog-Oxlint-Plugin: ?Changed)", group = "Changed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Fixed|Changelog: ?Fixed (?:oxlint)$|Changelog-Oxlint-Plugin: ?Fixed)", group = "Fixed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Removed|Changelog: ?Removed (?:oxlint)$|Changelog-Oxlint-Plugin: ?Removed)", group = "Removed" },
 ]

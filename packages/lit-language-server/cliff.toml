@@ -1,15 +1,17 @@
-# Draft generator for packages/lit-language-server/CHANGELOG.md, the language
-# server's own changelog on its own versions. Like the plugin's (../../cliff.toml),
-# the file is hand-written prose and this only drafts it, from the commits
-# that carry a `Changelog-Language-Server:` trailer since the last
-# `lit-language-server-v*` tag:
+# Draft generator for packages/lit-language-server/CHANGELOG.md, the
+# language server's own changelog on its own versions. Like the shared one
+# (../../cliff.toml), the file is hand-written prose and this only drafts it,
+# from the commits since the last `lit-language-server-v*` tag whose trailer
+# names the `language-server` part:
 #
-#     Changelog: skip
-#     Changelog-Language-Server: Fixed
+#     Changelog: Fixed language-server
 #       **Hover shows inherited events.** …
 #
+# Commits before 0.25.0 carried their own `Changelog-Language-Server:`
+# trailer, which still drafts.
+#
 #   pnpm run changelog:language-server
-#   pnpm run changelog:language-server --tag lit-language-server-v0.2.0
+#   pnpm run changelog:language-server --tag lit-language-server-v0.3.0
 
 [changelog]
 header = ""
@@ -37,19 +39,21 @@ trim = true
 [git]
 conventional_commits = false
 filter_unconventional = false
-# Only commits with the language server's trailer reach the draft.
+# Only commits whose trailer names `language-server` reach the draft.
 filter_commits = true
 tag_pattern = "^lit-language-server-v[0-9]"
 commit_preprocessors = [
-  # A folded trailer: keep only the group and its entry lines.
-  #   "…\nChangelog-Language-Server: Fixed\n  **Entry.** text"
+  # A folded trailer for one of these parts: keep only its kind and entry.
+  #   "…\nChangelog: Fixed language-server\n  **Entry.** text"
   #   -> "Changelog-Entry: Fixed\n**Entry.** text"
+  { pattern = '(?s)^.*?\nChangelog: ?(\w+) (?:language-server)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
+  # The trailer commits before 0.25.0 carried.
   { pattern = '(?s)^.*?\nChangelog-Language-Server: ?(\w+)\n((?:[ \t]+[^\n]*\n?)+).*$', replace = "Changelog-Entry: ${1}\n${2}" },
   { pattern = '(?m)^[ \t]+', replace = "" },
 ]
 commit_parsers = [
-  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Added", group = "Added" },
-  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Changed", group = "Changed" },
-  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Fixed", group = "Fixed" },
-  { message = "(?ms)^Changelog(-Entry|-Language-Server): ?Removed", group = "Removed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Added|Changelog: ?Added (?:language-server)$|Changelog-Language-Server: ?Added)", group = "Added" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Changed|Changelog: ?Changed (?:language-server)$|Changelog-Language-Server: ?Changed)", group = "Changed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Fixed|Changelog: ?Fixed (?:language-server)$|Changelog-Language-Server: ?Fixed)", group = "Fixed" },
+  { message = "(?ms)^(?:Changelog-Entry: ?Removed|Changelog: ?Removed (?:language-server)$|Changelog-Language-Server: ?Removed)", group = "Removed" },
 ]
