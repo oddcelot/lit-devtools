@@ -3,6 +3,59 @@
 Notable changes per release. Versions before 0.3.0 predate this file; see the
 git history for those.
 
+## 0.24.0 — 2026-10-25
+
+Your components now describe themselves: the plugin writes a Custom Elements
+Manifest from your sources, in the build, the dev server or from
+`lit-devtools manifest`, and the details pane reads more of what a component
+declares, dispatches and inherits. A language server brings the same
+knowledge to your editor, and `@oddsquad/lit-devtools` installs the plugin,
+the server and its Oxlint rules as one package. Nothing needs action to
+upgrade.
+
+### Added
+
+- **Generate a Custom Elements Manifest from your components.** Set
+  `manifest: true` and `vite build` emits `custom-elements.json` beside the
+  bundle, the dev server serves it live, and `write` keeps a copy in the
+  project for editors and Storybook, with no separate analyzer to set up.
+- **`lit-devtools manifest` writes a Custom Elements Manifest from the
+  command line.** It reads every script under `src` and writes
+  `custom-elements.json`, ready for a `prepublishOnly` script or CI. It uses
+  your Vite config's aliases, and in a project without one resolves imports
+  the way Node and TypeScript do, `tsconfig.json` paths included.
+- **A language server for Lit components.** `@oddsquad/lit-language-server`
+  completes your components' tags, attributes, properties and events in
+  templates, shows their docs on hover, types event handlers and reports one
+  that doesn't fit its event, in Zed or any LSP editor. Configure it with
+  `litPlugin({languageServer})`.
+- **Install everything as `@oddsquad/lit-devtools`.** One package brings the
+  plugin (`@oddsquad/lit-devtools/vite`, `/astro`), the language server and
+  the Oxlint rules (`/oxlint`); the separate packages stay for a project that
+  wants one part.
+- **Components inherit docs from the library elements they extend.** A
+  component built on, say, Web Awesome's badge now lists the badge's
+  properties, slots and events in the details pane, read from Web Awesome's
+  own Custom Elements Manifest.
+- **Components show the events they dispatch, even without `@fires`.** An
+  event your class sends with `this.dispatchEvent(new CustomEvent('pick'))`
+  now appears under Events in the details pane, typed `CustomEvent`.
+- **The manifest says what each event carries.** An event dispatched as
+  `new CustomEvent('add-to-cart', {detail: {id: this.productId}})` is listed
+  as `CustomEvent<{id: string}>`, also when a `@fires` tag documents it
+  without a type.
+- **Component docs read `@attr`, `@prop`, `@default` and `@tag`.** JSDoc
+  written for the Custom Elements Manifest analyzer now shows in the details
+  pane: attributes and properties the code doesn't declare, defaults it
+  doesn't initialize, and the tag of a class registered elsewhere.
+- **Components show the defaults their constructor sets.** A
+  `this.variant = 'neutral'` in the constructor now shows as the default of
+  `variant` in the details pane, even when the property comes from a library
+  base class such as Web Awesome's.
+- **Vanilla custom elements show their observed attributes.** An element
+  that lists `static observedAttributes = ['mode']` now shows `mode` under
+  Attributes in the details pane, described by an `@attr` tag if it has one.
+
 ## 0.23.0 — 2026-10-24
 
 The Components panel now shows what a component keeps to itself: its
