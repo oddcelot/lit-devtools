@@ -383,6 +383,8 @@ test('the dev server lists what src holds before any page loads it', async () =>
         `raw ${event} ${String(file)} ${JSON.stringify(details).slice(0, 120)}`
       )
     );
+    // Experiment (vpl-fs9x): let the dev server settle first.
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     // Inherited members resolve through the dev server's own resolver.
     await fsp.writeFile(
       joinPath(root, 'src/x-b.ts'),
