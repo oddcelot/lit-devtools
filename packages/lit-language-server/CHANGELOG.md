@@ -4,6 +4,25 @@ All notable changes to `@oddsquad/lit-language-server`, on its own versions.
 The Vite plugin's changes are in the repository's
 [CHANGELOG.md](../../CHANGELOG.md).
 
+## 0.2.0 — 2026-10-25
+
+Templates now lead somewhere: go to a component's source from any tag,
+attribute, property or event, and find every template that uses it. The same
+completion, docs and navigation work in JSX, Astro and MDX. The problems it
+reports can also fail a lint run, through `@oddsquad/oxlint-plugin-lit`.
+
+### Added
+
+- **Go to a component's source, and find where it's used.** Go to
+  implementation or definition on a tag, attribute, `.property` or `@event`
+  in a template opens the class, field or dispatch that declares it, in a
+  base class when it's inherited; find references lists every template and
+  HTML file that uses it.
+- **Lit components in JSX, Astro and MDX.** Tags, props and events complete,
+  show their docs and lead to their source in `.jsx` and `.tsx` files, Astro
+  templates and MDX, reading `size="small"`, `onsubmit-start={fn}` and
+  Solid's `on:`/`prop:` the way React 19, Preact, Solid and Astro do.
+
 ## 0.1.0 — 2026-10-25
 
 The first release: a language server that makes your editor understand your
