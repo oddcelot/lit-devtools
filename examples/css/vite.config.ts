@@ -1,7 +1,7 @@
 import {defineConfig} from 'vite';
 import {presetWind4} from 'unocss';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
-import {unoSheet} from '@oddsquad/vite-plugin-lit/uno';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
+import {unoSheet} from '@oddsquad/lit-devtools/uno';
 
 export default defineConfig({
   // The Vite DevTools dock, where the plugin adds its Lit panel: the

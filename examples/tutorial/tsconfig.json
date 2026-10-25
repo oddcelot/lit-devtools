@@ -5,7 +5,7 @@
     "useDefineForClassFields": false,
     "module": "esnext",
     "lib": ["ES2023", "DOM"],
-    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"],
+    "types": ["vite/client", "@oddsquad/lit-devtools/client"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
 

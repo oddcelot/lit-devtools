@@ -13,7 +13,7 @@ import {type AstroFixture, startAstroFixture} from './astro-utils.js';
 const CONFIG = `import {defineConfig} from 'astro/config';
 import node from '@astrojs/node';
 import preact from '@astrojs/preact';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   adapter: node({mode: 'standalone'}),

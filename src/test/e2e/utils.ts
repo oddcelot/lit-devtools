@@ -135,6 +135,15 @@ export const startFixture = async (
       );
     },
   });
+  // The playground installs the plugin through @oddsquad/lit-devtools, which
+  // the copy can't reach from the repo root's node_modules: link it here as
+  // the playground's install does. Without the plugin's own resolve hook,
+  // as in a baseline run, `@oddsquad/lit-devtools/css` needs it.
+  await mkdir(path.join(root, 'node_modules/@oddsquad'), {recursive: true});
+  await symlink(
+    path.join(PACKAGE_ROOT, 'packages/lit-devtools'),
+    path.join(root, 'node_modules/@oddsquad/lit-devtools')
+  );
   // Without the hub, Vite resolves `devtools` to `false` and the
   // `clientAuth` below is lost, so the panel's code gate is turned off the
   // other way the plugin reads, for the server's lifetime.

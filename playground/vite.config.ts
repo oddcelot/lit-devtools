@@ -6,12 +6,12 @@ export default defineConfig(async ({mode}) => {
   // Inside the monorepo, use the built package output (`pnpm dev` builds it
   // first). When the playground is opened standalone — e.g. imported into
   // StackBlitz/bolt.new from the repo URL — the parent package isn't there,
-  // so fall back to the published plugin.
+  // so fall back to the published plugin, through @oddsquad/lit-devtools.
   // Both specifiers are runtime values so the config bundler leaves them
   // alone: a literal `../index.js` fails the whole config build where the
   // file is missing, before the fallback below ever runs.
   const local = new URL('../index.js', import.meta.url).href;
-  const fallback = '@oddsquad/vite-plugin-lit';
+  const fallback = '@oddsquad/lit-devtools/vite';
   const {litPlugin} = await import(/* @vite-ignore */ local).catch(
     () => import(/* @vite-ignore */ fallback)
   );

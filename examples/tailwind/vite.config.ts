@@ -1,6 +1,6 @@
 import {defineConfig} from 'vite';
 import tailwindcss from '@tailwindcss/vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   // The Vite DevTools dock, where the plugin adds its Lit panel: the

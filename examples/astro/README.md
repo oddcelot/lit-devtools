@@ -1,6 +1,6 @@
 # Lit in Astro
 
-A demo site for `@oddsquad/vite-plugin-lit/astro`: Astro's renderer for
+A demo site for `@oddsquad/lit-devtools/astro`: Astro's renderer for
 Lit, the plugin's HMR, and its Lit panel in Astro's dev toolbar, with a page
 for each thing they do.
 

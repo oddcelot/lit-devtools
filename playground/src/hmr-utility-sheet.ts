@@ -1,4 +1,4 @@
-import {urlSheet} from '@oddsquad/vite-plugin-lit/css.js';
+import {urlSheet} from '@oddsquad/lit-devtools/css';
 import sheetUrl from './hmr-utility-sheet.css?url';
 
 /**

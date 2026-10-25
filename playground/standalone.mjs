@@ -21,6 +21,7 @@
 import {spawn} from 'node:child_process';
 import {existsSync} from 'node:fs';
 import {readFile, rm} from 'node:fs/promises';
+import {createRequire} from 'node:module';
 import {createServer} from 'node:http';
 import {createServer as createNetServer} from 'node:net';
 import {tmpdir} from 'node:os';
@@ -30,9 +31,12 @@ import {fileURLToPath, pathToFileURL} from 'node:url';
 import {build} from 'vite';
 
 const PLAYGROUND = fileURLToPath(new URL('.', import.meta.url));
-const CLI = fileURLToPath(
-  new URL('./node_modules/@oddsquad/vite-plugin-lit/bin.mjs', import.meta.url)
-);
+// The plugin's own command, found through @oddsquad/lit-devtools: the
+// playground installs the plugin through it, and pnpm keeps the plugin out
+// of this folder's node_modules.
+const CLI = createRequire(
+  fileURLToPath(import.meta.resolve('@oddsquad/lit-devtools'))
+).resolve('@oddsquad/vite-plugin-lit/bin');
 const OUT_DIR = path.join(tmpdir(), 'lit-devtools-standalone-playground');
 
 // On StackBlitz the plugin is the published one, which may predate the

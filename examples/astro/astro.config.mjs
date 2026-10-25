@@ -1,7 +1,7 @@
 import {defineConfig} from 'astro/config';
 import node from '@astrojs/node';
 import preact from '@astrojs/preact';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   // Prebuilt pages, but /on-demand/ renders for each request on Node.

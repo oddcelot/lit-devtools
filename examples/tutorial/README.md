@@ -19,7 +19,7 @@ in:
 npm create vite@latest my-lit-app -- --template lit-ts
 cd my-lit-app
 npm install
-npm install -D @oddsquad/vite-plugin-lit
+npm install -D @oddsquad/lit-devtools
 cp -R ../examples/tutorial/index.html ../examples/tutorial/tsconfig.json \
       ../examples/tutorial/vite.config.ts .
 cp ../examples/tutorial/src/my-element.ts ../examples/tutorial/src/theme.css src/
