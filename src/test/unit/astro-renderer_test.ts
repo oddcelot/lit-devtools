@@ -4,7 +4,11 @@ import {
   encodeProperties,
   splitProps,
 } from '../../lib/astro/props.js';
-import {missingPeers, missingPeersMessage} from '../../lib/astro/peers.js';
+import {
+  missingPeers,
+  missingPeersMessage,
+  pluginPath,
+} from '../../lib/astro/peers.js';
 import {assignSlot} from '../../lib/astro/slots.js';
 
 /**
@@ -188,6 +192,31 @@ describe('missingPeers', () => {
     ]);
     expect(missingPeersMessage(['@lit-labs/ssr-client'])).toContain(
       'npm install @lit-labs/ssr-client'
+    );
+  });
+});
+
+describe('pluginPath', () => {
+  const installed =
+    (...names: string[]) =>
+    (path: string) =>
+      names.some((name) => path === `/repo/node_modules/${name}/package.json`);
+
+  test('names the plugin when the project installs it', () => {
+    expect(pluginPath('/repo', installed('@oddsquad/vite-plugin-lit'))).toBe(
+      '@oddsquad/vite-plugin-lit'
+    );
+    expect(
+      pluginPath(
+        '/repo',
+        installed('@oddsquad/vite-plugin-lit', '@oddsquad/lit-devtools')
+      )
+    ).toBe('@oddsquad/vite-plugin-lit');
+  });
+
+  test('goes through @oddsquad/lit-devtools when only it is installed', () => {
+    expect(pluginPath('/repo', installed('@oddsquad/lit-devtools'))).toBe(
+      '@oddsquad/lit-devtools > @oddsquad/vite-plugin-lit'
     );
   });
 });

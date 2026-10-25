@@ -34,10 +34,12 @@ describe('lit()', () => {
   test('registers the renderer and loads its page script before islands', () => {
     const args = setup('build');
     lit().hooks['astro:config:setup'](args);
+    // By path, so a project that has the plugin only through
+    // @oddsquad/lit-devtools resolves them under pnpm too.
     expect(args.addRenderer).toHaveBeenCalledWith({
       name: 'lit',
-      serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
-      clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
+      serverEntrypoint: expect.stringMatching(/^\/.*\/lib\/astro\/server\.js$/),
+      clientEntrypoint: expect.stringMatching(/^\/.*\/lib\/astro\/client\.js$/),
     });
     const stages = args.injectScript.mock.calls.map(([stage]) => stage);
     expect(stages).toEqual(['page', 'before-hydration']);
@@ -55,7 +57,7 @@ describe('lit()', () => {
     };
     for (const code of scripts({shadowRootPolyfill: true})) {
       expect(code).toMatch(
-        /\/astro\/polyfill';\nimport '@oddsquad\/vite-plugin-lit\/astro\/boot';$/
+        /^import '[^']+';\nimport '\/.*\/lib\/astro\/polyfill\.js';\nimport '\/.*\/lib\/astro\/boot\.js';$/
       );
     }
     for (const code of scripts({})) expect(code).not.toContain('polyfill');

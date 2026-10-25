@@ -28,6 +28,23 @@ export const missingPeers = (
   exists: (path: string) => boolean = existsSync
 ): string[] => SSR_PEERS.filter((name) => !installedFrom(root, name, exists));
 
+const PLUGIN = '@oddsquad/vite-plugin-lit';
+const UMBRELLA = '@oddsquad/lit-devtools';
+
+/**
+ * How the project reaches the plugin, as a Vite dependency path such as
+ * `@oddsquad/vite-plugin-lit > devframe/in-page-channel` starts: directly,
+ * or through @oddsquad/lit-devtools, which installs it as its own dependency,
+ * where pnpm keeps it out of the project's `node_modules`.
+ */
+export const pluginPath = (
+  root: string,
+  exists: (path: string) => boolean = existsSync
+): string =>
+  !installedFrom(root, PLUGIN, exists) && installedFrom(root, UMBRELLA, exists)
+    ? `${UMBRELLA} > ${PLUGIN}`
+    : PLUGIN;
+
 export const missingPeersMessage = (missing: readonly string[]): string =>
   `lit() renders Lit components on the server, which needs ` +
   `${SSR_PEERS.join(' and ')}. Install ${missing.length === 1 ? 'the missing one' : 'them'}: ` +
