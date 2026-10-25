@@ -11,7 +11,7 @@ name: Release Zed extension
 # needs no extension release; tag one only when packages/zed changes.
 #
 # The first version is submitted by hand, as Zed asks of a new extension: a
-# pull request adding this repo as `extensions/lit-devtools`, with `path =
+# pull request adding this repo as `extensions/lit-lsp`, with `path =
 # "packages/zed"`, to extensions.toml. Updates need a fork of
 # zed-industries/extensions at oddcelot/extensions and, in the `stores`
 # environment, ZED_COMMITTER_TOKEN: a personal access token with the `repo`
@@ -54,7 +54,7 @@ jobs:
       - if: steps.token.outputs.present == 'true'
         uses: huacnlee/zed-extension-action@8cd592a0d24e1e41157740f1a529aeabddc88a1b # v2.0.0
         with:
-          extension-name: lit-devtools
+          extension-name: lit-lsp
           push-to: oddcelot/extensions
           # The default links a GitHub Release, which a zed tag doesn't get.
           commit-message: |
