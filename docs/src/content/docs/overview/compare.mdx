@@ -14,18 +14,22 @@ the current state.
 
 ## At a glance
 
-|                                                         | Plain Vite            | [Open WC HMR][owc]            | [Gracile HMR][gracile]                        | vite-plugin-lit                             |
-| ------------------------------------------------------- | --------------------- | ----------------------------- | --------------------------------------------- | ------------------------------------------- |
-| Dev server                                              | Vite                  | Web Dev Server only           | Vite                                          | Vite 7 and 8                                |
-| On a component edit                                     | Reloads the page      | Updates the class in place    | Updates templates and styles without a reload | Patches the class in place                  |
-| Changes to your base class                              | None                  | Needs a `hotReplacedCallback` | Lit preset                                    | None                                        |
-| Element state                                           | Lost                  | Kept                          | Not stated                                    | Kept                                        |
-| Unchanged sibling DOM                                   | Rebuilt by the reload | Not stated                    | Not stated                                    | Kept, through template interning            |
-| State of re-created child elements                      | Lost                  | Not stated                    | Not stated                                    | Transferred by default                      |
-| On a CSS file edit                                      | Reloads the page      | Not stated                    | Updates styles without a reload               | Swaps the shared sheet's text, no re-render |
-| DevTools panel and MCP tools                            | No                    | Not in scope                  | Not in scope                                  | Yes                                         |
-| Component docs from JSDoc and Custom Elements Manifests | No                    | Not in scope                  | Not in scope                                  | In the panel, Lit Inspector and over MCP    |
-| Status                                                  | Stable                | Marked experimental           | Only the core and Lit preset are tested       | Pre-1.0, released often                     |
+<div class="ours-first">
+
+|                                                         | vite-plugin-lit                             | Plain Vite            | [Open WC HMR][owc]            | [Gracile HMR][gracile]                        |
+| ------------------------------------------------------- | ------------------------------------------- | --------------------- | ----------------------------- | --------------------------------------------- |
+| Dev server                                              | Vite 7 and 8                                | Vite                  | Web Dev Server only           | Vite                                          |
+| On a component edit                                     | Patches the class in place                  | Reloads the page      | Updates the class in place    | Updates templates and styles without a reload |
+| Changes to your base class                              | None                                        | None                  | Needs a `hotReplacedCallback` | Lit preset                                    |
+| Element state                                           | Kept                                        | Lost                  | Kept                          | Not stated                                    |
+| Unchanged sibling DOM                                   | Kept, through template interning            | Rebuilt by the reload | Not stated                    | Not stated                                    |
+| State of re-created child elements                      | Transferred by default                      | Lost                  | Not stated                    | Not stated                                    |
+| On a CSS file edit                                      | Swaps the shared sheet's text, no re-render | Reloads the page      | Not stated                    | Updates styles without a reload               |
+| DevTools panel and MCP tools                            | Yes                                         | No                    | Not in scope                  | Not in scope                                  |
+| Component docs from JSDoc and Custom Elements Manifests | In the panel, Lit Inspector and over MCP    | No                    | Not in scope                  | Not in scope                                  |
+| Status                                                  | Pre-1.0, released often                     | Stable                | Marked experimental           | Only the core and Lit preset are tested       |
+
+</div>
 
 [owc]: https://open-wc.org/docs/development/hot-module-replacement/
 [gracile]: https://gracile.js.org/docs/add-ons/hmr/

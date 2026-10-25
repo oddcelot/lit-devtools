@@ -255,3 +255,17 @@ video-player {
 .status-no svg {
   color: var(--error);
 }
+
+/* ------------------------------------------------- Comparison tables ---- */
+
+/* A comparison table wrapped in <div class="ours-first"> lists
+   vite-plugin-lit in its first data column; a soft accent fill marks it. */
+.ours-first :is(th, td):nth-child(2) {
+  background: var(--lit-accent-soft);
+}
+:root[data-theme='light'] .ours-first :is(th, td):nth-child(2) {
+  background: color-mix(in srgb, var(--lit-accent-soft) 50%, transparent);
+}
+.ours-first th:nth-child(2) {
+  color: var(--sl-color-text-accent);
+}

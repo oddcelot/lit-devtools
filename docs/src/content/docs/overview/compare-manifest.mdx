@@ -21,6 +21,8 @@ barrel file. The versions were vite-plugin-lit 0.24,
 
 ## At a glance
 
+<div class="ours-first">
+
 |                                           | vite-plugin-lit                                         | [CEM analyzer][analyzer]                 | [cem][cem]                                       | [Lit gen-manifest][gen]            |
 | ----------------------------------------- | ------------------------------------------------------- | ---------------------------------------- | ------------------------------------------------ | ---------------------------------- |
 | Runs as                                   | Vite plugin option, `lit-devtools manifest`             | CLI, or `create()` in the browser        | CLI (a Go binary on npm)                         | `lit labs gen --manifest`          |
@@ -44,6 +46,8 @@ barrel file. The versions were vite-plugin-lit 0.24,
 | Barrel files (`export * from`)            | Resolved to each name, through chains of barrels        | Listed as a `*` export                   | Resolved to each name                            | Resolved to each name              |
 | Watch mode                                | The dev server, through HMR and a file watcher          | `--watch`                                | `--watch`                                        | No option                          |
 | Also does                                 | The same docs in the DevTools panel and Lit Inspector   | A plugin API; FAST, Stencil and Catalyst | A language server, MCP, a dev server, `validate` | React and Vue wrappers             |
+
+</div>
 
 [analyzer]: https://custom-elements-manifest.open-wc.org/analyzer/getting-started/
 [cem]: https://bennypowers.dev/cem/
