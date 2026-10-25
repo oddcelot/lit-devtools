@@ -51,7 +51,9 @@ filter_unconventional = false
 # Only commits that opted in with a trailer reach the draft. The commit-msg
 # hook makes sure every non-merge commit opted in one way or the other.
 filter_commits = true
-tag_pattern = "v[0-9]*"
+# Anchored: the language server's `lit-language-server-v*` tags are not
+# plugin releases.
+tag_pattern = "^v[0-9]"
 commit_preprocessors = [
   # A folded trailer: keep only the group and its entry lines, so the template
   # can tell an authored entry from a body it has to fall back on. The
