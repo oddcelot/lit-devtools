@@ -42,6 +42,15 @@ export interface ComponentsSessionPorts {
   onPicked?(): void;
 }
 
+export interface ComponentsSessionOptions {
+  /**
+   * Open every node the first time the tree shows it, instead of starting
+   * collapsed. A node the user then closes stays closed. The docs' live
+   * demos turn this on, so a reader sees the whole tree at once.
+   */
+  expandAll?: boolean;
+}
+
 /** What the panel has from the node side when it connects. */
 export interface ComponentsPrime {
   roots: InspectorTreeNode[];
@@ -100,6 +109,9 @@ export class ComponentsSession {
   #details: InspectorDetails | null = null;
   #gone = false;
   #expanded: ReadonlySet<number> = new Set();
+  readonly #expandAll: boolean;
+  /** Nodes `expandAll` has opened, so each opens once and a close sticks. */
+  readonly #seen = new Set<number>();
   #picking = false;
   /** Whether trees are held back, as while the pointer is over the tree. */
   #holding = false;
@@ -115,8 +127,12 @@ export class ComponentsSession {
   /** The key a page change asked the new page to find. */
   #locating: ElementKey | null = null;
 
-  constructor(ports: ComponentsSessionPorts) {
+  constructor(
+    ports: ComponentsSessionPorts,
+    {expandAll = false}: ComponentsSessionOptions = {}
+  ) {
     this.#ports = ports;
+    this.#expandAll = expandAll;
   }
 
   get roots(): readonly InspectorTreeNode[] {
@@ -173,6 +189,7 @@ export class ComponentsSession {
    */
   connected(prime: ComponentsPrime): void {
     this.#roots = prime.roots;
+    this.#expandNew();
     this.#heldRoots = null;
     this.#hmrIncompatibilities = prime.hmrIncompatibilities.slice(
       -MAX_HMR_INCOMPATIBILITIES
@@ -345,6 +362,7 @@ export class ComponentsSession {
 
   #applyTree(roots: InspectorTreeNode[]): void {
     this.#roots = roots;
+    this.#expandNew();
     // Re-reveal the selection against the fresh tree: a just-picked node
     // may not have existed in the previous tree, so the reveal on select
     // found no ancestors to expand and the node stayed hidden.
@@ -513,6 +531,24 @@ export class ComponentsSession {
     this.#send({type: 'details', id});
     this.#send({type: 'watch', id});
     return true;
+  }
+
+  /** Under `expandAll`, open each node the first time it has children. */
+  #expandNew(): void {
+    if (!this.#expandAll) return;
+    const opened: number[] = [];
+    const walk = (nodes: readonly InspectorTreeNode[]): void => {
+      for (const node of nodes) {
+        if (node.children.length > 0 && !this.#seen.has(node.id)) {
+          this.#seen.add(node.id);
+          opened.push(node.id);
+        }
+        walk(node.children);
+      }
+    };
+    walk(this.#roots);
+    if (opened.length > 0)
+      this.#expanded = new Set([...this.#expanded, ...opened]);
   }
 
   /** Expand every ancestor of `id` so the selected node is visible. */

@@ -28,12 +28,16 @@
  *
  * `?collapse=About,Slots` folds those Components details sections on every
  * load, so a small frame opens on what it is meant to show.
+ *
+ * `?expand=all` opens the whole Components tree instead of starting it
+ * collapsed, so a reader sees every component without clicking.
  */
 import {version} from '../../../../package.json';
 import {createLocalLitHost} from '../../../lib/devframe/port-link.js';
 import {useLocalClient} from '../../client.js';
 import {applyColorScheme} from '../../../lib/color-scheme.js';
 import {readCollapsed, writeCollapsed} from '../../collapsed-sections.js';
+import {expandTreeByDefault} from '../../tree-expansion.js';
 import {LIVE_PORT_MESSAGE, messagePortLike} from './message-port.js';
 import {
   MANIFEST_LINK_REL,
@@ -69,6 +73,7 @@ useLocalClient(client);
 const params = new URLSearchParams(location.search);
 const fold = params.get('collapse')?.split(',').filter(Boolean) ?? [];
 if (fold.length > 0) writeCollapsed(new Set([...readCollapsed(), ...fold]));
+if (params.get('expand') === 'all') expandTreeByDefault();
 
 await import('../../main.js');
 
