@@ -81,6 +81,15 @@ a `lit-language-server-v<version>` tag publishes it through
 `.github/workflows/release-language-server.yaml`, which also creates its
 GitHub Release.
 
+The Oxlint plugin (`packages/oxlint-plugin-lit`, published as
+`@oddsquad/oxlint-plugin-lit`) works the same way on its own versions: it
+bundles the server's document code and the shared editor code, so a change
+to what its rules report adds a `Changelog-Oxlint-Plugin:` trailer, often
+next to `Changelog-Language-Server:`. `pnpm run changelog:oxlint-plugin`
+drafts its section in `packages/oxlint-plugin-lit/CHANGELOG.md`, and an
+`oxlint-plugin-lit-v<version>` tag publishes it through
+`.github/workflows/release-oxlint-plugin.yaml`.
+
 The editor extensions release on their own tags too. The VS Code extension
 (`packages/vscode`) keeps a hand-written `packages/vscode/CHANGELOG.md`; a
 release commit bumps its `package.json` and writes that section, and a

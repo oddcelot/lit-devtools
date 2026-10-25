@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Covers the plugin and the language server, which keeps its own changelog. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`, `/changelog release lit-language-server-v0.2.0`).
+description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Covers the plugin, and the language server and the Oxlint plugin, which keep their own changelogs. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`, `/changelog release lit-language-server-v0.2.0`, `/changelog release oxlint-plugin-lit-v0.1.0`).
 ---
 
 # Changelog
@@ -39,6 +39,11 @@ Changelog-Language-Server: Fixed
   **Hover shows inherited events.** An event a base class fires now appears
   on the component that extends it.
 ```
+
+The Oxlint plugin (`packages/oxlint-plugin-lit`) bundles the same editor code
+and the server's document code (`packages/lit-language-server/src/documents.ts`,
+`css.ts`), so a change to what its rules report adds `Changelog-Oxlint-Plugin:`
+too, written for someone reading lint output in CI. Same groups, no `skip`.
 
 Rules for the entry:
 
@@ -93,3 +98,12 @@ the draft, `packages/lit-language-server/CHANGELOG.md` for the section
 `packages/lit-language-server/package.json`. The release commit's subject is
 `Release the language server X.Y.Z`; the tag that publishes it is
 `lit-language-server-vX.Y.Z`.
+
+## `/changelog release oxlint-plugin-lit-vX.Y.Z`
+
+The same again for the Oxlint plugin:
+`pnpm run changelog:oxlint-plugin --tag oxlint-plugin-lit-vX.Y.Z` for the
+draft, `packages/oxlint-plugin-lit/CHANGELOG.md` for the section, and the
+`version` in `packages/oxlint-plugin-lit/package.json`. The release commit's
+subject is `Release the Oxlint plugin X.Y.Z`; the tag that publishes it is
+`oxlint-plugin-lit-vX.Y.Z`.

@@ -4,15 +4,18 @@
 f="$1"
 grep -qE '^Merge ' "$f" && exit 0
 group=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog: *//p' | head -1 | cut -d' ' -f1)
-# A change to the language server also carries `Changelog-Language-Server:`,
-# for packages/lit-language-server/CHANGELOG.md.
-server=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog-Language-Server: *//p' | head -1 | cut -d' ' -f1)
-case "$server" in
-  ""|Added|Changed|Fixed|Removed) ;;
-  *)
-    echo "commit-msg: unknown Changelog-Language-Server group '$server' (Added | Changed | Fixed | Removed)"
-    exit 1 ;;
-esac
+# A change to the language server or the Oxlint plugin also carries its own
+# trailer, `Changelog-Language-Server:` or `Changelog-Oxlint-Plugin:`, for
+# that package's CHANGELOG.md.
+for trailer in Changelog-Language-Server Changelog-Oxlint-Plugin; do
+  value=$(git interpret-trailers --parse < "$f" | sed -n "s/^$trailer: *//p" | head -1 | cut -d' ' -f1)
+  case "$value" in
+    ""|Added|Changed|Fixed|Removed) ;;
+    *)
+      echo "commit-msg: unknown $trailer group '$value' (Added | Changed | Fixed | Removed)"
+      exit 1 ;;
+  esac
+done
 case "$group" in
   Added|Changed|Fixed|Removed|skip) exit 0 ;;
   "")

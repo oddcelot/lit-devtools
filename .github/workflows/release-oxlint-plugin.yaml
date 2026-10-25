@@ -1,0 +1,96 @@
+name: Release Oxlint plugin
+
+# An `oxlint-plugin-lit-v*` tag publishes packages/oxlint-plugin-lit to
+# npm as @oddsquad/oxlint-plugin-lit, on its own version, and creates the
+# GitHub Release from that version's section of its own CHANGELOG.md: the
+# Vite plugin's `v*` tags and release.yaml don't touch it.
+#
+#   git tag oxlint-plugin-lit-v0.1.1 && git push origin oxlint-plugin-lit-v0.1.1
+#
+# Publishing authenticates over OIDC, so there is no token. npm needs a
+# trusted publisher entry for the package and this file, which can only be
+# made once the package exists, so publish its first version by hand:
+#
+#   npm trust github @oddsquad/oxlint-plugin-lit \
+#     --file release-oxlint-plugin.yaml --repo oddcelot/vite-plugin-lit --allow-publish
+#
+# An entry that hasn't published within 48 hours expires; make it right
+# before the first tag.
+
+on:
+  push:
+    tags: ['oxlint-plugin-lit-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: corepack enable
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+          registry-url: https://registry.npmjs.org
+      # No dependency cache: a release build shouldn't trust one.
+      - run: pnpm install --frozen-lockfile
+      - name: Check the tag matches the package's version
+        run: |
+          version=$(node -p "require('./packages/oxlint-plugin-lit/package.json').version")
+          if [ "$GITHUB_REF_NAME" != "oxlint-plugin-lit-v$version" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match packages/oxlint-plugin-lit version $version"
+            exit 1
+          fi
+      - name: Check its CHANGELOG.md has a section for it
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/oxlint-plugin-lit/CHANGELOG.md > /dev/null
+      # The same gate as ci.yaml's check job: the plugin bundles the editor
+      # code in src/lib, which the root's checks and unit tests cover.
+      - run: pnpm run build
+      - run: pnpm --filter ./docs run sync
+      - run: pnpm --filter ./docs exec astro sync
+      - run: pnpm exec vp check
+      - run: pnpm run test:unit
+      - run: pnpm --filter ./packages/oxlint-plugin-lit run build
+      # pnpm packs (applying `files`); npm publishes, because npm is what
+      # speaks trusted publishing. It runs outside the checkout, where
+      # package.json's `devEngines` would stop it.
+      - run: pnpm pack --out "$RUNNER_TEMP/package.tgz"
+        working-directory: packages/oxlint-plugin-lit
+      - name: Publish
+        working-directory: ${{ runner.temp }}
+        run: |
+          case "$GITHUB_REF_NAME" in
+            oxlint-plugin-lit-v*-*) npm publish package.tgz --access public --tag next ;;
+            *) npm publish package.tgz --access public ;;
+          esac
+
+  github-release:
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 26
+      - run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" packages/oxlint-plugin-lit/CHANGELOG.md > notes.md
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          case "$GITHUB_REF_NAME" in oxlint-plugin-lit-v*-*) prerelease=(--prerelease) ;; esac
+          # Not --latest: "latest" stays the Vite plugin's release.
+          gh release create "$GITHUB_REF_NAME" --verify-tag --latest=false \
+            --title "Oxlint plugin ${GITHUB_REF_NAME#oxlint-plugin-lit-v}" \
+            --notes-file notes.md "${prerelease[@]}"
