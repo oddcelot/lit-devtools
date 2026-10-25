@@ -13,7 +13,7 @@ CSS import queries for shadow roots and an optional DevTools panel.
 
 Every docs page is available as Markdown: append `index.md` to its URL, or
 request it with `Accept: text/markdown`. The whole site is in
-https://vite-plugin-lit.oddsquad.dev/llms-full.txt.
+https://lit-devtools.oddsquad.dev/llms-full.txt.
 
 ## Install
 
@@ -71,7 +71,7 @@ Generated utility CSS (Tailwind, UnoCSS) belongs in a shared sheet.
 `static styles` takes an array: shared sheet first, the component's own
 `css` after it.
 
-Guide: https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/index.md
+Guide: https://lit-devtools.oddsquad.dev/guides/stylesheets/index.md
 
 ## When an edit doesn't patch cleanly
 
@@ -90,8 +90,8 @@ The console names the reason with a `[lit-plugin] <my-element>:` line.
 - **`observedAttributes` changed.** The platform can't update it; reload.
 
 Every shape, its console line and its fix:
-https://vite-plugin-lit.oddsquad.dev/reference/limitations/index.md and
-https://vite-plugin-lit.oddsquad.dev/guides/troubleshooting/index.md
+https://lit-devtools.oddsquad.dev/reference/limitations/index.md and
+https://lit-devtools.oddsquad.dev/guides/troubleshooting/index.md
 
 ## DevTools panel and MCP
 
@@ -122,13 +122,13 @@ The tools answer only while a dev server with DevTools runs, and the
 endpoint is localhost-only (`/__devtools/__mcp`, or `/__lit/__mcp` without
 Vite DevTools).
 
-Guide: https://vite-plugin-lit.oddsquad.dev/guides/devtools/agents/index.md
+Guide: https://lit-devtools.oddsquad.dev/guides/devtools/agents/index.md
 
 ## Reference
 
-- Options: https://vite-plugin-lit.oddsquad.dev/reference/options/index.md
+- Options: https://lit-devtools.oddsquad.dev/reference/options/index.md
   (`hmr.*`, `sourceOverlay`, `timeline`, `cssSheetBuild`, Astro options)
-- Environment variables: https://vite-plugin-lit.oddsquad.dev/reference/environment-variables/index.md
-- Import queries: https://vite-plugin-lit.oddsquad.dev/reference/import-queries/index.md
-- Compatibility (Lit, Vite and Node versions): https://vite-plugin-lit.oddsquad.dev/reference/compatibility/index.md
-- Astro: https://vite-plugin-lit.oddsquad.dev/guides/astro/index.md
+- Environment variables: https://lit-devtools.oddsquad.dev/reference/environment-variables/index.md
+- Import queries: https://lit-devtools.oddsquad.dev/reference/import-queries/index.md
+- Compatibility (Lit, Vite and Node versions): https://lit-devtools.oddsquad.dev/reference/compatibility/index.md
+- Astro: https://lit-devtools.oddsquad.dev/guides/astro/index.md

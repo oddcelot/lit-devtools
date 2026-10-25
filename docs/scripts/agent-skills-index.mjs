@@ -10,7 +10,7 @@ import {fileURLToPath} from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '../dist/.well-known/agent-skills');
-const site = 'https://vite-plugin-lit.oddsquad.dev';
+const site = 'https://lit-devtools.oddsquad.dev';
 
 const skills = [];
 for (const entry of await readdir(root, {withFileTypes: true})) {

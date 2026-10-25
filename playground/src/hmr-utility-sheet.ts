@@ -28,7 +28,7 @@ import sheetUrl from './hmr-utility-sheet.css?url';
  * sheet (`hmr-shared-sheet`) when first-paint stability matters more than an
  * external asset. `?css-sheet` is the zero-boilerplate form of this (see
  * `hmr-vsheet-a`) —
- * https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/
+ * https://lit-devtools.oddsquad.dev/guides/stylesheets/
  * (benchmarked in bench/).
  */
 const {sheet, onHotUpdate} = urlSheet(sheetUrl);

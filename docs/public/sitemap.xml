@@ -3,6 +3,6 @@
      sitemap-0.xml; this points at the latter, which holds every page. -->
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <sitemap>
-    <loc>https://vite-plugin-lit.oddsquad.dev/sitemap-0.xml</loc>
+    <loc>https://lit-devtools.oddsquad.dev/sitemap-0.xml</loc>
   </sitemap>
 </sitemapindex>

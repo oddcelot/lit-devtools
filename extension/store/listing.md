@@ -48,7 +48,7 @@ Limits
 Top-level frames only (components inside iframes are not shown), http and https pages only, Chrome 114 or later.
 
 Privacy
-Lit Inspector collects no data. Its network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. On a site served by a Vite dev server, it also asks that server, and only that server, to open the files you click in your editor. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://vite-plugin-lit.oddsquad.dev/reference/extension-privacy/
+Lit Inspector collects no data. Its network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. On a site served by a Vite dev server, it also asks that server, and only that server, to open the files you click in your editor. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://lit-devtools.oddsquad.dev/reference/extension-privacy/
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with, endorsed by, or produced by Google or the Lit project.
 
@@ -84,7 +84,7 @@ Screenshot captions, if the dashboard asks for them:
 
 **Official URL / homepage**
 
-https://vite-plugin-lit.oddsquad.dev/
+https://lit-devtools.oddsquad.dev/
 
 **Support URL**
 
@@ -157,7 +157,7 @@ Certifications (all true):
 
 **Privacy policy URL**
 
-https://vite-plugin-lit.oddsquad.dev/reference/extension-privacy/
+https://lit-devtools.oddsquad.dev/reference/extension-privacy/
 
 ## Distribution
 

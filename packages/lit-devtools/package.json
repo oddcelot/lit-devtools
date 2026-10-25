@@ -13,7 +13,7 @@
     "oxlint",
     "language-server"
   ],
-  "homepage": "https://vite-plugin-lit.oddsquad.dev/",
+  "homepage": "https://lit-devtools.oddsquad.dev/",
   "bugs": "https://github.com/oddcelot/lit-devtools/issues",
   "license": "BSD-3-Clause",
   "author": "oddcelot",

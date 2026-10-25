@@ -97,7 +97,7 @@ links to the release's changelog page. The version must have a section in
 it would become part of the anchor.
 
 Pushes to `main` deploy the build to GitHub Pages, served at
-`vite-plugin-lit.oddsquad.dev` through Cloudflare. A Worker on that route,
+`lit-devtools.oddsquad.dev` through Cloudflare. A Worker on that route,
 in `docs/worker/`, adds the Link headers Pages can't set and answers
 `Accept: text/markdown` with the page's `index.md`. It doesn't deploy with
 the site; after changing it, run `pnpm run worker:deploy` in `docs/` with

@@ -26,4 +26,4 @@ Content-Signal: search=yes, ai-input=yes, ai-train=yes
 Allow: /
 Disallow: /pagefind/
 
-Sitemap: https://vite-plugin-lit.oddsquad.dev/sitemap-index.xml
+Sitemap: https://lit-devtools.oddsquad.dev/sitemap-index.xml

@@ -37,9 +37,9 @@ With Vite+, the same object goes under `lint` in `vite.config.ts`. In an
 It reads the same settings as the language server, from your Vite config or
 a `lit-devtools.config.ts`, except `diagnostics`: Oxlint's config sets the
 severities.
-[Check it in CI with Oxlint](https://vite-plugin-lit.oddsquad.dev/guides/language-server/#check-it-in-ci-with-oxlint)
+[Check it in CI with Oxlint](https://lit-devtools.oddsquad.dev/guides/language-server/#check-it-in-ci-with-oxlint)
 has the details, and the
-[reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/#oxlint-plugin)
+[reference](https://lit-devtools.oddsquad.dev/reference/language-server/#oxlint-plugin)
 lists the rules.
 
 ## License

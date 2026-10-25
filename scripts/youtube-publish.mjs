@@ -38,7 +38,7 @@ import {appendFileSync, existsSync} from 'node:fs';
 import {readFile} from 'node:fs/promises';
 
 const REPO = 'https://github.com/oddcelot/lit-devtools';
-const DOCS = 'https://vite-plugin-lit.oddsquad.dev';
+const DOCS = 'https://lit-devtools.oddsquad.dev';
 const UPLOAD_SCOPE = 'https://www.googleapis.com/auth/youtube.upload';
 // YouTube's limits: a 100-character title, a 5000-byte description, and
 // neither may contain `<` or `>`.

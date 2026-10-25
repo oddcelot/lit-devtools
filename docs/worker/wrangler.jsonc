@@ -18,25 +18,25 @@
   // (Workers > vite-plugin-lit-docs > Domains & Routes): past the daily cap
   // the site then serves straight from Pages instead of erroring.
   "routes": [
-    {"pattern": "vite-plugin-lit.oddsquad.dev/", "zone_name": "oddsquad.dev"},
+    {"pattern": "lit-devtools.oddsquad.dev/", "zone_name": "oddsquad.dev"},
     {
-      "pattern": "vite-plugin-lit.oddsquad.dev/start/*",
+      "pattern": "lit-devtools.oddsquad.dev/start/*",
       "zone_name": "oddsquad.dev",
     },
     {
-      "pattern": "vite-plugin-lit.oddsquad.dev/guides/*",
+      "pattern": "lit-devtools.oddsquad.dev/guides/*",
       "zone_name": "oddsquad.dev",
     },
     {
-      "pattern": "vite-plugin-lit.oddsquad.dev/concepts/*",
+      "pattern": "lit-devtools.oddsquad.dev/concepts/*",
       "zone_name": "oddsquad.dev",
     },
     {
-      "pattern": "vite-plugin-lit.oddsquad.dev/reference/*",
+      "pattern": "lit-devtools.oddsquad.dev/reference/*",
       "zone_name": "oddsquad.dev",
     },
     {
-      "pattern": "vite-plugin-lit.oddsquad.dev/contributing/*",
+      "pattern": "lit-devtools.oddsquad.dev/contributing/*",
       "zone_name": "oddsquad.dev",
     },
   ],

@@ -114,7 +114,7 @@ const ruleFor = (rule: DiagnosticRule) => ({
     type: 'problem' as const,
     docs: {
       description: DESCRIPTIONS[rule],
-      url: 'https://vite-plugin-lit.oddsquad.dev/guides/language-server/',
+      url: 'https://lit-devtools.oddsquad.dev/guides/language-server/',
     },
     schema: [],
   },

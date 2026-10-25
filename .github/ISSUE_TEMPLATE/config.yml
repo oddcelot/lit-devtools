@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/oddcelot/lit-devtools/discussions/categories/q-a
     about: Setup help and how-do-I questions go to Discussions.
   - name: Troubleshooting
-    url: https://vite-plugin-lit.oddsquad.dev/guides/troubleshooting/
+    url: https://lit-devtools.oddsquad.dev/guides/troubleshooting/
     about: Common causes for full reloads, lost state and patching failures.
   - name: Report a vulnerability
     url: https://github.com/oddcelot/lit-devtools/security/advisories/new
