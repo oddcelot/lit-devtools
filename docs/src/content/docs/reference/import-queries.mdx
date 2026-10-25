@@ -25,7 +25,7 @@ Which one to reach for is a delivery tradeoff, and the
 ## Ambient types
 
 The two queries this plugin adds ship their declarations in
-`@oddsquad/vite-plugin-lit/client`:
+`@oddsquad/lit-devtools/client`:
 
 ```ts
 declare module '*.css?hmr-url' {
@@ -46,7 +46,7 @@ Pull them in through the `types` field of your `tsconfig.json`:
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
-    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"],
+    "types": ["vite/client", "@oddsquad/lit-devtools/client"],
     "experimentalDecorators": true,
     "useDefineForClassFields": false
   },
@@ -59,7 +59,7 @@ A triple-slash reference in any `.d.ts` file does the same job, and leaves the
 
 ```ts title="src/vite-env.d.ts"
 /// <reference types="vite/client" />
-/// <reference types="@oddsquad/vite-plugin-lit/client" />
+/// <reference types="@oddsquad/lit-devtools/client" />
 ```
 
 `?url`, `?inline`, and `?raw` are typed by `vite/client`, which a Vite project
@@ -67,7 +67,7 @@ almost always references already.
 
 <Aside type="caution" title="`types` replaces, it does not extend">
   Listing `types` at all narrows the set of ambient packages TypeScript loads.
-  If you add `@oddsquad/vite-plugin-lit/client`, keep `vite/client` and anything
+  If you add `@oddsquad/lit-devtools/client`, keep `vite/client` and anything
   else you relied on in the same array.
 </Aside>
 
@@ -80,7 +80,7 @@ path:
 import {addTimelineEvent, addTimelineLayer} from 'virtual:lit-plugin/timeline';
 ```
 
-Its types ship in the same `@oddsquad/vite-plugin-lit/client` declarations, so
+Its types ship in the same `@oddsquad/lit-devtools/client` declarations, so
 the `types` entry or the triple-slash reference above already covers it. The
 full declaration is on the
 [runtime API page](/reference/runtime-api/), and

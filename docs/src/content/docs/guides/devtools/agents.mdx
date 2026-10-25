@@ -14,7 +14,7 @@ every dev server on your machine.
 ## Add the server
 
 ```sh frame="terminal"
-claude mcp add lit-devtools -- npx -y @oddsquad/vite-plugin-lit mcp
+claude mcp add lit-devtools -- npx -y @oddsquad/lit-devtools mcp
 ```
 
 The equivalent `claude_desktop_config.json` or `mcp.json` entry:
@@ -24,7 +24,7 @@ The equivalent `claude_desktop_config.json` or `mcp.json` entry:
   "mcpServers": {
     "lit-devtools": {
       "command": "npx",
-      "args": ["-y", "@oddsquad/vite-plugin-lit", "mcp"]
+      "args": ["-y", "@oddsquad/lit-devtools", "mcp"]
     }
   }
 }

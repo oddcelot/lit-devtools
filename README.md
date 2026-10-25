@@ -59,10 +59,19 @@ This plugin fixes that with two cooperating mechanisms:
 
 ## Usage
 
+Install `@oddsquad/lit-devtools`, which brings this plugin together with the
+Lit language server and its Oxlint rules, or this package on its own and
+import from `@oddsquad/vite-plugin-lit` instead of
+`@oddsquad/lit-devtools/vite`:
+
+```sh
+npm i -D @oddsquad/lit-devtools
+```
+
 ```ts
 // vite.config.ts
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin()],
@@ -79,7 +88,7 @@ a build config that depends on even less, use the build-only entry, which
 carries just the CSS plugins:
 
 ```ts
-import {litCss} from '@oddsquad/vite-plugin-lit/build';
+import {litCss} from '@oddsquad/lit-devtools/build';
 
 export default defineConfig(({command}) => ({
   plugins: [command === 'serve' ? litPlugin() : litCss()],
@@ -130,7 +139,7 @@ Point an MCP client at it either way:
 
 ```sh
 # Auto-discovers every running dev server on this machine.
-claude mcp add lit-devtools -- npx -y @oddsquad/vite-plugin-lit mcp
+claude mcp add lit-devtools -- npx -y @oddsquad/lit-devtools mcp
 
 # Or dial one server directly, if you'd rather pin the port
 # (`/__lit/__mcp` when the server runs without Vite DevTools).
@@ -144,7 +153,7 @@ The equivalent `claude_desktop_config.json` / `mcp.json` entry:
   "mcpServers": {
     "lit-devtools": {
       "command": "npx",
-      "args": ["-y", "@oddsquad/vite-plugin-lit", "mcp"]
+      "args": ["-y", "@oddsquad/lit-devtools", "mcp"]
     }
   }
 }

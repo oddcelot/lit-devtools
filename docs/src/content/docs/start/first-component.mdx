@@ -51,14 +51,14 @@ newer, an editor, and no knowledge of Vite plugins.
 3. **Add the plugin.**
 
    ```sh frame="terminal"
-   npm install -D @oddsquad/vite-plugin-lit
+   npm install -D @oddsquad/lit-devtools
    ```
 
    The template ships without a Vite config, so write one.
 
    ```ts title="vite.config.ts"
    import {defineConfig} from 'vite';
-   import {litPlugin} from '@oddsquad/vite-plugin-lit';
+   import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
    export default defineConfig({
      plugins: [litPlugin({hmr: {indicator: {count: true}}})],
@@ -73,7 +73,7 @@ newer, an editor, and no knowledge of Vite plugins.
 
    ```diff lang="json" title="tsconfig.json"
    -    "types": ["vite/client"],
-   +    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"],
+   +    "types": ["vite/client", "@oddsquad/lit-devtools/client"],
    ```
 
    Do it now rather than later: editing `tsconfig.json` forces a full reload,

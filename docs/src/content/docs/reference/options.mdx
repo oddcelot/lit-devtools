@@ -51,7 +51,7 @@ Turns HMR for Lit component classes, and its on-page indicator, on or off.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: false})],
@@ -73,7 +73,7 @@ rest of the group.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {enabled: false, indicator: true}})],
@@ -91,7 +91,7 @@ after a hot patch, an edit applied to the running page without a reload.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {reconnect: true}})],
@@ -117,7 +117,7 @@ private state. Only the dev server does this; builds keep real `#private`.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {privateFields: false}})],
@@ -145,7 +145,7 @@ is a new element.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {childState: 'reuse'}})],
@@ -179,7 +179,7 @@ page, or only warn in the console.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {onIncompatible: 'warn'}})],
@@ -201,7 +201,7 @@ update.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {indicator: false}})],
@@ -238,7 +238,7 @@ Shows a cumulative update count next to the dot.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({hmr: {indicator: {count: true}}})],
@@ -260,7 +260,7 @@ your editor.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: true})],
@@ -281,7 +281,7 @@ Sets the letter that Ctrl+Shift is combined with to toggle the overlay.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: {key: 'i'}})],
@@ -299,7 +299,7 @@ Picks which editor a click opens.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: {editor: 'zed'}})],
@@ -326,7 +326,7 @@ Prefixes the absolute file paths the overlay hands to your editor.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: {workspaceRoot: '/Users/me/app'}})],
@@ -343,7 +343,7 @@ Throttles how often the overlay recomputes the element under the pointer.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: {throttleMs: 16}})],
@@ -367,7 +367,7 @@ components keep theirs.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({sourceOverlay: {hosts: 'lit'}})],
@@ -384,7 +384,7 @@ Skips elements during inspection. Return `true` to ignore an element.
 
 ```ts title="vite.config.ts" {7}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [
@@ -406,7 +406,7 @@ Runs when you click a component, instead of or alongside opening the editor.
 
 ```ts title="vite.config.ts" {7}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [
@@ -432,7 +432,7 @@ Adds the Lit panel to Vite DevTools, the browser overlay from
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({timeline: true})],
@@ -457,7 +457,7 @@ Decides what a `?css-sheet` import compiles to under `vite build`.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({cssSheetBuild: 'inline'})],
@@ -493,7 +493,7 @@ stable ID, and DevTools offers to connect it.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({devtoolsWorkspace: '../..'})],
@@ -522,7 +522,7 @@ the way the DevTools panel reads them.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({manifest: {write: 'docs/custom-elements.json'}})],
@@ -580,7 +580,7 @@ modules pages load. A build reads the modules of its bundle and ignores this.
 
 <Since v="0.20.0" />
 
-`lit()` from `@oddsquad/vite-plugin-lit/astro` takes every option above, with
+`lit()` from `@oddsquad/lit-devtools/astro` takes every option above, with
 `timeline` on by default, since the panel in the dev toolbar needs it
 (`LIT_PLUGIN_TIMELINE=false` still turns it off), and three of its own. They mirror the JSDoc of `LitAstroOptions` in `src/astro.ts`
 and have no environment variables. `litDevtools()` takes the same options
@@ -601,7 +601,7 @@ and say what to install.
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   integrations: [lit({render: false})],
@@ -624,7 +624,7 @@ install.
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   integrations: [lit({shadowRootPolyfill: true})],
@@ -641,7 +641,7 @@ app either.
 
 ```js title="astro.config.mjs" {5}
 import {defineConfig} from 'astro/config';
-import lit from '@oddsquad/vite-plugin-lit/astro';
+import lit from '@oddsquad/lit-devtools/astro';
 
 export default defineConfig({
   integrations: [lit({toolbar: false})],

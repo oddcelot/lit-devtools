@@ -27,7 +27,7 @@ bundle, and the dev server serves it at `/custom-elements.json`.
 
 ```ts title="vite.config.ts" {5}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({manifest: true})],
@@ -95,7 +95,7 @@ it as you edit, and `vite build` rewrites it from every module of the bundle.
 
 ```ts title="vite.config.ts" {6}
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({manifest: {write: true}})],

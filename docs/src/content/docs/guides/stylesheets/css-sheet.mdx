@@ -63,14 +63,14 @@ package's ambient types to `tsconfig.json`.
     "lib": ["es2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "noEmit": true,
-    "types": ["vite/client", "@oddsquad/vite-plugin-lit/client"]
+    "types": ["vite/client", "@oddsquad/lit-devtools/client"]
   },
   "include": ["src", "vite.config.ts"]
 }
 ```
 
 A single-file alternative is
-`/// <reference types="@oddsquad/vite-plugin-lit/client" />` at the top of a
+`/// <reference types="@oddsquad/lit-devtools/client" />` at the top of a
 module.
 
 ## Edit it and watch
@@ -138,8 +138,8 @@ cannot wrap it directly.
 Add `unoSheet()` before `litPlugin()` and point it at the file to write.
 
 ```ts title="vite.config.ts" ins={2,7-10}
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
-import {unoSheet} from '@oddsquad/vite-plugin-lit/uno';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
+import {unoSheet} from '@oddsquad/lit-devtools/uno';
 import {presetWind3} from 'unocss';
 
 export default defineConfig({
@@ -228,7 +228,7 @@ an `initial-value: var(…)`.
 
 ```ts title="vite.config.ts"
 import {defineConfig} from 'vite';
-import {litPlugin} from '@oddsquad/vite-plugin-lit';
+import {litPlugin} from '@oddsquad/lit-devtools/vite';
 
 export default defineConfig({
   plugins: [litPlugin({cssSheetBuild: 'inline-raw'})],
