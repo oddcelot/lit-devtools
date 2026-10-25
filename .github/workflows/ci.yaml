@@ -78,4 +78,8 @@ jobs:
       # The runner's Google Chrome ignores --load-extension; the extension
       # test needs Playwright's own Chromium.
       - run: pnpm exec playwright-core install chromium
+      # Browsers and dev servers run side by side and each takes inotify
+      # instances; past the runner's 128 a new file watcher sets up without
+      # error but never hears a change.
+      - run: sudo sysctl -w fs.inotify.max_user_instances=1024 fs.inotify.max_user_watches=524288
       - run: pnpm run test:e2e --shard=${{ matrix.shard }}/3
