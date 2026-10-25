@@ -1,6 +1,6 @@
 id = "lit"
 name = "Lit"
-version = "0.0.1"
+version = "0.1.0"
 schema_version = 1
 authors = ["oddcelot"]
 description = "Completion and hover for Lit components in templates, HTML, JSX, Astro and MDX, read from your sources and your dependencies' Custom Elements Manifests."
