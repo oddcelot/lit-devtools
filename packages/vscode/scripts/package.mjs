@@ -15,7 +15,7 @@ const targets = args[0] === 'all' ? Object.keys(TARGETS) : args;
 
 for (const target of targets.length > 0 ? targets : [undefined]) {
   const staged = stageServer(target);
-  const out = join(root, `lit-${staged}.vsix`);
+  const out = join(root, `lit-devtools-${staged}.vsix`);
   execFileSync(
     vsce,
     ['package', '--no-dependencies', '--target', staged, '--out', out],

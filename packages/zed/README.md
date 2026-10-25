@@ -1,4 +1,4 @@
-# Lit for Zed
+# Lit DevTools for Zed
 
 Completion and hover for Lit components in `html` templates and HTML files,
 from the [Lit language server](../lit-language-server).

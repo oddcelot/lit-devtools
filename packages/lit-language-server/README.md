@@ -16,9 +16,9 @@ html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
 
 ## Use it
 
-- **VS Code:** install the Lit extension; it starts this server, the
+- **VS Code:** install Lit DevTools; it starts this server, the
   project's own copy when it installs one.
-- **Zed:** install the Lit extension; it starts this server.
+- **Zed:** install Lit DevTools; it starts this server.
 - **Any LSP editor:** run `lit-language-server --stdio`, from a project that
   installs it:
 
