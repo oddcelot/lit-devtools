@@ -1,6 +1,6 @@
 ---
 title: Runtime API
-description: 'The browser helpers exported from @oddsquad/vite-plugin-lit/css.js, and the virtual:lit-plugin/timeline module.'
+description: 'The browser helpers exported from @oddsquad/lit-devtools/css, and the virtual:lit-plugin/timeline module.'
 sidebar:
   order: 4
 ---
@@ -8,16 +8,9 @@ sidebar:
 import {Aside, CardGrid, LinkCard} from '@astrojs/starlight/components';
 
 Two runtime entry points ship with the package: the CSS helpers under
-`@oddsquad/vite-plugin-lit/css.js`, and the timeline API behind
+`@oddsquad/lit-devtools/css`, and the timeline API behind
 `virtual:lit-plugin/timeline`. Both are dependency-free and safe to import from
 component code.
-
-<Aside>
-  The CSS helpers come from the Vite plugin's own package, which
-  `@oddsquad/lit-devtools` installs but doesn't re-export. With pnpm, which
-  keeps a dependency's dependencies out of your `node_modules`, add
-  `@oddsquad/vite-plugin-lit` to the project too so the import resolves.
-</Aside>
 
 ## urlSheet()
 
@@ -31,7 +24,7 @@ the source CSS re-fetches and `replaceSync()`s that one object. Every root that
 adopted it restyles, with no component re-render and no page reload.
 
 ```ts title="src/styles/utility-sheet.ts"
-import {urlSheet} from '@oddsquad/vite-plugin-lit/css.js';
+import {urlSheet} from '@oddsquad/lit-devtools/css';
 import sheetUrl from './utils.css?url';
 
 const {sheet, onHotUpdate} = urlSheet(sheetUrl);
@@ -80,7 +73,7 @@ comes back unchanged.
 ```ts title="src/my-element.ts"
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {devCacheBust} from '@oddsquad/vite-plugin-lit/css.js';
+import {devCacheBust} from '@oddsquad/lit-devtools/css';
 import cssUrl from './my-element.css?url';
 
 const href = devCacheBust(cssUrl);

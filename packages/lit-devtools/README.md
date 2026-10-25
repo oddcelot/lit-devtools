@@ -13,6 +13,7 @@ npm install -D @oddsquad/lit-devtools
 | `@oddsquad/lit-devtools`          | `defineConfig` and the types for `lit-devtools.config.ts`            |
 | `@oddsquad/lit-devtools/vite`     | `litPlugin`, for `vite.config.ts`                                    |
 | `@oddsquad/lit-devtools/build`    | `litCss`, for a build-only config                                    |
+| `@oddsquad/lit-devtools/css`      | `urlSheet`, `devCacheBust`: the CSS helpers for component code       |
 | `@oddsquad/lit-devtools/astro`    | the Astro integration                                                |
 | `@oddsquad/lit-devtools/uno`      | `unoSheet`, UnoCSS in a Lit stylesheet                               |
 | `@oddsquad/lit-devtools/devframe` | `createLitDevtools`, the panel in your own page                      |
