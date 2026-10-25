@@ -31,6 +31,7 @@
       "default": "./dist/index.mjs"
     },
     "./oxlint": {
+      "types": "./dist/types/packages/lit-language-server/src/oxlint.d.ts",
       "default": "./dist/oxlint.mjs"
     }
   },

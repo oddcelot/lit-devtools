@@ -53,7 +53,10 @@
     // the renderer's entrypoints and page script by package export.
     "src/lib/astro/{toolbar-app,server,client,boot}.ts",
     // The theme package's generator reads its token sources by path.
-    "packages/webawesome-theme-lit/src/tokens/*.css"
+    "packages/webawesome-theme-lit/src/tokens/*.css",
+    // The language server's Oxlint plugin starts it as a worker by URL, and
+    // its package build names it as an entry.
+    "packages/lit-language-server/src/oxlint-worker.ts"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`
