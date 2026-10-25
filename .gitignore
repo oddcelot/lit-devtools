@@ -8,6 +8,8 @@
 /dist/
 /examples/*/dist/
 *.tsbuildinfo
+# What `pnpm pack` writes before a publish
+*.tgz
 
 # Tooling caches
 /.e2e-tmp/
