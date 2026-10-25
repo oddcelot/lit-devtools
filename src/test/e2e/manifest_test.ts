@@ -2,6 +2,7 @@ import {build, createServer} from 'vite';
 import {afterAll, expect, test} from 'vite-plus/test';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
+import {readFileSync} from 'node:fs';
 import {litPlugin, type LitPluginOptions} from '../../index.js';
 import {scanSources} from '../../lib/component-docs/scan.js';
 import {manifestText} from '../../lib/component-docs/manifest-file.js';
@@ -374,6 +375,9 @@ test('the dev server lists what src holds before any page loads it', async () =>
       if (file.includes(root))
         events.push(`${event} ${file.slice(root.length)}`);
     });
+    server.watcher.on('error', (error) =>
+      events.push(`error ${String(error)}`)
+    );
     // Inherited members resolve through the dev server's own resolver.
     await fsp.writeFile(
       joinPath(root, 'src/x-b.ts'),
@@ -383,7 +387,19 @@ test('the dev server lists what src holds before any page loads it', async () =>
       .poll(served, {timeout: 5000})
       .toContainEqual(['src/x-b.ts', ['XB']])
       .catch((error: Error) => {
-        error.message += `\nwatcher events: ${JSON.stringify(events)}`;
+        const watched = Object.keys(server.watcher.getWatched()).filter((dir) =>
+          dir.includes(root)
+        );
+        const limits = ['max_user_watches', 'max_user_instances'].map(
+          (name) => {
+            try {
+              return `${name}=${readFileSync(`/proc/sys/fs/inotify/${name}`, 'utf8').trim()}`;
+            } catch {
+              return `${name}=?`;
+            }
+          }
+        );
+        error.message += `\nwatcher events: ${JSON.stringify(events)}\nwatched: ${JSON.stringify(watched)}\ninotify: ${limits.join(' ')}`;
         throw error;
       });
     await fsp.rm(joinPath(root, 'src/base.ts'));
