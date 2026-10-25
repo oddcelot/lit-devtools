@@ -4,10 +4,11 @@
 f="$1"
 grep -qE '^Merge ' "$f" && exit 0
 group=$(git interpret-trailers --parse < "$f" | sed -n 's/^Changelog: *//p' | head -1 | cut -d' ' -f1)
-# A change to the language server or the Oxlint plugin also carries its own
-# trailer, `Changelog-Language-Server:` or `Changelog-Oxlint-Plugin:`, for
-# that package's CHANGELOG.md.
-for trailer in Changelog-Language-Server Changelog-Oxlint-Plugin; do
+# A change to the language server, the Oxlint plugin or @oddsquad/lit-devtools
+# also carries its own trailer, `Changelog-Language-Server:`,
+# `Changelog-Oxlint-Plugin:` or `Changelog-Lit-Devtools:`, for that package's
+# CHANGELOG.md.
+for trailer in Changelog-Language-Server Changelog-Oxlint-Plugin Changelog-Lit-Devtools; do
   value=$(git interpret-trailers --parse < "$f" | sed -n "s/^$trailer: *//p" | head -1 | cut -d' ' -f1)
   case "$value" in
     ""|Added|Changed|Fixed|Removed) ;;

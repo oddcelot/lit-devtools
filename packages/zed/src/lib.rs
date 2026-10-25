@@ -1,16 +1,20 @@
 //! Starts the Lit language server for Zed.
 //!
 //! The server is found, in order: the path in the `lsp.lit-language-server`
-//! settings; the project's own install of `@oddsquad/lit-language-server`, so
-//! its version matches the project; the package's source in the
-//! vite-plugin-lit repo itself; else the latest release, installed from npm
-//! into the extension's folder. A JavaScript server runs with Zed's Node.
+//! settings; the project's own install of `@oddsquad/lit-language-server`, or
+//! of `@oddsquad/lit-devtools`, which installs it as its own dependency where
+//! pnpm keeps it out of the project's `node_modules`, so its version matches
+//! the project; the package's source in the vite-plugin-lit repo itself;
+//! else the latest release, installed from npm into the extension's folder.
+//! A JavaScript server runs with Zed's Node.
 
 use zed_extension_api::{self as zed, settings::LspSettings, LanguageServerId, Result};
 
 const SERVER_ID: &str = "lit-language-server";
 const PACKAGE: &str = "@oddsquad/lit-language-server";
 const BIN: &str = "dist/bin.mjs";
+const UMBRELLA: &str = "@oddsquad/lit-devtools";
+const UMBRELLA_BIN: &str = "bin/lit-language-server.mjs";
 
 struct LitExtension {
     /// The npm install checked this session, so it's looked up once.
@@ -22,15 +26,18 @@ impl LitExtension {
     fn project_server(worktree: &zed::Worktree) -> Option<String> {
         let root = worktree.root_path();
         let candidates = [
-            format!("node_modules/{PACKAGE}"),
+            (format!("node_modules/{PACKAGE}"), PACKAGE, BIN),
+            (format!("node_modules/{UMBRELLA}"), UMBRELLA, UMBRELLA_BIN),
             // This repo: the workspace package, built by `vp pack`.
-            "packages/lit-language-server".to_string(),
+            ("packages/lit-language-server".to_string(), PACKAGE, BIN),
         ];
-        candidates.into_iter().find_map(|dir| {
-            let manifest = worktree.read_text_file(&format!("{dir}/package.json")).ok()?;
+        candidates.into_iter().find_map(|(dir, name, bin)| {
+            let manifest = worktree
+                .read_text_file(&format!("{dir}/package.json"))
+                .ok()?;
             manifest
-                .contains(&format!("\"name\": \"{PACKAGE}\""))
-                .then(|| format!("{root}/{dir}/{BIN}"))
+                .contains(&format!("\"name\": \"{name}\""))
+                .then(|| format!("{root}/{dir}/{bin}"))
         })
     }
 
@@ -73,9 +80,15 @@ fn command_for(path: String, mut args: Vec<String>) -> Result<zed::Command> {
     if !args.iter().any(|arg| arg == "--stdio") {
         args.push("--stdio".to_string());
     }
-    let is_script = [".js", ".mjs", ".cjs"].iter().any(|ext| path.ends_with(ext));
+    let is_script = [".js", ".mjs", ".cjs"]
+        .iter()
+        .any(|ext| path.ends_with(ext));
     if !is_script {
-        return Ok(zed::Command { command: path, args, env: Vec::new() });
+        return Ok(zed::Command {
+            command: path,
+            args,
+            env: Vec::new(),
+        });
     }
     let mut node_args = vec![path];
     node_args.extend(args);

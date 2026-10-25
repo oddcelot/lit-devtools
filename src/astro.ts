@@ -35,7 +35,11 @@ import {
 } from './lib/astro/toolbar-protocol.js';
 import {pageTagsMiddleware} from './lib/astro/page-tags.js';
 import {litNodeBuilds} from './lib/astro/node-builds.js';
-import {missingPeers, missingPeersMessage} from './lib/astro/peers.js';
+import {
+  missingPeers,
+  missingPeersMessage,
+  pluginPath,
+} from './lib/astro/peers.js';
 import {type LitPluginOptions, litPlugin} from './lib/plugin.js';
 
 export interface LitAstroOptions extends LitPluginOptions {
@@ -106,11 +110,20 @@ export interface LitAstroIntegration {
   };
 }
 
-// Astro writes it into an `import()` Vite resolves, and Vite wants forward
-// slashes in a Windows path, as `resolveRuntimeModule` gives it the page's.
-const TOOLBAR_ENTRY = fileURLToPath(
-  new URL('./lib/astro/toolbar-app.js', import.meta.url)
-).replaceAll('\\', '/');
+/**
+ * A module of this package by path, not by its name: a project that installs
+ * the plugin through @oddsquad/lit-devtools can't resolve the name under
+ * pnpm. Astro writes it into imports Vite resolves, and Vite wants forward
+ * slashes in a Windows path, as `resolveRuntimeModule` gives it the page's.
+ */
+const ownModule = (path: string): string =>
+  fileURLToPath(new URL(path, import.meta.url)).replaceAll('\\', '/');
+
+const TOOLBAR_ENTRY = ownModule('./lib/astro/toolbar-app.js');
+const SERVER_ENTRY = ownModule('./lib/astro/server.js');
+const CLIENT_ENTRY = ownModule('./lib/astro/client.js');
+const BOOT_MODULE = ownModule('./lib/astro/boot.js');
+const POLYFILL_MODULE = ownModule('./lib/astro/polyfill.js');
 
 /**
  * The renderer's name, which is also the hint `client:only` takes: Astro
@@ -119,8 +132,12 @@ const TOOLBAR_ENTRY = fileURLToPath(
  */
 const RENDERER_NAME = 'lit';
 
-/** What the page runtime imports, named through the plugin for pnpm. */
-const RUNTIME_DEP = '@oddsquad/vite-plugin-lit > devframe/in-page-channel';
+/**
+ * What the page runtime imports, named through the plugin for pnpm, which
+ * keeps it out of the project's `node_modules`.
+ */
+const runtimeDep = (root: string): string =>
+  `${pluginPath(root)} > devframe/in-page-channel`;
 
 /** Lit's hydrate support, which must load before LitElement does. */
 const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
@@ -136,10 +153,8 @@ const HYDRATE_SUPPORT = '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 const boot = (shadowRootPolyfill: boolean): string =>
   [
     `import '${HYDRATE_SUPPORT}';`,
-    ...(shadowRootPolyfill
-      ? [`import '@oddsquad/vite-plugin-lit/astro/polyfill';`]
-      : []),
-    `import '@oddsquad/vite-plugin-lit/astro/boot';`,
+    ...(shadowRootPolyfill ? [`import '${POLYFILL_MODULE}';`] : []),
+    `import '${BOOT_MODULE}';`,
   ].join('\n');
 
 /**
@@ -191,7 +206,11 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
           // Found on the first page load instead, it re-runs the optimizer,
           // which next to some integrations (Preact's) leaves Astro's dev
           // toolbar loading outdated deps until the server restarts.
-          updateConfig({vite: {optimizeDeps: {include: [RUNTIME_DEP]}}});
+          updateConfig({
+            vite: {
+              optimizeDeps: {include: [runtimeDep(fileURLToPath(config.root))]},
+            },
+          });
         }
         if (render) {
           const missing = missingPeers(fileURLToPath(config.root));
@@ -207,8 +226,8 @@ export const lit = (options: LitAstroOptions = {}): LitAstroIntegration => {
           });
           addRenderer({
             name: RENDERER_NAME,
-            serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
-            clientEntrypoint: '@oddsquad/vite-plugin-lit/astro/client',
+            serverEntrypoint: SERVER_ENTRY,
+            clientEntrypoint: CLIENT_ENTRY,
           });
           // Both: a page without islands loads only `page` scripts, and an
           // island may hydrate before them.
@@ -259,7 +278,7 @@ export const getContainerRenderer = (): {
   serverEntrypoint: string;
 } => ({
   name: RENDERER_NAME,
-  serverEntrypoint: '@oddsquad/vite-plugin-lit/astro/server',
+  serverEntrypoint: SERVER_ENTRY,
 });
 
 export default lit;

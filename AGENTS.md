@@ -90,6 +90,17 @@ drafts its section in `packages/oxlint-plugin-lit/CHANGELOG.md`, and an
 `oxlint-plugin-lit-v<version>` tag publishes it through
 `.github/workflows/release-oxlint-plugin.yaml`.
 
+`@oddsquad/lit-devtools` (`packages/lit-devtools`) re-exports those three
+and depends on them with `workspace:^`, which pnpm turns into their current
+versions as it packs. Its own changelog tracks what it exports and which
+versions it installs, under a `Changelog-Lit-Devtools:` trailer
+(`pnpm run changelog:lit-devtools`). Release it after the parts it should
+pick up: a `lit-devtools-v<version>` tag runs
+`.github/workflows/release-lit-devtools.yaml`, which stops if a part isn't
+on npm at the version it names. A change that makes one of its parts load
+the others by package name breaks it under pnpm, which
+`src/test/e2e/lit-devtools-umbrella_test.ts` catches.
+
 The editor extensions release on their own tags too. The VS Code extension
 (`packages/vscode`) keeps a hand-written `packages/vscode/CHANGELOG.md`; a
 release commit bumps its `package.json` and writes that section, and a
