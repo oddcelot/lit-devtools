@@ -17,6 +17,7 @@ import {liveDemoPrivateFields} from './src/lib/live-demo-private-fields.mjs';
 import {liveDemoNoPageRuntime} from './src/lib/live-demo-no-page-runtime.mjs';
 import {liveExamplesOwnBuild} from './src/lib/live-examples-own-build.mjs';
 import {ownConfigExamples} from './src/lib/live-examples.ts';
+import {statusCells} from './src/lib/status-cells.mjs';
 
 const latest = latestRelease(
   readFileSync(new URL('../CHANGELOG.md', import.meta.url), 'utf8')
@@ -116,6 +117,8 @@ export default defineConfig({
   ],
   redirects,
   integrations: [
+    // Yes / no / partly table cells render as coloured icons.
+    statusCells(),
     // The plugin this site documents, run on the site itself: Lit DevTools
     // in Astro's dev toolbar while writing docs. Without the renderer
     // (`lit()`): no page server-renders a Lit component, and the renderer's

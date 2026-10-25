@@ -233,3 +233,25 @@ video-player {
   border-radius: 3px;
   background: var(--sl-color-accent);
 }
+
+/* ------------------------------------------------------- Status cells ---- */
+
+/* Yes / no / partly cells of a feature table, marked by
+   src/lib/rehype-status-cells.mjs. */
+.status-cell svg {
+  display: inline-block;
+  vertical-align: -0.2em;
+  margin-inline-end: 0.35em;
+}
+.status-only svg {
+  margin-inline-end: 0;
+}
+.status-yes svg {
+  color: var(--success);
+}
+.status-partial svg {
+  color: var(--warning);
+}
+.status-no svg {
+  color: var(--error);
+}
