@@ -46,7 +46,7 @@ if (!notes?.trim()) {
 const metadata = {
   version: {
     release_notes: {
-      'en-US': `Lit Inspector ${tag.slice(1)}. What changed: https://github.com/oddcelot/vite-plugin-lit/releases/tag/${tag}`,
+      'en-US': `Lit Inspector ${tag.slice(1)}. What changed: https://github.com/oddcelot/lit-devtools/releases/tag/${tag}`,
     },
     approval_notes: notes.trim(),
   },

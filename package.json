@@ -86,10 +86,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oddcelot/vite-plugin-lit.git"
+    "url": "git+https://github.com/oddcelot/lit-devtools.git"
   },
   "bugs": {
-    "url": "https://github.com/oddcelot/vite-plugin-lit/issues"
+    "url": "https://github.com/oddcelot/lit-devtools/issues"
   },
   "scripts": {
     "build": "pnpm run generate:tokens && tsc --pretty && pnpm run build:panel && pnpm run build:standalone && node scripts/format-build-output.mjs && node scripts/check-self-types.mjs",

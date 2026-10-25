@@ -118,7 +118,7 @@ the **Lit Language Server** output channel says which.
 
 - [Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
 - [Everything it completes, shows and reports](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
-- [Report a problem](https://github.com/oddcelot/vite-plugin-lit/issues)
+- [Report a problem](https://github.com/oddcelot/lit-devtools/issues)
 
 ## License
 

@@ -11,13 +11,13 @@
     "lint"
   ],
   "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/#check-it-in-ci-with-oxlint",
-  "bugs": "https://github.com/oddcelot/vite-plugin-lit/issues",
+  "bugs": "https://github.com/oddcelot/lit-devtools/issues",
   "license": "BSD-3-Clause",
   "author": "oddcelot",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oddcelot/vite-plugin-lit.git",
+    "url": "git+https://github.com/oddcelot/lit-devtools.git",
     "directory": "packages/oxlint-plugin-lit"
   },
   "exports": {

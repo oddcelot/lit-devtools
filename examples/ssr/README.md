@@ -4,7 +4,7 @@ Lit components rendered on the server by a Vite dev server with
 [`@lit-labs/ssr`](https://lit.dev/docs/ssr/overview/), then hydrated in the
 page, with `@oddsquad/vite-plugin-lit` running on both.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/ssr?file=src/ssr-counter.ts)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/ssr?file=src/ssr-counter.ts)
 
 ```sh
 pnpm install

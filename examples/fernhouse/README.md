@@ -5,7 +5,7 @@ shared through `@lit/context`, slots and parts, a task that loads reviews. It
 is the example for the DevTools panel and the Lit Inspector extension, and
 the plugin's HMR works on it like on any other.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/vite-plugin-lit/tree/main/examples/fernhouse?file=src/fh-product-card.ts)
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/examples/fernhouse?file=src/fh-product-card.ts)
 
 Each component is one small file in `src/`:
 

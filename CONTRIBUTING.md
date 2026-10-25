@@ -1,11 +1,11 @@
 # Contributing
 
 Issues and pull requests are welcome. For a bug, open an
-[issue](https://github.com/oddcelot/vite-plugin-lit/issues) with the Vite and
+[issue](https://github.com/oddcelot/lit-devtools/issues) with the Vite and
 Lit versions and, if you can, a minimal reproduction. For a larger change,
 open an issue first so we can agree on the approach before you write it.
 Questions and open-ended ideas belong in
-[Discussions](https://github.com/oddcelot/vite-plugin-lit/discussions).
+[Discussions](https://github.com/oddcelot/lit-devtools/discussions).
 
 ## Setup
 
@@ -14,7 +14,7 @@ pinned version). It is one pnpm workspace: the plugin at the root, plus
 `playground/` and `docs/`.
 
 ```sh
-git clone https://github.com/oddcelot/vite-plugin-lit.git
+git clone https://github.com/oddcelot/lit-devtools.git
 cd vite-plugin-lit
 pnpm install
 pnpm dev             # builds the plugin, serves the playground
