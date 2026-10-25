@@ -32,6 +32,12 @@ const scanInDev = async (
   index: SourceDocsIndex,
   dirs: readonly string[]
 ): Promise<void> => {
+  // Before any await: the watcher can turn ready while the imports load. A
+  // file added between the first read and then emits no `add` (the watcher
+  // ignores what its initial scan finds), so the folders are read again.
+  const watcherReady = new Promise<void>((resolve) =>
+    server.watcher.once('ready', () => resolve())
+  );
   const [
     {indexDirs, isScannedScript},
     {indexModule},
@@ -81,11 +87,14 @@ const scanInDev = async (
     const file = toReal(raw);
     if (scanned(file)) index.delete(file);
   });
-  await indexDirs(resolver, index, root, dirs).catch((error: unknown) =>
-    logger.warn(
-      `[lit-plugin] could not read ${dirs.join(', ')}: ${String(error)}`
-    )
-  );
+  const read = () =>
+    indexDirs(resolver, index, root, dirs).catch((error: unknown) =>
+      logger.warn(
+        `[lit-plugin] could not read ${dirs.join(', ')}: ${String(error)}`
+      )
+    );
+  await read();
+  void watcherReady.then(read);
 };
 
 /**
