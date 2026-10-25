@@ -65,10 +65,12 @@ jobs:
         working-directory: packages/oxlint-plugin-lit
       # A version published by hand (a package's first) is tagged afterwards
       # only for its GitHub Release.
+      # Outside the checkout, where package.json's `devEngines` would stop npm.
       - name: Check whether this version is on npm already
         id: published
+        working-directory: ${{ runner.temp }}
         run: |
-          version=$(node -p "require('./packages/oxlint-plugin-lit/package.json').version")
+          version=$(node -p "require('$GITHUB_WORKSPACE/packages/oxlint-plugin-lit/package.json').version")
           if npm view "@oddsquad/oxlint-plugin-lit@$version" version > /dev/null 2>&1; then
             echo "::notice::@oddsquad/oxlint-plugin-lit@$version is on npm already; not publishing it again."
             echo "already=true" >> "$GITHUB_OUTPUT"

@@ -65,10 +65,12 @@ jobs:
         working-directory: packages/lit-language-server
       # A version published by hand (a package's first) is tagged afterwards
       # only for its GitHub Release.
+      # Outside the checkout, where package.json's `devEngines` would stop npm.
       - name: Check whether this version is on npm already
         id: published
+        working-directory: ${{ runner.temp }}
         run: |
-          version=$(node -p "require('./packages/lit-language-server/package.json').version")
+          version=$(node -p "require('$GITHUB_WORKSPACE/packages/lit-language-server/package.json').version")
           if npm view "@oddsquad/lit-language-server@$version" version > /dev/null 2>&1; then
             echo "::notice::@oddsquad/lit-language-server@$version is on npm already; not publishing it again."
             echo "already=true" >> "$GITHUB_OUTPUT"
