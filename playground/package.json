@@ -20,7 +20,7 @@
     "temporal-polyfill": "^1.0.5"
   },
   "devDependencies": {
-    "@oddsquad/vite-plugin-lit": "*",
+    "@oddsquad/lit-devtools": "*",
     "@vitejs/devtools": "^0.7.6",
     "cac": "^7.0.0",
     "lightningcss": "^1.33.0",

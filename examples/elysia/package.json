@@ -19,7 +19,7 @@
     "lit": "^3.3.3"
   },
   "devDependencies": {
-    "@oddsquad/vite-plugin-lit": "*",
+    "@oddsquad/lit-devtools": "*",
     "@types/bun": "^1.3.0",
     "typescript": "^7.0.2"
   }

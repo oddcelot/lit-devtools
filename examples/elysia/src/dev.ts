@@ -15,7 +15,7 @@
  */
 
 import {watch} from 'node:fs';
-import {createLitDevtools} from '@oddsquad/vite-plugin-lit/devframe';
+import {createLitDevtools} from '@oddsquad/lit-devtools/devframe';
 import {Elysia} from 'elysia';
 import {createApp, type Assets} from './app.ts';
 import {openEntries} from './entries.ts';

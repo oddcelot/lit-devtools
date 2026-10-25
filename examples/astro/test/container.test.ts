@@ -1,6 +1,6 @@
 import {experimental_AstroContainer as AstroContainer} from 'astro/container';
 import {loadRenderers} from 'astro:container';
-import {getContainerRenderer} from '@oddsquad/vite-plugin-lit/astro';
+import {getContainerRenderer} from '@oddsquad/lit-devtools/astro';
 import {expect, test} from 'vitest';
 import Page from '../src/pages/basics.astro';
 

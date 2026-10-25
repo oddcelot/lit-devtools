@@ -1,6 +1,6 @@
 import {LitElement, html} from 'lit';
 import {customElement} from 'lit/decorators.js';
-import {devCacheBust} from '@oddsquad/vite-plugin-lit/css.js';
+import {devCacheBust} from '@oddsquad/lit-devtools/css';
 import cssUrl from './hmr-css-url.css?url';
 
 /**

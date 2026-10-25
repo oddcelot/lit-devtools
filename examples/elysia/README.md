@@ -98,7 +98,7 @@ Lit DevTools at http://localhost:3000/__lit-devtools/
 ```
 
 [`src/dev.ts`](src/dev.ts) makes
-the panel with `createLitDevtools()` from `@oddsquad/vite-plugin-lit/devframe`,
+the panel with `createLitDevtools()` from `@oddsquad/lit-devtools/devframe`,
 mounts its handler on `/__lit-devtools/*`, and puts its script first in
 `<head>`, so the runtime sees every component the client defines. The panel and
 its script are routes on the app; the RPC is a WebSocket devframe serves on a

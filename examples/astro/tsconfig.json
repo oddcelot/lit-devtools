@@ -3,7 +3,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
-    "types": ["@oddsquad/vite-plugin-lit/client"]
+    "types": ["@oddsquad/lit-devtools/client"]
   },
   "include": [".astro/types.d.ts", "src"]
 }

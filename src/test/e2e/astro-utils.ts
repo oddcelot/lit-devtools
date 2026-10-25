@@ -5,7 +5,7 @@
  * The dev server is Astro's `dev()`, a build is `build()` then the Node
  * adapter's server in a process of its own, as it would be deployed,
  * all in this process, so the plugin under test is the repo's build output
- * (`examples/astro` links it as `@oddsquad/vite-plugin-lit`).
+ * (`examples/astro` links it through `@oddsquad/lit-devtools`).
  *
  * The copy sits inside the example, so `astro`, `@lit-labs/ssr` and the
  * adapters resolve from the example's own `node_modules`.

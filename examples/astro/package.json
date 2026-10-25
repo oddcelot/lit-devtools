@@ -22,7 +22,7 @@
   "devDependencies": {
     "@astrojs/node": "^11.1.8",
     "@astrojs/preact": "^6.1.0",
-    "@oddsquad/vite-plugin-lit": "*",
+    "@oddsquad/lit-devtools": "*",
     "preact": "^11.0.1",
     "vitest": "^5.0.5"
   },

@@ -17,7 +17,7 @@
     "lit": "^3.3.3"
   },
   "devDependencies": {
-    "@oddsquad/vite-plugin-lit": "*",
+    "@oddsquad/lit-devtools": "*",
     "@vitejs/devtools": "^0.7.6",
     "vite": "^8.3.2"
   },
