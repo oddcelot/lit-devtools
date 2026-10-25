@@ -1,9 +1,21 @@
 {
   "name": "@oddsquad/lit-language-server",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
   "description": "Completion, hover and diagnostics for Lit components in VS Code, Zed and any LSP editor, read from your sources and your dependencies' Custom Elements Manifests.",
-  "license": "MIT",
+  "keywords": [
+    "lit",
+    "lit-element",
+    "web-components",
+    "custom-elements",
+    "language-server",
+    "lsp",
+    "zed",
+    "vscode"
+  ],
+  "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/",
+  "bugs": "https://github.com/oddcelot/vite-plugin-lit/issues",
+  "license": "BSD-3-Clause",
+  "author": "oddcelot",
   "type": "module",
   "repository": {
     "type": "git",
@@ -14,16 +26,18 @@
     "lit-language-server": "./dist/bin.mjs"
   },
   "exports": {
-    ".": "./dist/index.mjs"
+    ".": {
+      "types": "./dist/types/packages/lit-language-server/src/index.d.ts",
+      "default": "./dist/index.mjs"
+    }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "vp pack"
-  },
-  "engines": {
-    "node": ">=20"
+    "build": "vp pack && tsc -p tsconfig.dts.json"
   },
   "dependencies": {
     "@vscode/web-custom-data": "^0.6.3",
@@ -33,5 +47,19 @@
     "vscode-css-languageservice": "^6.3.10",
     "vscode-languageserver": "^11.0.0",
     "vscode-languageserver-textdocument": "^1.0.16"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

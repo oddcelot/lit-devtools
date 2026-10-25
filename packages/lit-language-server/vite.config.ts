@@ -8,9 +8,9 @@ export default defineConfig({
     entry: ['src/bin.ts', 'src/index.ts'],
     format: ['esm'],
     platform: 'node',
-    // Off for now: the declaration build writes .d.ts files next to the
-    // shared sources outside this package (vpl-w13x.7 fixes it before the
-    // first publish).
+    // Declarations come from `tsc -p tsconfig.dts.json` after the bundle:
+    // the pack's own declaration build writes .d.ts files next to the shared
+    // sources outside this package.
     dts: false,
     deps: {neverBundle: ['vite']},
   },
