@@ -1,6 +1,6 @@
 ---
 name: changelog
-description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Covers the plugin, and the language server and the Oxlint plugin, which keep their own changelogs. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`, `/changelog release lit-language-server-v0.2.0`, `/changelog release oxlint-plugin-lit-v0.1.0`).
+description: Draft the user-facing changelog entry for a commit, or assemble the CHANGELOG.md section for a release from the commits since the last tag. Covers the plugin, and the language server, the Oxlint plugin and @oddsquad/lit-devtools, which keep their own changelogs. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.6.0`, `/changelog release lit-language-server-v0.2.0`, `/changelog release oxlint-plugin-lit-v0.1.0`, `/changelog release lit-devtools-v0.1.0`).
 ---
 
 # Changelog
@@ -44,6 +44,10 @@ The Oxlint plugin (`packages/oxlint-plugin-lit`) bundles the same editor code
 and the server's document code (`packages/lit-language-server/src/documents.ts`,
 `css.ts`), so a change to what its rules report adds `Changelog-Oxlint-Plugin:`
 too, written for someone reading lint output in CI. Same groups, no `skip`.
+
+`@oddsquad/lit-devtools` (`packages/lit-devtools`) only re-exports the
+others, so it takes `Changelog-Lit-Devtools:` for a change to what it
+exports or installs, not for what its parts do.
 
 Rules for the entry:
 
@@ -107,3 +111,12 @@ draft, `packages/oxlint-plugin-lit/CHANGELOG.md` for the section, and the
 `version` in `packages/oxlint-plugin-lit/package.json`. The release commit's
 subject is `Release the Oxlint plugin X.Y.Z`; the tag that publishes it is
 `oxlint-plugin-lit-vX.Y.Z`.
+
+## `/changelog release lit-devtools-vX.Y.Z`
+
+And for the umbrella: `pnpm run changelog:lit-devtools --tag
+lit-devtools-vX.Y.Z`, `packages/lit-devtools/CHANGELOG.md`, the `version` in
+`packages/lit-devtools/package.json`, a subject of `Release lit-devtools
+X.Y.Z`, the tag `lit-devtools-vX.Y.Z`. Its section also names the versions
+of the plugin, the server and the Oxlint plugin it installs; release those
+first.

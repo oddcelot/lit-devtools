@@ -102,6 +102,7 @@
     "changelog": "git-cliff --unreleased",
     "changelog:language-server": "git-cliff --config packages/lit-language-server/cliff.toml --unreleased",
     "changelog:oxlint-plugin": "git-cliff --config packages/oxlint-plugin-lit/cliff.toml --unreleased",
+    "changelog:lit-devtools": "git-cliff --config packages/lit-devtools/cliff.toml --unreleased",
     "fallow": "fallow",
     "fallow:check": "fallow --health-baseline fallow-baselines/health.json",
     "fallow:coverage": "pnpm run coverage && fallow health --coverage .fallow/coverage",
