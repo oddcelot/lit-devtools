@@ -1,6 +1,6 @@
 ---
 title: Use the Lit language server
-description: 'Completion, hover and type checks for your Lit components in Zed: templates, HTML files and css templates, in one package or a whole monorepo, with or without Vite.'
+description: 'Completion, hover and type checks for your Lit components in VS Code and Zed: templates, HTML files and css templates, in one package or a whole monorepo, with or without Vite.'
 sidebar:
   label: Language server
   badge:
@@ -19,10 +19,41 @@ without Vite. [Language server](/reference/language-server/) lists everything
 it does.
 
 <Aside type="caution" title="Not published yet">
-  `@oddsquad/lit-language-server` isn't on npm yet, and Zed is the first editor
-  with an extension. Until both ship, run it from a checkout of this repository,
-  as below. A VS Code extension follows.
+  `@oddsquad/lit-language-server` and the editor extensions aren't on npm or in
+  the editors' marketplaces yet. Until they are, build them from a checkout of
+  this repository, as below.
 </Aside>
+
+## Set it up in VS Code
+
+<Steps>
+
+1. Build the extension in a checkout of the repository:
+
+   ```sh frame="terminal"
+   pnpm install
+   cd packages/vscode
+   pnpm run build && pnpm run package
+   ```
+
+   This writes `lit-<platform>.vsix` for your machine, with the server
+   bundled in.
+
+2. In VS Code, run **Extensions: Install from VSIX…** from the command palette
+   and pick that file.
+
+3. Open a project and hover a component's tag in an `html` template.
+
+</Steps>
+
+The extension runs the project's own `@oddsquad/lit-language-server` when the
+project installs it, so the version matches the project, and the bundled copy
+otherwise. To run a different build, point the `lit.server.path` setting at
+its `dist/bin.mjs`. **Lit: Restart Language Server** picks the server again,
+and the **Lit Language Server** output channel says which one started.
+
+The type hints on event handlers are inlay hints, which VS Code shows unless
+`editor.inlayHints.enabled` is off.
 
 ## Set it up in Zed
 
@@ -120,9 +151,10 @@ every package in it:
 
 ## When nothing shows up
 
-- Run **dev: open language server logs** in Zed and check that
-  `lit-language-server` started.
-- After rebuilding the server, run **editor: restart language server**.
+- Check that the server started: in VS Code, the **Lit Language Server**
+  output channel; in Zed, **dev: open language server logs**.
+- After rebuilding the server, restart it: **Lit: Restart Language Server**
+  in VS Code, **editor: restart language server** in Zed.
 - Check the settings file for a warning on its first line: a mistake there is
   reported, not thrown.
 - With another Custom Elements Manifest server installed, such as the Web
