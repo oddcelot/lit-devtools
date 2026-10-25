@@ -1,7 +1,7 @@
 # Tutorial: finished files
 
 These are the files you end up with after
-[Build your first hot-reloading component](https://vite-plugin-lit.oddsquad.dev/start/first-component/).
+[Build your first hot-reloading component](https://lit-devtools.oddsquad.dev/start/first-component/).
 The docs page imports them with `?raw`, so what you read there is what is here.
 
 `src/index.css` and `public/favicon.svg` are not the tutorial's: the template

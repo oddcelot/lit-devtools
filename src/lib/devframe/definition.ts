@@ -175,7 +175,7 @@ export function createLitDevframe(
     description: 'Timeline recorder and component inspector for Lit apps.',
     version,
     packageName: '@oddsquad/vite-plugin-lit',
-    homepage: 'https://vite-plugin-lit.oddsquad.dev/',
+    homepage: 'https://lit-devtools.oddsquad.dev/',
     importMetaUrl: import.meta.url,
     icon: LIT_LOGO_ICON,
     dock: {category: 'framework'},
@@ -250,22 +250,22 @@ export function createLitDevframe(
       // agent, or a CI log) and not the browser console or the panel.
       // Fire-and-log only — the session is the read-back store.
       const hmrDiagnostics = ctx.diagnostics.defineDiagnostics({
-        docsBase: 'https://vite-plugin-lit.oddsquad.dev/reference/limitations/',
+        docsBase: 'https://lit-devtools.oddsquad.dev/reference/limitations/',
         codes: {
           LIT_HMR_ACCESSOR: {
             why: (p: {tagName: string}) =>
               `<${p.tagName}> can't be hot-patched: standard accessor decorators`,
-            docs: 'https://vite-plugin-lit.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
+            docs: 'https://lit-devtools.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
           },
           LIT_HMR_PATCH_FAILED: {
             why: (p: {tagName: string; detail: string}) =>
               `<${p.tagName}> can't be hot-patched: ${p.detail}`,
-            docs: 'https://vite-plugin-lit.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
+            docs: 'https://lit-devtools.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
           },
           LIT_HMR_ATTRS_CHANGED: {
             why: (p: {tagName: string}) =>
               `<${p.tagName}> changed observedAttributes; reload recommended`,
-            docs: 'https://vite-plugin-lit.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
+            docs: 'https://lit-devtools.oddsquad.dev/reference/limitations/#cannot-be-patched-in-place',
           },
         },
       });

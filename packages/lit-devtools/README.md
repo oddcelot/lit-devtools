@@ -39,7 +39,7 @@ and
 [`@oddsquad/oxlint-plugin-lit`](https://www.npmjs.com/package/@oddsquad/oxlint-plugin-lit).
 This package only re-exports them.
 
-[The docs](https://vite-plugin-lit.oddsquad.dev/) cover each part.
+[The docs](https://lit-devtools.oddsquad.dev/) cover each part.
 
 ## License
 

@@ -14,7 +14,7 @@ import rawCss from './hmr-shared.css?raw';
  * asset), and `?raw` skips the CSS pipeline. When the bytes should stay a
  * cacheable `.css` asset (e.g. a large generated utility sheet), use
  * `?css-sheet` instead and accept a brief FOUC —
- * https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/
+ * https://lit-devtools.oddsquad.dev/guides/stylesheets/
  * (benchmarked in bench/).
  */
 const sheet = new CSSStyleSheet();

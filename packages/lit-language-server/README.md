@@ -29,9 +29,9 @@ html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
 - **Oxlint:** [`@oddsquad/oxlint-plugin-lit`](https://www.npmjs.com/package/@oddsquad/oxlint-plugin-lit)
   reports the same problems in a lint run.
 
-[Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
+[Use the Lit language server](https://lit-devtools.oddsquad.dev/guides/language-server/)
 sets it up; the
-[reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
+[reference](https://lit-devtools.oddsquad.dev/reference/language-server/)
 lists everything it completes, shows and reports.
 
 ## Settings

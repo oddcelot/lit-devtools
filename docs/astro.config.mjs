@@ -62,7 +62,7 @@ const liveExamplesPublic = () => ({
 });
 
 export default defineConfig({
-  site: 'https://vite-plugin-lit.oddsquad.dev',
+  site: 'https://lit-devtools.oddsquad.dev',
   vite: {
     plugins: [liveDemoDevLit(), liveDemoPrivateFields()],
     build: {

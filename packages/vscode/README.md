@@ -106,7 +106,7 @@ The extension has two settings of its own:
 What the server reads and how loud each problem is go in your project, in
 `litPlugin({languageServer})` in a Vite config or in a
 `lit-devtools.config.ts`. The
-[settings reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/#settings)
+[settings reference](https://lit-devtools.oddsquad.dev/reference/language-server/#settings)
 lists them.
 
 **Lit: Restart Language Server** starts it again. The extension runs your
@@ -116,8 +116,8 @@ the **Lit Language Server** output channel says which.
 
 ## Learn more
 
-- [Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
-- [Everything it completes, shows and reports](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
+- [Use the Lit language server](https://lit-devtools.oddsquad.dev/guides/language-server/)
+- [Everything it completes, shows and reports](https://lit-devtools.oddsquad.dev/reference/language-server/)
 - [Report a problem](https://github.com/oddcelot/lit-devtools/issues)
 
 ## License

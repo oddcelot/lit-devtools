@@ -71,11 +71,11 @@ updates were applied in place.
 | `<css-literal-card>` | a `css` literal           | re-renders that component                     |
 
 This is the table in [Choose how to deliver
-CSS](https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/), played
+CSS](https://lit-devtools.oddsquad.dev/guides/stylesheets/), played
 out. The pages behind it:
-[`?css-sheet`](https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/css-sheet/),
-[component styles](https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/component-styles/)
-and [why one shared sheet](https://vite-plugin-lit.oddsquad.dev/concepts/css-delivery/).
+[`?css-sheet`](https://lit-devtools.oddsquad.dev/guides/stylesheets/css-sheet/),
+[component styles](https://lit-devtools.oddsquad.dev/guides/stylesheets/component-styles/)
+and [why one shared sheet](https://lit-devtools.oddsquad.dev/concepts/css-delivery/).
 `?raw` is `?inline` without the CSS pipeline: Lightning CSS and PostCSS do not
 touch it.
 

@@ -79,7 +79,7 @@ Limits
 Top-level frames only (components inside iframes are not shown), http and https pages only, Firefox 140 or later.
 
 Privacy
-Lit Inspector collects no data. Its only network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://vite-plugin-lit.oddsquad.dev/reference/extension-privacy/
+Lit Inspector collects no data. Its only network requests fetch an enabled site's own scripts, sourcemaps and Custom Elements Manifests, from that site, to show where components are defined and what their documentation says, and a Custom Elements Manifest on another site that you add or allow, after the browser asks you for access to it. It stores the sites you enabled and your panel settings in your browser. Privacy policy: https://lit-devtools.oddsquad.dev/reference/extension-privacy/
 
 Lit Inspector is an independent, unofficial tool. It is not affiliated with, endorsed by, or produced by Google, Mozilla or the Lit project.
 
@@ -111,7 +111,7 @@ BSD 3-Clause "New" or "Revised" License, the package's (`LICENSE`).
 Yes. AMO takes the policy as text, so paste:
 
 ```text
-Lit Inspector collects no personal data and sends nothing anywhere. It has no server, no analytics, no telemetry and no accounts. It stores the sites you enabled and your panel settings in the extension's local storage, and a few page-side preferences in the localStorage and sessionStorage of the sites you enabled. Removing the extension removes its own storage. The full policy, with every stored key and permission: https://vite-plugin-lit.oddsquad.dev/reference/extension-privacy/
+Lit Inspector collects no personal data and sends nothing anywhere. It has no server, no analytics, no telemetry and no accounts. It stores the sites you enabled and your panel settings in the extension's local storage, and a few page-side preferences in the localStorage and sessionStorage of the sites you enabled. Removing the extension removes its own storage. The full policy, with every stored key and permission: https://lit-devtools.oddsquad.dev/reference/extension-privacy/
 ```
 
 ## Notes for reviewers

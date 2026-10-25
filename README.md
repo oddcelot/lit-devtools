@@ -14,7 +14,7 @@ roots, and a DevTools timeline.
 
 https://github.com/user-attachments/assets/d396d3a8-ab26-46de-8c3f-71558db1a392
 
-**[Documentation →](https://vite-plugin-lit.oddsquad.dev/)**
+**[Documentation →](https://lit-devtools.oddsquad.dev/)**
 
 Started life in a fork of the [lit monorepo](https://github.com/lit/lit) as a
 proposed `@lit-labs/vite-hmr` package, and now lives here on its own. Lit is
@@ -24,7 +24,7 @@ canary testing against lit `main`.
 ## Try it
 
 Each demo opens on StackBlitz and runs the latest release of the plugin in
-your browser. The [Demos page](https://vite-plugin-lit.oddsquad.dev/start/demos/)
+your browser. The [Demos page](https://lit-devtools.oddsquad.dev/start/demos/)
 embeds them, so you can try one without leaving the docs.
 
 | Demo                                                                                            | What to try                                                                                                                                             |                                                                                                                                                                                                               |
@@ -55,7 +55,7 @@ This plugin fixes that with two cooperating mechanisms:
    re-executed module patches the originally-registered class in place, then
    restores reactive property values through the new accessors.
 
-[How it works →](https://vite-plugin-lit.oddsquad.dev/concepts/how-hmr-works/)
+[How it works →](https://lit-devtools.oddsquad.dev/concepts/how-hmr-works/)
 
 ## Usage
 
@@ -97,30 +97,30 @@ export default defineConfig(({command}) => ({
 
 ## Features
 
-- **[HMR that keeps state](https://vite-plugin-lit.oddsquad.dev/guides/hmr/)**
+- **[HMR that keeps state](https://lit-devtools.oddsquad.dev/guides/hmr/)**
   — what survives an edit, and what falls back to a reload.
-- **[Stylesheets at scale](https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/)**
+- **[Stylesheets at scale](https://lit-devtools.oddsquad.dev/guides/stylesheets/)**
   — one shared `CSSStyleSheet` for thousands of shadow roots, hot-swapped
   without re-rendering, from a bare `?css-sheet` import.
-- **[DevTools timeline](https://vite-plugin-lit.oddsquad.dev/guides/devtools/)**
+- **[DevTools timeline](https://lit-devtools.oddsquad.dev/guides/devtools/)**
   — a layered event recorder and live component inspector inside Vite DevTools.
-- **[Source overlay](https://vite-plugin-lit.oddsquad.dev/guides/source-overlay/)**
+- **[Source overlay](https://lit-devtools.oddsquad.dev/guides/source-overlay/)**
   — click any element in the page to open its source in your editor.
 - **[Agent access](#coding-agents-mcp)** — the same component tree and timeline
   as MCP tools, for coding agents.
-- **[Ecosystem support](https://vite-plugin-lit.oddsquad.dev/guides/ecosystem/)**
+- **[Ecosystem support](https://lit-devtools.oddsquad.dev/guides/ecosystem/)**
   — signals, context, tasks, and the virtualizer across a patch.
 
 Reference:
-[options](https://vite-plugin-lit.oddsquad.dev/reference/options/) ·
-[environment variables](https://vite-plugin-lit.oddsquad.dev/reference/environment-variables/) ·
-[import queries](https://vite-plugin-lit.oddsquad.dev/reference/import-queries/) ·
-[runtime API](https://vite-plugin-lit.oddsquad.dev/reference/runtime-api/) ·
-[CLI](https://vite-plugin-lit.oddsquad.dev/reference/cli/) ·
-[limitations](https://vite-plugin-lit.oddsquad.dev/reference/limitations/) ·
-[compatibility](https://vite-plugin-lit.oddsquad.dev/reference/compatibility/) ·
-[benchmarks](https://vite-plugin-lit.oddsquad.dev/reference/benchmarks/) ·
-[troubleshooting](https://vite-plugin-lit.oddsquad.dev/guides/troubleshooting/)
+[options](https://lit-devtools.oddsquad.dev/reference/options/) ·
+[environment variables](https://lit-devtools.oddsquad.dev/reference/environment-variables/) ·
+[import queries](https://lit-devtools.oddsquad.dev/reference/import-queries/) ·
+[runtime API](https://lit-devtools.oddsquad.dev/reference/runtime-api/) ·
+[CLI](https://lit-devtools.oddsquad.dev/reference/cli/) ·
+[limitations](https://lit-devtools.oddsquad.dev/reference/limitations/) ·
+[compatibility](https://lit-devtools.oddsquad.dev/reference/compatibility/) ·
+[benchmarks](https://lit-devtools.oddsquad.dev/reference/benchmarks/) ·
+[troubleshooting](https://lit-devtools.oddsquad.dev/guides/troubleshooting/)
 
 ## Coding agents (MCP)
 
@@ -248,8 +248,8 @@ pnpm docs:dev        # the documentation site
 ```
 
 More in
-[Development](https://vite-plugin-lit.oddsquad.dev/contributing/development/)
-and [Testing](https://vite-plugin-lit.oddsquad.dev/contributing/testing/).
+[Development](https://lit-devtools.oddsquad.dev/contributing/development/)
+and [Testing](https://lit-devtools.oddsquad.dev/contributing/testing/).
 Issues and pull requests are welcome; see [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 ## License

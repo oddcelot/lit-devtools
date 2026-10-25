@@ -19,7 +19,7 @@
     "astro",
     "mdx"
   ],
-  "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/",
+  "homepage": "https://lit-devtools.oddsquad.dev/guides/language-server/",
   "bugs": "https://github.com/oddcelot/lit-devtools/issues",
   "license": "BSD-3-Clause",
   "author": "oddcelot",

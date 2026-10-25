@@ -11,7 +11,7 @@ The extension isn't part of the npm package.
 It is an independent tool, not affiliated with Google, Mozilla or the Lit
 project.
 Its privacy policy is on the docs site:
-https://vite-plugin-lit.oddsquad.dev/reference/extension-privacy/
+https://lit-devtools.oddsquad.dev/reference/extension-privacy/
 
 The extension is named Lit Inspector in Chrome (`chrome://extensions`, the
 Web Store), and the tab it adds to DevTools is titled **Lit**: a short name
@@ -234,7 +234,7 @@ kept in the extension's local storage and shared by every tab.
 ## Current limits
 
 The docs compare the extension with the Vite plugin feature by feature:
-https://vite-plugin-lit.oddsquad.dev/reference/devtools-hosts/
+https://lit-devtools.oddsquad.dev/reference/devtools-hosts/
 
 - What needs the Vite plugin isn't there. The panel leaves out the **Export
   snapshot** button, and the Settings tab keeps appearance and the About table

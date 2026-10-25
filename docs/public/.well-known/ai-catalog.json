@@ -2,15 +2,15 @@
   "specVersion": "1.0",
   "host": {
     "displayName": "vite-plugin-lit documentation",
-    "identifier": "did:web:vite-plugin-lit.oddsquad.dev"
+    "identifier": "did:web:lit-devtools.oddsquad.dev"
   },
   "entries": [
     {
-      "identifier": "urn:air:vite-plugin-lit.oddsquad.dev:skill:vite-plugin-lit",
+      "identifier": "urn:air:lit-devtools.oddsquad.dev:skill:vite-plugin-lit",
       "displayName": "vite-plugin-lit agent skill",
       "description": "Set up @oddsquad/lit-devtools, deliver CSS to Lit shadow roots, diagnose edits that reload instead of hot-patching, and connect a coding agent to the Lit DevTools MCP server.",
       "type": "text/markdown",
-      "url": "https://vite-plugin-lit.oddsquad.dev/.well-known/agent-skills/vite-plugin-lit/SKILL.md",
+      "url": "https://lit-devtools.oddsquad.dev/.well-known/agent-skills/vite-plugin-lit/SKILL.md",
       "representativeQueries": [
         "add hot module replacement for Lit components to a Vite project",
         "share one stylesheet across Lit shadow roots with Vite",
@@ -19,11 +19,11 @@
       ]
     },
     {
-      "identifier": "urn:air:vite-plugin-lit.oddsquad.dev:docs:llms-txt",
+      "identifier": "urn:air:lit-devtools.oddsquad.dev:docs:llms-txt",
       "displayName": "vite-plugin-lit docs index (llms.txt)",
       "description": "The documentation index for coding agents, with links to the abridged and complete docs and the DevTools and Stylesheets sets.",
       "type": "text/plain",
-      "url": "https://vite-plugin-lit.oddsquad.dev/llms.txt",
+      "url": "https://lit-devtools.oddsquad.dev/llms.txt",
       "representativeQueries": [
         "vite-plugin-lit documentation",
         "options for litPlugin in vite.config.ts",
@@ -31,11 +31,11 @@
       ]
     },
     {
-      "identifier": "urn:air:vite-plugin-lit.oddsquad.dev:docs:llms-full",
+      "identifier": "urn:air:lit-devtools.oddsquad.dev:docs:llms-full",
       "displayName": "vite-plugin-lit complete docs",
       "description": "Every vite-plugin-lit docs page as one plain-text file.",
       "type": "text/plain",
-      "url": "https://vite-plugin-lit.oddsquad.dev/llms-full.txt",
+      "url": "https://lit-devtools.oddsquad.dev/llms-full.txt",
       "representativeQueries": [
         "full vite-plugin-lit documentation as text",
         "Lit DevTools panel MCP tools reference",

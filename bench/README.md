@@ -2,7 +2,7 @@
 
 Measures the cost of delivering one utility stylesheet to many shadow-DOM
 components four ways, to back the recommendations in the [stylesheets
-guide](https://vite-plugin-lit.oddsquad.dev/guides/stylesheets/) with
+guide](https://lit-devtools.oddsquad.dev/guides/stylesheets/) with
 real numbers and DevTools traces.
 
 ## What it compares
