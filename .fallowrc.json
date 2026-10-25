@@ -54,9 +54,9 @@
     "src/lib/astro/{toolbar-app,server,client,boot}.ts",
     // The theme package's generator reads its token sources by path.
     "packages/webawesome-theme-lit/src/tokens/*.css",
-    // The language server's Oxlint plugin starts it as a worker by URL, and
-    // its package build names it as an entry.
-    "packages/lit-language-server/src/oxlint-worker.ts"
+    // The Oxlint plugin starts it as a worker by URL, and its package build
+    // names it as an entry.
+    "packages/oxlint-plugin-lit/src/worker.ts"
   ],
   // `vp fmt "**/*.{…,ts,…}"` in the format scripts made every file in the repo
   // an entry, so no shipped source could be reported unused. The other `vp`
@@ -79,6 +79,11 @@
     // which imports these; fallow can't see across that bundle.
     "oxc-parser",
     "oxc-resolver",
+    // packages/oxlint-plugin-lit bundles the language server's document code
+    // as well, which imports these.
+    "@vscode/web-custom-data",
+    "svg-element-attributes",
+    "vscode-css-languageservice",
     // CI calls ./node_modules/.bin/jsr for the publish dry run.
     "jsr",
     // Pinned so StackBlitz finds the wasm binding; see pnpm-workspace.yaml.
@@ -127,9 +132,9 @@
     // Written by unoSheet() in examples/css/vite.config.ts when Vite starts, and gitignored,
     // so it is missing from a fresh checkout until a dev server or build runs.
     "./uno.generated.css*",
-    // packages/lit-language-server/src/oxlint.ts starts its worker from the
-    // built dist/oxlint-worker.mjs beside it; the source is oxlint-worker.ts.
-    "./oxlint-worker.mjs"
+    // packages/oxlint-plugin-lit/src/index.ts starts its worker from the
+    // built dist/worker.mjs beside it; the source is worker.ts.
+    "./worker.mjs"
   ],
   "workspaces": {
     "patterns": [

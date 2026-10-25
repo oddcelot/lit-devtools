@@ -26,16 +26,8 @@ html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
   npm install -D @oddsquad/lit-language-server
   ```
 
-- **Oxlint:** extend its recommended config, so a lint run fails on the same
-  problems:
-
-  ```ts
-  // oxlint.config.ts
-  import {defineConfig} from 'oxlint';
-  import {recommended} from '@oddsquad/lit-language-server/oxlint';
-
-  export default defineConfig({extends: [recommended]});
-  ```
+- **Oxlint:** [`@oddsquad/oxlint-plugin-lit`](https://www.npmjs.com/package/@oddsquad/oxlint-plugin-lit)
+  reports the same problems in a lint run.
 
 [Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
 sets it up; the

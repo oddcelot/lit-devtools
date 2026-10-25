@@ -595,6 +595,34 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
+  packages/oxlint-plugin-lit:
+    dependencies:
+      '@vscode/web-custom-data':
+        specifier: ^0.6.3
+        version: 0.6.3
+      oxc-parser:
+        specifier: ^0.150.0
+        version: 0.150.0
+      oxc-resolver:
+        specifier: ^11.24.2
+        version: 11.24.2
+      svg-element-attributes:
+        specifier: ^2.2.0
+        version: 2.2.0
+      vite:
+        specifier: npm:@voidzero-dev/vite-plus-core@1.0.0
+        version: '@voidzero-dev/vite-plus-core@1.0.0(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(esbuild@0.28.2)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1)'
+      vscode-css-languageservice:
+        specifier: ^6.3.10
+        version: 6.3.10
+      vscode-languageserver-textdocument:
+        specifier: ^1.0.16
+        version: 1.0.16
+    devDependencies:
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+
   packages/vscode:
     devDependencies:
       '@types/vscode':

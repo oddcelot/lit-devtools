@@ -138,39 +138,39 @@ merged key by key. A `.ts` config file needs Node 22.18 or later; a `.js` or
 
 ## Check it in CI with Oxlint
 
-The same problems can fail a lint run. Install the server next to Oxlint and
-extend its recommended config, which turns each rule on at the severity the
-editor gives it:
+The same problems can fail a lint run. Install the Oxlint plugin next to
+Oxlint and extend its recommended config, which turns each rule on at the
+severity the editor gives it:
 
 ```sh
-npm install -D oxlint @oddsquad/lit-language-server
+npm install -D oxlint @oddsquad/oxlint-plugin-lit
 ```
 
 ```ts title="oxlint.config.ts"
 import {defineConfig} from 'oxlint';
-import {recommended} from '@oddsquad/lit-language-server/oxlint';
+import litDevtools from '@oddsquad/oxlint-plugin-lit';
 
 export default defineConfig({
-  extends: [recommended],
-  rules: {'lit/css': 'off'},
+  extends: [litDevtools.configs.recommended],
+  rules: {'lit-devtools/css': 'off'},
 });
 ```
 
-Rules set next to `extends` win, as `lit/css` does here. With Vite+, the same
+Rules set next to `extends` win, as `lit-devtools/css` does here. With Vite+, the same
 object goes under `lint` in `vite.config.ts`. In an `.oxlintrc.json`, list
 the plugin and its rules yourself:
 
 ```json title=".oxlintrc.json"
 {
-  "jsPlugins": ["@oddsquad/lit-language-server/oxlint"],
-  "rules": {"lit/event-type": "error", "lit/css": "warn"}
+  "jsPlugins": ["@oddsquad/oxlint-plugin-lit"],
+  "rules": {"lit-devtools/event-type": "error", "lit-devtools/css": "warn"}
 }
 ```
 
 - Oxlint's config decides each rule's severity; the `diagnostics` setting is
   for the editor only. The other settings, such as `scan`, apply to both.
 - Silence one spot with Oxlint's own comment,
-  `// oxlint-disable-next-line lit/event-type`.
+  `// oxlint-disable-next-line lit-devtools/event-type`.
 - Oxlint reads JavaScript and TypeScript files, so problems in HTML, Astro
   and MDX pages still show only in the editor.
 - The first file waits while the plugin reads the workspace, once per run.

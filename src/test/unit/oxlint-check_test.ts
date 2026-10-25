@@ -6,7 +6,7 @@ import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {
   type Checker,
   createChecker,
-} from '../../../packages/lit-language-server/src/check.js';
+} from '../../../packages/oxlint-plugin-lit/src/check.js';
 
 const app = [
   "import {LitElement, html, css} from 'lit';",
@@ -38,7 +38,7 @@ let root: string;
 let checker: Checker;
 
 beforeAll(async () => {
-  root = await realpath(await mkdtemp(join(tmpdir(), 'lsp-check-')));
+  root = await realpath(await mkdtemp(join(tmpdir(), 'oxlint-check-')));
   for (const [path, content] of Object.entries(files)) {
     await mkdir(dirname(join(root, path)), {recursive: true});
     await writeFile(join(root, path), content);

@@ -1,12 +1,12 @@
 /**
- * An Oxlint plugin reporting what the language server reports,
- * so a lint run fails on the problems the editor shows:
+ * An Oxlint plugin reporting what the Lit language server reports, so a lint
+ * run fails on the problems the editor shows:
  *
  * ```ts
  * import {defineConfig} from 'oxlint';
- * import {recommended} from '@oddsquad/lit-language-server/oxlint';
+ * import litDevtools from '@oddsquad/oxlint-plugin-lit';
  *
- * export default defineConfig({extends: [recommended]});
+ * export default defineConfig({extends: [litDevtools.configs.recommended]});
  * ```
  *
  * Lint rules are synchronous and the workspace is read asynchronously, so a
@@ -29,7 +29,7 @@ import {
 } from '../../../src/lib/editor/config.js';
 import type {Problem} from '../../../src/lib/editor/diagnostics.js';
 
-/** What the plugin sends its worker (`oxlint-worker.ts`) for each file. */
+/** What the plugin sends its worker (`worker.ts`) for each file. */
 export interface CheckMessage {
   file: string;
   code: string;
@@ -45,7 +45,7 @@ let worker: Worker | undefined;
 
 const workerOf = (): Worker => {
   if (!worker) {
-    worker = new Worker(new URL('./oxlint-worker.mjs', import.meta.url));
+    worker = new Worker(new URL('./worker.mjs', import.meta.url));
     worker.unref();
   }
   return worker;
@@ -137,19 +137,13 @@ const ruleFor = (rule: DiagnosticRule) => ({
   },
 });
 
-const plugin = {
-  meta: {name: 'lit'},
-  rules: Object.fromEntries(
-    DIAGNOSTIC_RULES.map((rule) => [rule, ruleFor(rule)])
-  ),
-};
-
-export default plugin;
+/** The plugin's name, which prefixes its rules: `lit-devtools/event-type`. */
+const NAME = 'lit-devtools';
 
 /** An Oxlint config: the plugin, and its rules at their editor severities. */
-export interface LitOxlintConfig {
+export interface LitDevtoolsOxlintConfig {
   jsPlugins: string[];
-  rules: Record<`lit/${DiagnosticRule}`, 'error' | 'warn' | 'off'>;
+  rules: Record<`${typeof NAME}/${DiagnosticRule}`, 'error' | 'warn' | 'off'>;
 }
 
 const LINT_SEVERITY: Record<Severity, 'error' | 'warn' | 'off'> = {
@@ -165,12 +159,22 @@ const LINT_SEVERITY: Record<Severity, 'error' | 'warn' | 'off'> = {
  * `extends` in an `oxlint.config.ts`. It names this file by path, so it loads
  * wherever the package is installed.
  */
-export const recommended: LitOxlintConfig = {
+const recommended: LitDevtoolsOxlintConfig = {
   jsPlugins: [fileURLToPath(import.meta.url)],
   rules: Object.fromEntries(
     DIAGNOSTIC_RULES.map((rule) => [
-      `lit/${rule}`,
+      `${NAME}/${rule}`,
       LINT_SEVERITY[DEFAULT_SEVERITIES[rule]],
     ])
-  ) as LitOxlintConfig['rules'],
+  ) as LitDevtoolsOxlintConfig['rules'],
 };
+
+const plugin = {
+  meta: {name: NAME},
+  rules: Object.fromEntries(
+    DIAGNOSTIC_RULES.map((rule) => [rule, ruleFor(rule)])
+  ),
+  configs: {recommended},
+};
+
+export default plugin;

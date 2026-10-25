@@ -1,0 +1,60 @@
+{
+  "name": "@oddsquad/oxlint-plugin-lit",
+  "version": "0.0.0",
+  "description": "Oxlint rules for Lit templates: the problems the Lit language server shows in the editor, such as event handlers that don't fit their event and broken css templates, failing a lint run.",
+  "keywords": [
+    "lit",
+    "lit-element",
+    "web-components",
+    "oxlint",
+    "oxlint-plugin",
+    "lint"
+  ],
+  "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/#check-it-in-ci-with-oxlint",
+  "bugs": "https://github.com/oddcelot/vite-plugin-lit/issues",
+  "license": "BSD-3-Clause",
+  "author": "oddcelot",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oddcelot/vite-plugin-lit.git",
+    "directory": "packages/oxlint-plugin-lit"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/types/packages/oxlint-plugin-lit/src/index.d.ts",
+      "default": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "vp pack && tsc -p tsconfig.dts.json"
+  },
+  "dependencies": {
+    "@vscode/web-custom-data": "^0.6.3",
+    "oxc-parser": "^0.150.0",
+    "oxc-resolver": "^11.24.2",
+    "svg-element-attributes": "^2.2.0",
+    "vscode-css-languageservice": "^6.3.10",
+    "vscode-languageserver-textdocument": "^1.0.16"
+  },
+  "peerDependencies": {
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

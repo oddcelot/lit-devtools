@@ -15,7 +15,7 @@ import {promisify} from 'node:util';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 
 /**
- * The language server's Oxlint plugin, built and set up the way a project
+ * @oddsquad/oxlint-plugin-lit, built and set up the way a project
  * would: an `oxlint.config.ts` that extends its recommended config, run by
  * the Oxlint that Vite+ ships, which a project would install as `oxlint`. Its
  * rules wait on a worker, so only a real run shows that they answer at all.
@@ -23,8 +23,8 @@ import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 
 const exec = promisify(execFile);
 const REPO = join(import.meta.dirname, '../../..');
-const SERVER = join(REPO, 'packages/lit-language-server');
-const TSC = join(SERVER, 'node_modules/.bin/tsc');
+const PLUGIN = join(REPO, 'packages/oxlint-plugin-lit');
+const TSC = join(PLUGIN, 'node_modules/.bin/tsc');
 
 const resolveOxlint = async (): Promise<string> => {
   const vitePlus = await realpath(
@@ -37,11 +37,11 @@ const files: Record<string, string> = {
   'package.json': '{"name": "app", "type": "module"}',
   'oxlint.config.ts': [
     "import {defineConfig} from 'oxlint';",
-    "import {recommended} from '@oddsquad/lit-language-server/oxlint';",
+    "import litDevtools from '@oddsquad/oxlint-plugin-lit';",
     '',
     'export default defineConfig({',
-    '  extends: [recommended],',
-    "  rules: {'lit/css': 'off'},",
+    '  extends: [litDevtools.configs.recommended],',
+    "  rules: {'lit-devtools/css': 'off'},",
     '});',
     '',
   ].join('\n'),
@@ -79,7 +79,7 @@ const files: Record<string, string> = {
     "import {LitElement, html} from 'lit';",
     'export class Quiet extends LitElement {',
     '  render() {',
-    '    // oxlint-disable-next-line lit/event-type',
+    '    // oxlint-disable-next-line lit-devtools/event-type',
     '    return html`<x-button @pick=${(e: CustomEvent<{thing: string}>) => e}></x-button>`;',
     '  }',
     '}',
@@ -97,17 +97,14 @@ let root: string;
 let oxlint: string;
 
 beforeAll(async () => {
-  await exec('pnpm', ['run', 'build'], {cwd: SERVER});
-  root = await realpath(await mkdtemp(join(tmpdir(), 'lsp-oxlint-')));
+  await exec('pnpm', ['run', 'build'], {cwd: PLUGIN});
+  root = await realpath(await mkdtemp(join(tmpdir(), 'oxlint-plugin-')));
   for (const [path, content] of Object.entries(files)) {
     await mkdir(dirname(join(root, path)), {recursive: true});
     await writeFile(join(root, path), content);
   }
   await mkdir(join(root, 'node_modules/@oddsquad'), {recursive: true});
-  await symlink(
-    SERVER,
-    join(root, 'node_modules/@oddsquad/lit-language-server')
-  );
+  await symlink(PLUGIN, join(root, 'node_modules/@oddsquad/oxlint-plugin-lit'));
   oxlint = await resolveOxlint();
   await symlink(oxlint, join(root, 'node_modules/oxlint'));
 }, 120_000);
@@ -140,7 +137,7 @@ test('reports the server’s problems under its rules, and fails the run', async
       message: string;
     }[];
   };
-  // `lit/css` is turned off over the recommended config, and quiet.ts
+  // `lit-devtools/css` is turned off over the recommended config, and quiet.ts
   // disables its line.
   expect(
     diagnostics.map(({code, severity, filename, message}) => ({
@@ -151,7 +148,7 @@ test('reports the server’s problems under its rules, and fails the run', async
     }))
   ).toEqual([
     {
-      code: 'lit(event-type)',
+      code: 'lit-devtools(event-type)',
       severity: 'error',
       filename: 'src/app.ts',
       message: expect.stringContaining('`detail.thing` is missing'),
