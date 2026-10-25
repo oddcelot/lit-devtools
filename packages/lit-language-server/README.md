@@ -1,9 +1,10 @@
 # @oddsquad/lit-language-server
 
 A language server for Lit components. In `html` and `svg` templates, HTML
-files and `css` templates, it completes your components' tags, attributes,
-properties and events, shows their docs on hover, types your event handlers,
-and reports a handler that doesn't fit its event. It reads your components
+files, JSX, Astro and MDX, and `css` templates, it completes your
+components' tags, attributes, properties and events, shows their docs on
+hover, leads to their source, types your event handlers, and reports a
+handler that doesn't fit its event. It reads your components
 from source as you type, and your dependencies' Custom Elements Manifests, in
 one package or a whole monorepo, with or without Vite.
 

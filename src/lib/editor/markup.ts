@@ -10,7 +10,12 @@
  * its match or the end.
  */
 
-import {findTemplates, type Hole} from './templates.js';
+import {
+  type Dialect,
+  type Hole,
+  findDocumentRegions,
+  findTemplates,
+} from './templates.js';
 
 /** Lit's binding prefix on an attribute name; `''` for a plain attribute. */
 export type Binding = '' | '.' | '@' | '?';
@@ -28,6 +33,11 @@ export interface MarkupAttribute {
   /** Without the binding prefix. */
   name: string;
   binding: Binding;
+  /**
+   * The prefix as written, when it isn't the binding itself: Solid's
+   * `on:`, `prop:`, `attr:` and `bool:` in JSX.
+   */
+  prefix?: string;
   /** At the prefix, when there is one. */
   nameStart: number;
   nameEnd: number;
@@ -46,6 +56,8 @@ export interface MarkupElement {
   attributes: MarkupAttribute[];
   /** For `<script>`, `<style>`, `<textarea>` and `<title>`: the raw text. */
   content?: {start: number; end: number};
+  /** Absent in a Lit template or an HTML file. */
+  dialect?: Exclude<Dialect, 'lit'>;
 }
 
 /** A stretch of a document that holds markup. */
@@ -53,9 +65,27 @@ export interface MarkupRegion {
   start: number;
   end: number;
   holes: Hole[];
+  /** Absent for a Lit template or an HTML file. */
+  dialect?: Exclude<Dialect, 'lit'>;
 }
 
-export type DocumentKind = 'html' | 'script';
+/**
+ * A script (`script`, or `jsx` for one that holds JSX), an HTML file, or an
+ * Astro or MDX document.
+ */
+export type DocumentKind = 'html' | 'script' | 'jsx' | 'astro' | 'mdx';
+
+/** Solid's attribute namespaces in JSX, and the binding each one is. */
+const JSX_NAMESPACES: Record<string, Binding> = {
+  'on:': '@',
+  'prop:': '.',
+  'attr:': '',
+  'bool:': '?',
+};
+
+/** Where an attribute's name starts, after any binding prefix. */
+export const nameStartOf = (attribute: MarkupAttribute): number =>
+  attribute.nameStart + (attribute.prefix ?? attribute.binding).length;
 
 export type CursorContext =
   | {
@@ -109,10 +139,25 @@ class Scanner {
   readonly elements: MarkupElement[] = [];
   private readonly text: string;
   private readonly base: number;
+  private readonly dialect: MarkupRegion['dialect'];
 
   constructor(code: string, region: MarkupRegion) {
     this.text = mask(code, region);
     this.base = region.start;
+    this.dialect = region.dialect;
+  }
+
+  /** An attribute's binding and the prefix that writes it. */
+  private bindingOf(raw: string): {binding: Binding; prefix: string} {
+    if (this.dialect === undefined) {
+      const binding = '.@?'.includes(raw[0]) ? (raw[0] as Binding) : '';
+      return {binding, prefix: binding};
+    }
+    if (this.dialect === 'jsx') {
+      const prefix = /^(?:on|prop|attr|bool):/.exec(raw)?.[0];
+      if (prefix) return {binding: JSX_NAMESPACES[prefix], prefix};
+    }
+    return {binding: '', prefix: ''};
   }
 
   run(): MarkupElement[] {
@@ -146,6 +191,7 @@ class Scanner {
       end: this.base + this.text.length,
       closed: false,
       attributes: [],
+      ...(this.dialect ? {dialect: this.dialect} : {}),
     };
     for (;;) {
       j = this.skipSpace(j);
@@ -168,12 +214,13 @@ class Scanner {
     const nameStart = j;
     const nameEnd = Math.max(this.nameEnd(j), j + 1);
     const raw = this.text.slice(nameStart, nameEnd);
-    const binding = '.@?'.includes(raw[0]) ? (raw[0] as Binding) : '';
+    const {binding, prefix} = this.bindingOf(raw);
     const {value, end} = this.value(nameEnd);
     if (/^[^\s>"'=<]/.test(raw) && !raw.includes(HOLE)) {
       element.attributes.push({
-        name: raw.slice(binding.length),
+        name: raw.slice(prefix.length),
         binding,
+        ...(prefix !== binding ? {prefix} : {}),
         nameStart: this.base + nameStart,
         nameEnd: this.base + nameEnd,
         ...(value ? {value} : {}),
@@ -264,21 +311,36 @@ export const markupRegions = (
   kind: DocumentKind,
   options: MarkupOptions = {}
 ): MarkupRegion[] => {
-  if (kind === 'script') return findTemplates(code, options.templateTags);
+  const tags = options.templateTags;
+  if (kind === 'script') return findTemplates(code, tags);
+  if (kind === 'jsx') return findTemplates(code, tags, {jsx: true});
+  if (kind === 'mdx') return findDocumentRegions(code, 'mdx', tags);
+  if (kind === 'astro') {
+    const regions = findDocumentRegions(code, 'astro', tags);
+    const body = regions.find((region) => region.end === code.length);
+    return [...regions, ...(body ? inlineScripts(code, body, tags) : [])];
+  }
   const page = {start: 0, end: code.length, holes: []};
-  const scripts = scanMarkup(code, page).flatMap((element) =>
+  return [page, ...inlineScripts(code, page, tags)];
+};
+
+/** The templates in a page's inline `<script>` elements. */
+const inlineScripts = (
+  code: string,
+  page: MarkupRegion,
+  tags: readonly string[] | undefined
+): MarkupRegion[] =>
+  scanMarkup(code, page).flatMap((element) =>
     element.tag.toLowerCase() === 'script' && element.content
       ? shift(
           findTemplates(
             code.slice(element.content.start, element.content.end),
-            options.templateTags
+            tags
           ),
           element.content.start
         )
       : []
   );
-  return [page, ...scripts];
-};
 
 const shift = (regions: MarkupRegion[], by: number): MarkupRegion[] =>
   regions.map((region) => ({
@@ -323,7 +385,7 @@ const contextInElement = (
   }
   for (const attribute of element.attributes) {
     const {binding, nameEnd, value} = attribute;
-    const start = attribute.nameStart + binding.length;
+    const start = nameStartOf(attribute);
     if (start <= offset && offset <= nameEnd) {
       const prefix = code.slice(start, offset);
       return {kind: 'attribute', element, binding, prefix, start, end: nameEnd};

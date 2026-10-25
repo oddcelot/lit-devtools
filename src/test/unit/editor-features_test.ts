@@ -392,3 +392,74 @@ describe('inline event handlers', () => {
     ]);
   });
 });
+
+/** A request at `‸` in a document of `kind`. */
+const doc = (kind: 'jsx' | 'astro' | 'mdx', text: string) => ({
+  file: `/app/src/a.${kind === 'jsx' ? 'tsx' : kind}`,
+  code: text.replace('‸', ''),
+  kind,
+  offset: text.indexOf('‸'),
+});
+
+describe('JSX, Astro and MDX', () => {
+  const docLabels = async (kind: 'jsx' | 'astro' | 'mdx', text: string) =>
+    (await completionsAt(source, doc(kind, text))).map((item) => item.label);
+
+  test('a JSX prop is a property, an attribute or an on<event>', async () => {
+    expect(
+      await docLabels('jsx', 'const a = <x-button size="small" ‸ />;')
+    ).toEqual(['disabled', 'data', 'old', 'onsubmit-start']);
+  });
+
+  test('Astro props are properties and attributes, without events', async () => {
+    expect(await docLabels('astro', '---\n---\n<x-button ‸ />')).toEqual([
+      'size',
+      'disabled',
+      'data',
+      'old',
+    ]);
+  });
+
+  test('MDX reads JSX in its body, and tags complete there', async () => {
+    expect(await docLabels('mdx', '# Hi\n\n<x-b‸')).toEqual([
+      'x-button',
+      'x-other',
+    ]);
+    expect(await docLabels('mdx', '<x-button on‸ />')).toContain(
+      'onsubmit-start'
+    );
+  });
+
+  test("Solid's on: and prop: namespaces read as Lit's @ and .", async () => {
+    expect(await docLabels('jsx', 'const a = <x-button on:‸ />;')).toEqual([
+      'submit-start',
+    ]);
+    expect(await docLabels('jsx', 'const a = <x-button prop:‸ />;')).toEqual([
+      'size',
+      'disabled',
+      'data',
+    ]);
+  });
+
+  test('hovers an on<event> as the event, and a prop as its property', async () => {
+    const event = await hoverAt(
+      source,
+      doc('jsx', 'const a = <x-button onsubmit-st‸art={go} />;')
+    );
+    expect(event?.markdown).toContain(
+      '**`onsubmit-start`** event of `<x-button>`'
+    );
+    const prop = await hoverAt(
+      source,
+      doc('astro', '<x-button da‸ta={value} />')
+    );
+    expect(prop?.markdown).toContain('**`data`** property of `<x-button>`');
+  });
+
+  test('completes the values of a union inside quotes', async () => {
+    expect(await docLabels('jsx', 'const a = <x-button size="‸" />;')).toEqual([
+      'small',
+      'large',
+    ]);
+  });
+});

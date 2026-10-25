@@ -1,7 +1,7 @@
 # Lit for VS Code
 
-Your editor, fluent in your Lit components. In `html` templates, HTML files
-and `css` templates, VS Code completes your components' tags, attributes,
+Your editor, fluent in your Lit components. In `html` templates, HTML files,
+JSX, Astro and MDX, and `css` templates, VS Code completes your components' tags, attributes,
 properties and events, shows their docs on hover, takes you to their source,
 and catches an event handler that doesn't fit its event.
 
@@ -49,6 +49,17 @@ html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
 - **Find All References** (Shift+F12) lists every template and HTML file that
   uses the tag or binding. An attribute and its property count as one, so
   `size` and `.size` find each other.
+
+### JSX, Astro and MDX
+
+Your components complete, hover and lead to their source in `.jsx` and
+`.tsx` files, Astro templates and MDX too, each read its own way:
+
+- **JSX and MDX:** `size="small"` or `selectedItem={item}` names a property
+  or an attribute, and `onsubmit-start={fn}` an event, as React 19 and Preact
+  read them; Solid's `on:`, `prop:`, `attr:` and `bool:` work too.
+- **Astro:** a prop names a property or an attribute; the frontmatter's and
+  `<script>` elements' `html` templates are Lit templates.
 
 ### Typed event handlers
 

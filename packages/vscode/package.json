@@ -3,7 +3,7 @@
   "displayName": "Lit",
   "version": "0.1.0",
   "private": true,
-  "description": "Completion, hover, go to source, find references and diagnostics for Lit components in templates and HTML, read from your sources and your dependencies' Custom Elements Manifests.",
+  "description": "Completion, hover, go to source, find references and diagnostics for Lit components in templates, HTML, JSX, Astro and MDX, read from your sources and your dependencies' Custom Elements Manifests.",
   "categories": [
     "Programming Languages",
     "Linters"
@@ -14,7 +14,10 @@
     "web-components",
     "custom-elements",
     "custom-elements-manifest",
-    "html"
+    "html",
+    "jsx",
+    "astro",
+    "mdx"
   ],
   "homepage": "https://vite-plugin-lit.oddsquad.dev/guides/language-server/",
   "bugs": "https://github.com/oddcelot/vite-plugin-lit/issues",
@@ -66,9 +69,11 @@
     }
   },
   "activationEvents": [
+    "onLanguage:astro",
     "onLanguage:html",
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
+    "onLanguage:mdx",
     "onLanguage:typescript",
     "onLanguage:typescriptreact"
   ],

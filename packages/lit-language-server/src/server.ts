@@ -47,6 +47,7 @@ import {
   type NavigationSource,
   type Span,
   implementationAt,
+  kindOfFile,
   referencesAt,
 } from '../../../src/lib/editor/navigation.js';
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
@@ -80,13 +81,13 @@ const svgGlobals = {
 };
 
 /**
- * Where a document's docs come from. In a template, standard HTML and SVG
- * elements and what every element accepts come from their data as well; an
- * HTML file leaves those to the editor's own HTML server, which would
- * repeat them.
+ * Where a document's docs come from. In a Lit template, standard HTML and
+ * SVG elements and what every element accepts come from their data as well;
+ * HTML, JSX, Astro and MDX leave those to the editor's own support for the
+ * language, which would repeat them.
  */
 const docsSourceFor = (workspace: Workspace, kind: DocumentKind): DocsSource =>
-  kind === 'html'
+  kind !== 'script'
     ? workspace
     : {
         get: async (file, tag) =>
@@ -101,12 +102,24 @@ const docsSourceFor = (workspace: Workspace, kind: DocumentKind): DocsSource =>
         globals: (tag) => (isSvg(tag) ? svgGlobals : html.globals),
       };
 
+const LANGUAGE_KINDS: Record<string, DocumentKind> = {
+  html: 'html',
+  astro: 'astro',
+  mdx: 'mdx',
+  javascriptreact: 'jsx',
+  typescriptreact: 'jsx',
+};
+
 /** What kind of markup document a file is, or undefined when it holds none. */
 const kindOf = (document: TextDocument): DocumentKind | undefined => {
-  if (document.languageId === 'html' || document.uri.endsWith('.html')) {
-    return 'html';
-  }
-  return SCRIPT_RE.test(document.uri) ? 'script' : undefined;
+  const byLanguage = LANGUAGE_KINDS[document.languageId];
+  if (byLanguage) return byLanguage;
+  if (
+    /\.(?:html|astro|mdx)$/.test(document.uri) ||
+    SCRIPT_RE.test(document.uri)
+  )
+    return kindOfFile(document.uri);
+  return undefined;
 };
 
 const fileOf = (uri: string): string | undefined =>
@@ -264,7 +277,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
       workspace,
       source: docsSourceFor(workspace, kind),
       request: {file, code: document.getText(), kind, templateTags},
-      cssTags: kind === 'script' ? (cssTemplateTags ?? ['css']) : [],
+      cssTags:
+        kind === 'script' || kind === 'jsx' ? (cssTemplateTags ?? ['css']) : [],
     };
   };
 

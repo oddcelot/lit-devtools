@@ -48,6 +48,10 @@ const disk: Record<string, string> = {
   '/p/src/base.ts': base,
   '/p/src/x-card.ts': card,
   '/p/index.html': '<x-card is-open></x-card>\n',
+  '/p/src/app.tsx':
+    'export const A = () => <x-card tone="warm" onclosed={go} />;\n',
+  '/p/src/page.astro': '---\n---\n<x-card tone={tone}></x-card>\n',
+  '/p/src/doc.mdx': '# Doc\n\n<x-card tone="cold" />\n',
 };
 
 const source: NavigationSource = {
@@ -123,6 +127,45 @@ describe('implementationAt', () => {
     expect(await implementationAt(source, request('html`<x-o‸ther>`'))).toEqual(
       []
     );
+  });
+});
+
+describe('JSX, Astro and MDX', () => {
+  const at = (file: string, text: string) => ({
+    file,
+    code: text.replace('‸', ''),
+    kind: (file.endsWith('.tsx') ? 'jsx' : 'astro') as 'jsx' | 'astro',
+    offset: text.indexOf('‸'),
+  });
+
+  test("goes from an on<event> to the event, and a prop to its property's declaration", async () => {
+    const [closed] = await implementationAt(
+      source,
+      at('/p/src/b.tsx', 'const b = <x-card onclo‸sed={go} />;')
+    );
+    expect(textOf(closed)).toBe('closed');
+    const [open] = await implementationAt(
+      source,
+      at('/p/src/b.astro', '<x-card op‸en />')
+    );
+    expect([open.file, textOf(open)]).toEqual(['/p/src/base.ts', 'open']);
+  });
+
+  test('finds a prop in TSX, Astro and MDX files alike', async () => {
+    const spans = await referencesAt(
+      source,
+      at('/p/src/b.tsx', 'const b = <x-card to‸ne="x" />;'),
+      false
+    );
+    expect(
+      spans
+        .filter((span) => span.file !== '/p/src/b.tsx')
+        .map((span) => [span.file, textOf(span)])
+    ).toEqual([
+      ['/p/src/app.tsx', 'tone'],
+      ['/p/src/page.astro', 'tone'],
+      ['/p/src/doc.mdx', 'tone'],
+    ]);
   });
 });
 

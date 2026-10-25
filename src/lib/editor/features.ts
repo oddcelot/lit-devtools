@@ -174,11 +174,12 @@ const typeFacts = (type: string | undefined, binding: Binding): string[] => {
   return [`Event ${code(eventClass)}`, `${code('detail')} ${code(detail)}`];
 };
 
-/** The hover over one attribute, property or event. */
+/** The hover over one attribute, property or event, written as `label`. */
 const entryMarkdown = (
   entry: DocEntry,
   binding: Binding,
-  headline: string
+  headline: string,
+  label = `${binding}${entry.name}`
 ): string => {
   const facts = [
     ...typeFacts(entry.type, binding),
@@ -190,7 +191,7 @@ const entryMarkdown = (
     entry.inheritedFrom ? `From ${code(entry.inheritedFrom)}` : '',
   ].filter(Boolean);
   return [
-    `**${code(`${binding}${entry.name}`)}** ${headline}`,
+    `**${code(label)}** ${headline}`,
     ...deprecation(entry.deprecated),
     entry.description ? links(entry.description) : '',
     facts.join(' · '),
@@ -216,7 +217,51 @@ const entriesFor = (docs: ComponentDocs, binding: Binding): DocEntry[] => {
 interface Candidate {
   entry: DocEntry;
   headline: string;
+  /** What it is, when the binding written doesn't say: JSX's plain props. */
+  binding?: Binding;
+  /** How it's written, when that isn't its name: JSX's `on<event>`. */
+  label?: string;
 }
+
+/** The element a binding is written on. */
+type ElementRef = Pick<MarkupElement, 'tag' | 'dialect'>;
+
+/**
+ * A component's own entries for a plain prop in JSX or Astro, where a prop
+ * names a property or an attribute, and in JSX `on<event>` an event: its
+ * properties, its attributes no property has the name of, then its events.
+ */
+const propCandidates = (
+  docs: ComponentDocs,
+  dialect: 'jsx' | 'astro'
+): Candidate[] => {
+  const of = (binding: Binding) =>
+    `${WHAT[binding]} of ${code(`<${docs.tagName}>`)}`;
+  const names = new Set(docs.properties.map((property) => property.name));
+  return [
+    ...docs.properties.map((entry) => ({
+      entry,
+      headline: of('.'),
+      binding: '.' as const,
+      label: entry.name,
+    })),
+    ...docs.attributes
+      .filter((entry) => !names.has(entry.name))
+      .map((entry) => ({entry, headline: of(''), label: entry.name})),
+    ...(dialect === 'jsx'
+      ? docs.events.map((entry) => ({
+          entry,
+          headline: of('@'),
+          binding: '@' as const,
+          label: `on${entry.name}`,
+        }))
+      : []),
+  ];
+};
+
+/** How a candidate is written. */
+const labelOf = (candidate: Candidate): string =>
+  candidate.label ?? candidate.entry.name;
 
 /**
  * The custom events the components `file` can use fire, other than
@@ -265,26 +310,37 @@ const sharedCandidates = async (
   return binding === '' ? globals.attributes.map(as(label)) : [];
 };
 
-/** Everything `tagName` accepts under a binding prefix: its own entries first, each name once. */
+/** A component's own entries under a binding prefix, as its element's dialect reads them. */
+const ownCandidates = (
+  docs: ComponentDocs,
+  element: ElementRef,
+  binding: Binding
+): Candidate[] =>
+  element.dialect && binding === ''
+    ? propCandidates(docs, element.dialect)
+    : entriesFor(docs, binding).map((entry) => ({
+        entry,
+        headline: `${WHAT[binding]} of ${code(`<${docs.tagName}>`)}`,
+      }));
+
+/** Everything an element accepts under a binding prefix: its own entries first, each name once. */
 const candidatesFor = async (
   source: DocsSource,
   file: string,
-  tagName: string,
+  element: ElementRef,
   binding: Binding
 ): Promise<Candidate[]> => {
-  const docs = await source.get(file, tagName);
-  const own = docs
-    ? entriesFor(docs, binding).map((entry) => ({
-        entry,
-        headline: `${WHAT[binding]} of ${code(`<${docs.tagName}>`)}`,
-      }))
-    : [];
+  const docs = await source.get(file, element.tag);
+  const own = docs ? ownCandidates(docs, element, binding) : [];
   const all = [
     ...own,
-    ...(await sharedCandidates(source, file, tagName, binding)),
+    ...(await sharedCandidates(source, file, element.tag, binding)),
   ];
   const seen = new Set<string>();
-  return all.filter(({entry}) => !seen.has(entry.name) && seen.add(entry.name));
+  return all.filter((candidate) => {
+    const label = labelOf(candidate);
+    return !seen.has(label) && seen.add(label);
+  });
 };
 
 const KIND_OF: Record<Binding, number> = {
@@ -364,20 +420,25 @@ const attributeCompletions = async (
 ): Promise<Completion[]> => {
   const {binding, element} = context;
   const written = writtenNames(element, context);
-  const candidates = await candidatesFor(source, file, element.tag, binding);
+  const candidates = await candidatesFor(source, file, element, binding);
   return candidates
-    .filter(({entry}) => !written.has(`${binding}${entry.name}`))
-    .map(({entry, headline}, i) => ({
-      label: entry.name,
-      kind: KIND_OF[binding],
-      ...(entry.type ? {detail: entry.type} : {}),
-      documentation: entryMarkdown(entry, binding, headline),
-      ...(entry.deprecated ? {deprecated: true} : {}),
-      sortText: order(i),
-      start: context.start,
-      end: context.end,
-      newText: entry.name,
-    }));
+    .filter((candidate) => !written.has(`${binding}${labelOf(candidate)}`))
+    .map((candidate, i) => {
+      const {entry, headline} = candidate;
+      const label = labelOf(candidate);
+      const is = candidate.binding ?? binding;
+      return {
+        label,
+        kind: KIND_OF[is],
+        ...(entry.type ? {detail: entry.type} : {}),
+        documentation: entryMarkdown(entry, is, headline, label),
+        ...(entry.deprecated ? {deprecated: true} : {}),
+        sortText: order(i),
+        start: context.start,
+        end: context.end,
+        newText: label,
+      };
+    });
 };
 
 const valueCompletions = async (
@@ -389,10 +450,10 @@ const valueCompletions = async (
   const candidates = await candidatesFor(
     source,
     file,
-    element.tag,
+    element,
     attribute.binding
   );
-  const found = candidates.find(({entry}) => entry.name === attribute.name);
+  const found = candidates.find((c) => labelOf(c) === attribute.name);
   return literalValues(found?.entry.type).map((value) => ({
     label: value,
     kind: COMPLETION_KIND.value,
@@ -409,7 +470,7 @@ export const eventTypeOf = async (
   tagName: string,
   eventName: string
 ): Promise<string | undefined> => {
-  const candidates = await candidatesFor(source, file, tagName, '@');
+  const candidates = await candidatesFor(source, file, {tag: tagName}, '@');
   return candidates.find(({entry}) => entry.name === eventName)?.entry.type;
 };
 
@@ -505,15 +566,16 @@ export const hoverAt = async (
   const candidates = await candidatesFor(
     source,
     file,
-    context.element.tag,
+    context.element,
     context.binding
   );
-  const found = candidates.find(({entry}) => entry.name === name);
-  return found
-    ? {
-        markdown: entryMarkdown(found.entry, context.binding, found.headline),
-        start,
-        end,
-      }
-    : undefined;
+  const found = candidates.find((candidate) => labelOf(candidate) === name);
+  if (!found) return undefined;
+  const is = found.binding ?? context.binding;
+  const label = found.label ?? `${context.binding}${found.entry.name}`;
+  return {
+    markdown: entryMarkdown(found.entry, is, found.headline, label),
+    start,
+    end,
+  };
 };

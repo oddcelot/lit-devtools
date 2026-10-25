@@ -194,6 +194,41 @@ describe('contextAt in an HTML file', () => {
   });
 });
 
+describe('contextAt in JSX, Astro and MDX', () => {
+  test("a JSX prop is plain, and Solid's namespaces are bindings", () => {
+    expect(at('const a = <x-a onpi‸ck={go} />;', 'jsx')).toEqual({
+      on: 'attribute',
+      tag: 'x-a',
+      prefix: 'onpi',
+      replaces: 'onpick',
+      binding: '',
+    });
+    expect(at('const a = <x-a on:pi‸ck={go} />;', 'jsx')).toEqual({
+      on: 'attribute',
+      tag: 'x-a',
+      prefix: 'pi',
+      replaces: 'pick',
+      binding: '@',
+    });
+  });
+
+  test("a . or @ isn't a binding outside Lit", () => {
+    expect(at('<x-a @cli‸ck />', 'astro')).toMatchObject({binding: ''});
+  });
+
+  test('nothing in an expression, in code or after a comparison', () => {
+    expect(at('<x-a label={x‸} />', 'astro')).toBeUndefined();
+    expect(at('```\n<x-a ‸>\n```', 'mdx')).toBeUndefined();
+    expect(at('const a = b <x-a ‸;', 'jsx')).toBeUndefined();
+  });
+
+  test('marks elements with their dialect', () => {
+    const code = '<x-a />';
+    const [region] = markupRegions(code, 'mdx');
+    expect(scanMarkup(code, region)[0]).toMatchObject({dialect: 'jsx'});
+  });
+});
+
 describe('scanMarkup', () => {
   const scan = (code: string) => {
     const regions = markupRegions(code, 'script');

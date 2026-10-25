@@ -1,6 +1,7 @@
 /**
- * Starts the Lit language server for HTML, JavaScript and TypeScript files,
- * with VS Code's own Node, and restarts it when its path setting changes.
+ * Starts the Lit language server for HTML, JavaScript, TypeScript, JSX,
+ * Astro and MDX files, with VS Code's own Node, and restarts it when its
+ * path setting changes.
  */
 
 import {readFileSync} from 'node:fs';
@@ -14,9 +15,11 @@ import {
 import {findServer} from './find-server.js';
 
 const LANGUAGES = [
+  'astro',
   'html',
   'javascript',
   'javascriptreact',
+  'mdx',
   'typescript',
   'typescriptreact',
 ];

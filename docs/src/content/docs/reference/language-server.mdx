@@ -1,6 +1,6 @@
 ---
 title: Language server
-description: 'What the Lit language server completes, shows on hover, finds and reports in templates, HTML files and css templates, with its settings and rules.'
+description: 'What the Lit language server completes, shows on hover, finds and reports in templates, HTML, JSX, Astro and MDX files and css templates, with its settings and rules.'
 sidebar:
   badge:
     text: Experimental
@@ -11,7 +11,7 @@ import {CardGrid, LinkCard} from '@astrojs/starlight/components';
 
 The Lit language server reads your components from source, as you type, and
 your dependencies' Custom Elements Manifests, and answers in `html` and `svg`
-templates, in HTML files and in `css` templates.
+templates, in HTML files, in JSX, Astro and MDX, and in `css` templates.
 [Use the language server](/guides/language-server/) sets it up.
 
 It reads the same JSDoc the [manifest](/guides/manifest/) does, so this
@@ -81,6 +81,28 @@ An event's type comes from the dispatch when no `@fires {Type}` names one:
 each key typed by the field it reads or the literal it holds. What can't be
 told without a type checker is `unknown`.
 
+## JSX, Astro and MDX
+
+The server reads your components in JSX in `.jsx` and `.tsx` files, in an
+Astro component's template, and in MDX. Completion, hover, go to
+implementation and find references work there as in a Lit template, with
+each format's way of writing a binding:
+
+| You write              | In JSX (`.jsx`, `.tsx`, MDX)                             | In Astro     |
+| ---------------------- | -------------------------------------------------------- | ------------ |
+| `size="small"`         | The `size` property, else the `size` attribute           | The same     |
+| `selectedItem={item}`  | A property by its name                                   | The same     |
+| `onsubmit-start={fn}`  | The `submit-start` event, as React 19 and Preact read it | An attribute |
+| `on:submit-start={fn}` | The event, Solid's way; so are `prop:`, `attr:`, `bool:` | An attribute |
+
+Only your components get completed in these files: standard HTML elements
+are left to the editor's own support for the language. In Astro, the
+templates in the frontmatter and in `<script>` elements are Lit templates.
+In MDX, fenced and inline code and `import`/`export` blocks are skipped.
+
+The typed event handler features and the `event-type` check read Lit's
+`@event=${…}` bindings only.
+
 ## Go to implementation and find references
 
 | From                          | Go to implementation (and definition) goes to                                                 |
@@ -93,7 +115,8 @@ told without a type checker is `unknown`.
 Find references, from the same places, lists every use in the workspace:
 opening and closing tags, and an attribute or property under either of its
 names (`size` and `.size` are one member). It searches every script it reads
-components from, the HTML files at each package's root, and any open file.
+components from, the HTML files at each package's root, the HTML, Astro and
+MDX files in the folders it reads, and any open file.
 
 A component from a dependency's manifest has no source to go to; its uses
 are still found.

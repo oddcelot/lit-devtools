@@ -18,6 +18,9 @@ sources as you type and from your dependencies' Custom Elements Manifests.
 - **Go to a component's source, and find where it's used.** Go to
   Implementation or Definition on a tag or binding opens what declares it;
   Find All References lists every template that uses it.
+- **JSX, Astro and MDX.** Components complete, hover and lead to their
+  source in `.jsx` and `.tsx` files, Astro templates and MDX, with React 19's,
+  Preact's and Solid's ways of writing props and events.
 - **Typed event handlers.** An inlay hint shows an untyped handler's event,
   and a quick fix writes it in.
 - **Works with nothing installed.** The extension ships the language server,

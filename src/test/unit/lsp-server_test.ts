@@ -229,6 +229,33 @@ describe('the language server', () => {
     );
   });
 
+  test('answers in TSX, Astro and MDX files', async () => {
+    const cases = [
+      [
+        'src/view.tsx',
+        'typescriptreact',
+        'export const V = () => <x-button ‸ />;\n',
+      ],
+      ['src/page.astro', 'astro', '---\nconst a = 1;\n---\n<x-button ‸ />\n'],
+      ['src/doc.mdx', 'mdx', '# Doc\n\n<x-button ‸ />\n'],
+    ];
+    for (const [file, languageId, source] of cases) {
+      const uri = pathToFileURL(join(root, file)).href;
+      const {text, position} = at(source);
+      client.notify('textDocument/didOpen', {
+        textDocument: {uri, languageId, version: 1, text},
+      });
+      const items = await client.request<{label: string}[]>(
+        'textDocument/completion',
+        {textDocument: {uri}, position}
+      );
+      const labels = items.map((item) => item.label);
+      expect(labels, file).toContain('size');
+      // An event is an on<event> prop in JSX, and nothing in Astro.
+      expect(labels.includes('onpick'), file).toBe(languageId !== 'astro');
+    }
+  });
+
   test('hovers a standard element in a template', async () => {
     const uri = pathToFileURL(join(root, 'src/native.ts')).href;
     const {text, position} = at(
