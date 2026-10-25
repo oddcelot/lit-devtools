@@ -3,7 +3,7 @@
   "displayName": "Lit",
   "version": "0.1.0",
   "private": true,
-  "description": "Completion, hover and diagnostics for Lit components in templates and HTML, read from your sources and your dependencies' Custom Elements Manifests.",
+  "description": "Completion, hover, go to source, find references and diagnostics for Lit components in templates and HTML, read from your sources and your dependencies' Custom Elements Manifests.",
   "categories": [
     "Programming Languages",
     "Linters"

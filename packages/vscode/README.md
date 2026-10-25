@@ -1,45 +1,113 @@
 # Lit for VS Code
 
-Completion, hover and diagnostics for Lit components, from the
-[Lit language server](https://github.com/oddcelot/vite-plugin-lit/tree/main/packages/lit-language-server).
-In `html` and `svg` templates, HTML files and `css` templates, it completes
-your components' tags, attributes, properties and events, shows their docs on
-hover, types your event handlers, and reports a handler that doesn't fit its
-event. It reads your components from source as you type, and your
-dependencies' Custom Elements Manifests, in one package or a whole monorepo,
-with or without Vite.
+Your editor, fluent in your Lit components. In `html` templates, HTML files
+and `css` templates, VS Code completes your components' tags, attributes,
+properties and events, shows their docs on hover, takes you to their source,
+and catches an event handler that doesn't fit its event.
 
-[Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
-covers its settings; the
-[reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
-lists everything it completes, shows and reports.
+It reads your components from source as you type, so an edit shows up before
+you save, and your dependencies' Custom Elements Manifests. It works in one
+package or a whole monorepo, with or without Vite, and needs no setup.
 
-## Which server runs
-
-1. The `lit.server.path` setting, when set.
-2. The project's own `node_modules/@oddsquad/lit-language-server`, so the
-   version matches the project.
-3. `packages/lit-language-server` in the vite-plugin-lit repo.
-4. The copy bundled with the extension, so it works with nothing installed.
-
-**Lit: Restart Language Server** picks again, for instance after installing
-the package. The **Lit Language Server** output channel says which one
-started.
-
-## Build it from this repo
-
-```sh
-pnpm install
-cd packages/vscode
-pnpm run build            # bundles the extension and the server into dist/
-pnpm run package          # lit-<platform>.vsix for this machine
-pnpm run package all      # one .vsix per platform VS Code publishes for
+```ts
+html`<x-button @submit-start=${(ev) => ev.detail.‸}></x-button>`;
+//                              ^^ CustomEvent<{size: 'small' | 'large'; at: number}>
+//                                 completion: size, at
 ```
 
-The server's parser and resolver are native, so each package carries the
-bindings for one platform. Install a package with **Extensions: Install from
-VSIX…**, or press F5 in a window open on this folder to run it in an
-Extension Development Host.
+## Features
+
+### Completion
+
+- **Tags.** Your components first, then those of your dependencies'
+  manifests, then HTML and SVG elements.
+- **Attributes, `.properties`, `?boolean` attributes and `@events`.** Each
+  binding offers what the element takes, then the global ones (`id`,
+  `hidden`, `click`…). `@` also offers the events your other components fire,
+  since events bubble.
+- **Values.** Inside quotes, the members of a union of string literals:
+  `size="‸"` offers `small` and `large`.
+- **CSS.** In a `css` template, VS Code's own CSS completion, plus your
+  components' documented custom properties and `::part()` names.
+
+### Hover
+
+- **A component's tag:** its summary, description, attributes, properties,
+  events, slots, CSS parts and custom properties, and where it's declared.
+- **An attribute or property:** its type, default, the attribute or property
+  it maps to, and the class it's inherited from.
+- **An event:** who fires it and what a listener receives, down to
+  `CustomEvent` · `detail` `{size: 'small' | 'large'; at: number}`.
+- **HTML and SVG elements and attributes:** their description and a link to
+  MDN.
+
+### Go to implementation and find references
+
+- **Go to Implementation** and **Go to Definition** (F12) on a tag, attribute,
+  `.property` or `@event` open the class, field or `dispatchEvent` that
+  declares it, in the base class when it's inherited.
+- **Find All References** (Shift+F12) lists every template and HTML file that
+  uses the tag or binding. An attribute and its property count as one, so
+  `size` and `.size` find each other.
+
+### Typed event handlers
+
+TypeScript gives an inline handler's parameter no type inside a template.
+The extension knows which event it is for:
+
+- an **inlay hint** shows the event's type after an untyped parameter,
+- the **Add event type** quick fix writes it in, so TypeScript takes over,
+- `ev.` and `ev.detail.` complete from the event's type.
+
+### Problems
+
+- **A handler that doesn't fit its event** is an error: a method or typed
+  handler that expects a `detail` key the event doesn't send, or a `string`
+  where it sends a `number`.
+- **CSS in `css` templates:** unknown properties and invalid values are
+  warnings.
+- **Settings:** a mistake in the server's settings is reported on its file.
+
+## What to expect
+
+- **No setup.** Open a folder with Lit components and they're known. The
+  first read of a large monorepo takes a moment; edits are picked up as you
+  type.
+- **Where components come from:** every package's `src` folder by default,
+  and the Custom Elements Manifests of the packages it depends on. Your
+  sources win over a stale manifest.
+- **Vite projects** are read through their Vite config, so aliases resolve.
+  Projects without Vite use Node's resolution and `tsconfig.json` paths.
+- **Alongside TypeScript and HTML support.** The extension adds to VS Code's
+  own TypeScript and HTML features rather than replacing them; in an HTML
+  file, standard elements stay with VS Code's HTML support.
+- **Experimental.** The server is young; please report what it gets wrong.
+
+## Settings
+
+The extension has two settings of its own:
+
+| Setting            | Default | What it does                                                          |
+| ------------------ | ------- | --------------------------------------------------------------------- |
+| `lit.server.path`  | none    | Runs another build of the language server: the path to its `bin.mjs`  |
+| `lit.trace.server` | `off`   | Logs the messages to the server in the **Lit Language Server** output |
+
+What the server reads and how loud each problem is go in your project, in
+`litPlugin({languageServer})` in a Vite config or in a
+`lit-devtools.config.ts`. The
+[settings reference](https://vite-plugin-lit.oddsquad.dev/reference/language-server/#settings)
+lists them.
+
+**Lit: Restart Language Server** starts it again. The extension runs your
+project's own `@oddsquad/lit-language-server` when the project installs it,
+so the version matches the project, and the copy it ships with otherwise;
+the **Lit Language Server** output channel says which.
+
+## Learn more
+
+- [Use the Lit language server](https://vite-plugin-lit.oddsquad.dev/guides/language-server/)
+- [Everything it completes, shows and reports](https://vite-plugin-lit.oddsquad.dev/reference/language-server/)
+- [Report a problem](https://github.com/oddcelot/vite-plugin-lit/issues)
 
 ## License
 
