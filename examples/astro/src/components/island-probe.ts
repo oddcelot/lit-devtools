@@ -27,18 +27,18 @@ export class IslandProbe extends LitElement {
 
   @property() label = '';
 
-  @state() private after?: number;
+  @state() private elapsed?: number;
   @state() private clicks = 0;
 
   /** Whether the server sent a shadow root: decided before Lit makes one. */
   #fromServer = this.shadowRoot !== null;
 
   override firstUpdated() {
-    this.after = Math.round(performance.now() - navigation.arrivedAt);
+    this.elapsed = Math.round(performance.now() - navigation.arrivedAt);
   }
 
   #status() {
-    if (this.after === undefined) {
+    if (this.elapsed === undefined) {
       return html`<span class="badge server"
         >Server HTML, not hydrated yet</span
       >`;
@@ -48,7 +48,7 @@ export class IslandProbe extends LitElement {
       ? ['Hydrated', 'hydrated']
       : ['Rendered in the browser', 'browser'];
     return html`<span class="badge ${kind}"
-      >${how} ${this.after} ms after the page arrived</span
+      >${how} ${this.elapsed} ms after the page arrived</span
     >`;
   }
 
