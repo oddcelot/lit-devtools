@@ -297,6 +297,8 @@ export const createComponentDocsIndex = (options: {
   root: () => string | undefined;
   fs: () => Promise<DocsFs> | DocsFs;
   onChange?: () => void;
+  /** Manifests read before the discovered ones: the settings' `manifests`. */
+  extra?: () => ManifestSource[];
 }): ComponentDocsIndex => {
   const discovered = new Map<
     string,
@@ -333,11 +335,12 @@ export const createComponentDocsIndex = (options: {
     if (packageJsonPath === undefined) return [];
     const mtime = fs.mtime(packageJsonPath);
     if (mtime === undefined) return [];
+    const extra = options.extra?.() ?? [];
     const cached = discovered.get(packageJsonPath);
-    if (cached?.mtime === mtime) return cached.sources;
+    if (cached?.mtime === mtime) return [...extra, ...cached.sources];
     const sources = discover(fs, packageJsonPath);
     discovered.set(packageJsonPath, {mtime, sources});
-    return sources;
+    return [...extra, ...sources];
   };
 
   return {
