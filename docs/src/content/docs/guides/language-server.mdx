@@ -1,6 +1,6 @@
 ---
 title: Use the Lit language server
-description: 'Completion, hover and type checks for your Lit components in VS Code and Zed: templates, HTML files and css templates, in one package or a whole monorepo, with or without Vite.'
+description: 'Completion, hover and problem reports for your Lit components in VS Code and Zed: templates, HTML, JSX, Astro and MDX files and css templates, type-checked bindings, and the same checks in Oxlint and CI.'
 sidebar:
   label: Language server
   badge:
@@ -12,11 +12,14 @@ import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
 
 The Lit language server makes your editor understand your components: it
 completes their tags, attributes, properties and events in `html` templates,
-shows their docs on hover, types your event handlers, and reports a handler
-that doesn't fit its event. It reads your sources as you type, so a
-component's docs are current before you save, and it works in a project
-without Vite. [Language server](/reference/language-server/) lists everything
-it does.
+shows their docs on hover and types your event handlers. As you type it
+reports what would go wrong in the browser: a tag, attribute or slot nothing
+defines, a binding Lit reads differently than written, a directive where
+Lit can't apply it, a value a binding can't take. When you save, it
+type-checks the file's bindings with your own TypeScript. It reads your
+sources as you type, so a component's docs are current before you save, and
+it works in a project without Vite.
+[Language server](/reference/language-server/) lists everything it does.
 
 <Aside type="caution" title="Not published yet">
   `@oddsquad/lit-language-server` and the editor extensions aren't on npm or in
@@ -97,6 +100,87 @@ installs the latest release itself.
 The type hints on event handlers are inlay hints, which Zed shows when
 `"inlay_hints": {"enabled": true}` is set.
 
+## What it reports
+
+Problems show in Lit templates, and for custom elements in JSX, Astro, MDX
+and HTML files:
+
+- **Names nothing defines.** `<x-buton>`, `sise="small"`, `.cont=${1}` or
+  `slot="heder"`, each with the name you probably meant.
+- **Values a binding can't take.** `size="huge"` when `size` is
+  `'small' | 'large'`, a string in `?hidden=${'no'}`, a handler whose
+  parameter doesn't fit its event.
+- **Templates Lit reads differently than written.** A component closed
+  with `/>`, `.value="x"` without `${…}`, a stray quote next to an
+  expression.
+- **Directives in the wrong place.** `classMap` outside `class`, `ifDefined`
+  on a property, `repeat` in an attribute: each throws on first render.
+- **Mistakes in a component's declaration.** A tag `customElements.define`
+  refuses, an `attribute:` name HTML lowercases away, a field that replaces
+  an element's own method, such as `@state() after`.
+
+Each kind is a rule with its own severity, which `diagnostics` sets; the
+[rules table](/reference/language-server/#settings) lists them all.
+
+<Aside title="New warnings after upgrading to 0.25">
+  0.25.0 added most of these rules, and several are on by default, so a project
+  that was clean before may show warnings. Fix them, set a rule's severity in
+  `diagnostics`, or silence a spot with a comment, as below.
+</Aside>
+
+### Silence a problem
+
+A `lit-ignore` comment silences the problems it covers, in the editor, in
+Oxlint and in `lit-devtools check`. Name the rules, or none for all of them:
+
+```ts
+html`
+  <!-- lit-ignore unknown-attribute -->
+  <x-legacy colour="red"></x-legacy>
+`;
+
+// lit-ignore-next-line binding-type
+html`<x-button .size=${this.name}></x-button>`;
+```
+
+Inside a template the comment is an HTML one, and covers the next element.
+`// lit-ignore-file` anywhere in a file covers all of it.
+
+### Components from a library without a manifest
+
+The server knows a library's components from the Custom Elements Manifest
+the library ships. A library that ships none shows up as unknown elements.
+List a manifest for it, a path in your project or a URL, in `manifests`, and
+its components complete, show their docs and are checked like any other:
+
+```ts title="vite.config.ts" ins={3}
+litPlugin({
+  languageServer: {
+    manifests: ['./manifests/legacy-ui.json'],
+  },
+});
+```
+
+With no manifest to hand, name its tags in `ignoreTags`, `'legacy-*'` for a
+whole prefix, and they're accepted without being checked.
+
+### Catch components a file never imports
+
+A tag renders as an empty element when nothing imports its definition.
+`missing-import` reports a component a file uses but never imports, directly
+or through the modules it imports, and its quick fix adds the import. It's
+off by default; an app whose entry imports every component lists that entry
+in `entries`, so what it imports counts for every file:
+
+```ts title="vite.config.ts" ins={3-4}
+litPlugin({
+  languageServer: {
+    diagnostics: {'missing-import': 'warning'},
+    entries: ['src/main.ts'],
+  },
+});
+```
+
 ## Configure it
 
 The server needs no settings. To change what it reads or how loud a problem
@@ -170,24 +254,29 @@ it instead. In an `.oxlintrc.json`, list the plugin and its rules yourself:
 
 - Oxlint's config decides each rule's severity; the `diagnostics` setting is
   for the editor only. The other settings, such as `scan`, apply to both.
-- Silence one spot with Oxlint's own comment,
-  `// oxlint-disable-next-line lit-devtools/event-type`.
+- Silence one spot with a [`lit-ignore` comment](#silence-a-problem), or
+  with Oxlint's own, `// oxlint-disable-next-line lit-devtools/event-type`.
 - Oxlint reads JavaScript and TypeScript files, so problems in HTML, Astro
   and MDX pages still show only in the editor.
 - The first file waits while the plugin reads the workspace, once per run.
 
 ### Type-check bindings with TypeScript
 
-The editor and Oxlint read types as text, so they catch `.size=${'huge'}`
-but not `.size=${this.name}` when `name` is any `string`. For that, run
-your project's TypeScript over the bindings next to the lint run:
+As you type, the editor and Oxlint read types as text, so they catch
+`.size=${'huge'}` but not `.size=${this.name}` when `name` is any `string`.
+That takes your project's TypeScript. The editor runs it over a script's
+bindings when you save the file, and shows what it finds until you edit
+again; set `checkOnSave: false` to turn that off. In CI, run it over every
+script next to the lint run:
 
 ```sh
 npx lit-devtools check
 ```
 
-It needs `typescript` in the project and your components in
-`HTMLElementTagNameMap`.
+Both need `typescript` in the project, 5 or 7, and each component in
+`HTMLElementTagNameMap`, which is where they read what an element takes. A
+component missing there is reported as `missing-element-type`, and its
+quick fix, or `oxlint --fix`, writes the entry.
 [`lit-devtools check`](/reference/cli/#lit-devtools-check) lists what it
 checks and what it skips.
 
