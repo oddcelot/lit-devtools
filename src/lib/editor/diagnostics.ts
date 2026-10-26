@@ -1,6 +1,7 @@
 /**
- * Problems in a document's markup, by rule. For now one rule, `event-type`:
- * an `@event` handler whose parameter type doesn't fit the event, whether
+ * Problems in a document's markup, by rule. Here `event-type` (literal
+ * values are `binding-literals.ts`'s `binding-type`): an `@event` handler
+ * whose parameter type doesn't fit the event, whether
  * written inline, `@go=${(e: CustomEvent<{id: string}>) => …}`, or as a
  * method of the same file's class, `@go=${this.#onGo}`.
  *

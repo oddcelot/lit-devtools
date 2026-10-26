@@ -37,6 +37,7 @@ describe('loadLanguageServerConfig', () => {
         'invalid-value': 'warning',
         'missing-import': 'off',
         'event-type': 'error',
+        'binding-type': 'error',
         css: 'warning',
       },
       source: 'default',

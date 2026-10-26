@@ -12,6 +12,7 @@ export const DIAGNOSTIC_RULES = [
   'invalid-value',
   'missing-import',
   'event-type',
+  'binding-type',
   'css',
 ] as const;
 
@@ -61,5 +62,6 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'invalid-value': 'warning',
   'missing-import': 'off',
   'event-type': 'error',
+  'binding-type': 'error',
   css: 'warning',
 };

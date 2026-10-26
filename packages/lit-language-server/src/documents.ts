@@ -15,6 +15,7 @@ import {
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
 import {svgData} from '../../../src/lib/editor/svg-data.js';
+import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -79,6 +80,7 @@ export const documentProblems = async (
   cssTags: readonly string[]
 ): Promise<Problem[]> => [
   ...(await eventTypeProblems(source, request)),
+  ...(await bindingLiteralProblems(source, request)),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),

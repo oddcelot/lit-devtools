@@ -463,16 +463,30 @@ const valueCompletions = async (
   }));
 };
 
+/**
+ * The type of what `binding` + `name` sets on `tagName`, when it's known: a
+ * property's (`.`), an attribute's (`''`, `?`) or an event's (`@`).
+ */
+export const bindingTypeOf = async (
+  source: DocsSource,
+  file: string,
+  tagName: string,
+  binding: Binding,
+  name: string
+): Promise<string | undefined> => {
+  const candidates = await candidatesFor(source, file, {tag: tagName}, binding);
+  return candidates.find((candidate) => labelOf(candidate) === name)?.entry
+    .type;
+};
+
 /** The type of the event `eventName` on `tagName`, when it's known. */
-export const eventTypeOf = async (
+export const eventTypeOf = (
   source: DocsSource,
   file: string,
   tagName: string,
   eventName: string
-): Promise<string | undefined> => {
-  const candidates = await candidatesFor(source, file, {tag: tagName}, '@');
-  return candidates.find(({entry}) => entry.name === eventName)?.entry.type;
-};
+): Promise<string | undefined> =>
+  bindingTypeOf(source, file, tagName, '@', eventName);
 
 const handlerType = (
   source: DocsSource,

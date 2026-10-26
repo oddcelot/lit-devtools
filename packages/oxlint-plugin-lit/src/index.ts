@@ -106,6 +106,7 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'invalid-value': "A value the attribute or property doesn't take.",
   'missing-import': "An element whose definition the page doesn't import.",
   'event-type': "An event handler whose parameter type doesn't fit the event.",
+  'binding-type': "A binding whose literal value doesn't fit what it sets.",
   css: 'A problem in a css template.',
 };
 
