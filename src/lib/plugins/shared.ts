@@ -16,4 +16,17 @@ export const resolveRuntimeModule = (name: string): string => {
   throw new Error(`[lit-plugin] runtime module not found: ${name}`);
 };
 
+const RUNTIME_DIR = fileURLToPath(
+  new URL('../runtime/', import.meta.url)
+).replace(/\\/g, '/');
+
+/**
+ * Whether `id` is one of this plugin's runtime modules. Installed from npm
+ * they sit under `node_modules`, which the transforms skip anyway; linked
+ * from a workspace they don't, and only their folder tells them apart from
+ * the project's own code.
+ */
+export const isRuntimeModule = (id: string): boolean =>
+  id.replace(/\\/g, '/').startsWith(RUNTIME_DIR);
+
 export const JS_FILE_RE = /\.[cm]?[jt]sx?$/;
