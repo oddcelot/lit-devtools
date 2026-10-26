@@ -26,6 +26,7 @@ import {
   sourceTextStyles,
   sourceTip,
 } from './source-text.js';
+import '../../packages/lit-components/src/icon.js';
 
 /**
  * The Updates view: which components re-rendered, how often, how long for, and
