@@ -185,10 +185,10 @@ src/x-app.ts:12:35  `.size` takes `"small" | "large"`, but this is `string`.  bi
 [lit-devtools] 1 binding problem in 6 files with bindings
 ```
 
-| Flag               | Repeatable | Meaning                                         |
-| ------------------ | ---------- | ----------------------------------------------- |
-| `[root]`           | no         | The project folder; defaults to the current one |
-| `--project <file>` | no         | tsconfig to check with; see below               |
+| Flag               | Repeatable | Meaning                                                                                           |
+| ------------------ | ---------- | ------------------------------------------------------------------------------------------------- |
+| `[root]`           | no         | The package to check, or a monorepo's root to check every package; defaults to the current folder |
+| `--project <file>` | no         | tsconfig to check with; see below                                                                 |
 
 It reads the `binding-type` rule's severity from the
 [settings](/reference/language-server/#settings): `off` skips the check,
@@ -218,6 +218,10 @@ then, or when `tsc` can't read the tsconfig.
   allowed for `ifDefined`. An element's type
   parameters read as `any`, so a generic element such as
   `<lit-virtualizer>` takes any `items`.
+- **Monorepos.** From the workspace's root (a `pnpm-workspace.yaml` or
+  `workspaces` in `package.json`), every package is checked, each with its
+  own settings and tsconfig, and each gets its summary line. A file belongs
+  to the nearest package that holds it.
 - **Which tsconfig.** `tsconfig.json`, unless it only lists `references`, as
   Vite's templates write it: then the referenced config whose `include`
   covers your sources, `tsconfig.app.json` in a Vite project. The check on
