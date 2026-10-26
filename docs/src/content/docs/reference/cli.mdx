@@ -1,6 +1,6 @@
 ---
 title: CLI
-description: 'The lit-devtools command: dev, manifest, mcp and build, with their flags and their optional peers.'
+description: 'The lit-devtools command: dev, manifest, check, mcp and build, with their flags and their optional peers.'
 sidebar:
   order: 5
 ---
@@ -9,7 +9,7 @@ import {CardGrid, LinkCard} from '@astrojs/starlight/components';
 import Since from '../../../components/Since.astro';
 
 The `lit-devtools` command runs the panel on its own, writes a Custom Elements
-Manifest, or bridges the panel to a coding agent. It needs two optional peers, and it talks to a dev server you already
+Manifest, type-checks template bindings, or bridges the panel to a coding agent. It needs two optional peers, and it talks to a dev server you already
 started.
 
 ## Install the peers
@@ -164,6 +164,55 @@ so the command works in a project that doesn't use it. It reads `.js`, `.ts`, `.
 and `.tsx` files and their `m`/`c` variants. It skips declaration files,
 dotfiles, `node_modules` and `dist`. As with the option's `write`, an empty
 `customElements` field in `package.json` is set to the file it wrote.
+
+## lit-devtools check
+
+<Since v="0.25.0" />
+
+Checks every binding whose value is one expression, `.prop=${…}`,
+`attr=${…}`, `?bool=${…}` and `@event=${…}`, with the project's own
+TypeScript, against what the element takes. It reports what the editor's
+`binding-type` rule can't tell from the text: a `string` bound to
+`.size` when `size` is `'small' | 'large'`, an `undefined` that may reach an
+attribute, a listener for the wrong event.
+
+```sh frame="terminal"
+npx lit-devtools check
+```
+
+```text frame="terminal"
+src/x-app.ts:12:35  `.size` takes `"small" | "large"`, but this is `string`.  binding-type
+[lit-devtools] 1 binding problem in 6 files with bindings
+```
+
+| Flag               | Repeatable | Meaning                                             |
+| ------------------ | ---------- | --------------------------------------------------- |
+| `[root]`           | no         | The project folder; defaults to the current one     |
+| `--project <file>` | no         | tsconfig to check with; defaults to `tsconfig.json` |
+
+It exits 1 when it finds a problem, or when `tsc` can't read the tsconfig.
+
+- **What it needs.** `typescript` installed in the project, 5 or 7, and
+  each component in `HTMLElementTagNameMap`, which is where it reads what
+  an element takes. An element missing there accepts anything.
+- **How.** It writes a copy of each script to
+  `node_modules/.cache/lit-check`, each binding's expression wrapped in a
+  call that takes what the binding does, and runs `tsc` with a tsconfig
+  extending yours. Errors your sources already have are left to `tsc`.
+- **What it skips.** A value that mixes text and expressions,
+  `class="a ${b}"`, is text. A call to a directive, `live(x)` or anything
+  imported from a module whose name says `directive`, isn't checked,
+  because Lit's types let any directive result through. An element's type
+  parameters read as `any`, so a generic element such as
+  `<lit-virtualizer>` takes any `items`.
+- **Project references.** With a solution-style `tsconfig.json` that only
+  lists references, point `--project` at the one with your sources,
+  `--project tsconfig.app.json`.
+- **Skipping a binding.** Cast its expression, `.size=${this.name as any}`.
+  A `// @ts-expect-error` can't do it: a line inside a template is template
+  text, so TypeScript never reads the comment.
+- **Time.** The type check costs about one `tsc` run; most of the command's
+  time goes into reading your components first.
 
 ## lit-devtools mcp
 

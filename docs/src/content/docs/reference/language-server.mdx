@@ -169,6 +169,35 @@ keys included. Fewer keys than sent, optional keys, named types such as
 `CustomEvent<Item>`, unions and other event classes are never reported: a
 reported conflict is a real one.
 
+### A literal that can't fit its binding
+
+A literal value a binding can't take is an error, `binding-type`:
+
+```ts
+html`<x-button
+  .size=${'huge'}
+  ?hidden=${'no'}
+  title=${true}
+  @click=${1}
+></x-button>`;
+// `.size` takes `'small' | 'large'`, but `'huge'` isn't one of `'small'`, `'large'`.
+// `?hidden` takes a boolean, not a string.
+// `title` is set to the text `true` or `false`; write `?title` to add or remove it.
+// `@click` takes a function, not a number.
+```
+
+Only literals are read as you type: strings, numbers, booleans, `null`,
+`undefined`, object and array literals and functions. A property is checked
+when its type is a union of primitives and string literals. Any other
+expression, `.size=${this.size}`, takes a type checker:
+[`lit-devtools check`](/reference/cli/#lit-devtools-check) runs your
+project's TypeScript over every binding.
+
+Set `diagnostics: {'binding-type': 'off'}` to turn the rule off in the
+editor, and `'lit-devtools/binding-type': 'off'` in Oxlint's `rules`.
+In a lint run, `// oxlint-disable-next-line lit-devtools/binding-type`
+silences one spot.
+
 ### CSS in css templates
 
 Unknown properties and invalid values in a `css` template are warnings, `css`.
@@ -222,10 +251,11 @@ the config file is reported as ignored.
 | `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                              |
 | `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                 |
 
-| Rule         | Default   | Reports                                         |
-| ------------ | --------- | ----------------------------------------------- |
-| `event-type` | `error`   | A handler whose parameter doesn't fit its event |
-| `css`        | `warning` | A problem in a `css` template                   |
+| Rule           | Default   | Reports                                         |
+| -------------- | --------- | ----------------------------------------------- |
+| `event-type`   | `error`   | A handler whose parameter doesn't fit its event |
+| `binding-type` | `error`   | A literal value its binding can't take          |
+| `css`          | `warning` | A problem in a `css` template                   |
 
 `ignoreTags`, `ignoreAttributes`, `manifests`, `entries` and the rules
 `unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
@@ -238,10 +268,11 @@ reports the same problems in a lint run, one
 rule per problem kind, named `lit-devtools/<rule>` so they don't clash with
 eslint-plugin-lit's `lit/` rules:
 
-| Rule                      | Reports                                         |
-| ------------------------- | ----------------------------------------------- |
-| `lit-devtools/event-type` | A handler whose parameter doesn't fit its event |
-| `lit-devtools/css`        | A problem in a `css` template                   |
+| Rule                        | Reports                                         |
+| --------------------------- | ----------------------------------------------- |
+| `lit-devtools/event-type`   | A handler whose parameter doesn't fit its event |
+| `lit-devtools/binding-type` | A literal value its binding can't take          |
+| `lit-devtools/css`          | A problem in a `css` template                   |
 
 Its default export has `configs.recommended`, a config for `extends` in
 `oxlint.config.ts` or in Vite+'s `lint`: the plugin, with each rule at its
