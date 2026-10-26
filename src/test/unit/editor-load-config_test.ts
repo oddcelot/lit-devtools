@@ -39,6 +39,8 @@ describe('loadLanguageServerConfig', () => {
         'event-type': 'error',
         'binding-type': 'error',
         'missing-element-type': 'warning',
+        'unclosed-tag': 'warning',
+        'binding-syntax': 'error',
         css: 'warning',
       },
       source: 'default',

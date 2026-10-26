@@ -14,6 +14,8 @@ export const DIAGNOSTIC_RULES = [
   'event-type',
   'binding-type',
   'missing-element-type',
+  'unclosed-tag',
+  'binding-syntax',
   'css',
 ] as const;
 
@@ -65,5 +67,7 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'event-type': 'error',
   'binding-type': 'error',
   'missing-element-type': 'warning',
+  'unclosed-tag': 'warning',
+  'binding-syntax': 'error',
   css: 'warning',
 };

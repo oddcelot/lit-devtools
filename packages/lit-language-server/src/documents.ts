@@ -18,6 +18,7 @@ import {svgData} from '../../../src/lib/editor/svg-data.js';
 import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
 import {missingElementTypeProblems} from '../../../src/lib/editor/element-definitions.js';
 import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
+import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -115,6 +116,7 @@ export const documentProblems = async (
   ...(await bindingLiteralProblems(source, request)),
   ...missingElementTypeProblems(request),
   ...(await unknownNameProblems(source, request)),
+  ...templateSyntaxProblems(request),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),
