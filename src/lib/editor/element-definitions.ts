@@ -1,4 +1,6 @@
 /**
+ * `invalid-name`: a tag `customElements.define` would refuse.
+ *
  * `missing-element-type`: a component a TypeScript file defines, with
  * `@customElement('x-button')` or `customElements.define('x-button', XButton)`,
  * that the file doesn't add to `HTMLElementTagNameMap`. Without the entry
@@ -81,16 +83,83 @@ const mappedTags = (program: Node): Set<string> => {
 const entryText = (tag: string, className: string): string =>
   `\ndeclare global {\n  interface HTMLElementTagNameMap {\n    '${tag}': ${className};\n  }\n}\n`;
 
-/** The components the file defines without a `HTMLElementTagNameMap` entry. */
-export const missingElementTypeProblems = ({
+/**
+ * A valid custom element name: a lowercase ASCII letter first, a hyphen
+ * somewhere, no capitals, and none of the names SVG and MathML reserved.
+ */
+const RESERVED = new Set([
+  'annotation-xml',
+  'color-profile',
+  'font-face',
+  'font-face-src',
+  'font-face-uri',
+  'font-face-format',
+  'font-face-name',
+  'missing-glyph',
+]);
+
+const tagNameProblem = (tag: string): string | undefined => {
+  if (RESERVED.has(tag)) return `\`${tag}\` is reserved by SVG and MathML`;
+  if (!/^[a-z]/.test(tag))
+    return `\`${tag}\` must start with a lowercase letter`;
+  if (!tag.includes('-')) return `\`${tag}\` needs a hyphen`;
+  if (/[A-Z]/.test(tag)) return `\`${tag}\` can't have capitals`;
+  if (/[\s"'<>/=]/.test(tag)) return `\`${tag}\` has characters a tag can't`;
+  return undefined;
+};
+
+const invalidTag = ({tag, start, end}: Definition): Problem[] => {
+  const reason = tagNameProblem(tag);
+  return reason
+    ? [
+        {
+          rule: 'invalid-name',
+          start,
+          end,
+          message: `${reason}, so \`customElements.define\` throws.`,
+        },
+      ]
+    : [];
+};
+
+const missingType = (
+  code: string,
+  mapped: Set<string>,
+  {tag, className, start, end}: Definition
+): Problem[] =>
+  mapped.has(tag)
+    ? []
+    : [
+        {
+          rule: 'missing-element-type',
+          start,
+          end,
+          message: `\`${tag}\` isn't in \`HTMLElementTagNameMap\`, so TypeScript and \`lit-devtools check\` don't know its type.`,
+          ...(className
+            ? {
+                fix: {
+                  title: `Add '${tag}' to HTMLElementTagNameMap`,
+                  start: code.length,
+                  end: code.length,
+                  newText: entryText(tag, className),
+                },
+              }
+            : {}),
+        },
+      ];
+
+/**
+ * The components a file defines with an invalid tag name, and, in
+ * TypeScript, those without a `HTMLElementTagNameMap` entry.
+ */
+export const elementDefinitionProblems = ({
   file,
   code,
 }: {
   file: string;
   code: string;
 }): Problem[] => {
-  if (!TS_RE.test(file) || file.endsWith('.d.ts')) return [];
-  if (!code.includes('customElement')) return [];
+  if (file.endsWith('.d.ts') || !code.includes('ustomElement')) return [];
   let program: Node;
   try {
     program = parseModule(code, file);
@@ -102,23 +171,10 @@ export const missingElementTypeProblems = ({
     ...defined(node),
   ]);
   if (definitions.length === 0) return [];
-  const mapped = mappedTags(program);
-  return definitions
-    .filter(({tag}) => !mapped.has(tag))
-    .map(({tag, className, start, end}): Problem => ({
-      rule: 'missing-element-type',
-      start,
-      end,
-      message: `\`${tag}\` isn't in \`HTMLElementTagNameMap\`, so TypeScript and \`lit-devtools check\` don't know its type.`,
-      ...(className
-        ? {
-            fix: {
-              title: `Add '${tag}' to HTMLElementTagNameMap`,
-              start: code.length,
-              end: code.length,
-              newText: entryText(tag, className),
-            },
-          }
-        : {}),
-    }));
+  const mapped = TS_RE.test(file) ? mappedTags(program) : undefined;
+  return definitions.flatMap((definition) => {
+    const invalid = invalidTag(definition);
+    if (invalid.length > 0 || !mapped) return invalid;
+    return missingType(code, mapped, definition);
+  });
 };

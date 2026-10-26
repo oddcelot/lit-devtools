@@ -1,8 +1,8 @@
 import {expect, test} from 'vite-plus/test';
-import {missingElementTypeProblems} from '../../lib/editor/element-definitions.js';
+import {elementDefinitionProblems} from '../../lib/editor/element-definitions.js';
 
 const problemsIn = (code: string, file = '/app/src/x.ts') =>
-  missingElementTypeProblems({file, code}).map((p) => ({
+  elementDefinitionProblems({file, code}).map((p) => ({
     text: code.slice(p.start, p.end),
     message: p.message,
     fix: p.fix?.newText,
@@ -48,4 +48,32 @@ test('JavaScript and declaration files are left alone', () => {
   const code = "customElements.define('x-a', XA);";
   expect(problemsIn(code, '/app/src/x.js')).toEqual([]);
   expect(problemsIn(code, '/app/src/x.d.ts')).toEqual([]);
+});
+
+test('tag names customElements.define refuses, in JavaScript too', () => {
+  const code = `
+    customElements.define('xbutton', A);
+    customElements.define('X-button', B);
+    customElements.define('font-face', C);
+    customElements.define('x-ok', D);
+  `;
+  expect(
+    elementDefinitionProblems({file: '/app/src/x.js', code}).map((p) => [
+      p.rule,
+      p.message,
+    ])
+  ).toEqual([
+    [
+      'invalid-name',
+      '`xbutton` needs a hyphen, so `customElements.define` throws.',
+    ],
+    [
+      'invalid-name',
+      '`X-button` must start with a lowercase letter, so `customElements.define` throws.',
+    ],
+    [
+      'invalid-name',
+      '`font-face` is reserved by SVG and MathML, so `customElements.define` throws.',
+    ],
+  ]);
 });
