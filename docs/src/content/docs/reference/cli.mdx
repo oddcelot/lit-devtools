@@ -190,7 +190,10 @@ src/x-app.ts:12:35  `.size` takes `"small" | "large"`, but this is `string`.  bi
 | `[root]`           | no         | The project folder; defaults to the current one     |
 | `--project <file>` | no         | tsconfig to check with; defaults to `tsconfig.json` |
 
-It exits 1 when it finds a problem, or when `tsc` can't read the tsconfig.
+It reads the `binding-type` rule's severity from the
+[settings](/reference/language-server/#settings): `off` skips the check,
+and only `error`, the default, makes a problem fail the run. It exits 1
+then, or when `tsc` can't read the tsconfig.
 
 - **What it needs.** `typescript` installed in the project, 5 or 7, and
   each component in `HTMLElementTagNameMap`, which is where it reads what
@@ -211,9 +214,12 @@ It exits 1 when it finds a problem, or when `tsc` can't read the tsconfig.
 - **Project references.** With a solution-style `tsconfig.json` that only
   lists references, point `--project` at the one with your sources,
   `--project tsconfig.app.json`.
-- **Skipping a binding.** Cast its expression, `.size=${this.name as any}`.
-  A `// @ts-expect-error` can't do it: a line inside a template is template
-  text, so TypeScript never reads the comment.
+- **Skipping a binding.** Put `<!-- lit-ignore binding-type -->` before
+  its element, or `// lit-ignore-next-line` above the line of code, as in
+  the [editor](/reference/language-server/#silence-a-problem). A
+  `// @ts-expect-error` can't do it: a line inside a template is template
+  text, so TypeScript never reads the comment. Casting the expression,
+  `.size=${this.name as any}`, works too.
 - **Time.** The type check costs about one `tsc` run; most of the command's
   time goes into reading your components first.
 

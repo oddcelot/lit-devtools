@@ -113,6 +113,7 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
         strict: true,
         noEmit: true,
         skipLibCheck: true,
+        noUnusedLocals: true,
       },
       include: ['src'],
     }),
@@ -126,6 +127,17 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
       declare global {
         interface HTMLElementTagNameMap { 'x-button': XButton }
       }
+    `,
+    // No component here, only a template, and two silenced bindings.
+    'src/render.ts': `
+      import {html} from 'lit';
+      import './x-button.js';
+      export const render = (n: number) => html\`
+        <x-button .size=\${n}></x-button>
+        <!-- lit-ignore binding-type -->
+        <x-button .size=\${n}></x-button>\`;
+      // lit-ignore-next-line
+      export const again = (n: number) => html\`<x-button .size=\${n}></x-button>\`;
     `,
     'src/app.ts': `
       import {LitElement, html} from 'lit';
@@ -175,6 +187,11 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
           file: 'src/app.ts',
           line: 7,
           message: '`.size` takes `"large" | "small"`, but this is `string`.',
+        },
+        {
+          file: 'src/render.ts',
+          line: 5,
+          message: '`.size` takes `"large" | "small"`, but this is `number`.',
         },
       ]);
     } finally {

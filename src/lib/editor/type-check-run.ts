@@ -12,12 +12,13 @@
 
 import {spawn} from 'node:child_process';
 import {realpathSync} from 'node:fs';
-import {mkdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import {eventTypeOf} from './features.js';
 import {kindOfFile} from './navigation.js';
+import {suppressionsOf} from './suppressions.js';
 import {
   PRELUDE,
   type Shadow,
@@ -94,14 +95,43 @@ interface Copy {
   source: string;
   code: string;
   shadow: Shadow;
+  /** Whether a `lit-ignore` comment silences a problem at an offset. */
+  suppressed: (problem: {rule: 'binding-type'; start: number}) => boolean;
 }
 
 /** The package's scripts the workspace reads components and markup from. */
-const scriptsOf = async (workspace: Workspace, root: string) =>
-  (await workspace.markupFiles()).filter(
-    (file) =>
-      !path.relative(root, file).startsWith('..') && SCRIPT_RE.test(file)
+/**
+ * The package's scripts: every one under its read folders, whether it
+ * defines a component or only renders templates, and the components the
+ * workspace read elsewhere in the package.
+ */
+const scriptsOf = async (
+  workspace: Workspace,
+  root: string
+): Promise<string[]> => {
+  const scan = workspace.configOf(path.join(root, 'package.json'))?.scan ?? [
+    'src',
+  ];
+  const listed = await Promise.all(
+    scan.map(async (folder) => {
+      const dir = path.resolve(root, folder);
+      const names = await readdir(dir, {recursive: true}).catch(() => []);
+      return names.map((name) => path.join(dir, String(name)));
+    })
   );
+  const read = await workspace.markupFiles();
+  return [
+    ...new Set(
+      [...listed.flat(), ...read].filter(
+        (file) =>
+          !path.relative(root, file).startsWith('..') &&
+          SCRIPT_RE.test(file) &&
+          !/\.d\.[cm]?ts$/.test(file) &&
+          !file.includes(`${path.sep}node_modules${path.sep}`)
+      )
+    ),
+  ];
+};
 
 /** The shadow copies of the scripts that have bindings. */
 const shadowCopies = async (
@@ -111,16 +141,14 @@ const shadowCopies = async (
   const copies: Copy[] = [];
   for (const source of scripts) {
     const code = await readFile(source, 'utf8');
+    const kind = kindOfFile(source);
+    const templateTags = workspace.configOf(source)?.templateTags;
     const shadow = await shadowSource(
-      {
-        file: source,
-        code,
-        kind: kindOfFile(source),
-        templateTags: workspace.configOf(source)?.templateTags,
-      },
+      {file: source, code, kind, templateTags},
       (tag, name) => eventTypeOf(workspace, source, tag, name)
     );
-    if (shadow) copies.push({source, code, shadow});
+    const suppressed = suppressionsOf(code, kind, templateTags);
+    if (shadow) copies.push({source, code, shadow, suppressed});
   }
   return copies;
 };
@@ -140,13 +168,16 @@ const usedTags = (copies: Copy[]): string[] =>
     .filter((tag) => tag.includes('-'))
     .sort();
 
-/** One line a tag, after `export {};`: an error on line 2 + n is tag n. */
+/**
+ * One line a tag, after `export {};`: an error on line 2 + n is tag n.
+ * Exported, so `noUnusedLocals` has nothing to say about them.
+ */
 const tagsFileText = (tags: string[]): string =>
   [
     'export {};',
     ...tags.map(
       (tag, i) =>
-        `const _${i}: keyof HTMLElementTagNameMap = ${JSON.stringify(tag)};`
+        `export const _${i}: keyof HTMLElementTagNameMap = ${JSON.stringify(tag)};`
     ),
     '',
   ].join('\n');
@@ -225,6 +256,7 @@ const problemsIn = (
     );
     const wrap = wrapAt(shadow.wraps, offset);
     if (!wrap || inSources.has(keyOf(source, offset, d.code))) continue;
+    if (copy.suppressed({rule: 'binding-type', start: wrap.start})) continue;
     problems.push({
       file: source,
       ...positionAt(code, offset),

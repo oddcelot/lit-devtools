@@ -20,6 +20,7 @@ import {elementDefinitionProblems} from '../../../src/lib/editor/element-definit
 import {propertyDefinitionProblems} from '../../../src/lib/editor/property-definitions.js';
 import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
+import {suppressionsOf} from '../../../src/lib/editor/suppressions.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -106,8 +107,26 @@ export const cssTagsFor = (
     ? (config?.cssTemplateTags ?? ['css'])
     : [];
 
-/** Every problem in a document, by rule, at offsets into its text. */
+/**
+ * Every problem in a document, by rule, at offsets into its text, but those
+ * a `lit-ignore` comment silences.
+ */
 export const documentProblems = async (
+  source: DocsSource,
+  request: Omit<FeatureRequest, 'offset'>,
+  document: TextDocument,
+  cssTags: readonly string[]
+): Promise<Problem[]> => {
+  const suppressed = suppressionsOf(
+    request.code,
+    request.kind,
+    request.templateTags
+  );
+  const all = await allProblems(source, request, document, cssTags);
+  return all.filter((problem) => !suppressed(problem));
+};
+
+const allProblems = async (
   source: DocsSource,
   request: Omit<FeatureRequest, 'offset'>,
   document: TextDocument,
