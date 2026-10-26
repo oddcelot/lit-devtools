@@ -113,6 +113,8 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'event-type': "An event handler whose parameter type doesn't fit the event.",
   'binding-type': "A binding whose literal value doesn't fit what it sets.",
   'missing-element-type': 'A component missing from HTMLElementTagNameMap.',
+  'unclosed-tag': 'A component never closed, or closed with />.',
+  'binding-syntax': 'A binding written so Lit reads it wrong.',
   css: 'A problem in a css template.',
 };
 

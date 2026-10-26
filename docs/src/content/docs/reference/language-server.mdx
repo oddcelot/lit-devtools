@@ -233,6 +233,26 @@ html`<x-button size="huge"></x-button>`;
   inherits members the server can't read, shows up as unknown. Name it in
   `ignoreTags`, or its attributes in `ignoreAttributes`.
 
+### Template syntax
+
+How a template is written can make Lit read it differently from what was
+meant:
+
+```ts
+html`<x-card />
+  <p>after</p>`;
+//     ^^^^^^ unclosed-tag: HTML reads `<x-card />` as an open tag, so what follows becomes its children
+html`<input .value="x" title=${t}">`;
+//          ^^^^^^ binding-syntax: `.value` sets a property, so its value is an expression
+//                           ^^^^^ binding-syntax: a stray `"` makes `title` a string
+```
+
+- `unclosed-tag`, a warning: a component never closed, or closed with `/>`.
+  Standard elements are left alone, since HTML lets many go unclosed.
+- `binding-syntax`, an error: a `.`, `?` or `@` binding without `${…}`; a
+  stray `"`, `'` or `}` next to the expression, or `/` next to an unquoted
+  one; Polymer's `name$=`.
+
 ### A component missing from HTMLElementTagNameMap
 
 A component a TypeScript file defines, with `@customElement('x-button')` or
@@ -312,6 +332,8 @@ the config file is reported as ignored.
 | `unknown-attribute`    | `warning` | An attribute the element doesn't have            |
 | `unknown-binding`      | `warning` | A property a component doesn't have              |
 | `invalid-value`        | `warning` | An attribute value outside its type              |
+| `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`    |
+| `binding-syntax`       | `error`   | A binding written so Lit reads it wrong          |
 | `css`                  | `warning` | A problem in a `css` template                    |
 
 `manifests`, `entries` and the rule `missing-import` are read and validated
@@ -333,6 +355,8 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/unknown-attribute`    | An attribute the element doesn't have            |
 | `lit-devtools/unknown-binding`      | A property a component doesn't have              |
 | `lit-devtools/invalid-value`        | An attribute value outside its type              |
+| `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`    |
+| `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong          |
 | `lit-devtools/css`                  | A problem in a `css` template                    |
 
 Its default export has `configs.recommended`, a config for `extends` in
