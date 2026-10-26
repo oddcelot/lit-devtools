@@ -44,6 +44,11 @@ export interface BindingTypeCheck {
   checked: number;
   /** What `tsc` said that isn't about a file, such as a broken tsconfig. */
   notes: string[];
+  /**
+   * Custom elements bound to that `HTMLElementTagNameMap` doesn't have, so
+   * their properties weren't checked.
+   */
+  unmapped: string[];
 }
 
 const CACHE = path.join('node_modules', '.cache', 'lit-check');
@@ -120,6 +125,32 @@ const shadowCopies = async (
   return copies;
 };
 
+/** The file asking `tsc` which used tags `HTMLElementTagNameMap` has. */
+const TAGS_FILE = 'lit-check-tags.ts';
+
+/** The custom elements the copies bind to, in `TAGS_FILE`'s line order. */
+const usedTags = (copies: Copy[]): string[] =>
+  [
+    ...new Set(
+      copies.flatMap(({shadow}) =>
+        shadow.wraps.map((wrap) => wrap.tag.toLowerCase())
+      )
+    ),
+  ]
+    .filter((tag) => tag.includes('-'))
+    .sort();
+
+/** One line a tag, after `export {};`: an error on line 2 + n is tag n. */
+const tagsFileText = (tags: string[]): string =>
+  [
+    'export {};',
+    ...tags.map(
+      (tag, i) =>
+        `const _${i}: keyof HTMLElementTagNameMap = ${JSON.stringify(tag)};`
+    ),
+    '',
+  ].join('\n');
+
 const writeCopies = async (
   root: string,
   project: string,
@@ -133,6 +164,7 @@ const writeCopies = async (
   // `HTMLElementTagNameMap` entry is read.
   const files = [
     'lit-check.d.ts',
+    TAGS_FILE,
     ...scripts.map((script) => path.relative(cache, script)),
   ];
   for (const {source, shadow} of copies) {
@@ -142,6 +174,7 @@ const writeCopies = async (
     files.push(relative);
   }
   await writeFile(path.join(cache, 'lit-check.d.ts'), PRELUDE);
+  await writeFile(path.join(cache, TAGS_FILE), tagsFileText(usedTags(copies)));
   const tsconfig = {
     extends: path.relative(cache, project),
     compilerOptions: {
@@ -214,15 +247,23 @@ export const checkBindingTypes = async (
   const root = realpathSync(dir);
   const scripts = await scriptsOf(workspace, root);
   const copies = await shadowCopies(workspace, scripts);
-  if (copies.length === 0) return {problems: [], checked: 0, notes: []};
+  if (copies.length === 0) {
+    return {problems: [], checked: 0, notes: [], unmapped: []};
+  }
   const config = await writeCopies(root, project, scripts, copies);
   const output = await runTsc(root, config);
   const notes = output
     .split(/\r?\n/)
     .filter((line) => /^error TS\d+:/.test(line));
+  const diagnostics = parseTscOutput(output);
+  const tags = usedTags(copies);
+  const tagsFile = path.join(root, CACHE, TAGS_FILE);
   return {
-    problems: problemsIn(root, copies, parseTscOutput(output)),
+    problems: problemsIn(root, copies, diagnostics),
     checked: copies.length,
     notes,
+    unmapped: diagnostics
+      .filter((d) => path.resolve(root, d.file) === tagsFile)
+      .map((d) => tags[d.line - 2]),
   };
 };
