@@ -24,3 +24,9 @@ export class TwStatCard extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tw-stat-card': TwStatCard;
+  }
+}

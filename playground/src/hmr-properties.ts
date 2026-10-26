@@ -120,3 +120,15 @@ export class HmrStaticProps extends LitElement {
   }
 }
 customElements.define('hmr-static-props', HmrStaticProps);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-properties': HmrProperties;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-static-props': HmrStaticProps;
+  }
+}

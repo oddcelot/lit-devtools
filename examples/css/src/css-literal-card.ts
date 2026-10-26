@@ -55,3 +55,9 @@ export class CssLiteralCard extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'css-literal-card': CssLiteralCard;
+  }
+}

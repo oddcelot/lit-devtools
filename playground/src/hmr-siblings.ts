@@ -52,3 +52,9 @@ export class HmrSiblings extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-siblings': HmrSiblings;
+  }
+}

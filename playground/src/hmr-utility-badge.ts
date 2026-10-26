@@ -34,3 +34,9 @@ export class HmrUtilityBadge extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-utility-badge': HmrUtilityBadge;
+  }
+}

@@ -34,3 +34,9 @@ export class TickClock extends LitElement {
     return html`<time>${this.now.toLocaleTimeString('en-GB')}</time>`;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tick-clock': TickClock;
+  }
+}

@@ -49,3 +49,9 @@ export class HmrImportCss extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-import-css': HmrImportCss;
+  }
+}

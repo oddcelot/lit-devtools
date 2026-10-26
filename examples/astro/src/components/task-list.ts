@@ -54,3 +54,9 @@ export class TaskList extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'task-list': TaskList;
+  }
+}

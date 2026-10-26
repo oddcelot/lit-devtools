@@ -71,3 +71,15 @@ export class HmrSignalMirror extends SignalWatcher(LitElement) {
     this.setAttribute('data-renders', String(this.renders));
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-signal-counter': HmrSignalCounter;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-signal-mirror': HmrSignalMirror;
+  }
+}

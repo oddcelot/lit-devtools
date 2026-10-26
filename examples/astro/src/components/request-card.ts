@@ -72,3 +72,9 @@ export class RequestCard extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'request-card': RequestCard;
+  }
+}

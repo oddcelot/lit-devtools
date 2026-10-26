@@ -332,3 +332,9 @@ for (const type of ['pointerdown', 'keydown']) {
 
 await restart();
 if (!matchMedia('(prefers-reduced-motion: reduce)').matches) autoplay(0);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hot-tile': HotTile;
+  }
+}

@@ -51,3 +51,9 @@ export class HmrCssUrl extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-css-url': HmrCssUrl;
+  }
+}

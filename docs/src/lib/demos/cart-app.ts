@@ -272,3 +272,21 @@ class CartSummary extends LitElement {
 customElements.define('demo-cart', DemoCart);
 customElements.define('cart-item', CartItem);
 customElements.define('cart-summary', CartSummary);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'demo-cart': DemoCart;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'cart-item': CartItem;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'cart-summary': CartSummary;
+  }
+}

@@ -76,3 +76,9 @@ export class HmrTask extends LitElement {
     this.userId = (this.userId % USER_COUNT) + 1;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-task': HmrTask;
+  }
+}

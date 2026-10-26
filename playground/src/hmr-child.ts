@@ -44,3 +44,9 @@ export class HmrChild extends LitElement {
     this.count++;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-child': HmrChild;
+  }
+}

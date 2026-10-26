@@ -42,3 +42,9 @@ export class MediaCard extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'media-card': MediaCard;
+  }
+}

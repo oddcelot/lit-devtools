@@ -33,3 +33,9 @@ export class CssTour extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'css-tour': CssTour;
+  }
+}
