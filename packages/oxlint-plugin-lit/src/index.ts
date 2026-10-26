@@ -107,7 +107,7 @@ interface Fixer {
 const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'unknown-element': 'An element no component or HTML defines.',
   'unknown-attribute': "An attribute the element doesn't have.",
-  'unknown-binding': "A property or event binding the element doesn't have.",
+  'unknown-binding': "A property binding the component doesn't have.",
   'invalid-value': "A value the attribute or property doesn't take.",
   'missing-import': "An element whose definition the page doesn't import.",
   'event-type': "An event handler whose parameter type doesn't fit the event.",

@@ -198,6 +198,41 @@ editor, and `'lit-devtools/binding-type': 'off'` in Oxlint's `rules`.
 In a lint run, `// oxlint-disable-next-line lit-devtools/binding-type`
 silences one spot.
 
+### Names nothing defines
+
+In an `html` or `svg` template, where HTML and SVG are known as well as your
+components, a name nothing defines is a warning:
+
+```ts
+html`<x-buton sise="small" .cont=${1}></x-buton>`;
+//    ^^^^^^^ unknown-element: `<x-buton>` isn't HTML, SVG or a component this file can use. Did you mean `<x-button>`?
+html`<x-button sise="small" .cont=${1}></x-button>`;
+//             ^^^^ unknown-attribute: `<x-button>` has no attribute `sise`. Did you mean `size`?
+//                          ^^^^^ unknown-binding: `<x-button>` has no property `.cont`. Did you mean `.count`?
+html`<x-button size="huge"></x-button>`;
+//                   ^^^^ invalid-value: `size` takes one of `small`, `large`, not `huge`.
+```
+
+| Rule                | Reports                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `unknown-element`   | A tag that isn't HTML, SVG or a component the file can use     |
+| `unknown-attribute` | An attribute, plain or `?`, the element doesn't have           |
+| `unknown-binding`   | A `.property` a component doesn't have, nor every HTML element |
+| `invalid-value`     | A component's attribute written with a value outside its type  |
+
+- `data-*`, `aria-*`, namespaced names, `xmlns` and Lit SSR's
+  `defer-hydration` are always accepted, and so is every property all HTML
+  elements have, such as `.hidden` and `.textContent`.
+- Standard elements' own properties aren't in the HTML data, so
+  `.property` is checked on components only. `@event` isn't reported: an
+  element hears every event that bubbles to it, from code the server can't
+  read.
+- `invalid-value` reads an attribute whose type is a union of string
+  literals, or a number.
+- A component known only from a library without a manifest, or one that
+  inherits members the server can't read, shows up as unknown. Name it in
+  `ignoreTags`, or its attributes in `ignoreAttributes`.
+
 ### A component missing from HTMLElementTagNameMap
 
 A component a TypeScript file defines, with `@customElement('x-button')` or
@@ -258,26 +293,29 @@ Set them in `litPlugin({languageServer})` in a Vite config, or as
 without one. When both exist, the Vite config's settings win as a whole and
 the config file is reported as ignored.
 
-| Setting            | Default                                        | Meaning                                                           |
-| ------------------ | ---------------------------------------------- | ----------------------------------------------------------------- |
-| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package          |
-| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs    |
-| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards               |
-| `ignoreAttributes` | `[]`                                           | Attributes accepted on any element, with `*` wildcards            |
-| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off` |
-| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                              |
-| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                 |
+| Setting            | Default                                        | Meaning                                                               |
+| ------------------ | ---------------------------------------------- | --------------------------------------------------------------------- |
+| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package              |
+| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs        |
+| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards                   |
+| `ignoreAttributes` | `[]`                                           | Attributes and properties accepted on any element, with `*` wildcards |
+| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off`     |
+| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                                  |
+| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                     |
 
 | Rule                   | Default   | Reports                                          |
 | ---------------------- | --------- | ------------------------------------------------ |
 | `event-type`           | `error`   | A handler whose parameter doesn't fit its event  |
 | `binding-type`         | `error`   | A literal value its binding can't take           |
 | `missing-element-type` | `warning` | A component missing from `HTMLElementTagNameMap` |
+| `unknown-element`      | `warning` | A tag nothing defines                            |
+| `unknown-attribute`    | `warning` | An attribute the element doesn't have            |
+| `unknown-binding`      | `warning` | A property a component doesn't have              |
+| `invalid-value`        | `warning` | An attribute value outside its type              |
 | `css`                  | `warning` | A problem in a `css` template                    |
 
-`ignoreTags`, `ignoreAttributes`, `manifests`, `entries` and the rules
-`unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
-and `missing-import` are read and validated but not acted on yet.
+`manifests`, `entries` and the rule `missing-import` are read and validated
+but not acted on yet.
 
 ## Oxlint plugin
 
@@ -291,6 +329,10 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/event-type`           | A handler whose parameter doesn't fit its event  |
 | `lit-devtools/binding-type`         | A literal value its binding can't take           |
 | `lit-devtools/missing-element-type` | A component missing from `HTMLElementTagNameMap` |
+| `lit-devtools/unknown-element`      | A tag nothing defines                            |
+| `lit-devtools/unknown-attribute`    | An attribute the element doesn't have            |
+| `lit-devtools/unknown-binding`      | A property a component doesn't have              |
+| `lit-devtools/invalid-value`        | An attribute value outside its type              |
 | `lit-devtools/css`                  | A problem in a `css` template                    |
 
 Its default export has `configs.recommended`, a config for `extends` in
@@ -300,10 +342,7 @@ it, the rules are off until turned on in Oxlint's `rules`. Either way
 Oxlint's config sets their severity; the `diagnostics` setting applies to
 the editor only. The other settings are read as above. `// oxlint-disable`
 comments silence them. The plugin also registers
-`lit-devtools/unknown-element`, `lit-devtools/unknown-attribute`,
-`lit-devtools/unknown-binding`, `lit-devtools/invalid-value` and
-`lit-devtools/missing-import`, which report nothing yet; `recommended`
-already turns on the ones the editor does. It reads JavaScript and
+`lit-devtools/missing-import`, which reports nothing yet. It reads JavaScript and
 TypeScript files only.
 [Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint)
 sets it up.

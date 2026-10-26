@@ -250,6 +250,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
         code: document.getText(),
         kind,
         templateTags: config?.templateTags,
+        ignoreTags: config?.ignoreTags,
+        ignoreAttributes: config?.ignoreAttributes,
       },
       cssTags: cssTagsFor(kind, config),
     };
