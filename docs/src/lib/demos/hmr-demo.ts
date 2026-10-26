@@ -85,7 +85,7 @@ const counterClass = (src: Source) =>
       h2 {
         margin: 0;
         font-size: 1.15rem;
-        font-weight: 800;
+        font-weight: 700;
         letter-spacing: -0.01em;
         color: var(--text-strong);
       }
