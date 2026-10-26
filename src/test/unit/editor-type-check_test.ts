@@ -16,7 +16,7 @@ import {createWorkspace} from '../../lib/editor/workspace.js';
 const shadowOf = (code: string, eventType?: string) =>
   shadowSource(
     {file: '/app/src/app.ts', code, kind: 'script'},
-    async () => eventType
+    {eventType: async () => eventType}
   );
 
 describe('shadowSource', () => {
@@ -145,7 +145,7 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
       export class XApp extends LitElement {
         name = 'x';
         render() {
-          return html\`<x-button .size=\${this.name} title=\${this.missing}
+          return html\`<x-button .size=\${this.name} size=\${this.name} title=\${this.missing}
             @click=\${(e: MouseEvent) => e}></x-button>
             <x-plain .anything=\${1}></x-plain>\`;
         }
@@ -187,6 +187,11 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
           file: 'src/app.ts',
           line: 7,
           message: '`.size` takes `"large" | "small"`, but this is `string`.',
+        },
+        {
+          file: 'src/app.ts',
+          line: 7,
+          message: '`size` takes `"large" | "small"`, but this is `string`.',
         },
         {
           file: 'src/render.ts',

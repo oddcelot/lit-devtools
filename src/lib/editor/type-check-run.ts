@@ -145,7 +145,13 @@ const shadowCopies = async (
     const templateTags = workspace.configOf(source)?.templateTags;
     const shadow = await shadowSource(
       {file: source, code, kind, templateTags},
-      (tag, name) => eventTypeOf(workspace, source, tag, name)
+      {
+        eventType: (tag, name) => eventTypeOf(workspace, source, tag, name),
+        propertyOf: async (tag, name) =>
+          (await workspace.get(source, tag))?.attributes.find(
+            (entry) => entry.name === name
+          )?.counterpart,
+      }
     );
     const suppressed = suppressionsOf(code, kind, templateTags);
     if (shadow) copies.push({source, code, shadow, suppressed});

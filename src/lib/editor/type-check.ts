@@ -54,6 +54,12 @@ type __LitPropOf<K, P> = P extends keyof __LitElementOf<K> ? __LitLoose<__LitEle
 type __LitEventOf<N, F> = N extends keyof HTMLElementEventMap ? HTMLElementEventMap[N] : F;
 declare function __litProp<K extends string, P extends string>(value: __LitPropOf<K, P> | __LitSpecial): void;
 declare function __litAttr(value: string | number | bigint | __LitSpecial): void;
+type __LitTextOf<T> = [T & {}] extends [string]
+  ? string extends T & {}
+    ? string | number | bigint
+    : T & {}
+  : string | number | bigint;
+declare function __litAttrOf<K extends string, P extends string>(value: __LitTextOf<__LitPropOf<K, P>> | __LitSpecial): void;
 declare function __litBool(value: boolean | null | undefined | __LitSpecial): void;
 declare function __litEvent<N extends string, F = any>(
   value:
@@ -89,10 +95,34 @@ export interface Shadow {
 
 const literal = (text: string): string => `'${text.replace(/['\\]/g, '\\$&')}'`;
 
-/** The call a binding's expression goes into. */
+/**
+ * What a binding's call needs from the docs: a custom event's type, and the
+ * property a component's attribute sets.
+ */
+export interface BindingLookup {
+  eventType(tag: string, name: string): Promise<string | undefined>;
+  propertyOf?(tag: string, attribute: string): Promise<string | undefined>;
+}
+
+const typeArgumentFor = (
+  {element, attribute}: TemplateBinding,
+  lookup: BindingLookup
+): Promise<string | undefined> | undefined => {
+  if (attribute.binding === '@')
+    return lookup.eventType(element.tag, attribute.name);
+  if (attribute.binding === '' && element.tag.includes('-'))
+    return lookup.propertyOf?.(element.tag, attribute.name);
+  return undefined;
+};
+
+/**
+ * The call a binding's expression goes into. `known` is a custom event's
+ * type for `@`, and for a plain attribute the property it sets, whose type
+ * then narrows the text it takes: `'small' | 'large'`, not any string.
+ */
 const callFor = (
   {element, attribute}: TemplateBinding,
-  eventType: string | undefined
+  known: string | undefined
 ): string => {
   const tag = literal(element.tag.toLowerCase());
   const name = literal(attribute.name);
@@ -102,11 +132,9 @@ const callFor = (
     case '?':
       return '__litBool';
     case '@':
-      return eventType
-        ? `__litEvent<${name}, ${eventType}>`
-        : `__litEvent<${name}>`;
+      return known ? `__litEvent<${name}, ${known}>` : `__litEvent<${name}>`;
     default:
-      return '__litAttr';
+      return known ? `__litAttrOf<${tag}, ${literal(known)}>` : '__litAttr';
   }
 };
 
@@ -151,14 +179,10 @@ const directiveNames = (code: string, file: string): Set<string> => {
 
 const CALL_RE = /^\s*([A-Za-z_$][\w$]*)\s*\(/;
 
-/**
- * The shadow copy of a script, or undefined when it has no binding to wrap.
- * `eventType` gives a custom event's type, for listeners of events
- * `HTMLElementEventMap` doesn't know.
- */
+/** The shadow copy of a script, or undefined when it has no binding to wrap. */
 export const shadowSource = async (
   request: BindingsRequest & {file: string},
-  eventType: (tag: string, name: string) => Promise<string | undefined>
+  lookup: BindingLookup
 ): Promise<Shadow | undefined> => {
   const {code, file} = request;
   const bindings = templateBindings(request);
@@ -170,10 +194,7 @@ export const shadowSource = async (
     const {element, attribute, start, end} = binding;
     const callee = CALL_RE.exec(code.slice(start, end))?.[1];
     if (callee && directives.has(callee)) continue;
-    const type =
-      attribute.binding === '@'
-        ? await eventType(element.tag, attribute.name)
-        : undefined;
+    const type = await typeArgumentFor(binding, lookup);
     insertions.push(
       {at: start, text: `${callFor(binding, type)}((`},
       {at: end, text: '))'}
@@ -262,7 +283,9 @@ const takes = (wrap: Wrap, expected: string): string => {
     case '@':
       return `\`@${wrap.name}\` takes an event listener`;
     default:
-      return `\`${wrap.name}\` takes text`;
+      return expected === 'string | number | bigint'
+        ? `\`${wrap.name}\` takes text`
+        : `\`${wrap.name}\` takes \`${expected}\``;
   }
 };
 
