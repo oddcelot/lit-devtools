@@ -21,81 +21,77 @@ sources as you type, so a component's docs are current before you save, and
 it works in a project without Vite.
 [Language server](/reference/language-server/) lists everything it does.
 
-<Aside type="caution" title="Not published yet">
-  `@oddsquad/lit-language-server` and the editor extensions aren't on npm or in
-  the editors' marketplaces yet. Until they are, build them from a checkout of
-  this repository, as below.
-</Aside>
-
 ## Set it up in VS Code
 
 <Steps>
 
-1. Build the extension in a checkout of the repository:
+1. Install [Lit DevTools][marketplace] from the Visual Studio Marketplace, or
+   run **Extensions: Install Extensions** and search for `Lit DevTools`.
+
+2. Install the package in your project, so the server's version matches it:
 
    ```sh frame="terminal"
-   pnpm install
-   cd packages/vscode
-   pnpm run build && pnpm run package
+   npm install -D @oddsquad/lit-devtools
    ```
-
-   This writes `lit-devtools-<platform>.vsix` for your machine, with the server
-   bundled in.
-
-2. In VS Code, run **Extensions: Install from VSIX…** from the command palette
-   and pick that file.
 
 3. Open a project and hover a component's tag in an `html` template.
 
 </Steps>
 
+[marketplace]: https://marketplace.visualstudio.com/items?itemName=oddsquad.lit-devtools
+
 The extension runs the project's own `@oddsquad/lit-language-server` when the
-project installs it, directly or through `@oddsquad/lit-devtools`, so the
-version matches the project, and the bundled copy otherwise. To run a different build, point the `lit.server.path` setting at
-its `dist/bin.mjs`. **Lit: Restart Language Server** picks the server again,
-and the **Lit Language Server** output channel says which one started.
+project installs it, directly or through `@oddsquad/lit-devtools`, and the
+copy bundled with it otherwise. To run a different build, point the
+`lit.server.path` setting at its `dist/bin.mjs`. **Lit: Restart Language
+Server** picks the server again, and the **Lit Language Server** output
+channel says which one started.
+
+Editors that install from Open VSX, such as Cursor and VSCodium, don't list
+it yet. Until they do, build a `.vsix` in a checkout of the repository with
+`pnpm install`, then `pnpm run build && pnpm run package` in
+`packages/vscode`, and run **Extensions: Install from VSIX…** on it.
 
 The type hints on event handlers are inlay hints, which VS Code shows unless
 `editor.inlayHints.enabled` is off.
 
 ## Set it up in Zed
 
+The Zed extension isn't in Zed's extension list yet. Install it from a
+checkout of the repository; the server it runs comes from npm.
+
 <Steps>
 
-1. Build the server in a checkout of the repository:
+1. In a checkout of the repository, run **zed: install dev extension** from
+   Zed's command palette and pick `packages/zed`. Zed compiles it, which
+   needs Rust from [rustup](https://rustup.rs).
+
+2. Install the package in your project, so the server's version matches it:
 
    ```sh frame="terminal"
-   pnpm install
-   cd packages/lit-language-server && pnpm run build
+   npm install -D @oddsquad/lit-devtools
    ```
 
-2. In Zed, run **zed: install dev extension** from the command palette and
-   pick `packages/zed`. Zed compiles it, which needs Rust from
-   [rustup](https://rustup.rs).
+   Without it, the extension installs the latest server from npm itself.
 
-3. Point Zed at the server you built, in its settings:
-
-   ```json title="~/.config/zed/settings.json"
-   {
-     "lsp": {
-       "lit-language-server": {
-         "binary": {
-           "path": "/path/to/lit-devtools/packages/lit-language-server/dist/bin.mjs"
-         }
-       }
-     }
-   }
-   ```
-
-   Inside the repository itself the extension finds the server without this.
-
-4. Open a project and hover a component's tag in an `html` template.
+3. Open a project and hover a component's tag in an `html` template.
 
 </Steps>
 
-Once the package is published, a project that installs it as a dev
-dependency is found without the setting, and the extension otherwise
-installs the latest release itself.
+To run a server you built yourself, point Zed's settings at its
+`dist/bin.mjs`:
+
+```json title="~/.config/zed/settings.json"
+{
+  "lsp": {
+    "lit-language-server": {
+      "binary": {
+        "path": "/path/to/lit-devtools/packages/lit-language-server/dist/bin.mjs"
+      }
+    }
+  }
+}
+```
 
 The type hints on event handlers are inlay hints, which Zed shows when
 `"inlay_hints": {"enabled": true}` is set.
