@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "2.1.0",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "vendor/legacy-ui/legacy-chip.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "name": "LegacyChip",
+          "customElement": true,
+          "tagName": "legacy-chip",
+          "description": "A label in a pill, from legacy-ui. Written by hand: the library ships no manifest.",
+          "attributes": [
+            {
+              "name": "tone",
+              "description": "The pill's colour.",
+              "type": {"text": "'warm' | 'cool'"}
+            }
+          ],
+          "slots": [{"name": "", "description": "The label."}]
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "legacy-chip",
+          "declaration": {
+            "name": "LegacyChip",
+            "module": "vendor/legacy-ui/legacy-chip.js"
+          }
+        }
+      ]
+    }
+  ]
+}

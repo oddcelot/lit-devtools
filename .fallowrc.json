@@ -39,7 +39,12 @@
     // Bun.build bundles the client from this path (src/dev.ts and
     // scripts/build.ts), and the build's generated entry imports prod.ts.
     "examples/elysia/src/client/entry.ts",
-    "examples/elysia/src/prod.ts"
+    "examples/elysia/src/prod.ts",
+    // examples/checks: the mistakes are opened in an editor and linted, never
+    // imported, and x-badge.ts is the component nothing imports on purpose,
+    // for missing-import (src/test/e2e/checks-example_test.ts runs them).
+    "examples/checks/src/mistakes/*.ts",
+    "examples/checks/src/components/x-badge.ts"
   ],
   // The plugin serves these to the page by `/@fs/` URL
   // (resolveRuntimeModule in src/lib/plugins/hmr.ts, source-overlay.ts and
@@ -146,7 +151,8 @@
       "examples/css",
       "examples/forms",
       "examples/tailwind",
-      "examples/elysia"
+      "examples/elysia",
+      "examples/checks"
     ]
   },
   "duplicates": {

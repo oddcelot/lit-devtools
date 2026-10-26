@@ -11,6 +11,7 @@ packages:
   - examples/ssr
   - examples/elysia
   - examples/astro
+  - examples/checks
 # The playground and the examples name the plugin with a plain range, not
 # `workspace:*`, so StackBlitz's `npm install` can read it; this still links
 # the local copy.
@@ -44,6 +45,7 @@ overrides:
   vite-plugin-lit-forms-example>vite: ^8.3.2
   vite-plugin-lit-tailwind-example>vite: ^8.3.2
   vite-plugin-lit-ssr-example>vite: ^8.3.2
+  vite-plugin-lit-checks-example>vite: ^8.3.2
   # satori pins 0.7.3, inside GHSA-px8p-9vwx-vf98 (an infinite loop in
   # `unzipSync`). It only calls `inflateSync`, so this is for a clean audit,
   # and a patch release can't break it. Drop it once satori moves on.

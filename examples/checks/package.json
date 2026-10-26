@@ -1,0 +1,26 @@
+{
+  "name": "vite-plugin-lit-checks-example",
+  "description": "Every check the Lit language server makes, with one example of each mistake in src/mistakes/, next to a small documented component set it completes, documents and writes a Custom Elements Manifest for. A vendored library without a manifest gets one through the `manifests` setting. Run `npm run lint` and `npm run check` to see the same problems in a terminal.",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "oxlint src",
+    "check": "lit-devtools check",
+    "manifest": "lit-devtools manifest --src src/components"
+  },
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "@oddsquad/lit-devtools": "*",
+    "cac": "^7.0.0",
+    "oxlint": "^1.85.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  },
+  "customElements": "custom-elements.json"
+}
