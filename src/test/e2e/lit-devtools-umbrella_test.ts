@@ -1,6 +1,14 @@
 /// <reference types="node" />
 import {execFile, spawn} from 'node:child_process';
-import {mkdir, mkdtemp, readFile, rm, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  readFile,
+  realpath,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
+import {createRequire} from 'node:module';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 import {promisify} from 'node:util';
@@ -206,10 +214,9 @@ test('oxlint runs the rules from /oxlint', async () => {
   ]);
 });
 
-test('the lit-language-server command answers initialize', async () => {
-  const server = spawn('node_modules/.bin/lit-language-server', ['--stdio'], {
-    cwd: app,
-  });
+/** Starts `command` with `--stdio` and returns its answer to `initialize`. */
+const initialize = async (command: string, args: string[] = []) => {
+  const server = spawn(command, [...args, '--stdio'], {cwd: app});
   const message = JSON.stringify({
     jsonrpc: '2.0',
     id: 1,
@@ -227,7 +234,29 @@ test('the lit-language-server command answers initialize', async () => {
     });
   });
   server.kill();
-  expect(output).toContain('"id":1');
+  return output;
+};
+
+test('the lit-language-server command answers initialize', async () => {
+  expect(await initialize('node_modules/.bin/lit-language-server')).toContain(
+    '"id":1'
+  );
+});
+
+test('the server package starts where the editors look for it', async () => {
+  // The Zed and VS Code extensions run a project's server as
+  // `node <package>/dist/bin.mjs --stdio`, in whatever version it installs
+  // (editor-server-contract_test.ts pins the path on both sides).
+  // From the umbrella's real place in pnpm's store, as Node resolves its
+  // imports, where the server is installed beside it.
+  const umbrella = await realpath(
+    join(app, 'node_modules/@oddsquad/lit-devtools/package.json')
+  );
+  const server = createRequire(umbrella).resolve(
+    '@oddsquad/lit-language-server/bin'
+  );
+  expect(server).toMatch(/@oddsquad\/lit-language-server\/dist\/bin\.mjs$/);
+  expect(await initialize(process.execPath, [server])).toContain('"id":1');
 });
 
 test('the lit-devtools command runs the plugin’s', async () => {
