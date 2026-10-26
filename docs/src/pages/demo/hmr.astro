@@ -6,8 +6,8 @@
  * whole document, and the landing page's own elements should not go
  * through it.
  */
-import {Font} from 'astro:assets';
 import '@oddsquad/webawesome-theme-lit/tokens.css';
+import '../../styles/fonts.css';
 import '../../styles/demo-frame.css';
 ---
 
@@ -19,7 +19,6 @@ import '../../styles/demo-frame.css';
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>HMR demo</title>
-    <Font cssVariable="--font-lilex" />
     <script is:inline>
       // The theme before the first paint; theme.ts follows it from there.
       (() => {

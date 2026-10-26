@@ -16,38 +16,33 @@
 
 :root {
   /* Text in the design system's system sans stack, so no text font is
-     downloaded. `--font-lilex` comes from Astro's font pipeline: declared in
-     astro.config.mjs, emitted by the `<Font>` tag in the Head override.
-     Starlight appends its own system stack after it. */
+     downloaded. `--font-lexend` and `--font-lilex` come from fonts.css,
+     which astro.config.mjs loads before this file. */
   --sl-font: var(--font-sans);
   --sl-font-mono: var(--font-lilex);
 
   /* Web Awesome's controls in the same fonts as the page around them. */
   --wa-font-family-body: var(--sl-font);
-  --wa-font-family-heading: var(--sl-font);
+  --wa-font-family-heading: var(--font-lexend);
   --wa-font-family-code: var(--sl-font-mono);
 }
 
-/* Headings and the menus around the page (site title, sidebar, table of
-   contents) in Lilex, the code font; running text stays in the sans. */
+/* Headings and the site title in Lexend; running text, the sidebar and the
+   table of contents stay in the sans. */
 .sl-markdown-content :is(h1, h2, h3, h4, h5, h6),
 .hero h1,
 .content-panel h1,
-.site-title,
-.sidebar-content,
-starlight-toc,
-mobile-starlight-toc {
-  font-family: var(--sl-font-mono);
+.site-title {
+  font-family: var(--font-lexend);
 }
 
 /* The design system runs extrabold with tight tracking at display sizes and
-   semibold below that. Starlight has no token for either, so set them here.
-   Lilex tops out at bold and is monospaced, so display headings take 700
-   and keep their natural spacing. */
+   semibold below that. Starlight has no token for either, so set them here. */
 .sl-markdown-content :is(h1, h2),
 .hero h1,
 .content-panel h1 {
-  font-weight: 700;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .sl-markdown-content :is(h3, h4, h5, h6) {
