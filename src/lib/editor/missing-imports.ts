@@ -13,7 +13,7 @@
 
 import {readFile} from 'node:fs/promises';
 import path from 'node:path';
-import {type Node, child, nodes, walk} from '../component-docs/ast.js';
+import {type Node, child, nodes, nodesOf} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import type {Problem} from './diagnostics.js';
 import type {DocsSource, FeatureRequest, ImportSource} from './features.js';
@@ -39,7 +39,7 @@ const specifiersOf = (code: string, file: string): string[] => {
   } catch {
     return [];
   }
-  return [...walk(program)].flatMap((node) => {
+  return nodesOf(program).flatMap((node) => {
     if (!IMPORT_NODES.has(node.type)) return [];
     const value = child(node, 'source')?.value;
     return typeof value === 'string' ? [value] : [];

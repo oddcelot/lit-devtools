@@ -12,7 +12,13 @@
 import type {DiagnosticRule} from './config.js';
 import {type DocsSource, type FeatureRequest, eventTypeOf} from './features.js';
 import {templateBindings} from './bindings.js';
-import {type Node, child, nameOf, nodes, walk} from '../component-docs/ast.js';
+import {
+  type Node,
+  child,
+  nameOf,
+  nodes,
+  nodesOf,
+} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import {typeMismatch} from './type-text.js';
 
@@ -74,7 +80,7 @@ const methodParamTypes = (code: string, file: string): Map<string, string> => {
   } catch {
     return types;
   }
-  for (const node of walk(program)) {
+  for (const node of nodesOf(program)) {
     if (node.type !== 'MethodDefinition' && node.type !== 'PropertyDefinition')
       continue;
     const name = memberName(node);

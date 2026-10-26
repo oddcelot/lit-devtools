@@ -11,7 +11,13 @@
  *   internal state public API, and in TypeScript `@state()` on a public one.
  */
 
-import {type Node, child, nameOf, nodes, walk} from '../component-docs/ast.js';
+import {
+  type Node,
+  child,
+  nameOf,
+  nodes,
+  nodesOf,
+} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import type {Problem} from './diagnostics.js';
 
@@ -30,7 +36,7 @@ interface Declared {
 }
 
 const declaredIn = (program: Node): Declared[] =>
-  [...walk(program)].flatMap((member) => {
+  nodesOf(program).flatMap((member) => {
     if (!MEMBERS.has(member.type)) return [];
     const key = child(member, 'key');
     const name =
