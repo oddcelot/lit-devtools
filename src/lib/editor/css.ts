@@ -30,16 +30,23 @@ const blank = (text: string): string => text.replace(/[^\r\n]/g, ' ');
  * it isn't empty; a value is blanked. Its line's problems are dropped
  * anyway, but the CSS after it then parses as it will at runtime.
  */
+/** The character next to a position, past whitespace: `before` looks back. */
+const neighbour = (code: string, at: number, before: boolean) =>
+  before
+    ? /(\S)\s*$/.exec(code.slice(0, at))?.[1]
+    : /^\s*(\S)/.exec(code.slice(at))?.[1];
+
+/** Whether a hole stands where a declaration or a whole block would. */
+const standsAlone = (before?: string, after?: string): boolean =>
+  (before === undefined || '{;}'.includes(before)) &&
+  (after === undefined || ';}'.includes(after));
+
 const fillHole = (code: string, start: number, end: number): string => {
   const text = code.slice(start, end);
   if (/[\r\n]/.test(text)) return blank(text);
-  const after = /^\s*(.)/.exec(code.slice(end))?.[1];
-  const before = /(.)\s*$/.exec(code.slice(0, start))?.[1];
+  const after = neighbour(code, end, false);
   if (after === '{') return 'x'.repeat(text.length);
-  const standsAlone =
-    (before === undefined || '{;}'.includes(before)) &&
-    (after === undefined || ';}'.includes(after));
-  return standsAlone && text.length >= 5
+  return standsAlone(neighbour(code, start, true), after) && text.length >= 5
     ? `--x:0${' '.repeat(text.length - 5)}`
     : blank(text);
 };
