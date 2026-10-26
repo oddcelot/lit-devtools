@@ -17,16 +17,31 @@ export const langOf = (file: string): 'ts' | 'tsx' | 'js' | 'jsx' => {
   return 'js';
 };
 
-/**
- * The module's program. Throws on a syntax error, as `parseAst` does, though
- * oxc recovers and could hand back what it read.
- */
-export const parseModule = (code: string, file: string): Node => {
+/** The last few parses, so the checks that read one file share its tree. */
+const recent: {file: string; code: string; result: Node | SyntaxError}[] = [];
+const RECENT = 4;
+
+const parse = (code: string, file: string): Node | SyntaxError => {
   const {program, errors} = parseSync(file, code, {
     sourceType: 'module',
     lang: langOf(file),
   });
   const error = errors.find((e) => e.severity === 'Error');
-  if (error) throw new SyntaxError(error.message);
-  return program as unknown as Node;
+  return error ? new SyntaxError(error.message) : (program as unknown as Node);
+};
+
+/**
+ * The module's program. Throws on a syntax error, as `parseAst` does, though
+ * oxc recovers and could hand back what it read. The same text parses once:
+ * the editor's checks each read the file, and none changes the tree.
+ */
+export const parseModule = (code: string, file: string): Node => {
+  let hit = recent.find((entry) => entry.file === file && entry.code === code);
+  if (!hit) {
+    hit = {file, code, result: parse(code, file)};
+    recent.unshift(hit);
+    recent.length = Math.min(recent.length, RECENT);
+  }
+  if (hit.result instanceof SyntaxError) throw hit.result;
+  return hit.result;
 };

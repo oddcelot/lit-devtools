@@ -6,7 +6,7 @@
  * the module it came from; a directive made in the file has neither.
  */
 
-import {type Node, child, nodes, walk} from '../component-docs/ast.js';
+import {type Node, child, nodes, nodesOf} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 
 export interface Directive {
@@ -53,7 +53,7 @@ export const directivesIn = (
   } catch {
     return names;
   }
-  for (const node of walk(program)) {
+  for (const node of nodesOf(program)) {
     for (const [local, name] of [
       ...importedDirectives(node),
       ...madeDirective(node),

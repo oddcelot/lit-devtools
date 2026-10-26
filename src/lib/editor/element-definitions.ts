@@ -11,7 +11,13 @@
  * quick fix appends the `declare global` block there.
  */
 
-import {type Node, child, nameOf, nodes, walk} from '../component-docs/ast.js';
+import {
+  type Node,
+  child,
+  nameOf,
+  nodes,
+  nodesOf,
+} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import type {Problem} from './diagnostics.js';
 
@@ -69,7 +75,7 @@ const defined = (node: Node): Definition[] => {
 /** The keys of every `interface HTMLElementTagNameMap` in the file. */
 const mappedTags = (program: Node): Set<string> => {
   const tags = new Set<string>();
-  for (const node of walk(program)) {
+  for (const node of nodesOf(program)) {
     if (node.type !== 'TSInterfaceDeclaration') continue;
     if (nameOf(child(node, 'id')) !== 'HTMLElementTagNameMap') continue;
     for (const member of nodes(child(node, 'body')?.body)) {
@@ -166,7 +172,7 @@ export const elementDefinitionProblems = ({
   } catch {
     return [];
   }
-  const definitions = [...walk(program)].flatMap((node) => [
+  const definitions = nodesOf(program).flatMap((node) => [
     ...decorated(node),
     ...defined(node),
   ]);
