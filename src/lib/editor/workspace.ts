@@ -93,6 +93,8 @@ export interface Workspace {
   update(file: string, code: string): Promise<void>;
   /** Forgets a deleted file. */
   remove(file: string): void;
+  /** The package that holds `file`, however the editor reached it. */
+  packageOf(file: string): WorkspacePackage | undefined;
   /** The settings of the package that holds `file`. */
   configOf(file: string): ResolvedLanguageServerConfig | undefined;
   /** Every package's settings problems. */
@@ -233,6 +235,21 @@ const createWorkspaceView = (parts: {
 }): Workspace => {
   const {sources, states} = parts;
   const packages = states.map((state) => state.pkg);
+  // A file as the workspace knows it: its folder with symlinks resolved, as
+  // the packages' folders are, so a project opened through a link (macOS's
+  // /tmp is one) still finds its package. The file itself may not exist yet.
+  const realDirs = new Map<string, string>();
+  const real = (file: string): string => {
+    const id = normalizePath(file);
+    const slash = id.lastIndexOf('/');
+    const dir = id.slice(0, slash);
+    let resolved = realDirs.get(dir);
+    if (resolved === undefined) {
+      resolved = realDir(dir);
+      realDirs.set(dir, resolved);
+    }
+    return `${resolved}${id.slice(slash)}`;
+  };
   const manifestsByPackage = new Map<string, ComponentDocsIndex>();
   const manifestsOf = (pkg: WorkspacePackage): ComponentDocsIndex => {
     let index = manifestsByPackage.get(pkg.dir);
@@ -248,7 +265,7 @@ const createWorkspaceView = (parts: {
   };
   /** The id and package of a file a package reads, else undefined. */
   const read = (file: string) => {
-    const id = normalizePath(file);
+    const id = real(file);
     const state = stateOf(id);
     const inFolders = states.some((s) =>
       s.folders.some((folder) => id.startsWith(folder))
@@ -284,7 +301,7 @@ const createWorkspaceView = (parts: {
     async get(file, tagName) {
       const fromSource = sources.get(tagName);
       if (fromSource) return fromSource;
-      const pkg = packageOf(packages, normalizePath(file));
+      const pkg = packageOf(packages, real(file));
       return pkg ? manifestsOf(pkg).get(tagName) : null;
     },
     sourceTags,
@@ -294,7 +311,7 @@ const createWorkspaceView = (parts: {
       return [...sources.modules().map(({id}) => id), ...pages.flat()];
     },
     async tags(file) {
-      const pkg = packageOf(packages, normalizePath(file));
+      const pkg = packageOf(packages, real(file));
       const fromManifests = pkg ? await manifestsOf(pkg).tags() : [];
       return [...new Set([...sourceTags(), ...fromManifests])];
     },
@@ -309,16 +326,17 @@ const createWorkspaceView = (parts: {
       if (target) sources.delete(target.id);
     },
     async resolveImport(specifier, importer) {
-      const state = stateOf(normalizePath(importer));
+      const state = stateOf(real(importer));
       const resolved = await state?.resolver
-        .resolve(specifier, normalizePath(importer))
+        .resolve(specifier, real(importer))
         .catch(() => null);
       if (!resolved) return undefined;
       return resolved.external || resolved.id.includes('/node_modules/')
         ? {external: specifier}
         : {file: resolved.id};
     },
-    configOf: (file) => stateOf(normalizePath(file))?.config,
+    packageOf: (file) => packageOf(packages, real(file)),
+    configOf: (file) => stateOf(real(file))?.config,
     problems: () => states.flatMap((state) => state.config.problems),
     watched: () => [
       ...new Set(states.flatMap((state) => state.config.watched)),
