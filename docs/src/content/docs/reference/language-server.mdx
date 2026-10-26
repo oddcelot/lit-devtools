@@ -387,12 +387,6 @@ html`<x-button .size=${this.name}></x-button>`;
 Oxlint's own `// oxlint-disable-next-line lit-devtools/<rule>` works too, in
 a lint run.
 
-## Settings
-
-A mistake in the settings, such as an unknown key or severity, is a warning on
-the first line of the file that holds it. So is a `lit-devtools.config.ts` that
-a Vite config overrides.
-
 ## CSS templates
 
 In a `css` template the server answers with VS Code's CSS language service:
@@ -414,6 +408,10 @@ Set them in `litPlugin({languageServer})` in a Vite config, or as
 `languageServer` in a `lit-devtools.config.{ts,mts,js,mjs,json}` in a project
 without one. When both exist, the Vite config's settings win as a whole and
 the config file is reported as ignored.
+
+A mistake in the settings, such as an unknown key or severity, is a warning on
+the first line of the file that holds it. So is a `lit-devtools.config.ts` that
+a Vite config overrides.
 
 | Setting            | Default                                        | Meaning                                                                   |
 | ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------- |
