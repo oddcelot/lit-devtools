@@ -39,6 +39,11 @@ import {
   findWorkspace,
   packageOf,
 } from './workspace-packages.js';
+import {
+  joinIndexes,
+  localManifests,
+  remoteManifests,
+} from './package-manifests.js';
 
 export interface WorkspaceOptions {
   /** Loads a package's settings; `loadLanguageServerConfig` by default. */
@@ -172,8 +177,18 @@ export const createWorkspace = async (
     states,
     files,
     sources,
-    manifests: (pkg) =>
-      createComponentDocsIndex({root: () => pkg.dir, fs: () => fs}),
+    manifests: (pkg) => {
+      const state = states.find((s) => s.pkg.dir === pkg.dir);
+      const {manifests = [], problems = [], file} = state?.config ?? {};
+      return joinIndexes(
+        createComponentDocsIndex({
+          root: () => pkg.dir,
+          fs: () => fs,
+          extra: () => localManifests(pkg.dir, manifests),
+        }),
+        remoteManifests(manifests, problems, file ?? pkg.dir)
+      );
+    },
   });
 };
 

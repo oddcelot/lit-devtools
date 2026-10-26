@@ -233,9 +233,10 @@ html`<x-button size="huge"></x-button>`;
 - `unknown-slot` reads a component's slots from its `@slot` docs, and only
   when it documents some: `<h2 slot="heder">` in an `<x-card>` with a
   `header` slot is reported, with the slots it has.
-- A component known only from a library without a manifest, or one that
-  inherits members the server can't read, shows up as unknown. Name it in
-  `ignoreTags`, or its attributes in `ignoreAttributes`.
+- A component from a library that ships no manifest shows up as unknown:
+  list a manifest for it in `manifests`, or name it in `ignoreTags`. One that
+  inherits members the server can't read can name them in
+  `ignoreAttributes`.
 
 ### Template syntax
 
@@ -371,8 +372,12 @@ the config file is reported as ignored.
 | `property-visibility`  | `off`     | `@property()` on private state, or the reverse   |
 | `css`                  | `warning` | A problem in a `css` template                    |
 
-`manifests`, `entries` and the rule `missing-import` are read and validated
-but not acted on yet.
+`entries` and the rule `missing-import` are read and validated but not acted
+on yet.
+
+A `manifests` entry is read before the dependencies' own: a path, relative
+to the package, re-read when it changes, or a URL, fetched once. A URL that
+can't be fetched is reported with the settings' other problems.
 
 ## Oxlint plugin
 
