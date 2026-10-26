@@ -9,6 +9,93 @@ release is organised by part. The VS Code extension also keeps a changelog of
 its own versions. Versions before 0.3.0 predate this file; see the git
 history for those.
 
+## 0.25.0 — 2026-10-26
+
+The language server now checks your templates the way lit-analyzer does, and
+goes past it: `lit-devtools check` type-checks every binding with your own
+TypeScript, and the editor runs the same check when you save. Unknown tags,
+attributes, properties and slots, bindings Lit reads differently than
+written, misplaced directives and mistakes in a component's declarations are
+reported as you type, in Lit templates and for custom elements in JSX,
+Astro, MDX and HTML, and fail an Oxlint run alike. Several of the new rules
+are on by default, so an upgrade may show new warnings: each can be set in
+`diagnostics` or silenced with a `lit-ignore` comment.
+
+### Editors & language server
+
+- **Added** — **`lit-devtools check` type-checks your bindings.** Every
+  `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}` expression is
+  checked by your project's TypeScript, 5 or 7, against what the element
+  takes, so `.size=${this.name}` fails CI when `size` is `'small' | 'large'`
+  and `name` any string; the values `live(…)` and `ifDefined(…)` pass on are
+  checked too.
+- **Added** — **Binding type errors show in the editor when you save.** The
+  check `lit-devtools check` makes runs in the background for the saved file,
+  so `.size=${this.name}` is underlined without waiting for CI. Set
+  `checkOnSave: false` to turn it off.
+- **Added** — **`lit-devtools check` fits your project as it is.** Run at a
+  monorepo's root it checks every package with its own settings; a Vite
+  project's `tsconfig.app.json` is found behind a `tsconfig.json` that only
+  lists references; the `binding-type` severity decides whether problems
+  fail the run, and elements missing from `HTMLElementTagNameMap` are listed
+  instead of passing unchecked.
+- **Added** — **Unknown elements, attributes and properties are warnings.** A
+  tag, attribute or `.property` nothing defines is reported with the name you
+  probably meant, and so is a component's attribute written with a value
+  outside its type, `size="huge"`, in Lit templates and for custom elements
+  in JSX, Astro, MDX and HTML. `ignoreTags` and `ignoreAttributes` now
+  silence them.
+- **Added** — **A slot the parent component doesn't have is a warning.**
+  `<h2 slot="heder">` in a card with a `header` slot is reported, with the
+  slot you probably meant or the ones it has.
+- **Added** — **Literal values that can't fit a binding are errors.** A string
+  in `?hidden=${'no'}`, `true` in `title=${true}`, a number in `@click=${1}`,
+  or a value outside a property's union, `.size=${'huge'}`, is reported as
+  you type under the new `binding-type` rule.
+- **Added** — **Templates Lit reads differently than written are reported.** A
+  component closed with `/>` or never closed, a `.`, `?` or `@` binding
+  without `${…}`, a stray quote next to an expression, and Polymer's
+  `name$=` are flagged as you type.
+- **Added** — **A Lit directive where Lit can't apply it is an error.**
+  `classMap` outside `class`, `styleMap` outside `style`, `ifDefined` on a
+  property, `live` on a listener, `ref` in an attribute, and `repeat` or
+  `unsafeHTML` anywhere but between tags are reported before they throw.
+- **Added** — **Component declarations are checked.** A tag
+  `customElements.define` would refuse, an `attribute:` name HTML lowercases
+  away, and a property whose `type` option doesn't fit its type, or a number
+  or boolean without one, are reported in the component's file.
+  `property-visibility`, off by default, flags `@property()` on private
+  fields and `@state()` on public ones.
+- **Added** — **A field that replaces an element's own method is an error.**
+  `@state() after` or `@property() remove` replaces `after()` or `remove()`
+  on the element, and a field named `update` or `renderRoot` breaks Lit's
+  updates; `shadowed-member` reports them, in JavaScript too.
+- **Added** — **A component missing from `HTMLElementTagNameMap` is a
+  warning, with a fix.** Without the entry TypeScript can't tell what
+  `document.createElement('x-button')` returns, and `lit-devtools check` can't
+  check the element's bindings. The quick fix, or `oxlint --fix`, writes the
+  `declare global` block.
+- **Added** — **`missing-import` reports components a file never imports.**
+  Turn it on to catch a tag used where nothing imports its definition, with a
+  quick fix that adds the import; `entries` names an app entry whose imports
+  count for every file.
+- **Added** — **Silence a problem with a `lit-ignore` comment.**
+  `<!-- lit-ignore -->` before an element in a template,
+  `// lit-ignore-next-line` above a line, or `// lit-ignore-file` for the
+  file, each optionally naming the rules, in the editor, in Oxlint and in
+  `lit-devtools check`.
+- **Added** — **The `manifests` setting is read.** List a manifest, a path or
+  a URL, for components whose package ships none, and the editor completes,
+  documents and checks them like any other.
+- **Fixed** — **Completion and hover see what you just typed in another
+  file.** A component added to one buffer was sometimes missing from
+  completion in the next for a moment.
+- **Fixed** — **No false CSS problems around expressions in a `css`
+  template.** A selector or a whole block body written as `${…}` made the
+  rules around it report errors.
+- **Fixed** — **Code in an indented MDX fence stays code.** A fenced block
+  under a list item was read as markup.
+
 ## 0.24.1 — 2026-10-26
 
 From this release the language server and the Oxlint plugin share the

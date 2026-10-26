@@ -1,6 +1,6 @@
 {
   "name": "@oddsquad/oxlint-plugin-lit",
-  "version": "0.24.1",
+  "version": "0.25.0",
   "description": "Oxlint rules for Lit templates: the problems the Lit language server shows in the editor, such as event handlers that don't fit their event and broken css templates, failing a lint run.",
   "keywords": [
     "lit",
