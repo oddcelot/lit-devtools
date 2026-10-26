@@ -1,13 +1,11 @@
 ---
 /**
- * Starlight's `Head` with the font tags appended. Astro's font pipeline emits
- * its `@font-face` rules through the `<Font>` component rather than a
- * stylesheet, so they have to be injected into the head from here — Starlight
- * owns that element, and `components.Head` is the seam it offers.
- *
- * Lilex, the code font, is preloaded: it sets the headings, the sidebar and
- * the table of contents, so every page shows it above the fold. Body text is
- * the system sans and loads nothing.
+ * Starlight's `Head` with a preload for Lexend appended — Starlight owns the
+ * head element, and `components.Head` is the seam it offers. Lexend sets the
+ * headings and the site title, so every page shows it above the fold; its
+ * `@font-face` rules come from src/styles/fonts.css, and the URL here is the
+ * same fingerprinted file. Lilex, the code font, loads when a page uses it.
+ * Body text is the system sans and loads nothing.
  *
  * The changelog pages also get the video player: their release videos come
  * from CHANGELOG.md as markup (docs/scripts/sync-changelog.mjs), with no
@@ -17,7 +15,7 @@
  * tools, and follows the theme with Web Awesome's scheme class (WaScheme).
  */
 import Default from '@astrojs/starlight/components/Head.astro';
-import {Font} from 'astro:assets';
+import lexend from '@fontsource-variable/lexend/files/lexend-latin-wght-normal.woff2?url';
 import SiteIcons from './SiteIcons.astro';
 import VideoPlayerScript from './VideoPlayerScript.astro';
 import WaScheme from './WaScheme.astro';
@@ -29,6 +27,6 @@ const changelog = Astro.url.pathname.includes('/reference/changelog/');
 <Default />
 <SiteIcons />
 <WaScheme />
-<Font cssVariable="--font-lilex" preload />
+<link rel="preload" href={lexend} as="font" type="font/woff2" crossorigin />
 {changelog && <VideoPlayerScript />}
 <WebMcpTools />

@@ -6,8 +6,8 @@
  * does. A frame of its own, so the two thousand tiles stay out of the
  * landing page's DOM.
  */
-import {Font} from 'astro:assets';
 import '@oddsquad/webawesome-theme-lit/tokens.css';
+import '../../styles/fonts.css';
 import '../../styles/demo-frame.css';
 ---
 
@@ -19,7 +19,6 @@ import '../../styles/demo-frame.css';
     <meta name="robots" content="noindex" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Stylesheet demo</title>
-    <Font cssVariable="--font-lilex" />
     <script is:inline>
       (() => {
         const t = localStorage.getItem('starlight-theme');

@@ -88,8 +88,9 @@ export default defineConfig({
   // Font files pulled from Fontsource at build time. Astro downloads, subsets
   // and fingerprints them into the build, and generates fallback metrics so
   // swapping in the real face does not shift the layout. Nothing is fetched
-  // from a CDN at runtime. Body text uses the system sans stack and needs no
-  // entry here.
+  // from a CDN at runtime. The fonts pages show come from Fontsource's npm
+  // packages instead (src/styles/fonts.css); only the Open Graph cards need
+  // an entry here.
   fonts: [
     // Manrope, for the Open Graph cards only (src/pages/og/). Satori renders
     // without system fonts, so a card needs a font file; it reads neither
@@ -104,15 +105,6 @@ export default defineConfig({
       styles: ['normal'],
       subsets: ['latin'],
       formats: ['ttf'],
-    },
-    {
-      name: 'Lilex',
-      cssVariable: '--font-lilex',
-      provider: fontProviders.fontsource(),
-      // Variable too; code is mostly 400, headings 600–700.
-      weights: ['400 700'],
-      styles: ['normal'],
-      subsets: ['latin'],
     },
   ],
   redirects,
@@ -167,6 +159,7 @@ export default defineConfig({
       customCss: [
         // The Lit theme for Web Awesome, which brings the design tokens.
         '@oddsquad/webawesome-theme-lit/lit.css',
+        './src/styles/fonts.css',
         './src/styles/custom.css',
       ],
       components: {

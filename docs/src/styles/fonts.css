@@ -1,0 +1,13 @@
+/* The docs' two downloaded fonts, from Fontsource's npm packages: Lexend
+   for headings and Lilex for code. Vite bundles and fingerprints the woff2
+   files, so nothing is fetched from a CDN at runtime, and each subset is
+   only downloaded when a page uses one of its characters. Running text is
+   the system sans and loads nothing. Head.astro preloads the latin files. */
+
+@import '@fontsource-variable/lexend';
+@import '@fontsource-variable/lilex';
+
+:root {
+  --font-lexend: 'Lexend Variable', var(--font-sans);
+  --font-lilex: 'Lilex Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+}
