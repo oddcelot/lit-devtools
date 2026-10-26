@@ -21,6 +21,7 @@
  */
 
 import type {Problem} from './diagnostics.js';
+import {DOM_EVENT_TYPES} from './dom-events.js';
 import {HTML_ELEMENT_PROPERTIES} from './dom-properties.js';
 import {
   type DocsSource,
@@ -97,13 +98,54 @@ const unreadable = (name: string) => !name || /[${}]/.test(name);
  */
 const ALWAYS_ATTRIBUTE = /^(data-|aria-)|:|^xmlns$|^defer-hydration$/i;
 
+/**
+ * Props JSX passes React or Preact, not the element: `key`, `ref`,
+ * `className` and the like.
+ */
+const FRAMEWORK_PROPS = new Set(
+  [
+    'key',
+    'ref',
+    'children',
+    'className',
+    'dangerouslySetInnerHTML',
+    'suppressHydrationWarning',
+    'suppressContentEditableWarning',
+  ].map((name) => name.toLowerCase())
+);
+
 interface Context {
   source: DocsSource;
   request: Request;
   ignoreTag: (tag: string) => boolean;
   ignoreAttribute: (name: string) => boolean;
   tags: Set<string>;
+  /** HTML's global attributes, lowercased, where the docs source doesn't add them. */
+  globals: Set<string>;
 }
+
+/**
+ * Whether only custom elements are read: outside a Lit template in a
+ * script, HTML and SVG aren't known, and the editor's own support for the
+ * language has them.
+ */
+const customOnly = (request: Request, element: MarkupElement): boolean =>
+  request.kind !== 'script' || element.dialect !== undefined;
+
+/** A prop the element takes without declaring it: a global attribute, a framework's, a DOM event's handler. */
+const takenAnyway = (
+  context: Context,
+  element: MarkupElement,
+  name: string
+) => {
+  const lower = name.toLowerCase();
+  if (context.globals.has(lower) || FRAMEWORK_PROPS.has(lower)) return true;
+  return (
+    element.dialect === 'jsx' &&
+    /^on[a-z]/i.test(name) &&
+    lower.slice(2) in DOM_EVENT_TYPES
+  );
+};
 
 const elementProblem = (
   {tags}: Context,
@@ -127,8 +169,9 @@ const attributeProblem = async (
   const {name, binding} = attribute;
   if (ALWAYS_ATTRIBUTE.test(name) || context.ignoreAttribute(name))
     return undefined;
+  if (takenAnyway(context, element, name)) return undefined;
   const {source, request} = context;
-  const names = await bindingNames(source, request.file, element.tag, '');
+  const names = await bindingNames(source, request.file, element, '');
   if (names.some((known) => known.toLowerCase() === name.toLowerCase()))
     return undefined;
   return {
@@ -149,7 +192,7 @@ const propertyProblem = async (
   if (HTML_ELEMENT_PROPERTIES.has(name) || context.ignoreAttribute(name))
     return undefined;
   const {source, request} = context;
-  const names = await bindingNames(source, request.file, element.tag, '.');
+  const names = await bindingNames(source, request.file, element, '.');
   if (names.includes(name)) return undefined;
   return {
     rule: 'unknown-binding',
@@ -221,6 +264,8 @@ const problemsOf = async (
   element: MarkupElement
 ): Promise<Problem[]> => {
   if (unreadable(element.tag) || context.ignoreTag(element.tag)) return [];
+  if (customOnly(context.request, element) && !element.tag.includes('-'))
+    return [];
   const unknown = elementProblem(context, element);
   if (unknown) return [unknown];
   const found = await Promise.all(
@@ -286,12 +331,23 @@ const slotProblems = async (
   return found.filter((problem) => problem !== undefined);
 };
 
+/**
+ * Tags the document defines itself, as an Astro component's or a page's
+ * `<script>` does, which the workspace doesn't read components from.
+ */
+const definedHere = (code: string): string[] =>
+  [
+    ...code.matchAll(
+      /(?:customElements\.define|@customElement)\(\s*['"]([a-z][\w.-]*-[\w.-]*)['"]/g
+    ),
+  ].map((match) => match[1]);
+
 /** The unknown names and invalid values in a document's Lit templates. */
 export const unknownNameProblems = async (
   source: DocsSource,
   request: Request
 ): Promise<Problem[]> => {
-  if (request.kind !== 'script') return [];
+  if (request.kind === 'html' && !request.code.includes('-')) return [];
   const regions = markupRegions(request.code, request.kind, {
     templateTags: request.templateTags,
   });
@@ -301,8 +357,12 @@ export const unknownNameProblems = async (
     request,
     ignoreTag: matcherOf(request.ignoreTags),
     ignoreAttribute: matcherOf(request.ignoreAttributes),
-    tags: new Set(
-      (await source.tags(request.file)).map((tag) => tag.toLowerCase())
+    tags: new Set([
+      ...(await source.tags(request.file)).map((tag) => tag.toLowerCase()),
+      ...definedHere(request.code),
+    ]),
+    globals: new Set(
+      (source.globalAttributes?.() ?? []).map((name) => name.toLowerCase())
     ),
   };
   const elements = regions.flatMap((region) =>

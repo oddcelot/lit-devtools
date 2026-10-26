@@ -76,6 +76,11 @@ export interface DocsSource {
    */
   /** For `missing-import`: where imports lead, and where tags are defined. */
   imports?: ImportSource;
+  /**
+   * The names of HTML's global attributes, for the problem checks only:
+   * outside a Lit template completion leaves them to the editor.
+   */
+  globalAttributes?(): string[];
   globals?(tagName: string): {
     attributes: DocEntry[];
     events: DocEntry[];
@@ -248,7 +253,7 @@ interface Candidate {
 }
 
 /** The element a binding is written on. */
-type ElementRef = Pick<MarkupElement, 'tag' | 'dialect'>;
+export type ElementRef = Pick<MarkupElement, 'tag' | 'dialect'>;
 
 /**
  * A component's own entries for a plain prop in JSX or Astro, where a prop
@@ -507,10 +512,10 @@ export const bindingTypeOf = async (
 export const bindingNames = async (
   source: DocsSource,
   file: string,
-  tagName: string,
+  element: ElementRef,
   binding: Binding
 ): Promise<string[]> =>
-  (await candidatesFor(source, file, {tag: tagName}, binding)).map(labelOf);
+  (await candidatesFor(source, file, element, binding)).map(labelOf);
 
 /** The type of the event `eventName` on `tagName`, when it's known. */
 export const eventTypeOf = (

@@ -142,3 +142,60 @@ test('a slot the parent component does not declare', async () => {
     ],
   ]);
 });
+
+const inDialect = async (
+  code: string,
+  kind: 'jsx' | 'astro' | 'html' | 'mdx',
+  file: string
+) => {
+  const problems = await unknownNameProblems(docsSourceFor(workspace, kind), {
+    file,
+    code,
+    kind,
+  });
+  return problems.map((p) => [p.rule, code.slice(p.start, p.end)]);
+};
+
+test('in JSX, custom elements only, with what JSX passes them', async () => {
+  const code = [
+    'export const App = () => (',
+    '  <div colour="x" className="a">',
+    '    <x-button key="1" ref={r} className="b" id="c" onclick={go} size="huge" sise="small" prop:count={1} prop:cont={2} on:whatever={f} />',
+    '    <x-buton />',
+    '    <Widget anything="x" />',
+    '  </div>',
+    ');',
+  ].join('\n');
+  expect(await inDialect(code, 'jsx', '/app/src/app.tsx')).toEqual([
+    ['invalid-value', 'huge'],
+    ['unknown-attribute', 'sise'],
+    ['unknown-binding', 'prop:cont'],
+    ['unknown-element', 'x-buton'],
+  ]);
+});
+
+test('in Astro and HTML files, custom elements and their attributes', async () => {
+  const astro = [
+    '---',
+    "import Layout from './Layout.astro';",
+    '---',
+    '<Layout title="x">',
+    '  <x-card client:load set:html={h} class:list={c}><h2 slot="heder">a</h2></x-card>',
+    '  <x-button sise="small"></x-button>',
+    '  <x-local></x-local>',
+    '</Layout>',
+    '<script>',
+    "  customElements.define('x-local', class extends HTMLElement {});",
+    '</script>',
+  ].join('\n');
+  expect(await inDialect(astro, 'astro', '/app/src/page.astro')).toEqual([
+    ['unknown-attribute', 'sise'],
+    ['unknown-slot', 'heder'],
+  ]);
+  const page =
+    '<div foo="1"><x-buton></x-buton><x-button tabindex="0" sise></x-button></div>';
+  expect(await inDialect(page, 'html', '/app/index.html')).toEqual([
+    ['unknown-element', 'x-buton'],
+    ['unknown-attribute', 'sise'],
+  ]);
+});
