@@ -9,6 +9,7 @@
  */
 
 import {readdir} from 'node:fs/promises';
+import {relative} from 'node:path';
 import type {ComponentDocs} from '../../types/component-docs.js';
 import {
   type ImportResolver,
@@ -142,7 +143,15 @@ export const createWorkspace = async (
   const layout = await findWorkspace(from);
   if (!layout) return undefined;
   const fs = await nodeDocsFs();
-  const sources = createSourceDocsIndex((id) => id, createPackageAncestors(fs));
+  const root = realDir(layout.root);
+  // Where a component was read, as its hover names it: relative to the
+  // workspace root, the folder the editor opened, so a monorepo shows
+  // `packages/ui/src/x-button.ts`. A file outside it keeps its full path.
+  const sources = createSourceDocsIndex(
+    (id) =>
+      id.startsWith(`${root}/`) ? normalizePath(relative(root, id)) : id,
+    createPackageAncestors(fs)
+  );
   const states: PackageState[] = [];
   let files = 0;
   for (const pkg of layout.packages) {
@@ -159,7 +168,7 @@ export const createWorkspace = async (
     );
   }
   return createWorkspaceView({
-    root: realDir(layout.root),
+    root,
     states,
     files,
     sources,

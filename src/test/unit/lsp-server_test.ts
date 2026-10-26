@@ -166,6 +166,9 @@ describe('the language server', () => {
       position,
     });
     expect(hover.contents.value).toContain('**`<x-button>`**');
+    // Where it was read, relative to the workspace, not the whole path.
+    expect(hover.contents.value).toContain('_`src/x-button.ts`_');
+    expect(hover.contents.value).not.toContain(root);
     expect(hover.range).toEqual({
       start: {line: 1, character: 6},
       end: {line: 1, character: 14},
