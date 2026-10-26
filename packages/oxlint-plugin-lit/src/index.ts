@@ -127,6 +127,7 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'property-type': "A property's type option that doesn't fit its type.",
   'property-visibility':
     '@property() on private state, or @state() on a public field.',
+  'shadowed-member': "A field that replaces an element's own method or Lit's.",
   css: 'A problem in a css template.',
 };
 

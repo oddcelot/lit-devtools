@@ -297,6 +297,11 @@ class XButton extends LitElement {
   annotation, or its literal initializer, and a number, boolean, array or
   object without one. A `converter` or `attribute: false` turns it off for
   the field.
+- `shadowed-member`, an error: a `@property()` or `@state()` field named
+  like a method every element has, `after` for `Element.after()`, or a
+  member Lit relies on, such as `update` or `renderRoot`. The field
+  replaces it. TypeScript reports the first kind in a typed file; nothing
+  else does in JavaScript.
 - `property-visibility`, off unless turned on: `@property()` on a private
   field, and in TypeScript `@state()` on one that isn't `private` or
   `protected`.
@@ -422,24 +427,25 @@ the config file is reported as ignored.
 | `checkOnSave`      | `true`                                         | Type-check a script's bindings with your TypeScript when it's saved       |
 | `entries`          | `[]`                                           | Modules whose imports count for `missing-import`, relative to the package |
 
-| Rule                   | Default   | Reports                                          |
-| ---------------------- | --------- | ------------------------------------------------ |
-| `event-type`           | `error`   | A handler whose parameter doesn't fit its event  |
-| `binding-type`         | `error`   | A literal value its binding can't take           |
-| `missing-element-type` | `warning` | A component missing from `HTMLElementTagNameMap` |
-| `unknown-element`      | `warning` | A tag nothing defines                            |
-| `unknown-attribute`    | `warning` | An attribute the element doesn't have            |
-| `unknown-binding`      | `warning` | A property a component doesn't have              |
-| `invalid-value`        | `warning` | An attribute value outside its type              |
-| `unknown-slot`         | `warning` | A slot the parent component doesn't declare      |
-| `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`    |
-| `binding-syntax`       | `error`   | A binding written so Lit reads it wrong          |
-| `directive-binding`    | `error`   | A Lit directive where Lit can't apply it         |
-| `invalid-name`         | `error`   | A tag or attribute name HTML can't use           |
-| `property-type`        | `warning` | A property's `type` option that doesn't fit      |
-| `property-visibility`  | `off`     | `@property()` on private state, or the reverse   |
-| `missing-import`       | `off`     | A component the file never imports               |
-| `css`                  | `warning` | A problem in a `css` template                    |
+| Rule                   | Default   | Reports                                                |
+| ---------------------- | --------- | ------------------------------------------------------ |
+| `event-type`           | `error`   | A handler whose parameter doesn't fit its event        |
+| `binding-type`         | `error`   | A literal value its binding can't take                 |
+| `missing-element-type` | `warning` | A component missing from `HTMLElementTagNameMap`       |
+| `unknown-element`      | `warning` | A tag nothing defines                                  |
+| `unknown-attribute`    | `warning` | An attribute the element doesn't have                  |
+| `unknown-binding`      | `warning` | A property a component doesn't have                    |
+| `invalid-value`        | `warning` | An attribute value outside its type                    |
+| `unknown-slot`         | `warning` | A slot the parent component doesn't declare            |
+| `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`          |
+| `binding-syntax`       | `error`   | A binding written so Lit reads it wrong                |
+| `directive-binding`    | `error`   | A Lit directive where Lit can't apply it               |
+| `invalid-name`         | `error`   | A tag or attribute name HTML can't use                 |
+| `property-type`        | `warning` | A property's `type` option that doesn't fit            |
+| `property-visibility`  | `off`     | `@property()` on private state, or the reverse         |
+| `shadowed-member`      | `error`   | A field that replaces an element's own method or Lit's |
+| `missing-import`       | `off`     | A component the file never imports                     |
+| `css`                  | `warning` | A problem in a `css` template                          |
 
 A `manifests` entry is read before the dependencies' own: a path, relative
 to the package, re-read when it changes, or a URL, fetched once. A URL that
@@ -452,24 +458,25 @@ reports the same problems in a lint run, one
 rule per problem kind, named `lit-devtools/<rule>` so they don't clash with
 eslint-plugin-lit's `lit/` rules:
 
-| Rule                                | Reports                                          |
-| ----------------------------------- | ------------------------------------------------ |
-| `lit-devtools/event-type`           | A handler whose parameter doesn't fit its event  |
-| `lit-devtools/binding-type`         | A literal value its binding can't take           |
-| `lit-devtools/missing-element-type` | A component missing from `HTMLElementTagNameMap` |
-| `lit-devtools/unknown-element`      | A tag nothing defines                            |
-| `lit-devtools/unknown-attribute`    | An attribute the element doesn't have            |
-| `lit-devtools/unknown-binding`      | A property a component doesn't have              |
-| `lit-devtools/invalid-value`        | An attribute value outside its type              |
-| `lit-devtools/unknown-slot`         | A slot the parent component doesn't declare      |
-| `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`    |
-| `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong          |
-| `lit-devtools/directive-binding`    | A Lit directive where Lit can't apply it         |
-| `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use           |
-| `lit-devtools/property-type`        | A property's `type` option that doesn't fit      |
-| `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse   |
-| `lit-devtools/missing-import`       | A component the file never imports               |
-| `lit-devtools/css`                  | A problem in a `css` template                    |
+| Rule                                | Reports                                                |
+| ----------------------------------- | ------------------------------------------------------ |
+| `lit-devtools/event-type`           | A handler whose parameter doesn't fit its event        |
+| `lit-devtools/binding-type`         | A literal value its binding can't take                 |
+| `lit-devtools/missing-element-type` | A component missing from `HTMLElementTagNameMap`       |
+| `lit-devtools/unknown-element`      | A tag nothing defines                                  |
+| `lit-devtools/unknown-attribute`    | An attribute the element doesn't have                  |
+| `lit-devtools/unknown-binding`      | A property a component doesn't have                    |
+| `lit-devtools/invalid-value`        | An attribute value outside its type                    |
+| `lit-devtools/unknown-slot`         | A slot the parent component doesn't declare            |
+| `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`          |
+| `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong                |
+| `lit-devtools/directive-binding`    | A Lit directive where Lit can't apply it               |
+| `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use                 |
+| `lit-devtools/property-type`        | A property's `type` option that doesn't fit            |
+| `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse         |
+| `lit-devtools/shadowed-member`      | A field that replaces an element's own method or Lit's |
+| `lit-devtools/missing-import`       | A component the file never imports                     |
+| `lit-devtools/css`                  | A problem in a `css` template                          |
 
 Its default export has `configs.recommended`, a config for `extends` in
 `oxlint.config.ts` or in Vite+'s `lint`: the plugin, with each rule at its

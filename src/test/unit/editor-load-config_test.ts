@@ -47,6 +47,7 @@ describe('loadLanguageServerConfig', () => {
         'invalid-name': 'error',
         'property-type': 'warning',
         'property-visibility': 'off',
+        'shadowed-member': 'error',
         css: 'warning',
       },
       source: 'default',

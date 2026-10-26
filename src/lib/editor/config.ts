@@ -21,6 +21,7 @@ export const DIAGNOSTIC_RULES = [
   'invalid-name',
   'property-type',
   'property-visibility',
+  'shadowed-member',
   'css',
 ] as const;
 
@@ -84,5 +85,6 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'invalid-name': 'error',
   'property-type': 'warning',
   'property-visibility': 'off',
+  'shadowed-member': 'error',
   css: 'warning',
 };
