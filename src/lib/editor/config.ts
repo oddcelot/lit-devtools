@@ -34,7 +34,7 @@ export interface LanguageServerConfig {
   /** Tags no diagnostic reports, with `*` wildcards: `['legacy-*']`. */
   ignoreTags?: string[];
   /**
-   * Attributes accepted on any element, with `*` wildcards. `data-*`,
+   * Attributes and properties accepted on any element, with `*` wildcards. `data-*`,
    * `aria-*` and the global HTML attributes always are.
    */
   ignoreAttributes?: string[];
