@@ -38,6 +38,8 @@ import {cssDiagnostics} from './css.js';
 const html = createHtmlDocs(htmlData as HtmlData);
 const svg = createHtmlDocs(svgData(svgElementAttributes));
 
+const GLOBAL_ATTRIBUTES = html.globals.attributes.map((entry) => entry.name);
+
 /** An SVG element, unless HTML has one of the same name (`a`, `title`). */
 const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
 
@@ -106,7 +108,11 @@ export const docsSourceFor = (
   kind: DocumentKind
 ): DocsSource =>
   kind !== 'script'
-    ? workspace
+    ? {
+        get: (file, tag) => workspace.get(file, tag),
+        tags: (file) => workspace.tags(file),
+        globalAttributes: () => GLOBAL_ATTRIBUTES,
+      }
     : {
         get: async (file, tag) =>
           (await workspace.get(file, tag)) ?? html.get(tag) ?? svg.get(tag),

@@ -95,8 +95,8 @@ each format's way of writing a binding:
 | `onsubmit-start={fn}`  | The `submit-start` event, as React 19 and Preact read it | An attribute |
 | `on:submit-start={fn}` | The event, Solid's way; so are `prop:`, `attr:`, `bool:` | An attribute |
 
-Only your components get completed in these files: standard HTML elements
-are left to the editor's own support for the language. In Astro, the
+Only your components get completed and checked in these files: standard
+HTML elements are left to the editor's own support for the language. In Astro, the
 templates in the frontmatter and in `<script>` elements are Lit templates.
 In MDX, fenced and inline code and `import`/`export` blocks are skipped.
 
@@ -239,6 +239,14 @@ html`<x-button size="huge"></x-button>`;
   list a manifest for it in `manifests`, or name it in `ignoreTags`. One that
   inherits members the server can't read can name them in
   `ignoreAttributes`.
+- In JSX, Astro, MDX and HTML files only custom elements are read, as the
+  editor's own support for the language has HTML's. Their props are checked
+  as each format writes them, `on<event>` and Solid's `prop:` included, and
+  what the framework takes passes: `key`, `ref`, `className`, Astro's
+  `client:` and `set:` directives, HTML's global attributes. A tag the
+  document defines itself, in an Astro component's `<script>`, is known.
+  `unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
+  and `unknown-slot` apply there; the other rules read Lit templates only.
 
 ### Template syntax
 

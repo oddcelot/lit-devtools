@@ -356,16 +356,21 @@ class Lexer {
 
   /** Where the Markdown code starting here ends, if code starts here. */
   private markdownCodeEnd(): number | undefined {
-    const atLineStart = this.i === 0 || this.code[this.i - 1] === '\n';
-    if (!atLineStart) return this.inlineCodeEnd();
-    return this.fenceEnd() ?? this.esmEnd() ?? this.inlineCodeEnd();
+    const lineStart = this.code.lastIndexOf('\n', this.i - 1) + 1;
+    const indent = this.code.slice(lineStart, this.i);
+    // A fence may be indented, in a list item; ESM starts the line.
+    const fence = /^[ \t]*$/.test(indent) ? this.fenceEnd() : undefined;
+    const esm = indent === '' ? this.esmEnd() : undefined;
+    return fence ?? esm ?? this.inlineCodeEnd();
   }
 
-  /** A fenced code block's end: past its closing fence's line. */
+  /** A fenced code block's end: past its closing fence's line, indented or not. */
   private fenceEnd(): number | undefined {
     const fence = /^(```|~~~)/.exec(this.code.slice(this.i, this.i + 3))?.[1];
     if (!fence) return undefined;
-    const close = this.code.indexOf(`\n${fence}`, this.i + 3);
+    const closing = new RegExp(`\\n[ \\t]*${fence}`, 'g');
+    closing.lastIndex = this.i + 3;
+    const close = closing.exec(this.code)?.index ?? -1;
     const lineEnd = close === -1 ? -1 : this.code.indexOf('\n', close + 1);
     return lineEnd === -1 ? this.code.length : lineEnd;
   }
