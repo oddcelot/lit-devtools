@@ -253,6 +253,33 @@ html`<input .value="x" title=${t}">`;
   stray `"`, `'` or `}` next to the expression, or `/` next to an unquoted
   one; Polymer's `name$=`.
 
+### Component declarations
+
+What a component declares is checked in its own file:
+
+```ts
+@customElement('xbutton')
+//             ^^^^^^^^^ invalid-name: `xbutton` needs a hyphen, so `customElements.define` throws.
+class XButton extends LitElement {
+  @property({attribute: 'maxValue'}) max = 1;
+  //                    ^^^^^^^^^^ invalid-name: HTML lowercases attribute names, so `maxValue` never sets the property
+  //                                 ^^^ property-type: `max` is a number, but without `type: Number` Lit reads its attribute as a string
+  @state() open = false;
+  // property-visibility (off by default): `@state()` is internal, but `open` is public
+}
+```
+
+- `invalid-name`, an error: a tag `customElements.define` refuses (no
+  hyphen, capitals, a reserved name), and an `attribute:` with characters
+  HTML can't write or capitals it lowercases away.
+- `property-type`, a warning: a `type` option that doesn't fit the field's
+  annotation, or its literal initializer, and a number, boolean, array or
+  object without one. A `converter` or `attribute: false` turns it off for
+  the field.
+- `property-visibility`, off unless turned on: `@property()` on a private
+  field, and in TypeScript `@state()` on one that isn't `private` or
+  `protected`.
+
 ### A component missing from HTMLElementTagNameMap
 
 A component a TypeScript file defines, with `@customElement('x-button')` or
@@ -334,6 +361,9 @@ the config file is reported as ignored.
 | `invalid-value`        | `warning` | An attribute value outside its type              |
 | `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`    |
 | `binding-syntax`       | `error`   | A binding written so Lit reads it wrong          |
+| `invalid-name`         | `error`   | A tag or attribute name HTML can't use           |
+| `property-type`        | `warning` | A property's `type` option that doesn't fit      |
+| `property-visibility`  | `off`     | `@property()` on private state, or the reverse   |
 | `css`                  | `warning` | A problem in a `css` template                    |
 
 `manifests`, `entries` and the rule `missing-import` are read and validated
@@ -357,6 +387,9 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/invalid-value`        | An attribute value outside its type              |
 | `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`    |
 | `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong          |
+| `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use           |
+| `lit-devtools/property-type`        | A property's `type` option that doesn't fit      |
+| `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse   |
 | `lit-devtools/css`                  | A problem in a `css` template                    |
 
 Its default export has `configs.recommended`, a config for `extends` in
