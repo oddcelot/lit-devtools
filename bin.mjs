@@ -83,6 +83,53 @@ const printBindingCheck = ({problems, checked, notes, unmapped}, path) => {
   );
 };
 
+/** The `binding-type` rule's severity in the settings of `file`'s package. */
+const bindingSeverity = (workspace, file) =>
+  workspace.configOf(file)?.diagnostics['binding-type'] ?? 'error';
+
+/** Whether a check fails the run: a problem at `error`, or a tsconfig tsc can't read. */
+const failsRun = (severity, {problems, notes}) =>
+  (severity === 'error' && problems.length > 0) || notes.length > 0;
+
+/**
+ * `lit-devtools check`: the check the language server can't make as you
+ * type. Every `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}`
+ * expression, checked by the project's own tsc against what the element
+ * takes. The `binding-type` rule's severity in the package's settings
+ * applies: `off` skips the check, and only `error` fails the run.
+ */
+const bindingCheck = async (root, project) => {
+  const [{createWorkspace}, {checkBindingTypes}, path] = await Promise.all([
+    import('./lib/editor/workspace.js'),
+    import('./lib/editor/type-check-run.js'),
+    import('node:path'),
+  ]);
+  const dir = path.resolve(root);
+  const workspace = await createWorkspace(dir);
+  if (!workspace) {
+    console.error(`[lit-devtools] ${dir} isn't in a package`);
+    process.exit(1);
+  }
+  const severity = bindingSeverity(workspace, path.join(dir, 'package.json'));
+  if (severity === 'off') {
+    await workspace.close();
+    console.log('[lit-devtools] binding-type is off in the settings');
+    return;
+  }
+  let result;
+  try {
+    result = await checkBindingTypes(
+      workspace,
+      dir,
+      path.resolve(dir, project)
+    );
+  } finally {
+    await workspace.close();
+  }
+  printBindingCheck(result, path);
+  if (failsRun(severity, result)) process.exitCode = 1;
+};
+
 const main = async () => {
   const {default: cac} = await requirePeer('cac', 'cac');
   const cli = cac('lit-devtools');
@@ -263,36 +310,9 @@ const main = async () => {
         default: 'tsconfig.json',
       }
     )
-    .action(async (root = '.', flags) => {
-      // The check the language server can't make as you type: every
-      // `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}` expression
-      // checked by the project's own tsc, against what the element takes.
-      const [{createWorkspace}, {checkBindingTypes}, path] = await Promise.all([
-        import('./lib/editor/workspace.js'),
-        import('./lib/editor/type-check-run.js'),
-        import('node:path'),
-      ]);
-      const dir = path.resolve(String(root));
-      const workspace = await createWorkspace(dir);
-      if (!workspace) {
-        console.error(`[lit-devtools] ${dir} isn't in a package`);
-        process.exit(1);
-      }
-      let result;
-      try {
-        result = await checkBindingTypes(
-          workspace,
-          dir,
-          path.resolve(dir, String(flags.project))
-        );
-      } finally {
-        await workspace.close();
-      }
-      printBindingCheck(result, path);
-      if (result.problems.length > 0 || result.notes.length > 0) {
-        process.exitCode = 1;
-      }
-    });
+    .action((root = '.', flags) =>
+      bindingCheck(String(root), String(flags.project))
+    );
 
   cli
     .command('mcp', 'Start a stdio MCP server proxying running dev servers')
