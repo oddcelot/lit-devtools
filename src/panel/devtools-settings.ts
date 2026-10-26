@@ -414,7 +414,6 @@ export class DevtoolsSettings extends LitElement {
   private _pill(on: boolean) {
     return html`<lit-badge
       class="pill ${on ? 'on' : ''}"
-      size="s"
       variant=${on ? 'success' : 'neutral'}
       >${on ? 'enabled' : 'disabled'}</lit-badge
     >`;
@@ -456,7 +455,7 @@ export class DevtoolsSettings extends LitElement {
     const {override} = row;
     if (!override) {
       return row.origin && row.origin !== 'default'
-        ? html`<lit-badge class="env src" size="s" variant="neutral"
+        ? html`<lit-badge class="env src" variant="neutral"
             >(${row.origin})</lit-badge
           >`
         : nothing;
@@ -464,7 +463,7 @@ export class DevtoolsSettings extends LitElement {
     const key = row.key as OverridableKey;
     const src = override.source;
     const s = this._settings;
-    return html`<lit-badge class="env src ovr" size="s" variant="brand"
+    return html`<lit-badge class="env src ovr" variant="brand"
         >${src}: ${override.baseline}</lit-badge
       >
       <lit-icon-button
