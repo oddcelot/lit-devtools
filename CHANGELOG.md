@@ -9,6 +9,27 @@ release is organised by part. The VS Code extension also keeps a changelog of
 its own versions. Versions before 0.3.0 predate this file; see the git
 history for those.
 
+## 0.24.1 — 2026-10-26
+
+From this release the language server and the Oxlint plugin share the
+plugin's version, so `@oddsquad/lit-language-server` and
+`@oddsquad/oxlint-plugin-lit` move from 0.2.0 and 0.1.0 to 0.24.1, released
+together with `@oddsquad/vite-plugin-lit` and `@oddsquad/lit-devtools`. A
+hover names a component's file relative to your project, and the docs moved
+to lit-devtools.oddsquad.dev. Nothing needs action to upgrade.
+
+### Editors & language server
+
+- **Fixed** — **Hovers name a component's file relative to your project.** A
+  tag's hover shows `src/x-button.ts` instead of the file's full path on
+  disk.
+
+### Docs & examples
+
+- **Changed** — **The docs live at lit-devtools.oddsquad.dev.** Links to
+  vite-plugin-lit.oddsquad.dev keep working: they redirect to the same page
+  on the new address.
+
 ## 0.24.0 — 2026-10-25
 
 Your components now describe themselves: the plugin writes a Custom Elements

@@ -1,6 +1,6 @@
 {
   "name": "@oddsquad/lit-language-server",
-  "version": "0.24.0",
+  "version": "0.24.1",
   "description": "Completion, hover and diagnostics for Lit components in VS Code, Zed and any LSP editor, read from your sources and your dependencies' Custom Elements Manifests.",
   "keywords": [
     "lit",
