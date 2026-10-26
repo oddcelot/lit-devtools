@@ -205,6 +205,11 @@ then, or when `tsc` can't read the tsconfig.
   `node_modules/.cache/lit-check`, each binding's expression wrapped in a
   call that takes what the binding does, and runs `tsc` with a tsconfig
   extending yours. Errors your sources already have are left to `tsc`.
+- **Attributes.** A plain attribute takes text: a string, number or
+  bigint, never `null`, `undefined`, a boolean or an object. On a component,
+  an attribute whose property is a union of string literals takes only
+  those: `size=${this.name}` is reported when `name` is any `string` and
+  `size` is `'small' | 'large'`.
 - **What it skips.** A value that mixes text and expressions,
   `class="a ${b}"`, is text. A call to a directive, `live(x)` or anything
   imported from a module whose name says `directive`, isn't checked,
