@@ -1,0 +1,136 @@
+---
+title: Template checkers compared
+description: How the Lit language server's checks compare with lit-analyzer and lit-plugin, rule by rule, and how to move a project from one to the other.
+sidebar:
+  order: 5
+---
+
+import {CardGrid, LinkCard} from '@astrojs/starlight/components';
+
+Choose what checks your Lit templates, by what each tool reports, when it
+reports it and where it runs. Skip this page if you only want to set up the
+[language server](/guides/language-server/).
+
+[lit-analyzer][analyzer] is the checker most Lit projects know: a CLI, a
+TypeScript plugin (`ts-lit-plugin`) and a VS Code extension (`lit-plugin`)
+over one set of rules. The facts about it come from its own documentation
+and source, as of October 2026, when its latest release on npm was 2.0.3,
+from January 2024. Follow the links for its current state.
+
+## At a glance
+
+<div class="ours-first">
+
+|                               | Lit DevTools                                                    | [lit-analyzer][analyzer]                                |
+| ----------------------------- | --------------------------------------------------------------- | ------------------------------------------------------- |
+| Runs as                       | A language server, an Oxlint plugin and `lit-devtools check`    | A TypeScript plugin, a VS Code extension and a CLI      |
+| Editors                       | VS Code and Zed; any editor that speaks LSP                     | VS Code; any editor that loads TypeScript plugins       |
+| Type-checks every binding     | When you save, and in `lit-devtools check`                      | As you type, and in the CLI                             |
+| As you type                   | Literal values, names, syntax, directives, declarations         | Everything, types included                              |
+| A handler against its event   | Yes, `event-type`: the handler's parameter against the `detail` | Only that the listener is callable                      |
+| Templates outside Lit         | Custom elements in JSX, Astro, MDX and HTML files               | Lit templates only                                      |
+| In a lint run                 | Oxlint rules, with fixes                                        | The CLI                                                 |
+| Monorepos                     | Each package with its own settings and tsconfig                 | The TypeScript project it runs in                       |
+| Silence one spot              | `lit-ignore` comments                                           | No comment; turn the rule off                           |
+| Libraries without a manifest  | `manifests`, a path or a URL                                    | `customHtmlData`, in VS Code's HTML data format         |
+| Rules on in a new project     | All but `missing-import` and `property-visibility`              | Type and syntax rules; name rules only in `strict` mode |
+| Completion, hover, navigation | Yes, with each component's docs                                 | Yes                                                     |
+| CSS in `css` templates        | Checked and completed, with your components' parts and props    | Checked                                                 |
+| Status                        | Experimental, released often                                    | Stable; no release since 2024                           |
+
+</div>
+
+[analyzer]: https://github.com/runem/lit-analyzer
+
+## Rule by rule
+
+Most of lit-analyzer's rules have a counterpart. Lit DevTools folds the
+binding type rules into one, `binding-type`, which reports a literal as you
+type and any expression when you save or run `lit-devtools check`.
+
+| lit-analyzer                                                    | Lit DevTools                        |
+| --------------------------------------------------------------- | ----------------------------------- |
+| `no-unknown-tag-name`                                           | `unknown-element`                   |
+| `no-missing-import`                                             | `missing-import`                    |
+| `no-unclosed-tag`                                               | `unclosed-tag`                      |
+| `no-missing-element-type-definition`                            | `missing-element-type`, with a fix  |
+| `no-unknown-attribute`                                          | `unknown-attribute`                 |
+| `no-unknown-property`                                           | `unknown-binding`                   |
+| `no-unknown-event`                                              | None; see below                     |
+| `no-unknown-slot`                                               | `unknown-slot`                      |
+| `no-legacy-attribute`                                           | `binding-syntax`                    |
+| `no-invalid-boolean-binding`, `no-boolean-in-attribute-binding` | `binding-type`                      |
+| `no-complex-attribute-binding`, `no-nullable-attribute-binding` | `binding-type`                      |
+| `no-noncallable-event-binding`, `no-incompatible-type-binding`  | `binding-type`, and `invalid-value` |
+| `no-expressionless-property-binding`                            | `binding-syntax`                    |
+| `no-unintended-mixed-binding`                                   | `binding-syntax`                    |
+| `no-invalid-directive-binding`                                  | `directive-binding`                 |
+| `no-incompatible-property-type`                                 | `property-type`                     |
+| `no-invalid-attribute-name`, `no-invalid-tag-name`              | `invalid-name`                      |
+| `no-property-visibility-mismatch`                               | `property-visibility`               |
+| `no-invalid-css`                                                | `css`                               |
+| None                                                            | `event-type`, `shadowed-member`     |
+
+Where they differ:
+
+- **Events.** lit-analyzer can report an `@event` name no element fires,
+  off by default. Lit DevTools never does, since an element hears every
+  event that bubbles to it. It checks the handler instead: `event-type`
+  reports a handler whose parameter expects a `detail` the event doesn't
+  send.
+- **Slots.** Both report a `slot="…"` the parent doesn't declare.
+  lit-analyzer also reports a child without a `slot` attribute when the
+  parent has no unnamed slot; Lit DevTools doesn't.
+- **Fields that shadow an element's members.** `shadowed-member` reports a
+  `@property()` or `@state()` field named like `after()`, `remove()` or
+  Lit's own `update`, which replaces it. lit-analyzer has no such rule.
+- **Visibility.** lit-analyzer's documentation describes its rule with
+  `@internalProperty`, the name `@state()` had before Lit 2;
+  `property-visibility` checks `@state()`.
+- **Types as you type.** lit-analyzer runs inside TypeScript, so
+  `.size=${this.name}` is underlined while you type it. The language server
+  reads types as text as you type and runs TypeScript when you save; until
+  you save, only literal values are checked.
+
+The [language server reference](/reference/language-server/#problems-it-reports)
+shows each rule with examples.
+
+## Move a project from lit-analyzer
+
+1. Install `@oddsquad/lit-devtools` and set up the
+   [editor](/guides/language-server/#set-it-up-in-vs-code). In VS Code,
+   disable lit-plugin, or problems and hovers show twice.
+2. Carry your settings over. They go in `litPlugin({languageServer})` in a
+   Vite config, or in a `lit-devtools.config.ts`:
+
+   | lit-analyzer            | Lit DevTools                                      |
+   | ----------------------- | ------------------------------------------------- |
+   | `rules`                 | `diagnostics`, with the rule names above          |
+   | `strict`                | Set each rule in `diagnostics`                    |
+   | `htmlTemplateTags`      | `templateTags`                                    |
+   | `cssTemplateTags`       | `cssTemplateTags`                                 |
+   | `globalTags`            | `ignoreTags`                                      |
+   | `globalAttributes`      | `ignoreAttributes`                                |
+   | `customHtmlData`        | `manifests`, as a Custom Elements Manifest        |
+   | `maxProjectImportDepth` | None; `entries` names modules imported everywhere |
+
+3. Replace the CLI in CI with the Oxlint plugin and `lit-devtools check`, as
+   in [Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint).
+   `lit-devtools check` needs each component in `HTMLElementTagNameMap`;
+   `missing-element-type`'s fix, or `oxlint --fix`, adds the entries.
+4. Remove `ts-lit-plugin` from `compilerOptions.plugins` in your tsconfig.
+
+## Related
+
+<CardGrid>
+  <LinkCard
+    title="Use the language server"
+    description="Set it up in VS Code or Zed, configure it, and check it in CI."
+    href="/guides/language-server/"
+  />
+  <LinkCard
+    title="Language server reference"
+    description="Every rule with examples, and every setting."
+    href="/reference/language-server/"
+  />
+</CardGrid>
