@@ -83,6 +83,10 @@ const printBindingCheck = ({problems, checked, notes, unmapped}, path) => {
   );
 };
 
+/** `--project` as the check's option; without it the check picks the tsconfig. */
+const projectOption = (path, dir, project) =>
+  project === undefined ? {} : {project: path.resolve(dir, String(project))};
+
 /** The `binding-type` rule's severity in the settings of `file`'s package. */
 const bindingSeverity = (workspace, file) =>
   workspace.configOf(file)?.diagnostics['binding-type'] ?? 'error';
@@ -118,9 +122,11 @@ const bindingCheck = async (root, project) => {
   }
   let result;
   try {
-    result = await checkBindingTypes(workspace, dir, {
-      project: path.resolve(dir, project),
-    });
+    result = await checkBindingTypes(
+      workspace,
+      dir,
+      projectOption(path, dir, project)
+    );
   } finally {
     await workspace.close();
   }
@@ -303,14 +309,11 @@ const main = async () => {
     )
     .option(
       '--project <file>',
-      'tsconfig to check with, relative to the root',
-      {
-        default: 'tsconfig.json',
-      }
+      'tsconfig to check with, relative to the root. Defaults to ' +
+        'tsconfig.json, or the config it references that includes the ' +
+        'sources when it only lists references'
     )
-    .action((root = '.', flags) =>
-      bindingCheck(String(root), String(flags.project))
-    );
+    .action((root = '.', flags) => bindingCheck(String(root), flags.project));
 
   cli
     .command('mcp', 'Start a stdio MCP server proxying running dev servers')
