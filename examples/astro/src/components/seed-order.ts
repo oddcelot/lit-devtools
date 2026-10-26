@@ -102,3 +102,9 @@ export class SeedOrder extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'seed-order': SeedOrder;
+  }
+}

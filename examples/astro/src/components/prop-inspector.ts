@@ -120,3 +120,9 @@ export class PropInspector extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'prop-inspector': PropInspector;
+  }
+}

@@ -51,3 +51,9 @@ export class EditMe extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'edit-me': EditMe;
+  }
+}

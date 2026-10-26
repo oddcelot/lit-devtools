@@ -30,3 +30,9 @@ export class HmrVsheetB extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-vsheet-b': HmrVsheetB;
+  }
+}

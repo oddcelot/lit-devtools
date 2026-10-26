@@ -15,3 +15,9 @@ export class SsrThemed extends LitElement {
     return html`<p class="note">Styled by a shared sheet</p>`;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'ssr-themed': SsrThemed;
+  }
+}

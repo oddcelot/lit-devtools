@@ -72,3 +72,9 @@ export class HmrVirtualizer extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-virtualizer': HmrVirtualizer;
+  }
+}

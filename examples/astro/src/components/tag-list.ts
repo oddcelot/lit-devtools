@@ -47,3 +47,9 @@ export class TagList extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tag-list': TagList;
+  }
+}

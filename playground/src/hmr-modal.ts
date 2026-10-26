@@ -129,3 +129,9 @@ export class HmrModal extends LitElement {
     this.discardChild = (e.target as HTMLInputElement).checked;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-modal': HmrModal;
+  }
+}

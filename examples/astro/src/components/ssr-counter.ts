@@ -50,3 +50,9 @@ export class SsrCounter extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'ssr-counter': SsrCounter;
+  }
+}

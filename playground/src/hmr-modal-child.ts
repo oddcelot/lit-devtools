@@ -51,3 +51,9 @@ export class HmrModalChild extends LitElement {
     this.count++;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-modal-child': HmrModalChild;
+  }
+}

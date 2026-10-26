@@ -44,3 +44,9 @@ export class TaskItem extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'task-item': TaskItem;
+  }
+}

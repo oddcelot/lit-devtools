@@ -46,3 +46,9 @@ export class HmrLinkedCss extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-linked-css': HmrLinkedCss;
+  }
+}

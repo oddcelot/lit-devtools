@@ -96,3 +96,9 @@ export class HmrDigitalClock extends SignalWatcher(LitElement) {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-digital-clock': HmrDigitalClock;
+  }
+}

@@ -89,3 +89,15 @@ export class HmrProbe extends LitElement {
     return this.observerFired;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-probe-sibling': HmrProbeSibling;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-probe': HmrProbe;
+  }
+}

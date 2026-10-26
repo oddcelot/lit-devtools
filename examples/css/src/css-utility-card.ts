@@ -46,3 +46,9 @@ export class CssUtilityCard extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'css-utility-card': CssUtilityCard;
+  }
+}

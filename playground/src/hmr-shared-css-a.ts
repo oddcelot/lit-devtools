@@ -37,3 +37,9 @@ export class HmrSharedCssA extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-shared-css-a': HmrSharedCssA;
+  }
+}

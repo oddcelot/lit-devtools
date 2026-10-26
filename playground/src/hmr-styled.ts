@@ -56,3 +56,9 @@ export class HmrStyled extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-styled': HmrStyled;
+  }
+}

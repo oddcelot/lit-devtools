@@ -62,3 +62,9 @@ export class IslandProbe extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'island-probe': IslandProbe;
+  }
+}

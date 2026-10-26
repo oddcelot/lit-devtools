@@ -264,3 +264,9 @@ export class SsrDeferred extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'ssr-deferred': SsrDeferred;
+  }
+}

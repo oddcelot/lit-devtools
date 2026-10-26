@@ -52,5 +52,7 @@ export class HmrUndefined extends LitElement {
 declare global {
   interface HTMLElementTagNameMap {
     'hmr-undefined': HmrUndefined;
+    // Defined from an anonymous class when the button is pressed.
+    'hmr-not-defined': HTMLElement;
   }
 }

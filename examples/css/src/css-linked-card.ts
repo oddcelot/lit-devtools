@@ -38,3 +38,9 @@ export class CssLinkedCard extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'css-linked-card': CssLinkedCard;
+  }
+}

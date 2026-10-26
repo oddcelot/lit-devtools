@@ -35,3 +35,9 @@ export class TwProfileCard extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tw-profile-card': TwProfileCard;
+  }
+}
