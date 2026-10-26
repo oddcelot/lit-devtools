@@ -39,14 +39,25 @@ describe('shadowSource', () => {
     expect(wrapAt(shadow.wraps, code.indexOf('n}'))?.name).toBe('n');
   });
 
-  test('calls to directives are left alone', async () => {
+  test('calls to directives are left alone, but live and ifDefined pass their value on', async () => {
     const code = `
       import {live} from 'lit/directives/live.js';
+      import {ifDefined as defined} from 'lit/directives/if-defined.js';
+      import {classMap} from 'lit/directives/class-map.js';
       const mine = directive(Mine);
-      html\`<input .value=\${live(v)} .x=\${mine(1)} .y=\${format(v)}>\`;
+      html\`<input .value=\${live(v)} .x=\${mine(1)} .y=\${format(v)}
+        class=\${classMap(c)} title=\${defined(t)} .z=\${defined(t)}>\`;
     `;
     const shadow = (await shadowOf(code))!;
-    expect(shadow.wraps.map((wrap) => wrap.name)).toEqual(['y']);
+    expect(shadow.wraps.map((wrap) => wrap.name)).toEqual([
+      'value',
+      'y',
+      'title',
+    ]);
+    expect(shadow.text).toContain(
+      ".value=${live(__litProp<'input', 'value'>((v)))}"
+    );
+    expect(shadow.text).toContain('title=${defined(__litAttrMaybe((t)))}');
   });
 
   test('nothing to check, no copy', async () => {

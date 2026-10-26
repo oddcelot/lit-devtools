@@ -42,6 +42,7 @@ describe('loadLanguageServerConfig', () => {
         'missing-element-type': 'warning',
         'unclosed-tag': 'warning',
         'binding-syntax': 'error',
+        'directive-binding': 'error',
         'invalid-name': 'error',
         'property-type': 'warning',
         'property-visibility': 'off',

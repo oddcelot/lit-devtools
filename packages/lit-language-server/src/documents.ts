@@ -20,6 +20,7 @@ import {elementDefinitionProblems} from '../../../src/lib/editor/element-definit
 import {propertyDefinitionProblems} from '../../../src/lib/editor/property-definitions.js';
 import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
+import {directiveBindingProblems} from '../../../src/lib/editor/directive-bindings.js';
 import {suppressionsOf} from '../../../src/lib/editor/suppressions.js';
 import {
   type Problem,
@@ -138,6 +139,7 @@ const allProblems = async (
   ...propertyDefinitionProblems(request),
   ...(await unknownNameProblems(source, request)),
   ...templateSyntaxProblems(request),
+  ...directiveBindingProblems(request),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),
