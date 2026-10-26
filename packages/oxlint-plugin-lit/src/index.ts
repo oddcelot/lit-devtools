@@ -116,6 +116,7 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'missing-element-type': 'A component missing from HTMLElementTagNameMap.',
   'unclosed-tag': 'A component never closed, or closed with />.',
   'binding-syntax': 'A binding written so Lit reads it wrong.',
+  'directive-binding': "A Lit directive where Lit can't apply it.",
   'invalid-name': "A tag or attribute name HTML can't use.",
   'property-type': "A property's type option that doesn't fit its type.",
   'property-visibility':
