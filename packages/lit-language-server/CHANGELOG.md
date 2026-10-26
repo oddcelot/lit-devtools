@@ -1,8 +1,9 @@
 # Changelog
 
-All notable changes to `@oddsquad/lit-language-server`, on its own versions.
-The Vite plugin's changes are in the repository's
-[CHANGELOG.md](../../CHANGELOG.md).
+Changes to `@oddsquad/lit-language-server` up to 0.2.0, when it had its own
+versions. From 0.25.0 it releases with Lit DevTools at one version, and its
+changes are in the repository's [CHANGELOG.md](../../CHANGELOG.md), under
+Editors & language server.
 
 ## 0.2.0 — 2026-10-25
 

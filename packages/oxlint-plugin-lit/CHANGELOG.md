@@ -1,9 +1,9 @@
 # Changelog
 
-All notable changes to `@oddsquad/oxlint-plugin-lit`, on its own versions.
-The language server's are in
-[its CHANGELOG.md](../lit-language-server/CHANGELOG.md), and the Vite
-plugin's in the repository's [CHANGELOG.md](../../CHANGELOG.md).
+Changes to `@oddsquad/oxlint-plugin-lit` up to 0.1.0, when it had its own
+versions. From 0.25.0 it releases with Lit DevTools at one version, and its
+changes are in the repository's [CHANGELOG.md](../../CHANGELOG.md), under
+Lint rules.
 
 ## 0.1.0 — 2026-10-25
 

@@ -69,8 +69,8 @@ filter_unconventional = false
 # Only commits that opted in with a trailer reach the draft. The commit-msg
 # hook makes sure every non-merge commit opted in one way or the other.
 filter_commits = true
-# Anchored: the language server's, the Oxlint plugin's and the editors' own
-# tags (`lit-language-server-v*`, `vscode-v*`, …) are not these releases.
+# Anchored: the editors' own tags (`vscode-v*`, `zed-v*`), and the language
+# server's and the Oxlint plugin's from before 0.25.0, are not these releases.
 tag_pattern = "^v[0-9]"
 commit_preprocessors = [
   # A folded trailer: keep only its kind, part and entry lines, so the
