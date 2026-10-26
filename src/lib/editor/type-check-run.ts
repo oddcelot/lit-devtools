@@ -11,7 +11,7 @@
  */
 
 import {spawn} from 'node:child_process';
-import {realpathSync} from 'node:fs';
+import {existsSync, realpathSync} from 'node:fs';
 import {mkdir, readFile, readdir, rm, writeFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import path from 'node:path';
@@ -33,6 +33,9 @@ import type {Workspace} from './workspace.js';
 
 export interface BindingTypeProblem {
   file: string;
+  /** The binding's expression, as offsets into the source. */
+  start: number;
+  end: number;
   /** 1-based. */
   line: number;
   column: number;
@@ -52,7 +55,16 @@ export interface BindingTypeCheck {
   unmapped: string[];
 }
 
-const CACHE = path.join('node_modules', '.cache', 'lit-check');
+const CACHE = path.join('node_modules', '.cache');
+
+export interface CheckOptions {
+  /** The tsconfig, `tsconfig.json` in the package by default. */
+  project?: string;
+  /** Check these scripts only; every one of the package's by default. */
+  only?: readonly string[];
+  /** The folder under `node_modules/.cache` the copies go in. */
+  cache?: string;
+}
 
 const SCRIPT_RE = /\.[cm]?[jt]sx?$/;
 
@@ -127,7 +139,9 @@ const scriptsOf = async (
           !path.relative(root, file).startsWith('..') &&
           SCRIPT_RE.test(file) &&
           !/\.d\.[cm]?ts$/.test(file) &&
-          !file.includes(`${path.sep}node_modules${path.sep}`)
+          !file.includes(`${path.sep}node_modules${path.sep}`) &&
+          // An editor's unsaved new file is read, but tsc can't open it.
+          existsSync(file)
       )
     ),
   ];
@@ -189,12 +203,12 @@ const tagsFileText = (tags: string[]): string =>
   ].join('\n');
 
 const writeCopies = async (
+  cache: string,
   root: string,
   project: string,
   scripts: string[],
   copies: Copy[]
 ): Promise<string> => {
-  const cache = path.join(root, CACHE);
   await rm(cache, {recursive: true, force: true});
   // `files` here drops the project's `include`, so the scripts are listed
   // too: their own errors are told apart from the copies', and every
@@ -232,11 +246,11 @@ const keyOf = (file: string, offset: number, code: number) =>
 
 /** The binding problems in what `tsc` reported, at their place in the sources. */
 const problemsIn = (
+  cache: string,
   root: string,
   copies: Copy[],
   diagnostics: TscDiagnostic[]
 ): BindingTypeProblem[] => {
-  const cache = path.join(root, CACHE);
   const bySource = new Map(copies.map((copy) => [copy.source, copy]));
   const byCopy = new Map(
     copies.map((copy) => [
@@ -265,6 +279,8 @@ const problemsIn = (
     if (copy.suppressed({rule: 'binding-type', start: wrap.start})) continue;
     problems.push({
       file: source,
+      start: wrap.start,
+      end: wrap.end,
       ...positionAt(code, offset),
       message: bindingMessage(wrap, d),
     });
@@ -279,25 +295,31 @@ const problemsIn = (
 export const checkBindingTypes = async (
   workspace: Workspace,
   dir: string,
-  project = path.join(dir, 'tsconfig.json')
+  options: CheckOptions = {}
 ): Promise<BindingTypeCheck> => {
   // The workspace names files by their real path (`/private/tmp` on macOS).
   const root = realpathSync(dir);
+  const project = options.project ?? path.join(root, 'tsconfig.json');
+  const cache = path.join(root, CACHE, options.cache ?? 'lit-check');
   const scripts = await scriptsOf(workspace, root);
-  const copies = await shadowCopies(workspace, scripts);
+  const only = options.only?.map((file) => realpathSync(file));
+  const copies = await shadowCopies(
+    workspace,
+    only ? scripts.filter((script) => only.includes(script)) : scripts
+  );
   if (copies.length === 0) {
     return {problems: [], checked: 0, notes: [], unmapped: []};
   }
-  const config = await writeCopies(root, project, scripts, copies);
+  const config = await writeCopies(cache, root, project, scripts, copies);
   const output = await runTsc(root, config);
   const notes = output
     .split(/\r?\n/)
     .filter((line) => /^error TS\d+:/.test(line));
   const diagnostics = parseTscOutput(output);
   const tags = usedTags(copies);
-  const tagsFile = path.join(root, CACHE, TAGS_FILE);
+  const tagsFile = path.join(cache, TAGS_FILE);
   return {
-    problems: problemsIn(root, copies, diagnostics),
+    problems: problemsIn(cache, root, copies, diagnostics),
     checked: copies.length,
     notes,
     unmapped: diagnostics
