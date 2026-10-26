@@ -194,7 +194,10 @@ It exits 1 when it finds a problem, or when `tsc` can't read the tsconfig.
 
 - **What it needs.** `typescript` installed in the project, 5 or 7, and
   each component in `HTMLElementTagNameMap`, which is where it reads what
-  an element takes. An element missing there accepts anything.
+  an element takes. An element missing there accepts any property; the
+  command names the ones it found, and the editor's
+  [`missing-element-type`](/reference/language-server/#a-component-missing-from-htmlelementtagnamemap)
+  rule adds the entry for you.
 - **How.** It writes a copy of each script to
   `node_modules/.cache/lit-check`, each binding's expression wrapped in a
   call that takes what the binding does, and runs `tsc` with a tsconfig

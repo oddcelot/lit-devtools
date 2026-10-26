@@ -3,6 +3,7 @@ import {execFile} from 'node:child_process';
 import {
   mkdir,
   mkdtemp,
+  readFile,
   realpath,
   rm,
   symlink,
@@ -153,5 +154,22 @@ test('reports the server’s problems under its rules, and fails the run', async
       filename: 'src/app.ts',
       message: expect.stringContaining('`detail.thing` is missing'),
     },
+    {
+      code: 'lit-devtools(missing-element-type)',
+      severity: 'warning',
+      filename: 'src/x-button.ts',
+      message: expect.stringContaining("`x-button` isn't in"),
+    },
   ]);
+});
+
+test('--fix adds the missing HTMLElementTagNameMap entry', async () => {
+  await exec(
+    process.execPath,
+    [join(oxlint, 'bin/oxlint'), '--fix', 'src/x-button.ts'],
+    {cwd: root, env: OUTSIDE_VP}
+  );
+  expect(await readFile(join(root, 'src/x-button.ts'), 'utf8')).toContain(
+    "interface HTMLElementTagNameMap {\n    'x-button': XButton;\n  }"
+  );
 });

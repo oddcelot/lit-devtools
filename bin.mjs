@@ -65,8 +65,14 @@ const requirePeer = async (specifier, hint) => {
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
 /** What `lit-devtools check` found, one problem a line, as `file:line:column`. */
-const printBindingCheck = ({problems, checked, notes}, path) => {
+const printBindingCheck = ({problems, checked, notes, unmapped}, path) => {
   for (const note of notes) console.error(`[lit-devtools] ${note}`);
+  if (unmapped.length > 0) {
+    console.log(
+      `[lit-devtools] not in HTMLElementTagNameMap, so their properties ` +
+        `weren't checked: ${unmapped.join(', ')}`
+    );
+  }
   for (const {file, line, column, message} of problems) {
     const at = `${path.relative(process.cwd(), file)}:${line}:${column}`;
     console.log(`${at}  ${message}  binding-type`);

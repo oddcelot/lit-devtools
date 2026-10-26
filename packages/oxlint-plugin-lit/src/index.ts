@@ -96,7 +96,12 @@ interface RuleContext {
       start: {line: number; column: number};
       end: {line: number; column: number};
     };
+    fix?: (fixer: Fixer) => unknown;
   }): void;
+}
+
+interface Fixer {
+  replaceTextRange(range: [number, number], text: string): unknown;
 }
 
 const DESCRIPTIONS: Record<DiagnosticRule, string> = {
@@ -107,12 +112,23 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'missing-import': "An element whose definition the page doesn't import.",
   'event-type': "An event handler whose parameter type doesn't fit the event.",
   'binding-type': "A binding whose literal value doesn't fit what it sets.",
+  'missing-element-type': 'A component missing from HTMLElementTagNameMap.',
   css: 'A problem in a css template.',
 };
+
+/** A problem's quick fix, for `oxlint --fix`. */
+const fixOf = ({fix}: Problem) =>
+  fix
+    ? {
+        fix: (fixer: Fixer) =>
+          fixer.replaceTextRange([fix.start, fix.end], fix.newText),
+      }
+    : {};
 
 const ruleFor = (rule: DiagnosticRule) => ({
   meta: {
     type: 'problem' as const,
+    fixable: 'code' as const,
     docs: {
       description: DESCRIPTIONS[rule],
       url: 'https://lit-devtools.oddsquad.dev/guides/language-server/',
@@ -131,6 +147,7 @@ const ruleFor = (rule: DiagnosticRule) => ({
               start: context.sourceCode.getLocFromIndex(problem.start),
               end: context.sourceCode.getLocFromIndex(problem.end),
             },
+            ...fixOf(problem),
           });
         }
       },

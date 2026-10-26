@@ -134,7 +134,8 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
         name = 'x';
         render() {
           return html\`<x-button .size=\${this.name} title=\${this.missing}
-            @click=\${(e: MouseEvent) => e}></x-button>\`;
+            @click=\${(e: MouseEvent) => e}></x-button>
+            <x-plain .anything=\${1}></x-plain>\`;
         }
       }
     `,
@@ -162,6 +163,7 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
     try {
       const result = await checkBindingTypes(workspace, root);
       expect(result.notes).toEqual([]);
+      expect(result.unmapped).toEqual(['x-plain']);
       expect(
         result.problems.map(({file, line, message}) => ({
           file: file.slice(file.lastIndexOf('/src/') + 1),

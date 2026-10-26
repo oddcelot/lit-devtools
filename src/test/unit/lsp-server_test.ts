@@ -452,6 +452,55 @@ describe('the language server', () => {
     ]);
   });
 
+  test('offers to add a component missing from HTMLElementTagNameMap', async () => {
+    const uri = pathToFileURL(join(root, 'src/x-unmapped.ts')).href;
+    const text = [
+      "import {LitElement} from 'lit';",
+      "@customElement('x-unmapped')",
+      'export class XUnmapped extends LitElement {}',
+      '',
+    ].join('\n');
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    const published = await client.waitFor(
+      (n) =>
+        n.method === 'textDocument/publishDiagnostics' &&
+        n.params.uri === uri &&
+        n.params.diagnostics.length > 0
+    );
+    const [diagnostic] = published.params.diagnostics;
+    expect(diagnostic).toMatchObject({
+      range: rangeOf(text, "'x-unmapped'"),
+      severity: 2,
+      code: 'missing-element-type',
+    });
+    const actions = await client.request('textDocument/codeAction', {
+      textDocument: {uri},
+      range: diagnostic.range,
+      context: {diagnostics: [diagnostic]},
+    });
+    expect(actions).toEqual([
+      expect.objectContaining({
+        title: "Add 'x-unmapped' to HTMLElementTagNameMap",
+        edit: {
+          changes: {
+            [uri]: [
+              {
+                range: {
+                  start: {line: 3, character: 0},
+                  end: {line: 3, character: 0},
+                },
+                newText:
+                  "\ndeclare global {\n  interface HTMLElementTagNameMap {\n    'x-unmapped': XUnmapped;\n  }\n}\n",
+              },
+            ],
+          },
+        },
+      }),
+    ]);
+  });
+
   test('answers CSS in css templates: completion, hover, problems', async () => {
     const uri = pathToFileURL(join(root, 'src/styles.ts')).href;
     const lines = [

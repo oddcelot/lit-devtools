@@ -16,6 +16,7 @@ import {
 } from '../../../src/lib/editor/html-data.js';
 import {svgData} from '../../../src/lib/editor/svg-data.js';
 import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
+import {missingElementTypeProblems} from '../../../src/lib/editor/element-definitions.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -81,6 +82,7 @@ export const documentProblems = async (
 ): Promise<Problem[]> => [
   ...(await eventTypeProblems(source, request)),
   ...(await bindingLiteralProblems(source, request)),
+  ...missingElementTypeProblems(request),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),

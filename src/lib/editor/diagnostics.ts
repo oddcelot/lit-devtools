@@ -21,6 +21,8 @@ export interface Problem {
   start: number;
   end: number;
   message: string;
+  /** A quick fix: one edit, at offsets into the document. */
+  fix?: {title: string; start: number; end: number; newText: string};
 }
 
 /** The text of a function's first parameter's type annotation. */
