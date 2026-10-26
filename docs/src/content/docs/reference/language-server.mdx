@@ -293,6 +293,27 @@ class XButton extends LitElement {
   field, and in TypeScript `@state()` on one that isn't `private` or
   `protected`.
 
+### Imports
+
+`missing-import`, off unless turned on: a component used in a template whose
+definition the file doesn't import, directly or through the modules it
+imports, so the tag may be undefined when it renders.
+
+```ts
+import {html} from 'lit';
+html`<x-button></x-button>`;
+//     ^^^^^^^^ `<x-button>` is defined in `x-button.ts`, which this file doesn't import.
+```
+
+- A component from source counts as imported when its module is in the
+  file's imports; one from a package's manifest when the file imports that
+  package.
+- An app whose entry imports every component lists it in `entries`, and
+  what the entries import counts too.
+- The quick fix imports the defining module, written like the file's other
+  imports.
+- It reads the import graph on every change, so it's skipped while it's off.
+
 ### A component missing from HTMLElementTagNameMap
 
 A component a TypeScript file defines, with `@customElement('x-button')` or
@@ -380,16 +401,17 @@ Set them in `litPlugin({languageServer})` in a Vite config, or as
 without one. When both exist, the Vite config's settings win as a whole and
 the config file is reported as ignored.
 
-| Setting            | Default                                        | Meaning                                                               |
-| ------------------ | ---------------------------------------------- | --------------------------------------------------------------------- |
-| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package              |
-| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs        |
-| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards                   |
-| `ignoreAttributes` | `[]`                                           | Attributes and properties accepted on any element, with `*` wildcards |
-| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off`     |
-| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                                  |
-| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                     |
-| `checkOnSave`      | `true`                                         | Type-check a script's bindings with your TypeScript when it's saved   |
+| Setting            | Default                                        | Meaning                                                                   |
+| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package                  |
+| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs            |
+| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards                       |
+| `ignoreAttributes` | `[]`                                           | Attributes and properties accepted on any element, with `*` wildcards     |
+| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off`         |
+| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                                      |
+| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                         |
+| `checkOnSave`      | `true`                                         | Type-check a script's bindings with your TypeScript when it's saved       |
+| `entries`          | `[]`                                           | Modules whose imports count for `missing-import`, relative to the package |
 
 | Rule                   | Default   | Reports                                          |
 | ---------------------- | --------- | ------------------------------------------------ |
@@ -407,10 +429,8 @@ the config file is reported as ignored.
 | `invalid-name`         | `error`   | A tag or attribute name HTML can't use           |
 | `property-type`        | `warning` | A property's `type` option that doesn't fit      |
 | `property-visibility`  | `off`     | `@property()` on private state, or the reverse   |
+| `missing-import`       | `off`     | A component the file never imports               |
 | `css`                  | `warning` | A problem in a `css` template                    |
-
-`entries` and the rule `missing-import` are read and validated but not acted
-on yet.
 
 A `manifests` entry is read before the dependencies' own: a path, relative
 to the package, re-read when it changes, or a URL, fetched once. A URL that
@@ -439,6 +459,7 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use           |
 | `lit-devtools/property-type`        | A property's `type` option that doesn't fit      |
 | `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse   |
+| `lit-devtools/missing-import`       | A component the file never imports               |
 | `lit-devtools/css`                  | A problem in a `css` template                    |
 
 Its default export has `configs.recommended`, a config for `extends` in
@@ -447,9 +468,7 @@ default severity from the table above (`warning` becomes `warn`). Without
 it, the rules are off until turned on in Oxlint's `rules`. Either way
 Oxlint's config sets their severity; the `diagnostics` setting applies to
 the editor only. The other settings are read as above. `// oxlint-disable`
-comments silence them. The plugin also registers
-`lit-devtools/missing-import`, which reports nothing yet. It reads JavaScript and
-TypeScript files only.
+comments silence them. It reads JavaScript and TypeScript files only.
 [Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint)
 sets it up.
 

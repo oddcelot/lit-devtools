@@ -6,6 +6,7 @@
 
 import {pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
+import type {DiagnosticRule} from '../../../src/lib/editor/config.js';
 import type {Problem} from '../../../src/lib/editor/diagnostics.js';
 import {kindOfFile} from '../../../src/lib/editor/navigation.js';
 import {findWorkspace} from '../../../src/lib/editor/workspace-packages.js';
@@ -24,7 +25,11 @@ export type {Problem};
 
 export interface Checker {
   /** The problems in `file`, whose text is `code`; none outside a workspace. */
-  check(file: string, code: string): Promise<Problem[]>;
+  check(
+    file: string,
+    code: string,
+    rulesOff?: readonly DiagnosticRule[]
+  ): Promise<Problem[]>;
   close(): Promise<void>;
 }
 
@@ -43,7 +48,7 @@ export const createChecker = (): Checker => {
   };
 
   return {
-    async check(file, code) {
+    async check(file, code, rulesOff) {
       const workspace = await workspaceOf(file);
       if (!workspace) return [];
       const kind = kindOfFile(file);
@@ -60,6 +65,7 @@ export const createChecker = (): Checker => {
             templateTags: config?.templateTags,
             ignoreTags: config?.ignoreTags,
             ignoreAttributes: config?.ignoreAttributes,
+            ...(rulesOff ? {rulesOff} : {}),
           },
           document,
           cssTagsFor(kind, config)

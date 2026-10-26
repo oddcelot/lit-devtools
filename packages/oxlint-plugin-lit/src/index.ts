@@ -33,6 +33,8 @@ import type {Problem} from '../../../src/lib/editor/diagnostics.js';
 export interface CheckMessage {
   file: string;
   code: string;
+  /** The rules Oxlint's config leaves off, which a costly check skips. */
+  rulesOff: DiagnosticRule[];
   port: MessagePort;
   /** Set to 1 and notified once the answer is on the port. */
   signal: Int32Array;
@@ -42,6 +44,9 @@ export interface CheckMessage {
 const TIMEOUT_MS = 120_000;
 
 let worker: Worker | undefined;
+
+/** The rules Oxlint has created: those its config turns on. */
+const enabled = new Set<DiagnosticRule>();
 
 const workerOf = (): Worker => {
   if (!worker) {
@@ -57,7 +62,8 @@ type Answer = {problems: Problem[]} | {error: string};
 const askWorker = (file: string, code: string): Answer | undefined => {
   const signal = new Int32Array(new SharedArrayBuffer(4));
   const {port1, port2} = new MessageChannel();
-  const message: CheckMessage = {file, code, port: port2, signal};
+  const rulesOff = DIAGNOSTIC_RULES.filter((rule) => !enabled.has(rule));
+  const message: CheckMessage = {file, code, rulesOff, port: port2, signal};
   workerOf().postMessage(message, [port2]);
   Atomics.wait(signal, 0, 0, TIMEOUT_MS);
   const answer = receiveMessageOnPort(port1)?.message as Answer | undefined;
@@ -144,6 +150,8 @@ const ruleFor = (rule: DiagnosticRule) => ({
     schema: [],
   },
   create(context: RuleContext) {
+    // Oxlint creates only the rules its config turns on.
+    enabled.add(rule);
     return {
       Program() {
         const {text} = context.sourceCode;
