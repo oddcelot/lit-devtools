@@ -312,7 +312,8 @@ html`<x-button></x-button>`;
   what the entries import counts too.
 - The quick fix imports the defining module, written like the file's other
   imports.
-- It reads the import graph on every change, so it's skipped while it's off.
+- It keeps each module's imports until that module changes, so typing
+  re-reads only the file you're in. While the rule is off it doesn't run.
 
 ### A component missing from HTMLElementTagNameMap
 
