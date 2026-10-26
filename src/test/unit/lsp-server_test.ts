@@ -1,5 +1,12 @@
 /// <reference types="node" />
-import {mkdir, mkdtemp, realpath, rm, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  realpath,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 import {PassThrough} from 'node:stream';
@@ -86,6 +93,31 @@ const files: Record<string, string> = {
     }
   `,
   'index.html': '<x-button size="large"></x-button>\n',
+  'tsconfig.json': JSON.stringify({
+    compilerOptions: {
+      target: 'es2022',
+      module: 'esnext',
+      moduleResolution: 'bundler',
+      lib: ['es2022', 'DOM'],
+      experimentalDecorators: true,
+      useDefineForClassFields: false,
+      strict: true,
+      noEmit: true,
+      skipLibCheck: true,
+    },
+    include: ['src'],
+  }),
+  'src/x-typed.ts': `
+    import {LitElement} from 'lit';
+    import {customElement, property} from 'lit/decorators.js';
+    @customElement('x-typed')
+    export class XTyped extends LitElement {
+      @property() size: 'small' | 'large' = 'small';
+    }
+    declare global {
+      interface HTMLElementTagNameMap { 'x-typed': XTyped }
+    }
+  `,
 };
 
 /** The range of the `nth` `needle` in `code`, as LSP positions. */
@@ -104,6 +136,17 @@ beforeAll(async () => {
   for (const [file, code] of Object.entries(files)) {
     await mkdir(dirname(join(root, file)), {recursive: true});
     await writeFile(join(root, file), code);
+  }
+  // What the check on save runs: the repo's TypeScript, over Lit's types.
+  const repo = decodeURIComponent(
+    new URL('../../..', import.meta.url).pathname
+  );
+  await mkdir(join(root, 'node_modules'));
+  for (const dep of ['lit', 'typescript']) {
+    await symlink(
+      join(repo, 'node_modules', dep),
+      join(root, 'node_modules', dep)
+    );
   }
 });
 
@@ -500,6 +543,42 @@ describe('the language server', () => {
       }),
     ]);
   });
+
+  test('type-checks a script’s bindings when it is saved', async () => {
+    const file = join(root, 'src/saved.ts');
+    const uri = pathToFileURL(file).href;
+    const text = [
+      "import {html} from 'lit';",
+      "import './x-typed.js';",
+      'export const view = (name: string) =>',
+      '  html`<x-typed .size=${name}></x-typed>`;',
+      '',
+    ].join('\n');
+    await writeFile(file, text);
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri, languageId: 'typescript', version: 1, text},
+    });
+    client.notify('textDocument/didSave', {textDocument: {uri}});
+    const published = await client.waitFor(
+      (n) =>
+        n.method === 'textDocument/publishDiagnostics' &&
+        n.params.uri === uri &&
+        n.params.diagnostics.some(
+          (d: {code: string}) => d.code === 'binding-type'
+        )
+    );
+    expect(
+      published.params.diagnostics.filter(
+        (d: {code: string}) => d.code === 'binding-type'
+      )
+    ).toEqual([
+      expect.objectContaining({
+        range: rangeOf(text, 'name', 1),
+        severity: 1,
+        message: '`.size` takes `"large" | "small"`, but this is `string`.',
+      }),
+    ]);
+  }, 60_000);
 
   test('answers CSS in css templates: completion, hover, problems', async () => {
     const uri = pathToFileURL(join(root, 'src/styles.ts')).href;

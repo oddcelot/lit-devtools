@@ -56,6 +56,11 @@ export interface LanguageServerConfig {
   templateTags?: string[];
   /** Tags of the CSS templates to read; `css` by default. */
   cssTemplateTags?: string[];
+  /**
+   * Type-check a script's bindings with the project's TypeScript when it's
+   * saved, as `lit-devtools check` does. On by default.
+   */
+  checkOnSave?: boolean;
 }
 
 /** What a `lit-devtools.config.ts` exports by default. */

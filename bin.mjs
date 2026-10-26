@@ -118,11 +118,9 @@ const bindingCheck = async (root, project) => {
   }
   let result;
   try {
-    result = await checkBindingTypes(
-      workspace,
-      dir,
-      path.resolve(dir, project)
-    );
+    result = await checkBindingTypes(workspace, dir, {
+      project: path.resolve(dir, project),
+    });
   } finally {
     await workspace.close();
   }
