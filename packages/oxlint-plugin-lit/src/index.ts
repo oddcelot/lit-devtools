@@ -109,6 +109,7 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'unknown-attribute': "An attribute the element doesn't have.",
   'unknown-binding': "A property binding the component doesn't have.",
   'invalid-value': "A value the attribute or property doesn't take.",
+  'unknown-slot': "A slot the parent component doesn't declare.",
   'missing-import': "An element whose definition the page doesn't import.",
   'event-type': "An event handler whose parameter type doesn't fit the event.",
   'binding-type': "A binding whose literal value doesn't fit what it sets.",

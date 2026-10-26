@@ -25,10 +25,19 @@ const button: ComponentDocs = {
   origin: {manifest: '', module: 'src/x-button.ts', source: true},
 };
 
+const card: ComponentDocs = {
+  ...button,
+  tagName: 'x-card',
+  className: 'XCard',
+  properties: [],
+  attributes: [],
+  slots: [{name: ''}, {name: 'header'}, {name: 'footer'}],
+};
+
 const workspace = {
   get: async (_file: string, tag: string) =>
-    tag === 'x-button' ? button : null,
-  tags: async () => ['x-button'],
+    tag === 'x-button' ? button : tag === 'x-card' ? card : null,
+  tags: async () => ['x-button', 'x-card'],
 } as unknown as Workspace;
 
 const problemsIn = async (
@@ -108,4 +117,28 @@ test('ignored tags and attributes, events and expressions are left alone', async
       {ignoreTags: ['legacy-*'], ignoreAttributes: ['legacy*']}
     )
   ).toEqual([]);
+});
+
+test('a slot the parent component does not declare', async () => {
+  expect(
+    await problemsIn(
+      '<x-card><h2 slot="heder">a</h2><p slot="footer">b</p><div><span slot="x">c</span></div><img slot="side"><x-button slot="any"></x-button></x-card><x-button><i slot="x"></i></x-button>'
+    )
+  ).toEqual([
+    [
+      'unknown-slot',
+      'heder',
+      '`<x-card>` has no slot `heder`. Did you mean `header`?',
+    ],
+    [
+      'unknown-slot',
+      'side',
+      '`<x-card>` has no slot `side`. Its slots: `header`, `footer`.',
+    ],
+    [
+      'unknown-slot',
+      'any',
+      '`<x-card>` has no slot `any`. Its slots: `header`, `footer`.',
+    ],
+  ]);
 });

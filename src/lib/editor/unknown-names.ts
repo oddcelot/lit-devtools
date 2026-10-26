@@ -13,6 +13,8 @@
  *   to it, from code the server can't read.
  * - `invalid-value`: a component's attribute written with a value outside
  *   its type, `size="huge"` where `size` is `'small' | 'large'`.
+ * - `unknown-slot`: a child's `slot="…"` its parent component doesn't
+ *   declare, read only when the component declares slots at all.
  *
  * Only Lit templates are read, where HTML and SVG are known too. What the
  * settings' `ignoreTags` and `ignoreAttributes` match is never reported.
@@ -30,9 +32,11 @@ import {
 import {
   type MarkupAttribute,
   type MarkupElement,
+  type MarkupRegion,
   markupRegions,
   scanMarkup,
 } from './markup.js';
+import {elementParents} from './markup-tree.js';
 
 type Request = Omit<FeatureRequest, 'offset'>;
 
@@ -227,6 +231,61 @@ const problemsOf = async (
   return found.filter((problem) => problem !== undefined);
 };
 
+/** A static `slot="…"` value on an element. */
+const slotValueOf = (element: MarkupElement) => {
+  const value = element.attributes.find(
+    (attribute) => attribute.name === 'slot' && attribute.binding === ''
+  )?.value;
+  return value && !value.expression ? value : undefined;
+};
+
+/** The nearest slot name, else the component's named slots. */
+const slotHint = (name: string, names: string[]): string => {
+  const named = names.filter(Boolean);
+  const listed = named.map((n) => `\`${n}\``).join(', ');
+  return (
+    suggestion(name, named, (n) => `\`${n}\``) ||
+    (named.length > 0
+      ? ` Its slots: ${listed}.`
+      : ' It has only the default slot.')
+  );
+};
+
+/** A `slot="…"` its parent component doesn't declare, when it declares any. */
+const slotProblem = async (
+  {source, request, ignoreTag}: Context,
+  element: MarkupElement,
+  parent: MarkupElement | undefined
+): Promise<Problem | undefined> => {
+  const value = slotValueOf(element);
+  if (!value || !parent?.tag.includes('-') || ignoreTag(parent.tag))
+    return undefined;
+  const docs = await source.get(request.file, parent.tag);
+  const names = (docs?.slots ?? []).map((entry) => entry.name);
+  const name = request.code.slice(value.start, value.end);
+  if (names.length === 0 || names.includes(name)) return undefined;
+  return {
+    rule: 'unknown-slot',
+    start: value.start,
+    end: value.end,
+    message: `\`<${parent.tag}>\` has no slot \`${name}\`.${slotHint(name, names)}`,
+  };
+};
+
+const slotProblems = async (
+  context: Context,
+  regions: MarkupRegion[]
+): Promise<Problem[]> => {
+  const found = await Promise.all(
+    regions.flatMap((region) =>
+      elementParents(context.request.code, region).map(({element, parent}) =>
+        slotProblem(context, element, parent)
+      )
+    )
+  );
+  return found.filter((problem) => problem !== undefined);
+};
+
 /** The unknown names and invalid values in a document's Lit templates. */
 export const unknownNameProblems = async (
   source: DocsSource,
@@ -252,5 +311,5 @@ export const unknownNameProblems = async (
   const problems = await Promise.all(
     elements.map((element) => problemsOf(context, element))
   );
-  return problems.flat();
+  return [...problems.flat(), ...(await slotProblems(context, regions))];
 };

@@ -35,6 +35,7 @@ describe('loadLanguageServerConfig', () => {
         'unknown-attribute': 'warning',
         'unknown-binding': 'warning',
         'invalid-value': 'warning',
+        'unknown-slot': 'warning',
         'missing-import': 'off',
         'event-type': 'error',
         'binding-type': 'error',
