@@ -53,7 +53,14 @@ export const createChecker = (): Checker => {
       try {
         return await documentProblems(
           docsSourceFor(workspace, kind),
-          {file, code, kind, templateTags: config?.templateTags},
+          {
+            file,
+            code,
+            kind,
+            templateTags: config?.templateTags,
+            ignoreTags: config?.ignoreTags,
+            ignoreAttributes: config?.ignoreAttributes,
+          },
           document,
           cssTagsFor(kind, config)
         );

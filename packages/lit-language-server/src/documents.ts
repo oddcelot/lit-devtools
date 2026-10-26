@@ -17,6 +17,7 @@ import {
 import {svgData} from '../../../src/lib/editor/svg-data.js';
 import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
 import {missingElementTypeProblems} from '../../../src/lib/editor/element-definitions.js';
+import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -32,9 +33,39 @@ const svg = createHtmlDocs(svgData(svgElementAttributes));
 /** An SVG element, unless HTML has one of the same name (`a`, `title`). */
 const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
 
-/** SVG elements share SVG's core and presentation attributes, and the DOM events. */
+/**
+ * The HTML global attributes every element has, SVG's included: `Element`'s
+ * and `HTMLOrSVGElement`'s, and ARIA's `role`.
+ */
+const EVERY_ELEMENT = new Set([
+  'autofocus',
+  'class',
+  'exportparts',
+  'id',
+  'inert',
+  'lang',
+  'nonce',
+  'part',
+  'popover',
+  'role',
+  'slot',
+  'style',
+  'tabindex',
+]);
+
+/**
+ * SVG elements share SVG's core and presentation attributes, the HTML
+ * attributes every element has, and the DOM events.
+ */
 const svgGlobals = {
-  attributes: svg.globals.attributes,
+  attributes: [
+    ...svg.globals.attributes,
+    ...html.globals.attributes.filter(
+      (entry) =>
+        EVERY_ELEMENT.has(entry.name) &&
+        !svg.globals.attributes.some((own) => own.name === entry.name)
+    ),
+  ],
   events: html.globals.events,
   label: 'attribute of every SVG element',
 };
@@ -83,6 +114,7 @@ export const documentProblems = async (
   ...(await eventTypeProblems(source, request)),
   ...(await bindingLiteralProblems(source, request)),
   ...missingElementTypeProblems(request),
+  ...(await unknownNameProblems(source, request)),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),

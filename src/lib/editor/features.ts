@@ -72,6 +72,10 @@ export interface FeatureRequest {
   kind: DocumentKind;
   offset: number;
   templateTags?: readonly string[];
+  /** Tags no problem is reported for, with `*` wildcards. */
+  ignoreTags?: readonly string[];
+  /** Attributes and properties accepted on any element, with `*` wildcards. */
+  ignoreAttributes?: readonly string[];
 }
 
 // --- markdown --------------------------------------------------------------
@@ -478,6 +482,15 @@ export const bindingTypeOf = async (
   return candidates.find((candidate) => labelOf(candidate) === name)?.entry
     .type;
 };
+
+/** The names `binding` reaches on `tagName`: its own, then what every element has. */
+export const bindingNames = async (
+  source: DocsSource,
+  file: string,
+  tagName: string,
+  binding: Binding
+): Promise<string[]> =>
+  (await candidatesFor(source, file, {tag: tagName}, binding)).map(labelOf);
 
 /** The type of the event `eventName` on `tagName`, when it's known. */
 export const eventTypeOf = (

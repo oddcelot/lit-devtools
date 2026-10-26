@@ -1,0 +1,256 @@
+/**
+ * Names in a Lit template that nothing defines, and values a component's
+ * attribute doesn't take:
+ *
+ * - `unknown-element`: a tag that isn't HTML, SVG or a component the file
+ *   can use (from source or a dependency's manifest).
+ * - `unknown-attribute`: an attribute, plain or `?`, the element doesn't
+ *   have. `data-*`, `aria-*` and namespaced names always pass.
+ * - `unknown-binding`: a `.property` a component doesn't have, nor every
+ *   HTML element (`.hidden`, `.textContent`). Standard elements' own
+ *   properties aren't in the HTML data, so only components are read, and
+ *   `@event`s aren't reported: any element hears the events that bubble
+ *   to it, from code the server can't read.
+ * - `invalid-value`: a component's attribute written with a value outside
+ *   its type, `size="huge"` where `size` is `'small' | 'large'`.
+ *
+ * Only Lit templates are read, where HTML and SVG are known too. What the
+ * settings' `ignoreTags` and `ignoreAttributes` match is never reported.
+ */
+
+import type {Problem} from './diagnostics.js';
+import {HTML_ELEMENT_PROPERTIES} from './dom-properties.js';
+import {
+  type DocsSource,
+  type FeatureRequest,
+  bindingNames,
+  bindingTypeOf,
+  literalValues,
+} from './features.js';
+import {
+  type MarkupAttribute,
+  type MarkupElement,
+  markupRegions,
+  scanMarkup,
+} from './markup.js';
+
+type Request = Omit<FeatureRequest, 'offset'>;
+
+/** A matcher for names, `*` standing for any run of characters. */
+const matcherOf = (patterns: readonly string[] = []) => {
+  const res = patterns.map(
+    (pattern) =>
+      new RegExp(
+        `^${pattern
+          .split('*')
+          .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+          .join('.*')}$`,
+        'i'
+      )
+  );
+  return (name: string) => res.some((re) => re.test(name));
+};
+
+/** How many single-character edits turn `a` into `b`. */
+const distance = (a: string, b: string): number => {
+  let row = Array.from({length: b.length + 1}, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const next = [i];
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      next[j] = Math.min(row[j] + 1, next[j - 1] + 1, row[j - 1] + cost);
+    }
+    row = next;
+  }
+  return row[b.length];
+};
+
+/** ` Did you mean …?` for the nearest of `names`, when one is close. */
+const suggestion = (
+  name: string,
+  names: Iterable<string>,
+  show: (name: string) => string
+): string => {
+  let best: string | undefined;
+  // A typo, not a different name: two edits at most, fewer in a short one.
+  let bestDistance = Math.min(2, Math.max(1, Math.floor(name.length / 4)));
+  for (const candidate of names) {
+    const d = distance(name.toLowerCase(), candidate.toLowerCase());
+    if (d > 0 && d <= bestDistance) {
+      best = candidate;
+      bestDistance = d;
+    }
+  }
+  return best ? ` Did you mean ${show(best)}?` : '';
+};
+
+/** A name written by an expression or half typed, which nothing can be said of. */
+const unreadable = (name: string) => !name || /[${}]/.test(name);
+
+/**
+ * Attributes no data lists but every element takes: `data-*`, `aria-*`,
+ * namespaced ones and `xmlns`, and Lit SSR's `defer-hydration`.
+ */
+const ALWAYS_ATTRIBUTE = /^(data-|aria-)|:|^xmlns$|^defer-hydration$/i;
+
+interface Context {
+  source: DocsSource;
+  request: Request;
+  ignoreTag: (tag: string) => boolean;
+  ignoreAttribute: (name: string) => boolean;
+  tags: Set<string>;
+}
+
+const elementProblem = (
+  {tags}: Context,
+  element: MarkupElement
+): Problem | undefined => {
+  if (tags.has(element.tag.toLowerCase())) return undefined;
+  const customTags = [...tags].filter((tag) => tag.includes('-'));
+  return {
+    rule: 'unknown-element',
+    start: element.start + 1,
+    end: element.nameEnd,
+    message: `\`<${element.tag}>\` isn't HTML, SVG or a component this file can use.${suggestion(element.tag, customTags, (tag) => `\`<${tag}>\``)}`,
+  };
+};
+
+const attributeProblem = async (
+  context: Context,
+  element: MarkupElement,
+  attribute: MarkupAttribute
+): Promise<Problem | undefined> => {
+  const {name, binding} = attribute;
+  if (ALWAYS_ATTRIBUTE.test(name) || context.ignoreAttribute(name))
+    return undefined;
+  const {source, request} = context;
+  const names = await bindingNames(source, request.file, element.tag, '');
+  if (names.some((known) => known.toLowerCase() === name.toLowerCase()))
+    return undefined;
+  return {
+    rule: 'unknown-attribute',
+    start: attribute.nameStart,
+    end: attribute.nameEnd,
+    message: `\`<${element.tag}>\` has no attribute \`${name}\`.${suggestion(name, names, (n) => `\`${binding}${n}\``)}`,
+  };
+};
+
+const propertyProblem = async (
+  context: Context,
+  element: MarkupElement,
+  attribute: MarkupAttribute
+): Promise<Problem | undefined> => {
+  const {name} = attribute;
+  if (!element.tag.includes('-')) return undefined;
+  if (HTML_ELEMENT_PROPERTIES.has(name) || context.ignoreAttribute(name))
+    return undefined;
+  const {source, request} = context;
+  const names = await bindingNames(source, request.file, element.tag, '.');
+  if (names.includes(name)) return undefined;
+  return {
+    rule: 'unknown-binding',
+    start: attribute.nameStart,
+    end: attribute.nameEnd,
+    message: `\`<${element.tag}>\` has no property \`.${name}\`.${suggestion(name, names, (n) => `\`.${n}\``)}`,
+  };
+};
+
+/** Why a written value isn't one of the attribute type's string literals or a number. */
+const valueMismatch = (value: string, type: string): string | undefined => {
+  const parts = type.split('|').map((part) => part.trim());
+  const strings = literalValues(type);
+  if (parts.length === 1 && parts[0] === 'number') {
+    return value.trim() === '' || Number.isNaN(Number(value))
+      ? 'a number'
+      : undefined;
+  }
+  const typed = parts.filter((p) => p !== 'undefined' && p !== 'null');
+  if (strings.length === 0 || strings.length !== typed.length) return undefined;
+  return strings.includes(value)
+    ? undefined
+    : `one of ${strings.map((s) => `\`${s}\``).join(', ')}`;
+};
+
+const valueProblem = async (
+  {source, request}: Context,
+  element: MarkupElement,
+  attribute: MarkupAttribute
+): Promise<Problem | undefined> => {
+  const {value, name} = attribute;
+  if (!value || value.expression || !element.tag.includes('-'))
+    return undefined;
+  const type = await bindingTypeOf(source, request.file, element.tag, '', name);
+  const text = request.code.slice(value.start, value.end);
+  const wanted = type && valueMismatch(text, type);
+  if (!wanted) return undefined;
+  return {
+    rule: 'invalid-value',
+    start: value.start,
+    end: value.end,
+    message: `\`${name}\` takes ${wanted}, not \`${text}\`.`,
+  };
+};
+
+const attributeProblems = (
+  context: Context,
+  element: MarkupElement,
+  attribute: MarkupAttribute
+): Promise<Problem | undefined>[] => {
+  if (unreadable(attribute.name)) return [];
+  switch (attribute.binding) {
+    case '.':
+      return [propertyProblem(context, element, attribute)];
+    case '@':
+      return [];
+    case '?':
+      return [attributeProblem(context, element, attribute)];
+    default:
+      return [
+        attributeProblem(context, element, attribute),
+        valueProblem(context, element, attribute),
+      ];
+  }
+};
+
+const problemsOf = async (
+  context: Context,
+  element: MarkupElement
+): Promise<Problem[]> => {
+  if (unreadable(element.tag) || context.ignoreTag(element.tag)) return [];
+  const unknown = elementProblem(context, element);
+  if (unknown) return [unknown];
+  const found = await Promise.all(
+    element.attributes.flatMap((attribute) =>
+      attributeProblems(context, element, attribute)
+    )
+  );
+  return found.filter((problem) => problem !== undefined);
+};
+
+/** The unknown names and invalid values in a document's Lit templates. */
+export const unknownNameProblems = async (
+  source: DocsSource,
+  request: Request
+): Promise<Problem[]> => {
+  if (request.kind !== 'script') return [];
+  const regions = markupRegions(request.code, request.kind, {
+    templateTags: request.templateTags,
+  });
+  if (regions.length === 0) return [];
+  const context: Context = {
+    source,
+    request,
+    ignoreTag: matcherOf(request.ignoreTags),
+    ignoreAttribute: matcherOf(request.ignoreAttributes),
+    tags: new Set(
+      (await source.tags(request.file)).map((tag) => tag.toLowerCase())
+    ),
+  };
+  const elements = regions.flatMap((region) =>
+    scanMarkup(request.code, region)
+  );
+  const problems = await Promise.all(
+    elements.map((element) => problemsOf(context, element))
+  );
+  return problems.flat();
+};
