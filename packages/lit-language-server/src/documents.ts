@@ -9,7 +9,10 @@ import type {TextDocument} from 'vscode-languageserver-textdocument';
 import type {
   DocsSource,
   FeatureRequest,
+  ImportSource,
 } from '../../../src/lib/editor/features.js';
+import {packageOf} from '../../../src/lib/editor/workspace-packages.js';
+import {resolve as resolvePath} from 'node:path';
 import {
   type HtmlData,
   createHtmlDocs,
@@ -21,6 +24,7 @@ import {propertyDefinitionProblems} from '../../../src/lib/editor/property-defin
 import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
 import {directiveBindingProblems} from '../../../src/lib/editor/directive-bindings.js';
+import {missingImportProblems} from '../../../src/lib/editor/missing-imports.js';
 import {suppressionsOf} from '../../../src/lib/editor/suppressions.js';
 import {
   type Problem,
@@ -74,6 +78,23 @@ const svgGlobals = {
   label: 'attribute of every SVG element',
 };
 
+/** Imports and definitions as the workspace resolves them. */
+const importSourceFor = (workspace: Workspace): ImportSource => ({
+  resolve: (specifier, importer) =>
+    workspace.resolveImport(specifier, importer),
+  async definitionOf(file, tag) {
+    const declared = workspace.declarationsOf(tag)[0];
+    if (declared) return {file: declared.file};
+    const docs = await workspace.get(file, tag);
+    return docs?.origin.package ? {package: docs.origin.package} : undefined;
+  },
+  entries(file) {
+    const pkg = packageOf(workspace.packages, file);
+    const entries = workspace.configOf(file)?.entries ?? [];
+    return pkg ? entries.map((entry) => resolvePath(pkg.dir, entry)) : [];
+  },
+});
+
 /**
  * Where a document's docs come from. In a Lit template, standard HTML and
  * SVG elements and what every element accepts come from their data as well;
@@ -97,6 +118,7 @@ export const docsSourceFor = (
           ]),
         ],
         globals: (tag) => (isSvg(tag) ? svgGlobals : html.globals),
+        imports: importSourceFor(workspace),
       };
 
 /** The CSS template tags of a document; none in an HTML file. */
@@ -140,6 +162,7 @@ const allProblems = async (
   ...(await unknownNameProblems(source, request)),
   ...templateSyntaxProblems(request),
   ...directiveBindingProblems(request),
+  ...(await missingImportProblems(source, request)),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),

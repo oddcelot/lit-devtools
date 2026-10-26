@@ -31,6 +31,14 @@ import {
 } from 'vscode-languageserver/node';
 import {createSaveChecks} from './save-checks.js';
 
+/** The rules a package's settings turn off. */
+const rulesOffIn = (
+  config: ResolvedLanguageServerConfig | undefined
+): DiagnosticRule[] =>
+  Object.entries(config?.diagnostics ?? DEFAULT_SEVERITIES)
+    .filter(([, severity]) => severity === 'off')
+    .map(([rule]) => rule as DiagnosticRule);
+
 /** A problem's quick fix, carried in its diagnostic's `data`. */
 interface DiagnosticFix {
   title: string;
@@ -55,9 +63,13 @@ import {
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
 import {cssCompletions, cssHover, forgetCss} from './css.js';
 import {cssTagsFor, docsSourceFor, documentProblems} from './documents.js';
-import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
+import type {
+  ConfigProblem,
+  ResolvedLanguageServerConfig,
+} from '../../../src/lib/editor/load-config.js';
 import {
   DEFAULT_SEVERITIES,
+  type DiagnosticRule,
   type Severity,
 } from '../../../src/lib/editor/config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
@@ -260,6 +272,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
         templateTags: config?.templateTags,
         ignoreTags: config?.ignoreTags,
         ignoreAttributes: config?.ignoreAttributes,
+        rulesOff: rulesOffIn(config),
       },
       cssTags: cssTagsFor(kind, config),
     };

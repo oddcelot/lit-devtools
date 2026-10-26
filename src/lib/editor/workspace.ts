@@ -79,6 +79,14 @@ export interface Workspace {
   /** The tags `file` can use: from source, then its package's manifests. */
   tags(file: string): Promise<string[]>;
   /**
+   * Where `specifier` imported from `importer` leads, through its package's
+   * resolver (and Vite's aliases): a file, or `{external}` for a package.
+   */
+  resolveImport(
+    specifier: string,
+    importer: string
+  ): Promise<{file: string} | {external: string} | undefined>;
+  /**
    * Reads `file` again from `code`, an editor buffer or the file on disk.
    * Ignored unless the file is a script in a package's read folders.
    */
@@ -299,6 +307,16 @@ const createWorkspaceView = (parts: {
     remove(file) {
       const target = read(file);
       if (target) sources.delete(target.id);
+    },
+    async resolveImport(specifier, importer) {
+      const state = stateOf(normalizePath(importer));
+      const resolved = await state?.resolver
+        .resolve(specifier, normalizePath(importer))
+        .catch(() => null);
+      if (!resolved) return undefined;
+      return resolved.external || resolved.id.includes('/node_modules/')
+        ? {external: specifier}
+        : {file: resolved.id};
     },
     configOf: (file) => stateOf(normalizePath(file))?.config,
     problems: () => states.flatMap((state) => state.config.problems),

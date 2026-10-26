@@ -9,9 +9,10 @@ import type {CheckMessage} from './index.js';
 
 const checker = createChecker();
 
-parentPort?.on('message', async ({file, code, port, signal}: CheckMessage) => {
+parentPort?.on('message', async (message: CheckMessage) => {
+  const {file, code, rulesOff, port, signal} = message;
   try {
-    port.postMessage({problems: await checker.check(file, code)});
+    port.postMessage({problems: await checker.check(file, code, rulesOff)});
   } catch (error) {
     port.postMessage({
       error:

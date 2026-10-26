@@ -52,7 +52,9 @@ afterAll(async () => {
 });
 
 test('reports a file’s problems by rule, at offsets into the given text', async () => {
-  const problems = await checker.check(join(root, 'src/app.ts'), app);
+  const problems = await checker.check(join(root, 'src/app.ts'), app, [
+    'missing-import',
+  ]);
   const handler = app.indexOf('(e: CustomEvent');
   const colo = app.indexOf('colo');
   expect(problems).toEqual([
@@ -69,6 +71,11 @@ test('reports a file’s problems by rule, at offsets into the given text', asyn
       message: "Unknown property: 'colo'",
     },
   ]);
+});
+
+test('runs the costly missing-import check only when it is on', async () => {
+  const problems = await checker.check(join(root, 'src/app.ts'), app);
+  expect(problems.map((problem) => problem.rule)).toContain('missing-import');
 });
 
 test('reports nothing outside a workspace', async () => {
