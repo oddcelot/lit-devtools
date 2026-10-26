@@ -198,6 +198,23 @@ editor, and `'lit-devtools/binding-type': 'off'` in Oxlint's `rules`.
 In a lint run, `// oxlint-disable-next-line lit-devtools/binding-type`
 silences one spot.
 
+### A component missing from HTMLElementTagNameMap
+
+A component a TypeScript file defines, with `@customElement('x-button')` or
+`customElements.define('x-button', XButton)`, that the same file doesn't add
+to `HTMLElementTagNameMap` is a warning, `missing-element-type`. Without the
+entry TypeScript reads `document.createElement('x-button')` as a plain
+`HTMLElement`, and `lit-devtools check` can't tell what its bindings take.
+The quick fix, and `oxlint --fix`, append the entry:
+
+```ts
+declare global {
+  interface HTMLElementTagNameMap {
+    'x-button': XButton;
+  }
+}
+```
+
 ### CSS in css templates
 
 Unknown properties and invalid values in a `css` template are warnings, `css`.
@@ -251,11 +268,12 @@ the config file is reported as ignored.
 | `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                              |
 | `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                 |
 
-| Rule           | Default   | Reports                                         |
-| -------------- | --------- | ----------------------------------------------- |
-| `event-type`   | `error`   | A handler whose parameter doesn't fit its event |
-| `binding-type` | `error`   | A literal value its binding can't take          |
-| `css`          | `warning` | A problem in a `css` template                   |
+| Rule                   | Default   | Reports                                          |
+| ---------------------- | --------- | ------------------------------------------------ |
+| `event-type`           | `error`   | A handler whose parameter doesn't fit its event  |
+| `binding-type`         | `error`   | A literal value its binding can't take           |
+| `missing-element-type` | `warning` | A component missing from `HTMLElementTagNameMap` |
+| `css`                  | `warning` | A problem in a `css` template                    |
 
 `ignoreTags`, `ignoreAttributes`, `manifests`, `entries` and the rules
 `unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
@@ -268,11 +286,12 @@ reports the same problems in a lint run, one
 rule per problem kind, named `lit-devtools/<rule>` so they don't clash with
 eslint-plugin-lit's `lit/` rules:
 
-| Rule                        | Reports                                         |
-| --------------------------- | ----------------------------------------------- |
-| `lit-devtools/event-type`   | A handler whose parameter doesn't fit its event |
-| `lit-devtools/binding-type` | A literal value its binding can't take          |
-| `lit-devtools/css`          | A problem in a `css` template                   |
+| Rule                                | Reports                                          |
+| ----------------------------------- | ------------------------------------------------ |
+| `lit-devtools/event-type`           | A handler whose parameter doesn't fit its event  |
+| `lit-devtools/binding-type`         | A literal value its binding can't take           |
+| `lit-devtools/missing-element-type` | A component missing from `HTMLElementTagNameMap` |
+| `lit-devtools/css`                  | A problem in a `css` template                    |
 
 Its default export has `configs.recommended`, a config for `extends` in
 `oxlint.config.ts` or in Vite+'s `lint`: the plugin, with each rule at its
