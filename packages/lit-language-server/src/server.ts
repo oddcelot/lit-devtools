@@ -172,6 +172,15 @@ export const startServer = (streams?: ServerStreams): Connection => {
   const documents = new TextDocuments(TextDocument);
   /** Workspaces by root, read on first use. */
   const workspaces = new Map<string, Promise<Workspace | undefined>>();
+  /**
+   * Buffer updates, one after another. Notifications aren't awaited, so a
+   * request right after a change, completion in one file just after typing
+   * a component in another, waits here for the workspace to catch up.
+   */
+  let updates: Promise<void> = Promise.resolve();
+  const inOrder = (update: () => Promise<void>): Promise<void> =>
+    (updates = updates.then(update).catch(() => undefined));
+
   /** Binding type checks run on save; their problems publish with the rest. */
   const saveChecks = createSaveChecks((files) => {
     for (const document of documents.all()) {
@@ -254,6 +263,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
       }
     | undefined
   > => {
+    // Answer from the workspace as the buffers stand: after pending updates.
+    await updates;
     const document = documents.get(uri);
     const file = fileOf(uri);
     const kind = document && kindOf(document);
@@ -463,10 +474,13 @@ export const startServer = (streams?: ServerStreams): Connection => {
     };
   });
 
-  documents.onDidChangeContent(async ({document}) => {
+  documents.onDidChangeContent(({document}) => {
     const file = fileOf(document.uri);
     if (file) saveChecks.clear(file);
-    if (file) await (await workspaceOf(file))?.update(file, document.getText());
+    const text = document.getText();
+    void inOrder(async () => {
+      if (file) await (await workspaceOf(file))?.update(file, text);
+    });
     scheduleDiagnostics();
   });
 
@@ -478,11 +492,13 @@ export const startServer = (streams?: ServerStreams): Connection => {
   });
 
   // A closed buffer's unsaved edits are gone; the file on disk counts again.
-  documents.onDidClose(async ({document}) => {
+  documents.onDidClose(({document}) => {
     void connection.sendDiagnostics({uri: document.uri, diagnostics: []});
     forgetCss(document.uri);
     const file = fileOf(document.uri);
-    if (file) await refreshFromDisk(await workspaceOf(file), file);
+    void inOrder(async () => {
+      if (file) await refreshFromDisk(await workspaceOf(file), file);
+    });
     scheduleDiagnostics();
   });
 
