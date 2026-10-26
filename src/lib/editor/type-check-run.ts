@@ -18,6 +18,7 @@ import path from 'node:path';
 import process from 'node:process';
 import {eventTypeOf} from './features.js';
 import {kindOfFile} from './navigation.js';
+import {suppressionsOf} from './suppressions.js';
 import {
   PRELUDE,
   type Shadow,
@@ -94,6 +95,8 @@ interface Copy {
   source: string;
   code: string;
   shadow: Shadow;
+  /** Whether a `lit-ignore` comment silences a problem at an offset. */
+  suppressed: (problem: {rule: 'binding-type'; start: number}) => boolean;
 }
 
 /** The package's scripts the workspace reads components and markup from. */
@@ -144,7 +147,8 @@ const shadowCopies = async (
       {file: source, code, kind, templateTags},
       (tag, name) => eventTypeOf(workspace, source, tag, name)
     );
-    if (shadow) copies.push({source, code, shadow});
+    const suppressed = suppressionsOf(code, kind, templateTags);
+    if (shadow) copies.push({source, code, shadow, suppressed});
   }
   return copies;
 };
@@ -252,6 +256,7 @@ const problemsIn = (
     );
     const wrap = wrapAt(shadow.wraps, offset);
     if (!wrap || inSources.has(keyOf(source, offset, d.code))) continue;
+    if (copy.suppressed({rule: 'binding-type', start: wrap.start})) continue;
     problems.push({
       file: source,
       ...positionAt(code, offset),

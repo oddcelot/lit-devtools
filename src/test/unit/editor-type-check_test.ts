@@ -128,12 +128,16 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
         interface HTMLElementTagNameMap { 'x-button': XButton }
       }
     `,
-    // No component here, only a template.
+    // No component here, only a template, and two silenced bindings.
     'src/render.ts': `
       import {html} from 'lit';
       import './x-button.js';
       export const render = (n: number) => html\`
+        <x-button .size=\${n}></x-button>
+        <!-- lit-ignore binding-type -->
         <x-button .size=\${n}></x-button>\`;
+      // lit-ignore-next-line
+      export const again = (n: number) => html\`<x-button .size=\${n}></x-button>\`;
     `,
     'src/app.ts': `
       import {LitElement, html} from 'lit';
