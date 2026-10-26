@@ -1,3 +1,7 @@
+// lit-ignore-file missing-element-type
+// The package ships this element; an HTMLElementTagNameMap entry here would
+// add its tag to every user's global types.
+
 import type {ElementInfo, EditorConfig} from '../../types.js';
 import {BUILTIN_EDITORS, resolveEditor} from './editors.js';
 import {
