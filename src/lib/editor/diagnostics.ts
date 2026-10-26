@@ -10,12 +10,7 @@
 
 import type {DiagnosticRule} from './config.js';
 import {type DocsSource, type FeatureRequest, eventTypeOf} from './features.js';
-import {
-  type MarkupAttribute,
-  type MarkupElement,
-  markupRegions,
-  scanMarkup,
-} from './markup.js';
+import {templateBindings} from './bindings.js';
 import {type Node, child, nameOf, nodes, walk} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import {typeMismatch} from './type-text.js';
@@ -87,34 +82,6 @@ const methodParamTypes = (code: string, file: string): Map<string, string> => {
   return types;
 };
 
-interface Binding {
-  element: MarkupElement;
-  attribute: MarkupAttribute;
-  /** The expression inside `${…}`. */
-  start: number;
-  end: number;
-}
-
-const eventBindings = (
-  code: string,
-  request: Omit<FeatureRequest, 'offset'>
-): Binding[] =>
-  markupRegions(code, request.kind, {
-    templateTags: request.templateTags,
-  }).flatMap((region) =>
-    scanMarkup(code, region).flatMap((element) =>
-      element.attributes.flatMap((attribute) => {
-        const value = attribute.value;
-        if (attribute.binding !== '@' || !value?.expression) return [];
-        if (!code.startsWith('${', value.start) || code[value.end - 1] !== '}')
-          return [];
-        return [
-          {element, attribute, start: value.start + 2, end: value.end - 1},
-        ];
-      })
-    )
-  );
-
 const METHOD_RE = /^\s*this\s*\.\s*(#?[A-Za-z_$][\w$]*)\s*$/;
 
 /** The handlers in the document whose parameter type doesn't fit their event. */
@@ -123,7 +90,7 @@ export const eventTypeProblems = async (
   request: Omit<FeatureRequest, 'offset'>
 ): Promise<Problem[]> => {
   const {file, code} = request;
-  const bindings = eventBindings(code, request);
+  const bindings = templateBindings(request, '@');
   if (bindings.length === 0) return [];
   let methods: Map<string, string> | undefined;
   const problems: Problem[] = [];
