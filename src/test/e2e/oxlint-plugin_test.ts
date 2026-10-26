@@ -139,14 +139,17 @@ test('reports the server’s problems under its rules, and fails the run', async
     }[];
   };
   // `lit-devtools/css` is turned off over the recommended config, and quiet.ts
-  // disables its line.
+  // disables its line. Oxlint lints files in parallel, so the order in which
+  // it reports them varies: compare them by file.
   expect(
-    diagnostics.map(({code, severity, filename, message}) => ({
-      code,
-      severity,
-      filename,
-      message,
-    }))
+    diagnostics
+      .map(({code, severity, filename, message}) => ({
+        code,
+        severity,
+        filename,
+        message,
+      }))
+      .sort((a, b) => a.filename.localeCompare(b.filename))
   ).toEqual([
     {
       code: 'lit-devtools(event-type)',
