@@ -4,6 +4,7 @@ import {createNodeActions} from '../../lib/devframe/node-actions.js';
 import {litPlugin} from '../../lib/plugin.js';
 import {createOptionsContext} from '../../lib/plugins/context.js';
 import {litComponentDocs} from '../../lib/plugins/component-docs.js';
+import {resolveRuntimeModule} from '../../lib/plugins/shared.js';
 
 const setup = (enabled = true) => {
   const index = createSourceDocsIndex((id) => id.replace('/app/', ''));
@@ -69,6 +70,18 @@ test('stores transformed modules and resolves imported superclasses', async () =
       inheritedFrom: 'Base',
     },
   ]);
+});
+
+test('leaves out the plugin’s own runtime elements', async () => {
+  // Linked from a workspace, the plugin's runtime isn't under node_modules,
+  // so only its location tells it apart from the project's code.
+  const {index, transform} = setup();
+  await transform(
+    `export class LitDevtoolsIndicator extends HTMLElement {}
+    customElements.define('lit-devtools-hmr-indicator', LitDevtoolsIndicator);`,
+    resolveRuntimeModule('indicator')
+  );
+  expect(index.get('lit-devtools-hmr-indicator')).toBeUndefined();
 });
 
 test('keeps a module of mixins only, and resolves mixin imports', async () => {
