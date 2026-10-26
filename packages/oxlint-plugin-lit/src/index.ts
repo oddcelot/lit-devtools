@@ -33,6 +33,8 @@ import type {Problem} from '../../../src/lib/editor/diagnostics.js';
 export interface CheckMessage {
   file: string;
   code: string;
+  /** The rules Oxlint's config leaves off, which a costly check skips. */
+  rulesOff: DiagnosticRule[];
   port: MessagePort;
   /** Set to 1 and notified once the answer is on the port. */
   signal: Int32Array;
@@ -42,6 +44,9 @@ export interface CheckMessage {
 const TIMEOUT_MS = 120_000;
 
 let worker: Worker | undefined;
+
+/** The rules Oxlint has created: those its config turns on. */
+const enabled = new Set<DiagnosticRule>();
 
 const workerOf = (): Worker => {
   if (!worker) {
@@ -57,7 +62,8 @@ type Answer = {problems: Problem[]} | {error: string};
 const askWorker = (file: string, code: string): Answer | undefined => {
   const signal = new Int32Array(new SharedArrayBuffer(4));
   const {port1, port2} = new MessageChannel();
-  const message: CheckMessage = {file, code, port: port2, signal};
+  const rulesOff = DIAGNOSTIC_RULES.filter((rule) => !enabled.has(rule));
+  const message: CheckMessage = {file, code, rulesOff, port: port2, signal};
   workerOf().postMessage(message, [port2]);
   Atomics.wait(signal, 0, 0, TIMEOUT_MS);
   const answer = receiveMessageOnPort(port1)?.message as Answer | undefined;
@@ -96,22 +102,48 @@ interface RuleContext {
       start: {line: number; column: number};
       end: {line: number; column: number};
     };
+    fix?: (fixer: Fixer) => unknown;
   }): void;
+}
+
+interface Fixer {
+  replaceTextRange(range: [number, number], text: string): unknown;
 }
 
 const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'unknown-element': 'An element no component or HTML defines.',
   'unknown-attribute': "An attribute the element doesn't have.",
-  'unknown-binding': "A property or event binding the element doesn't have.",
+  'unknown-binding': "A property binding the component doesn't have.",
   'invalid-value': "A value the attribute or property doesn't take.",
+  'unknown-slot': "A slot the parent component doesn't declare.",
   'missing-import': "An element whose definition the page doesn't import.",
   'event-type': "An event handler whose parameter type doesn't fit the event.",
+  'binding-type': "A binding whose literal value doesn't fit what it sets.",
+  'missing-element-type': 'A component missing from HTMLElementTagNameMap.',
+  'unclosed-tag': 'A component never closed, or closed with />.',
+  'binding-syntax': 'A binding written so Lit reads it wrong.',
+  'directive-binding': "A Lit directive where Lit can't apply it.",
+  'invalid-name': "A tag or attribute name HTML can't use.",
+  'property-type': "A property's type option that doesn't fit its type.",
+  'property-visibility':
+    '@property() on private state, or @state() on a public field.',
+  'shadowed-member': "A field that replaces an element's own method or Lit's.",
   css: 'A problem in a css template.',
 };
+
+/** A problem's quick fix, for `oxlint --fix`. */
+const fixOf = ({fix}: Problem) =>
+  fix
+    ? {
+        fix: (fixer: Fixer) =>
+          fixer.replaceTextRange([fix.start, fix.end], fix.newText),
+      }
+    : {};
 
 const ruleFor = (rule: DiagnosticRule) => ({
   meta: {
     type: 'problem' as const,
+    fixable: 'code' as const,
     docs: {
       description: DESCRIPTIONS[rule],
       url: 'https://lit-devtools.oddsquad.dev/guides/language-server/',
@@ -119,6 +151,8 @@ const ruleFor = (rule: DiagnosticRule) => ({
     schema: [],
   },
   create(context: RuleContext) {
+    // Oxlint creates only the rules its config turns on.
+    enabled.add(rule);
     return {
       Program() {
         const {text} = context.sourceCode;
@@ -130,6 +164,7 @@ const ruleFor = (rule: DiagnosticRule) => ({
               start: context.sourceCode.getLocFromIndex(problem.start),
               end: context.sourceCode.getLocFromIndex(problem.end),
             },
+            ...fixOf(problem),
           });
         }
       },

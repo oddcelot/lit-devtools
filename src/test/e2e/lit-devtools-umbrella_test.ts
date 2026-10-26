@@ -108,6 +108,9 @@ const files = (tarballs: Record<string, string>): Record<string, string> => ({
     '  }',
     '}',
     "customElements.define('x-hello', XHello);",
+    'declare global {',
+    "  interface HTMLElementTagNameMap { 'x-hello': XHello }",
+    '}',
     '',
   ].join('\n'),
   'src/styles.ts': [

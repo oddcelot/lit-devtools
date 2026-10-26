@@ -4,6 +4,10 @@
  * `import.meta.hot` is available.
  */
 
+// lit-ignore-file missing-element-type
+// The package ships this element; an HTMLElementTagNameMap entry here would
+// add its tag to every user's global types.
+
 import {INDICATOR_HTML} from './indicator-template.js';
 import {subscribeOverrideKeys} from './overrides.js';
 import type {ViteHotLike} from './page-channel.js';

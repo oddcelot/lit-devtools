@@ -332,3 +332,10 @@ if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
   document.documentElement.classList.add('autoplay');
   autoplay(0);
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    // Defined again with each version of the class the demo shows.
+    'demo-counter': Counter;
+  }
+}

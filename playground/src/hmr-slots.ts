@@ -55,3 +55,15 @@ export class HmrSlotsFrame extends LitElement {
     </hmr-slots>`;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-slots': HmrSlots;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-slots-frame': HmrSlotsFrame;
+  }
+}

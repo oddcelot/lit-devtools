@@ -55,6 +55,7 @@ export interface ResolvedLanguageServerConfig {
   entries: string[];
   templateTags: string[];
   cssTemplateTags: string[];
+  checkOnSave: boolean;
   /** Where the settings came from. */
   source: 'vite' | 'file' | 'default';
   file?: string;
@@ -99,13 +100,20 @@ const validate = (raw: unknown, file: string): ConfigProblem[] => {
   if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
     return [{file, message: '`languageServer` should be an object.'}];
   }
-  const known = new Set<string>([...LIST_KEYS, 'diagnostics']);
+  const known = new Set<string>([...LIST_KEYS, 'diagnostics', 'checkOnSave']);
   const problems: ConfigProblem[] = [];
   for (const [key, value] of Object.entries(raw)) {
     if (!known.has(key)) {
       problems.push({file, message: `Unknown setting \`${key}\`.`});
     } else if (key === 'diagnostics') {
       problems.push(...validateDiagnostics(value, file));
+    } else if (key === 'checkOnSave') {
+      if (typeof value !== 'boolean') {
+        problems.push({
+          file,
+          message: '`checkOnSave` should be true or false.',
+        });
+      }
     } else if (
       !Array.isArray(value) ||
       value.some((item) => typeof item !== 'string')
@@ -165,7 +173,10 @@ const severities = (
 const resolve = (
   raw: LanguageServerConfig | undefined,
   manifestScan: string[] | undefined
-): Pick<ResolvedLanguageServerConfig, ListKey | 'diagnostics'> => {
+): Pick<
+  ResolvedLanguageServerConfig,
+  ListKey | 'diagnostics' | 'checkOnSave'
+> => {
   const lists = Object.fromEntries(
     Object.entries(LIST_DEFAULTS).map(([key, fallback]) => {
       const value = raw?.[key as ListKey];
@@ -177,6 +188,7 @@ const resolve = (
     ...lists,
     scan: scan ?? ['src'],
     diagnostics: severities(raw?.diagnostics),
+    checkOnSave: typeof raw?.checkOnSave === 'boolean' ? raw.checkOnSave : true,
   };
 };
 

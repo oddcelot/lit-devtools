@@ -38,3 +38,9 @@ export class HmrParent extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-parent': HmrParent;
+  }
+}

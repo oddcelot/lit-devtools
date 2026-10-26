@@ -37,3 +37,9 @@ export class VisitCounter extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'visit-counter': VisitCounter;
+  }
+}

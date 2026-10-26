@@ -95,8 +95,8 @@ each format's way of writing a binding:
 | `onsubmit-start={fn}`  | The `submit-start` event, as React 19 and Preact read it | An attribute |
 | `on:submit-start={fn}` | The event, Solid's way; so are `prop:`, `attr:`, `bool:` | An attribute |
 
-Only your components get completed in these files: standard HTML elements
-are left to the editor's own support for the language. In Astro, the
+Only your components get completed and checked in these files: standard
+HTML elements are left to the editor's own support for the language. In Astro, the
 templates in the frontmatter and in `<script>` elements are Lit templates.
 In MDX, fenced and inline code and `import`/`export` blocks are skipped.
 
@@ -169,6 +169,182 @@ keys included. Fewer keys than sent, optional keys, named types such as
 `CustomEvent<Item>`, unions and other event classes are never reported: a
 reported conflict is a real one.
 
+### A literal that can't fit its binding
+
+A literal value a binding can't take is an error, `binding-type`:
+
+```ts
+html`<x-button
+  .size=${'huge'}
+  ?hidden=${'no'}
+  title=${true}
+  @click=${1}
+></x-button>`;
+// `.size` takes `'small' | 'large'`, but `'huge'` isn't one of `'small'`, `'large'`.
+// `?hidden` takes a boolean, not a string.
+// `title` is set to the text `true` or `false`; write `?title` to add or remove it.
+// `@click` takes a function, not a number.
+```
+
+Only literals are read as you type: strings, numbers, booleans, `null`,
+`undefined`, object and array literals and functions. A property is checked
+when its type is a union of primitives and string literals. Any other
+expression, `.size=${this.size}`, takes a type checker:
+[`lit-devtools check`](/reference/cli/#lit-devtools-check) runs your
+project's TypeScript over every binding. The server runs the same check for
+a script when you save it, in the background, and shows what it finds until
+you edit the file again. It needs `typescript` in the project; set
+`checkOnSave: false` to turn it off.
+
+Set `diagnostics: {'binding-type': 'off'}` to turn the rule off in the
+editor, and `'lit-devtools/binding-type': 'off'` in Oxlint's `rules`.
+[A comment](#silence-a-problem) silences one spot.
+
+### Names nothing defines
+
+In an `html` or `svg` template, where HTML and SVG are known as well as your
+components, a name nothing defines is a warning:
+
+```ts
+html`<x-buton sise="small" .cont=${1}></x-buton>`;
+//    ^^^^^^^ unknown-element: `<x-buton>` isn't HTML, SVG or a component this file can use. Did you mean `<x-button>`?
+html`<x-button sise="small" .cont=${1}></x-button>`;
+//             ^^^^ unknown-attribute: `<x-button>` has no attribute `sise`. Did you mean `size`?
+//                          ^^^^^ unknown-binding: `<x-button>` has no property `.cont`. Did you mean `.count`?
+html`<x-button size="huge"></x-button>`;
+//                   ^^^^ invalid-value: `size` takes one of `small`, `large`, not `huge`.
+```
+
+| Rule                | Reports                                                        |
+| ------------------- | -------------------------------------------------------------- |
+| `unknown-element`   | A tag that isn't HTML, SVG or a component the file can use     |
+| `unknown-attribute` | An attribute, plain or `?`, the element doesn't have           |
+| `unknown-binding`   | A `.property` a component doesn't have, nor every HTML element |
+| `invalid-value`     | A component's attribute written with a value outside its type  |
+| `unknown-slot`      | A child's `slot="…"` its parent component doesn't declare      |
+
+- `data-*`, `aria-*`, namespaced names, `xmlns` and Lit SSR's
+  `defer-hydration` are always accepted, and so is every property all HTML
+  elements have, such as `.hidden` and `.textContent`.
+- Standard elements' own properties aren't in the HTML data, so
+  `.property` is checked on components only. `@event` isn't reported: an
+  element hears every event that bubbles to it, from code the server can't
+  read.
+- `invalid-value` reads an attribute whose type is a union of string
+  literals, or a number.
+- `unknown-slot` reads a component's slots from its `@slot` docs, and only
+  when it documents some: `<h2 slot="heder">` in an `<x-card>` with a
+  `header` slot is reported, with the slots it has.
+- A component from a library that ships no manifest shows up as unknown:
+  list a manifest for it in `manifests`, or name it in `ignoreTags`. One that
+  inherits members the server can't read can name them in
+  `ignoreAttributes`.
+- In JSX, Astro, MDX and HTML files only custom elements are read, as the
+  editor's own support for the language has HTML's. Their props are checked
+  as each format writes them, `on<event>` and Solid's `prop:` included, and
+  what the framework takes passes: `key`, `ref`, `className`, Astro's
+  `client:` and `set:` directives, HTML's global attributes. A tag the
+  document defines itself, in an Astro component's `<script>`, is known.
+  `unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
+  and `unknown-slot` apply there; the other rules read Lit templates only.
+
+### Template syntax
+
+How a template is written can make Lit read it differently from what was
+meant:
+
+```ts
+html`<x-card />
+  <p>after</p>`;
+//     ^^^^^^ unclosed-tag: HTML reads `<x-card />` as an open tag, so what follows becomes its children
+html`<input .value="x" title=${t}">`;
+//          ^^^^^^ binding-syntax: `.value` sets a property, so its value is an expression
+//                           ^^^^^ binding-syntax: a stray `"` makes `title` a string
+```
+
+- `unclosed-tag`, a warning: a component never closed, or closed with `/>`.
+  Standard elements are left alone, since HTML lets many go unclosed.
+- `directive-binding`, an error: a Lit directive where Lit can't apply it,
+  which throws on first render. `classMap` and `styleMap` belong to
+  `class` and `style`, `ifDefined` to attributes, `ref` to the element
+  itself (`<div ${ref(…)}>`), `live` to anything but a listener, and
+  `repeat`, `unsafeHTML` and the other directives that render children
+  between tags.
+- `binding-syntax`, an error: a `.`, `?` or `@` binding without `${…}`; a
+  stray `"`, `'` or `}` next to the expression, or `/` next to an unquoted
+  one; Polymer's `name$=`.
+
+### Component declarations
+
+What a component declares is checked in its own file:
+
+```ts
+@customElement('xbutton')
+//             ^^^^^^^^^ invalid-name: `xbutton` needs a hyphen, so `customElements.define` throws.
+class XButton extends LitElement {
+  @property({attribute: 'maxValue'}) max = 1;
+  //                    ^^^^^^^^^^ invalid-name: HTML lowercases attribute names, so `maxValue` never sets the property
+  //                                 ^^^ property-type: `max` is a number, but without `type: Number` Lit reads its attribute as a string
+  @state() open = false;
+  // property-visibility (off by default): `@state()` is internal, but `open` is public
+}
+```
+
+- `invalid-name`, an error: a tag `customElements.define` refuses (no
+  hyphen, capitals, a reserved name), and an `attribute:` with characters
+  HTML can't write or capitals it lowercases away.
+- `property-type`, a warning: a `type` option that doesn't fit the field's
+  annotation, or its literal initializer, and a number, boolean, array or
+  object without one. A `converter` or `attribute: false` turns it off for
+  the field.
+- `shadowed-member`, an error: a `@property()` or `@state()` field named
+  like a method every element has, `after` for `Element.after()`, or a
+  member Lit relies on, such as `update` or `renderRoot`. The field
+  replaces it. TypeScript reports the first kind in a typed file; nothing
+  else does in JavaScript.
+- `property-visibility`, off unless turned on: `@property()` on a private
+  field, and in TypeScript `@state()` on one that isn't `private` or
+  `protected`.
+
+### Imports
+
+`missing-import`, off unless turned on: a component used in a template whose
+definition the file doesn't import, directly or through the modules it
+imports, so the tag may be undefined when it renders.
+
+```ts
+import {html} from 'lit';
+html`<x-button></x-button>`;
+//     ^^^^^^^^ `<x-button>` is defined in `x-button.ts`, which this file doesn't import.
+```
+
+- A component from source counts as imported when its module is in the
+  file's imports; one from a package's manifest when the file imports that
+  package.
+- An app whose entry imports every component lists it in `entries`, and
+  what the entries import counts too.
+- The quick fix imports the defining module, written like the file's other
+  imports.
+- It keeps each module's imports until that module changes, so typing
+  re-reads only the file you're in. While the rule is off it doesn't run.
+
+### A component missing from HTMLElementTagNameMap
+
+A component a TypeScript file defines, with `@customElement('x-button')` or
+`customElements.define('x-button', XButton)`, that the same file doesn't add
+to `HTMLElementTagNameMap` is a warning, `missing-element-type`. Without the
+entry TypeScript reads `document.createElement('x-button')` as a plain
+`HTMLElement`, and `lit-devtools check` can't tell what its bindings take.
+The quick fix, and `oxlint --fix`, append the entry:
+
+```ts
+declare global {
+  interface HTMLElementTagNameMap {
+    'x-button': XButton;
+  }
+}
+```
+
 ### CSS in css templates
 
 Unknown properties and invalid values in a `css` template are warnings, `css`.
@@ -184,7 +360,34 @@ static styles = css`
 `;
 ```
 
-### Settings
+### Silence a problem
+
+A comment silences the problems it covers, in the editor, in Oxlint and in
+`lit-devtools check`. Name the rules, separated by spaces or commas, or none
+for every rule:
+
+```ts
+html`
+  <!-- lit-ignore unknown-attribute -->
+  <x-legacy colour="red"></x-legacy>
+`;
+
+// lit-ignore-next-line binding-type
+html`<x-button .size=${this.name}></x-button>`;
+
+// lit-ignore-file property-visibility
+```
+
+- `<!-- lit-ignore -->` in a template covers the next element's tag,
+  attributes and values. A JavaScript comment there would be text of the
+  template, so it's an HTML one.
+- `// lit-ignore-next-line` covers the next line.
+- `// lit-ignore-file`, anywhere in the file, covers all of it.
+
+Oxlint's own `// oxlint-disable-next-line lit-devtools/<rule>` works too, in
+a lint run.
+
+## Settings
 
 A mistake in the settings, such as an unknown key or severity, is a warning on
 the first line of the file that holds it. So is a `lit-devtools.config.ts` that
@@ -212,24 +415,41 @@ Set them in `litPlugin({languageServer})` in a Vite config, or as
 without one. When both exist, the Vite config's settings win as a whole and
 the config file is reported as ignored.
 
-| Setting            | Default                                        | Meaning                                                           |
-| ------------------ | ---------------------------------------------- | ----------------------------------------------------------------- |
-| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package          |
-| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs    |
-| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards               |
-| `ignoreAttributes` | `[]`                                           | Attributes accepted on any element, with `*` wildcards            |
-| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off` |
-| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                              |
-| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                 |
+| Setting            | Default                                        | Meaning                                                                   |
+| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------- |
+| `scan`             | the `manifest` option's `scan`, else `['src']` | Folders to read components from, relative to the package                  |
+| `manifests`        | `[]`                                           | More manifests to read: paths relative to the package, or URLs            |
+| `ignoreTags`       | `[]`                                           | Tags no problem is reported for, with `*` wildcards                       |
+| `ignoreAttributes` | `[]`                                           | Attributes and properties accepted on any element, with `*` wildcards     |
+| `diagnostics`      | see below                                      | Each rule's severity: `error`, `warning`, `info`, `hint` or `off`         |
+| `templateTags`     | `['html', 'svg']`                              | Tags of the markup templates to read                                      |
+| `cssTemplateTags`  | `['css']`                                      | Tags of the CSS templates to read                                         |
+| `checkOnSave`      | `true`                                         | Type-check a script's bindings with your TypeScript when it's saved       |
+| `entries`          | `[]`                                           | Modules whose imports count for `missing-import`, relative to the package |
 
-| Rule         | Default   | Reports                                         |
-| ------------ | --------- | ----------------------------------------------- |
-| `event-type` | `error`   | A handler whose parameter doesn't fit its event |
-| `css`        | `warning` | A problem in a `css` template                   |
+| Rule                   | Default   | Reports                                                |
+| ---------------------- | --------- | ------------------------------------------------------ |
+| `event-type`           | `error`   | A handler whose parameter doesn't fit its event        |
+| `binding-type`         | `error`   | A literal value its binding can't take                 |
+| `missing-element-type` | `warning` | A component missing from `HTMLElementTagNameMap`       |
+| `unknown-element`      | `warning` | A tag nothing defines                                  |
+| `unknown-attribute`    | `warning` | An attribute the element doesn't have                  |
+| `unknown-binding`      | `warning` | A property a component doesn't have                    |
+| `invalid-value`        | `warning` | An attribute value outside its type                    |
+| `unknown-slot`         | `warning` | A slot the parent component doesn't declare            |
+| `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`          |
+| `binding-syntax`       | `error`   | A binding written so Lit reads it wrong                |
+| `directive-binding`    | `error`   | A Lit directive where Lit can't apply it               |
+| `invalid-name`         | `error`   | A tag or attribute name HTML can't use                 |
+| `property-type`        | `warning` | A property's `type` option that doesn't fit            |
+| `property-visibility`  | `off`     | `@property()` on private state, or the reverse         |
+| `shadowed-member`      | `error`   | A field that replaces an element's own method or Lit's |
+| `missing-import`       | `off`     | A component the file never imports                     |
+| `css`                  | `warning` | A problem in a `css` template                          |
 
-`ignoreTags`, `ignoreAttributes`, `manifests`, `entries` and the rules
-`unknown-element`, `unknown-attribute`, `unknown-binding`, `invalid-value`
-and `missing-import` are read and validated but not acted on yet.
+A `manifests` entry is read before the dependencies' own: a path, relative
+to the package, re-read when it changes, or a URL, fetched once. A URL that
+can't be fetched is reported with the settings' other problems.
 
 ## Oxlint plugin
 
@@ -238,10 +458,25 @@ reports the same problems in a lint run, one
 rule per problem kind, named `lit-devtools/<rule>` so they don't clash with
 eslint-plugin-lit's `lit/` rules:
 
-| Rule                      | Reports                                         |
-| ------------------------- | ----------------------------------------------- |
-| `lit-devtools/event-type` | A handler whose parameter doesn't fit its event |
-| `lit-devtools/css`        | A problem in a `css` template                   |
+| Rule                                | Reports                                                |
+| ----------------------------------- | ------------------------------------------------------ |
+| `lit-devtools/event-type`           | A handler whose parameter doesn't fit its event        |
+| `lit-devtools/binding-type`         | A literal value its binding can't take                 |
+| `lit-devtools/missing-element-type` | A component missing from `HTMLElementTagNameMap`       |
+| `lit-devtools/unknown-element`      | A tag nothing defines                                  |
+| `lit-devtools/unknown-attribute`    | An attribute the element doesn't have                  |
+| `lit-devtools/unknown-binding`      | A property a component doesn't have                    |
+| `lit-devtools/invalid-value`        | An attribute value outside its type                    |
+| `lit-devtools/unknown-slot`         | A slot the parent component doesn't declare            |
+| `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`          |
+| `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong                |
+| `lit-devtools/directive-binding`    | A Lit directive where Lit can't apply it               |
+| `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use                 |
+| `lit-devtools/property-type`        | A property's `type` option that doesn't fit            |
+| `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse         |
+| `lit-devtools/shadowed-member`      | A field that replaces an element's own method or Lit's |
+| `lit-devtools/missing-import`       | A component the file never imports                     |
+| `lit-devtools/css`                  | A problem in a `css` template                          |
 
 Its default export has `configs.recommended`, a config for `extends` in
 `oxlint.config.ts` or in Vite+'s `lint`: the plugin, with each rule at its
@@ -249,12 +484,7 @@ default severity from the table above (`warning` becomes `warn`). Without
 it, the rules are off until turned on in Oxlint's `rules`. Either way
 Oxlint's config sets their severity; the `diagnostics` setting applies to
 the editor only. The other settings are read as above. `// oxlint-disable`
-comments silence them. The plugin also registers
-`lit-devtools/unknown-element`, `lit-devtools/unknown-attribute`,
-`lit-devtools/unknown-binding`, `lit-devtools/invalid-value` and
-`lit-devtools/missing-import`, which report nothing yet; `recommended`
-already turns on the ones the editor does. It reads JavaScript and
-TypeScript files only.
+comments silence them. It reads JavaScript and TypeScript files only.
 [Check it in CI with Oxlint](/guides/language-server/#check-it-in-ci-with-oxlint)
 sets it up.
 

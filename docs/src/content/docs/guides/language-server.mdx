@@ -176,6 +176,21 @@ it instead. In an `.oxlintrc.json`, list the plugin and its rules yourself:
   and MDX pages still show only in the editor.
 - The first file waits while the plugin reads the workspace, once per run.
 
+### Type-check bindings with TypeScript
+
+The editor and Oxlint read types as text, so they catch `.size=${'huge'}`
+but not `.size=${this.name}` when `name` is any `string`. For that, run
+your project's TypeScript over the bindings next to the lint run:
+
+```sh
+npx lit-devtools check
+```
+
+It needs `typescript` in the project and your components in
+`HTMLElementTagNameMap`.
+[`lit-devtools check`](/reference/cli/#lit-devtools-check) lists what it
+checks and what it skips.
+
 ## Use it in a monorepo
 
 Open the monorepo at its root. The server finds the workspace from a

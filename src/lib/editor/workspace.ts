@@ -39,6 +39,11 @@ import {
   findWorkspace,
   packageOf,
 } from './workspace-packages.js';
+import {
+  joinIndexes,
+  localManifests,
+  remoteManifests,
+} from './package-manifests.js';
 
 export interface WorkspaceOptions {
   /** Loads a package's settings; `loadLanguageServerConfig` by default. */
@@ -73,6 +78,14 @@ export interface Workspace {
   markupFiles(): Promise<string[]>;
   /** The tags `file` can use: from source, then its package's manifests. */
   tags(file: string): Promise<string[]>;
+  /**
+   * Where `specifier` imported from `importer` leads, through its package's
+   * resolver (and Vite's aliases): a file, or `{external}` for a package.
+   */
+  resolveImport(
+    specifier: string,
+    importer: string
+  ): Promise<{file: string} | {external: string} | undefined>;
   /**
    * Reads `file` again from `code`, an editor buffer or the file on disk.
    * Ignored unless the file is a script in a package's read folders.
@@ -172,8 +185,18 @@ export const createWorkspace = async (
     states,
     files,
     sources,
-    manifests: (pkg) =>
-      createComponentDocsIndex({root: () => pkg.dir, fs: () => fs}),
+    manifests: (pkg) => {
+      const state = states.find((s) => s.pkg.dir === pkg.dir);
+      const {manifests = [], problems = [], file} = state?.config ?? {};
+      return joinIndexes(
+        createComponentDocsIndex({
+          root: () => pkg.dir,
+          fs: () => fs,
+          extra: () => localManifests(pkg.dir, manifests),
+        }),
+        remoteManifests(manifests, problems, file ?? pkg.dir)
+      );
+    },
   });
 };
 
@@ -284,6 +307,16 @@ const createWorkspaceView = (parts: {
     remove(file) {
       const target = read(file);
       if (target) sources.delete(target.id);
+    },
+    async resolveImport(specifier, importer) {
+      const state = stateOf(normalizePath(importer));
+      const resolved = await state?.resolver
+        .resolve(specifier, normalizePath(importer))
+        .catch(() => null);
+      if (!resolved) return undefined;
+      return resolved.external || resolved.id.includes('/node_modules/')
+        ? {external: specifier}
+        : {file: resolved.id};
     },
     configOf: (file) => stateOf(normalizePath(file))?.config,
     problems: () => states.flatMap((state) => state.config.problems),

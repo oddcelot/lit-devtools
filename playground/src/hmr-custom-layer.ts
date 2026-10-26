@@ -58,3 +58,9 @@ export class HmrCustomLayer extends LitElement {
     });
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-custom-layer': HmrCustomLayer;
+  }
+}

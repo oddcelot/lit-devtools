@@ -46,3 +46,9 @@ export class HmrCounter extends LitElement {
     this.count++;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-counter': HmrCounter;
+  }
+}

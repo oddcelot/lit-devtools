@@ -3,6 +3,7 @@ import {execFile} from 'node:child_process';
 import {
   mkdir,
   mkdtemp,
+  readFile,
   realpath,
   rm,
   symlink,
@@ -138,14 +139,17 @@ test('reports the server’s problems under its rules, and fails the run', async
     }[];
   };
   // `lit-devtools/css` is turned off over the recommended config, and quiet.ts
-  // disables its line.
+  // disables its line. Oxlint lints files in parallel, so the order in which
+  // it reports them varies: compare them by file.
   expect(
-    diagnostics.map(({code, severity, filename, message}) => ({
-      code,
-      severity,
-      filename,
-      message,
-    }))
+    diagnostics
+      .map(({code, severity, filename, message}) => ({
+        code,
+        severity,
+        filename,
+        message,
+      }))
+      .sort((a, b) => a.filename.localeCompare(b.filename))
   ).toEqual([
     {
       code: 'lit-devtools(event-type)',
@@ -153,5 +157,22 @@ test('reports the server’s problems under its rules, and fails the run', async
       filename: 'src/app.ts',
       message: expect.stringContaining('`detail.thing` is missing'),
     },
+    {
+      code: 'lit-devtools(missing-element-type)',
+      severity: 'warning',
+      filename: 'src/x-button.ts',
+      message: expect.stringContaining("`x-button` isn't in"),
+    },
   ]);
+});
+
+test('--fix adds the missing HTMLElementTagNameMap entry', async () => {
+  await exec(
+    process.execPath,
+    [join(oxlint, 'bin/oxlint'), '--fix', 'src/x-button.ts'],
+    {cwd: root, env: OUTSIDE_VP}
+  );
+  expect(await readFile(join(root, 'src/x-button.ts'), 'utf8')).toContain(
+    "interface HTMLElementTagNameMap {\n    'x-button': XButton;\n  }"
+  );
 });

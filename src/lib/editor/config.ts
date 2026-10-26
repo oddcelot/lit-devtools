@@ -10,8 +10,18 @@ export const DIAGNOSTIC_RULES = [
   'unknown-attribute',
   'unknown-binding',
   'invalid-value',
+  'unknown-slot',
   'missing-import',
   'event-type',
+  'binding-type',
+  'missing-element-type',
+  'unclosed-tag',
+  'binding-syntax',
+  'directive-binding',
+  'invalid-name',
+  'property-type',
+  'property-visibility',
+  'shadowed-member',
   'css',
 ] as const;
 
@@ -32,7 +42,7 @@ export interface LanguageServerConfig {
   /** Tags no diagnostic reports, with `*` wildcards: `['legacy-*']`. */
   ignoreTags?: string[];
   /**
-   * Attributes accepted on any element, with `*` wildcards. `data-*`,
+   * Attributes and properties accepted on any element, with `*` wildcards. `data-*`,
    * `aria-*` and the global HTML attributes always are.
    */
   ignoreAttributes?: string[];
@@ -47,6 +57,11 @@ export interface LanguageServerConfig {
   templateTags?: string[];
   /** Tags of the CSS templates to read; `css` by default. */
   cssTemplateTags?: string[];
+  /**
+   * Type-check a script's bindings with the project's TypeScript when it's
+   * saved, as `lit-devtools check` does. On by default.
+   */
+  checkOnSave?: boolean;
 }
 
 /** What a `lit-devtools.config.ts` exports by default. */
@@ -59,7 +74,17 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'unknown-attribute': 'warning',
   'unknown-binding': 'warning',
   'invalid-value': 'warning',
+  'unknown-slot': 'warning',
   'missing-import': 'off',
   'event-type': 'error',
+  'binding-type': 'error',
+  'missing-element-type': 'warning',
+  'unclosed-tag': 'warning',
+  'binding-syntax': 'error',
+  'directive-binding': 'error',
+  'invalid-name': 'error',
+  'property-type': 'warning',
+  'property-visibility': 'off',
+  'shadowed-member': 'error',
   css: 'warning',
 };

@@ -35,3 +35,9 @@ export class TwPage extends LitElement {
     `;
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'tw-page': TwPage;
+  }
+}

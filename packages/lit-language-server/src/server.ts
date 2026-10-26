@@ -9,6 +9,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
 import {
+  type CodeAction,
   CodeActionKind,
   type CompletionItem,
   type Connection,
@@ -28,6 +29,22 @@ import {
   TextDocuments,
   createConnection,
 } from 'vscode-languageserver/node';
+import {createSaveChecks} from './save-checks.js';
+
+/** The rules a package's settings turn off. */
+const rulesOffIn = (
+  config: ResolvedLanguageServerConfig | undefined
+): DiagnosticRule[] =>
+  Object.entries(config?.diagnostics ?? DEFAULT_SEVERITIES)
+    .filter(([, severity]) => severity === 'off')
+    .map(([rule]) => rule as DiagnosticRule);
+
+/** A problem's quick fix, carried in its diagnostic's `data`. */
+interface DiagnosticFix {
+  title: string;
+  range: Range;
+  newText: string;
+}
 import {
   type Completion,
   type DocsSource,
@@ -46,9 +63,13 @@ import {
 import {cssDocCompletions} from '../../../src/lib/editor/css.js';
 import {cssCompletions, cssHover, forgetCss} from './css.js';
 import {cssTagsFor, docsSourceFor, documentProblems} from './documents.js';
-import type {ConfigProblem} from '../../../src/lib/editor/load-config.js';
+import type {
+  ConfigProblem,
+  ResolvedLanguageServerConfig,
+} from '../../../src/lib/editor/load-config.js';
 import {
   DEFAULT_SEVERITIES,
+  type DiagnosticRule,
   type Severity,
 } from '../../../src/lib/editor/config.js';
 import type {DocumentKind} from '../../../src/lib/editor/markup.js';
@@ -151,6 +172,22 @@ export const startServer = (streams?: ServerStreams): Connection => {
   const documents = new TextDocuments(TextDocument);
   /** Workspaces by root, read on first use. */
   const workspaces = new Map<string, Promise<Workspace | undefined>>();
+  /**
+   * Buffer updates, one after another. Notifications aren't awaited, so a
+   * request right after a change, completion in one file just after typing
+   * a component in another, waits here for the workspace to catch up.
+   */
+  let updates: Promise<void> = Promise.resolve();
+  const inOrder = (update: () => Promise<void>): Promise<void> =>
+    (updates = updates.then(update).catch(() => undefined));
+
+  /** Binding type checks run on save; their problems publish with the rest. */
+  const saveChecks = createSaveChecks((files) => {
+    for (const document of documents.all()) {
+      const file = fileOf(document.uri);
+      if (file && files.includes(file)) void publishDocument(document.uri);
+    }
+  });
   /** Config files that have problems published on them. */
   let problemFiles = new Set<string>();
 
@@ -226,6 +263,8 @@ export const startServer = (streams?: ServerStreams): Connection => {
       }
     | undefined
   > => {
+    // Answer from the workspace as the buffers stand: after pending updates.
+    await updates;
     const document = documents.get(uri);
     const file = fileOf(uri);
     const kind = document && kindOf(document);
@@ -242,6 +281,9 @@ export const startServer = (streams?: ServerStreams): Connection => {
         code: document.getText(),
         kind,
         templateTags: config?.templateTags,
+        ignoreTags: config?.ignoreTags,
+        ignoreAttributes: config?.ignoreAttributes,
+        rulesOff: rulesOffIn(config),
       },
       cssTags: cssTagsFor(kind, config),
     };
@@ -342,7 +384,10 @@ export const startServer = (streams?: ServerStreams): Connection => {
     if (!found) return;
     const {document, workspace, source, request, cssTags} = found;
     const severities = workspace.configOf(request.file)?.diagnostics;
-    const problems = await documentProblems(source, request, document, cssTags);
+    const problems = [
+      ...(await documentProblems(source, request, document, cssTags)),
+      ...saveChecks.problemsOf(request.file),
+    ];
     const diagnostics = problems.flatMap((problem): Diagnostic[] => {
       const severity =
         severities?.[problem.rule] ?? DEFAULT_SEVERITIES[problem.rule];
@@ -357,6 +402,20 @@ export const startServer = (streams?: ServerStreams): Connection => {
           source: 'lit',
           code: problem.rule,
           message: problem.message,
+          ...(problem.fix
+            ? {
+                data: {
+                  fix: {
+                    title: problem.fix.title,
+                    range: {
+                      start: document.positionAt(problem.fix.start),
+                      end: document.positionAt(problem.fix.end),
+                    },
+                    newText: problem.fix.newText,
+                  } satisfies DiagnosticFix,
+                },
+              }
+            : {}),
         },
       ];
     });
@@ -397,7 +456,11 @@ export const startServer = (streams?: ServerStreams): Connection => {
     });
     return {
       capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Incremental,
+        textDocumentSync: {
+          openClose: true,
+          change: TextDocumentSyncKind.Incremental,
+          save: {includeText: false},
+        },
         completionProvider: {
           triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'", ':', '(', '-'],
         },
@@ -411,18 +474,31 @@ export const startServer = (streams?: ServerStreams): Connection => {
     };
   });
 
-  documents.onDidChangeContent(async ({document}) => {
+  documents.onDidChangeContent(({document}) => {
     const file = fileOf(document.uri);
-    if (file) await (await workspaceOf(file))?.update(file, document.getText());
+    if (file) saveChecks.clear(file);
+    const text = document.getText();
+    void inOrder(async () => {
+      if (file) await (await workspaceOf(file))?.update(file, text);
+    });
     scheduleDiagnostics();
   });
 
+  // The binding type check that needs TypeScript, on the file as saved.
+  documents.onDidSave(async ({document}) => {
+    const file = fileOf(document.uri);
+    const workspace = file && (await workspaceOf(file));
+    if (file && workspace) await saveChecks.check(workspace, file);
+  });
+
   // A closed buffer's unsaved edits are gone; the file on disk counts again.
-  documents.onDidClose(async ({document}) => {
+  documents.onDidClose(({document}) => {
     void connection.sendDiagnostics({uri: document.uri, diagnostics: []});
     forgetCss(document.uri);
     const file = fileOf(document.uri);
-    if (file) await refreshFromDisk(await workspaceOf(file), file);
+    void inOrder(async () => {
+      if (file) await refreshFromDisk(await workspaceOf(file), file);
+    });
     scheduleDiagnostics();
   });
 
@@ -483,15 +559,32 @@ export const startServer = (streams?: ServerStreams): Connection => {
     return locationsOf(spans);
   });
 
-  // Writes an inline handler's event type in, so TypeScript can take over.
-  connection.onCodeAction(async ({textDocument, range}) => {
-    const found = await handlersIn(textDocument.uri, range);
-    return (found?.within ?? []).map(({type, edit}) => ({
+  /** The quick fixes of the diagnostics a code action request names. */
+  const problemFixes = (uri: string, diagnostics: Diagnostic[]): CodeAction[] =>
+    diagnostics.flatMap((diagnostic) => {
+      const fix = (diagnostic.data as {fix?: DiagnosticFix} | undefined)?.fix;
+      if (!fix) return [];
+      return [
+        {
+          title: fix.title,
+          kind: CodeActionKind.QuickFix,
+          diagnostics: [diagnostic],
+          edit: {changes: {[uri]: [{range: fix.range, newText: fix.newText}]}},
+        },
+      ];
+    });
+
+  /** "Add event type" for the untyped inline handlers `handlersIn` found. */
+  const handlerFixes = (
+    uri: string,
+    found: Awaited<ReturnType<typeof handlersIn>>
+  ): CodeAction[] =>
+    (found?.within ?? []).map(({type, edit}) => ({
       title: `Add event type ${type}`,
       kind: CodeActionKind.QuickFix,
       edit: {
         changes: {
-          [textDocument.uri]: [
+          [uri]: [
             {
               range: {
                 start: found!.document.positionAt(edit.start),
@@ -503,6 +596,15 @@ export const startServer = (streams?: ServerStreams): Connection => {
         },
       },
     }));
+
+  // Writes an inline handler's event type in, so TypeScript can take over;
+  // and applies the fixes problems carry in their diagnostic's `data`.
+  connection.onCodeAction(async ({textDocument, range, context}) => {
+    const found = await handlersIn(textDocument.uri, range);
+    return [
+      ...problemFixes(textDocument.uri, context.diagnostics),
+      ...handlerFixes(textDocument.uri, found),
+    ];
   });
 
   // Shows an untyped inline handler's event type after its parameter.

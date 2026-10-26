@@ -52,6 +52,21 @@ export function* walk(node: unknown): Generator<Node> {
   }
 }
 
+const everyNode = new WeakMap<Node, Node[]>();
+
+/**
+ * Every node of a tree, depth first, collected once per tree: the editor's
+ * checks each go through a whole file's nodes, and share the parse.
+ */
+export const nodesOf = (root: Node): Node[] => {
+  let all = everyNode.get(root);
+  if (!all) {
+    all = [...walk(root)];
+    everyNode.set(root, all);
+  }
+  return all;
+};
+
 export const put = <T extends object, K extends keyof T>(
   target: T,
   key: K,

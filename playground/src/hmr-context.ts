@@ -78,3 +78,15 @@ export class HmrCtxConsumer extends LitElement {
     this.setAttribute('data-renders', String(this.renders));
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-ctx-provider': HmrCtxProvider;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-ctx-consumer': HmrCtxConsumer;
+  }
+}

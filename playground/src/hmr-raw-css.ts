@@ -52,3 +52,9 @@ export class HmrRawCss extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-raw-css': HmrRawCss;
+  }
+}

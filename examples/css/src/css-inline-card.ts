@@ -39,3 +39,9 @@ export class CssInlineCard extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'css-inline-card': CssInlineCard;
+  }
+}

@@ -40,3 +40,9 @@ export class HmrUtilityBtn extends LitElement {
     }
   }
 }
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'hmr-utility-btn': HmrUtilityBtn;
+  }
+}

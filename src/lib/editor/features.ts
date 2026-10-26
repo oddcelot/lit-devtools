@@ -5,6 +5,7 @@
  * the server only maps offsets and passes these on.
  */
 
+import type {DiagnosticRule} from './config.js';
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
 import {
   type EventHandler,
@@ -51,6 +52,21 @@ export interface Hover {
 }
 
 /** Where the docs come from: a `Workspace`, or anything shaped like it. */
+/** Where a module's imports lead, and where a component is defined. */
+export interface ImportSource {
+  resolve(
+    specifier: string,
+    importer: string
+  ): Promise<{file: string} | {external: string} | undefined>;
+  /** The module defining `tag` in source, or the package shipping it. */
+  definitionOf(
+    file: string,
+    tag: string
+  ): Promise<{file: string} | {package: string} | undefined>;
+  /** The settings' `entries` of `file`'s package, as paths. */
+  entries(file: string): string[];
+}
+
 export interface DocsSource {
   get(file: string, tagName: string): Promise<ComponentDocs | null>;
   tags(file: string): Promise<string[]>;
@@ -58,6 +74,13 @@ export interface DocsSource {
    * What every element like `tagName` accepts: global attributes and DOM
    * events, which differ between HTML and SVG elements.
    */
+  /** For `missing-import`: where imports lead, and where tags are defined. */
+  imports?: ImportSource;
+  /**
+   * The names of HTML's global attributes, for the problem checks only:
+   * outside a Lit template completion leaves them to the editor.
+   */
+  globalAttributes?(): string[];
   globals?(tagName: string): {
     attributes: DocEntry[];
     events: DocEntry[];
@@ -72,6 +95,12 @@ export interface FeatureRequest {
   kind: DocumentKind;
   offset: number;
   templateTags?: readonly string[];
+  /** Tags no problem is reported for, with `*` wildcards. */
+  ignoreTags?: readonly string[];
+  /** Attributes and properties accepted on any element, with `*` wildcards. */
+  ignoreAttributes?: readonly string[];
+  /** Rules turned off, which a costly check can skip: `missing-import`. */
+  rulesOff?: readonly DiagnosticRule[];
 }
 
 // --- markdown --------------------------------------------------------------
@@ -224,7 +253,7 @@ interface Candidate {
 }
 
 /** The element a binding is written on. */
-type ElementRef = Pick<MarkupElement, 'tag' | 'dialect'>;
+export type ElementRef = Pick<MarkupElement, 'tag' | 'dialect'>;
 
 /**
  * A component's own entries for a plain prop in JSX or Astro, where a prop
@@ -463,16 +492,39 @@ const valueCompletions = async (
   }));
 };
 
+/**
+ * The type of what `binding` + `name` sets on `tagName`, when it's known: a
+ * property's (`.`), an attribute's (`''`, `?`) or an event's (`@`).
+ */
+export const bindingTypeOf = async (
+  source: DocsSource,
+  file: string,
+  tagName: string,
+  binding: Binding,
+  name: string
+): Promise<string | undefined> => {
+  const candidates = await candidatesFor(source, file, {tag: tagName}, binding);
+  return candidates.find((candidate) => labelOf(candidate) === name)?.entry
+    .type;
+};
+
+/** The names `binding` reaches on `tagName`: its own, then what every element has. */
+export const bindingNames = async (
+  source: DocsSource,
+  file: string,
+  element: ElementRef,
+  binding: Binding
+): Promise<string[]> =>
+  (await candidatesFor(source, file, element, binding)).map(labelOf);
+
 /** The type of the event `eventName` on `tagName`, when it's known. */
-export const eventTypeOf = async (
+export const eventTypeOf = (
   source: DocsSource,
   file: string,
   tagName: string,
   eventName: string
-): Promise<string | undefined> => {
-  const candidates = await candidatesFor(source, file, {tag: tagName}, '@');
-  return candidates.find(({entry}) => entry.name === eventName)?.entry.type;
-};
+): Promise<string | undefined> =>
+  bindingTypeOf(source, file, tagName, '@', eventName);
 
 const handlerType = (
   source: DocsSource,

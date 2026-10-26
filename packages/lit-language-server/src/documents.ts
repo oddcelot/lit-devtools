@@ -9,12 +9,23 @@ import type {TextDocument} from 'vscode-languageserver-textdocument';
 import type {
   DocsSource,
   FeatureRequest,
+  ImportSource,
 } from '../../../src/lib/editor/features.js';
+import {packageOf} from '../../../src/lib/editor/workspace-packages.js';
+import {resolve as resolvePath} from 'node:path';
 import {
   type HtmlData,
   createHtmlDocs,
 } from '../../../src/lib/editor/html-data.js';
 import {svgData} from '../../../src/lib/editor/svg-data.js';
+import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
+import {elementDefinitionProblems} from '../../../src/lib/editor/element-definitions.js';
+import {propertyDefinitionProblems} from '../../../src/lib/editor/property-definitions.js';
+import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
+import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
+import {directiveBindingProblems} from '../../../src/lib/editor/directive-bindings.js';
+import {missingImportProblems} from '../../../src/lib/editor/missing-imports.js';
+import {suppressionsOf} from '../../../src/lib/editor/suppressions.js';
 import {
   type Problem,
   eventTypeProblems,
@@ -27,15 +38,64 @@ import {cssDiagnostics} from './css.js';
 const html = createHtmlDocs(htmlData as HtmlData);
 const svg = createHtmlDocs(svgData(svgElementAttributes));
 
+const GLOBAL_ATTRIBUTES = html.globals.attributes.map((entry) => entry.name);
+
 /** An SVG element, unless HTML has one of the same name (`a`, `title`). */
 const isSvg = (tag: string): boolean => !html.get(tag) && svg.get(tag) !== null;
 
-/** SVG elements share SVG's core and presentation attributes, and the DOM events. */
+/**
+ * The HTML global attributes every element has, SVG's included: `Element`'s
+ * and `HTMLOrSVGElement`'s, and ARIA's `role`.
+ */
+const EVERY_ELEMENT = new Set([
+  'autofocus',
+  'class',
+  'exportparts',
+  'id',
+  'inert',
+  'lang',
+  'nonce',
+  'part',
+  'popover',
+  'role',
+  'slot',
+  'style',
+  'tabindex',
+]);
+
+/**
+ * SVG elements share SVG's core and presentation attributes, the HTML
+ * attributes every element has, and the DOM events.
+ */
 const svgGlobals = {
-  attributes: svg.globals.attributes,
+  attributes: [
+    ...svg.globals.attributes,
+    ...html.globals.attributes.filter(
+      (entry) =>
+        EVERY_ELEMENT.has(entry.name) &&
+        !svg.globals.attributes.some((own) => own.name === entry.name)
+    ),
+  ],
   events: html.globals.events,
   label: 'attribute of every SVG element',
 };
+
+/** Imports and definitions as the workspace resolves them. */
+const importSourceFor = (workspace: Workspace): ImportSource => ({
+  resolve: (specifier, importer) =>
+    workspace.resolveImport(specifier, importer),
+  async definitionOf(file, tag) {
+    const declared = workspace.declarationsOf(tag)[0];
+    if (declared) return {file: declared.file};
+    const docs = await workspace.get(file, tag);
+    return docs?.origin.package ? {package: docs.origin.package} : undefined;
+  },
+  entries(file) {
+    const pkg = packageOf(workspace.packages, file);
+    const entries = workspace.configOf(file)?.entries ?? [];
+    return pkg ? entries.map((entry) => resolvePath(pkg.dir, entry)) : [];
+  },
+});
 
 /**
  * Where a document's docs come from. In a Lit template, standard HTML and
@@ -48,7 +108,11 @@ export const docsSourceFor = (
   kind: DocumentKind
 ): DocsSource =>
   kind !== 'script'
-    ? workspace
+    ? {
+        get: (file, tag) => workspace.get(file, tag),
+        tags: (file) => workspace.tags(file),
+        globalAttributes: () => GLOBAL_ATTRIBUTES,
+      }
     : {
         get: async (file, tag) =>
           (await workspace.get(file, tag)) ?? html.get(tag) ?? svg.get(tag),
@@ -60,6 +124,7 @@ export const docsSourceFor = (
           ]),
         ],
         globals: (tag) => (isSvg(tag) ? svgGlobals : html.globals),
+        imports: importSourceFor(workspace),
       };
 
 /** The CSS template tags of a document; none in an HTML file. */
@@ -71,14 +136,39 @@ export const cssTagsFor = (
     ? (config?.cssTemplateTags ?? ['css'])
     : [];
 
-/** Every problem in a document, by rule, at offsets into its text. */
+/**
+ * Every problem in a document, by rule, at offsets into its text, but those
+ * a `lit-ignore` comment silences.
+ */
 export const documentProblems = async (
+  source: DocsSource,
+  request: Omit<FeatureRequest, 'offset'>,
+  document: TextDocument,
+  cssTags: readonly string[]
+): Promise<Problem[]> => {
+  const suppressed = suppressionsOf(
+    request.code,
+    request.kind,
+    request.templateTags
+  );
+  const all = await allProblems(source, request, document, cssTags);
+  return all.filter((problem) => !suppressed(problem));
+};
+
+const allProblems = async (
   source: DocsSource,
   request: Omit<FeatureRequest, 'offset'>,
   document: TextDocument,
   cssTags: readonly string[]
 ): Promise<Problem[]> => [
   ...(await eventTypeProblems(source, request)),
+  ...(await bindingLiteralProblems(source, request)),
+  ...elementDefinitionProblems(request),
+  ...propertyDefinitionProblems(request),
+  ...(await unknownNameProblems(source, request)),
+  ...templateSyntaxProblems(request),
+  ...directiveBindingProblems(request),
+  ...(await missingImportProblems(source, request)),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
     rule: 'css',
     start: document.offsetAt(diagnostic.range.start),

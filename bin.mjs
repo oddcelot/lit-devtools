@@ -62,6 +62,92 @@ const requirePeer = async (specifier, hint) => {
   }
 };
 
+const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
+/** What `lit-devtools check` found, one problem a line, as `file:line:column`. */
+const printBindingCheck = (
+  {problems, checked, notes, unmapped},
+  path,
+  prefix
+) => {
+  for (const note of notes) console.error(`${prefix}${note}`);
+  if (unmapped.length > 0) {
+    console.log(
+      `${prefix}not in HTMLElementTagNameMap, so their properties ` +
+        `weren't checked: ${unmapped.join(', ')}`
+    );
+  }
+  for (const {file, line, column, message} of problems) {
+    const at = `${path.relative(process.cwd(), file)}:${line}:${column}`;
+    console.log(`${at}  ${message}  binding-type`);
+  }
+  console.log(
+    `${prefix}${plural(problems.length, 'binding problem')} in ` +
+      `${plural(checked, 'file')} with bindings`
+  );
+};
+
+/** Whether a package's check fails the run: a problem at `error`, or a tsconfig tsc can't read. */
+const failsRun = (severity, {problems, notes}) =>
+  (severity === 'error' && problems.length > 0) || notes.length > 0;
+
+/** A package's lines start with its folder when several are checked. */
+const prefixFor = (checks, dir, path) =>
+  checks.length > 1
+    ? `[lit-devtools] ${path.relative(process.cwd(), dir) || '.'}: `
+    : '[lit-devtools] ';
+
+/** One package's result; true when it fails the run. */
+const printPackageCheck = ({severity, result}, path, prefix) => {
+  if (!result) {
+    console.log(`${prefix}binding-type is off in the settings`);
+    return false;
+  }
+  printBindingCheck(result, path, prefix);
+  return failsRun(severity, result);
+};
+
+/** Every package's result; true when one fails the run. */
+const printPackageChecks = (checks, path) =>
+  checks
+    .map((check) =>
+      printPackageCheck(check, path, prefixFor(checks, check.dir, path))
+    )
+    .includes(true);
+
+/**
+ * `lit-devtools check`: the check the language server makes on save. Every
+ * `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}` expression,
+ * checked by the project's own tsc against what the element takes, in the
+ * package `root` is in, or every package from a monorepo's root. Each
+ * package's `binding-type` severity applies: `off` skips it, and only
+ * `error` fails the run.
+ */
+const bindingCheck = async (root, project) => {
+  const [{createWorkspace}, {checkPackages}, path] = await Promise.all([
+    import('./lib/editor/workspace.js'),
+    import('./lib/editor/check-packages.js'),
+    import('node:path'),
+  ]);
+  const dir = path.resolve(root);
+  const workspace = await createWorkspace(dir);
+  if (!workspace) {
+    console.error(`[lit-devtools] ${dir} isn't in a package`);
+    process.exit(1);
+  }
+  let checks;
+  try {
+    checks = await checkPackages(
+      workspace,
+      dir,
+      project && path.resolve(dir, project)
+    );
+  } finally {
+    await workspace.close();
+  }
+  if (printPackageChecks(checks, path)) process.exitCode = 1;
+};
+
 const main = async () => {
   const {default: cac} = await requirePeer('cac', 'cac');
   const cli = cac('lit-devtools');
@@ -229,6 +315,19 @@ const main = async () => {
           `with classes, of ${files} read`
       );
     });
+
+  cli
+    .command(
+      'check [root]',
+      "Check the types of template bindings with the project's TypeScript"
+    )
+    .option(
+      '--project <file>',
+      'tsconfig to check with, relative to the root. Defaults to ' +
+        'tsconfig.json, or the config it references that includes the ' +
+        'sources when it only lists references'
+    )
+    .action((root = '.', flags) => bindingCheck(String(root), flags.project));
 
   cli
     .command('mcp', 'Start a stdio MCP server proxying running dev servers')
