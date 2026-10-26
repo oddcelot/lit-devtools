@@ -65,11 +65,15 @@ const requirePeer = async (specifier, hint) => {
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
 
 /** What `lit-devtools check` found, one problem a line, as `file:line:column`. */
-const printBindingCheck = ({problems, checked, notes, unmapped}, path) => {
-  for (const note of notes) console.error(`[lit-devtools] ${note}`);
+const printBindingCheck = (
+  {problems, checked, notes, unmapped},
+  path,
+  prefix
+) => {
+  for (const note of notes) console.error(`${prefix}${note}`);
   if (unmapped.length > 0) {
     console.log(
-      `[lit-devtools] not in HTMLElementTagNameMap, so their properties ` +
+      `${prefix}not in HTMLElementTagNameMap, so their properties ` +
         `weren't checked: ${unmapped.join(', ')}`
     );
   }
@@ -78,34 +82,51 @@ const printBindingCheck = ({problems, checked, notes, unmapped}, path) => {
     console.log(`${at}  ${message}  binding-type`);
   }
   console.log(
-    `[lit-devtools] ${plural(problems.length, 'binding problem')} in ` +
+    `${prefix}${plural(problems.length, 'binding problem')} in ` +
       `${plural(checked, 'file')} with bindings`
   );
 };
 
-/** `--project` as the check's option; without it the check picks the tsconfig. */
-const projectOption = (path, dir, project) =>
-  project === undefined ? {} : {project: path.resolve(dir, String(project))};
-
-/** The `binding-type` rule's severity in the settings of `file`'s package. */
-const bindingSeverity = (workspace, file) =>
-  workspace.configOf(file)?.diagnostics['binding-type'] ?? 'error';
-
-/** Whether a check fails the run: a problem at `error`, or a tsconfig tsc can't read. */
+/** Whether a package's check fails the run: a problem at `error`, or a tsconfig tsc can't read. */
 const failsRun = (severity, {problems, notes}) =>
   (severity === 'error' && problems.length > 0) || notes.length > 0;
 
+/** A package's lines start with its folder when several are checked. */
+const prefixFor = (checks, dir, path) =>
+  checks.length > 1
+    ? `[lit-devtools] ${path.relative(process.cwd(), dir) || '.'}: `
+    : '[lit-devtools] ';
+
+/** One package's result; true when it fails the run. */
+const printPackageCheck = ({severity, result}, path, prefix) => {
+  if (!result) {
+    console.log(`${prefix}binding-type is off in the settings`);
+    return false;
+  }
+  printBindingCheck(result, path, prefix);
+  return failsRun(severity, result);
+};
+
+/** Every package's result; true when one fails the run. */
+const printPackageChecks = (checks, path) =>
+  checks
+    .map((check) =>
+      printPackageCheck(check, path, prefixFor(checks, check.dir, path))
+    )
+    .includes(true);
+
 /**
- * `lit-devtools check`: the check the language server can't make as you
- * type. Every `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}`
- * expression, checked by the project's own tsc against what the element
- * takes. The `binding-type` rule's severity in the package's settings
- * applies: `off` skips the check, and only `error` fails the run.
+ * `lit-devtools check`: the check the language server makes on save. Every
+ * `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}` expression,
+ * checked by the project's own tsc against what the element takes, in the
+ * package `root` is in, or every package from a monorepo's root. Each
+ * package's `binding-type` severity applies: `off` skips it, and only
+ * `error` fails the run.
  */
 const bindingCheck = async (root, project) => {
-  const [{createWorkspace}, {checkBindingTypes}, path] = await Promise.all([
+  const [{createWorkspace}, {checkPackages}, path] = await Promise.all([
     import('./lib/editor/workspace.js'),
-    import('./lib/editor/type-check-run.js'),
+    import('./lib/editor/check-packages.js'),
     import('node:path'),
   ]);
   const dir = path.resolve(root);
@@ -114,24 +135,17 @@ const bindingCheck = async (root, project) => {
     console.error(`[lit-devtools] ${dir} isn't in a package`);
     process.exit(1);
   }
-  const severity = bindingSeverity(workspace, path.join(dir, 'package.json'));
-  if (severity === 'off') {
-    await workspace.close();
-    console.log('[lit-devtools] binding-type is off in the settings');
-    return;
-  }
-  let result;
+  let checks;
   try {
-    result = await checkBindingTypes(
+    checks = await checkPackages(
       workspace,
       dir,
-      projectOption(path, dir, project)
+      project && path.resolve(dir, project)
     );
   } finally {
     await workspace.close();
   }
-  printBindingCheck(result, path);
-  if (failsRun(severity, result)) process.exitCode = 1;
+  if (printPackageChecks(checks, path)) process.exitCode = 1;
 };
 
 const main = async () => {
