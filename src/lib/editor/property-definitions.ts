@@ -9,6 +9,10 @@
  *   reads as a string. A `converter` or `attribute: false` is left alone.
  * - `property-visibility`: `@property()` on a private field, which makes
  *   internal state public API, and in TypeScript `@state()` on a public one.
+ * - `shadowed-member`: a field named like a method every element has,
+ *   `after` for `Element.after()`, or a member Lit relies on, `update`,
+ *   which the field replaces. TypeScript reports the first in a typed file;
+ *   nothing does in JavaScript.
  */
 
 import {
@@ -20,6 +24,7 @@ import {
 } from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import type {Problem} from './diagnostics.js';
+import {HTML_ELEMENT_METHODS, LIT_ELEMENT_MEMBERS} from './dom-properties.js';
 
 const MEMBERS = new Set([
   'PropertyDefinition',
@@ -194,6 +199,23 @@ const propertyTypeProblem = (
   };
 };
 
+// --- shadowed-member -------------------------------------------------------
+
+const shadowProblem = ({member, name}: Declared): Problem | undefined => {
+  const lit = LIT_ELEMENT_MEMBERS.has(name);
+  if (!lit && !HTML_ELEMENT_METHODS.has(name)) return undefined;
+  const key = child(member, 'key')!;
+  const what = lit
+    ? `Lit's own \`${name}\`, which it relies on to update the element`
+    : `\`${name}()\`, a method every element has`;
+  return {
+    rule: 'shadowed-member',
+    start: key.start,
+    end: key.end,
+    message: `This field replaces ${what}: give it another name.`,
+  };
+};
+
 // --- property-visibility ---------------------------------------------------
 
 const isPrivate = (member: Node) =>
@@ -244,6 +266,7 @@ export const propertyDefinitionProblems = ({
   return declaredIn(program).flatMap((declared) =>
     [
       attributeNameProblem(declared),
+      shadowProblem(declared),
       propertyTypeProblem(code, declared),
       visibilityProblem(file, declared),
     ].filter((problem) => problem !== undefined)

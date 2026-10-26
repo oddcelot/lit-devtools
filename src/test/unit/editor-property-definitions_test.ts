@@ -86,3 +86,34 @@ test('@property on private state, @state on a public field', () => {
   ]);
   expect(problemsIn('@state() open = false;', '/app/src/x.js')).toEqual([]);
 });
+
+test('a field that replaces an element method or Lit member', () => {
+  expect(
+    problemsIn(
+      `
+      @state() after;
+      @property({attribute: false}) update = 1;
+      @property() remove = '';
+      @property({type: Boolean}) hidden = false;
+      @state() elapsed;
+    `,
+      '/app/src/x.js'
+    ).map(([rule, text, message]) => [rule, text, message])
+  ).toEqual([
+    [
+      'shadowed-member',
+      'after',
+      'This field replaces `after()`, a method every element has: give it another name.',
+    ],
+    [
+      'shadowed-member',
+      'update',
+      "This field replaces Lit's own `update`, which it relies on to update the element: give it another name.",
+    ],
+    [
+      'shadowed-member',
+      'remove',
+      'This field replaces `remove()`, a method every element has: give it another name.',
+    ],
+  ]);
+});
