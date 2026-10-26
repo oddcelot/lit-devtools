@@ -36,17 +36,18 @@
   font-family: var(--font-lexend);
 }
 
-/* The design system runs extrabold with tight tracking at display sizes and
-   semibold below that. Starlight has no token for either, so set them here. */
+/* Lexend is a wide face that reads heavy, so display headings run semibold
+   with tight tracking and the smaller ones medium. Starlight has no token
+   for either, so set them here. */
 .sl-markdown-content :is(h1, h2),
 .hero h1,
 .content-panel h1 {
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .sl-markdown-content :is(h3, h4, h5, h6) {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ------------------------------------------------- Dark · DevTools theme ---- */
