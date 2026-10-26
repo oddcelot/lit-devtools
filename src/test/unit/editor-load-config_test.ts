@@ -30,6 +30,7 @@ describe('loadLanguageServerConfig', () => {
       entries: [],
       templateTags: ['html', 'svg'],
       cssTemplateTags: ['css'],
+      checkOnSave: true,
       diagnostics: {
         'unknown-element': 'warning',
         'unknown-attribute': 'warning',

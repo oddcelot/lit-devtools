@@ -29,6 +29,7 @@ import {
   TextDocuments,
   createConnection,
 } from 'vscode-languageserver/node';
+import {createSaveChecks} from './save-checks.js';
 
 /** A problem's quick fix, carried in its diagnostic's `data`. */
 interface DiagnosticFix {
@@ -159,6 +160,13 @@ export const startServer = (streams?: ServerStreams): Connection => {
   const documents = new TextDocuments(TextDocument);
   /** Workspaces by root, read on first use. */
   const workspaces = new Map<string, Promise<Workspace | undefined>>();
+  /** Binding type checks run on save; their problems publish with the rest. */
+  const saveChecks = createSaveChecks((files) => {
+    for (const document of documents.all()) {
+      const file = fileOf(document.uri);
+      if (file && files.includes(file)) void publishDocument(document.uri);
+    }
+  });
   /** Config files that have problems published on them. */
   let problemFiles = new Set<string>();
 
@@ -352,7 +360,10 @@ export const startServer = (streams?: ServerStreams): Connection => {
     if (!found) return;
     const {document, workspace, source, request, cssTags} = found;
     const severities = workspace.configOf(request.file)?.diagnostics;
-    const problems = await documentProblems(source, request, document, cssTags);
+    const problems = [
+      ...(await documentProblems(source, request, document, cssTags)),
+      ...saveChecks.problemsOf(request.file),
+    ];
     const diagnostics = problems.flatMap((problem): Diagnostic[] => {
       const severity =
         severities?.[problem.rule] ?? DEFAULT_SEVERITIES[problem.rule];
@@ -421,7 +432,11 @@ export const startServer = (streams?: ServerStreams): Connection => {
     });
     return {
       capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Incremental,
+        textDocumentSync: {
+          openClose: true,
+          change: TextDocumentSyncKind.Incremental,
+          save: {includeText: false},
+        },
         completionProvider: {
           triggerCharacters: ['<', ' ', '.', '@', '?', '"', "'", ':', '(', '-'],
         },
@@ -437,8 +452,16 @@ export const startServer = (streams?: ServerStreams): Connection => {
 
   documents.onDidChangeContent(async ({document}) => {
     const file = fileOf(document.uri);
+    if (file) saveChecks.clear(file);
     if (file) await (await workspaceOf(file))?.update(file, document.getText());
     scheduleDiagnostics();
+  });
+
+  // The binding type check that needs TypeScript, on the file as saved.
+  documents.onDidSave(async ({document}) => {
+    const file = fileOf(document.uri);
+    const workspace = file && (await workspaceOf(file));
+    if (file && workspace) await saveChecks.check(workspace, file);
   });
 
   // A closed buffer's unsaved edits are gone; the file on disk counts again.
