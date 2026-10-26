@@ -134,6 +134,12 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
       @customElement('x-button')
       export class XButton extends LitElement {
         @property() size: 'small' | 'large' = 'small';
+        // Its own \`change\`, a CustomEvent, not the DOM's Event; and one
+        // whose detail the docs can only call unknown.
+        pick(at: number, thing: Thing) {
+          this.dispatchEvent(new CustomEvent('change', {detail: {at}}));
+          this.dispatchEvent(new CustomEvent('took', {detail: {thing}}));
+        }
       }
       declare global {
         interface HTMLElementTagNameMap { 'x-button': XButton }
@@ -151,13 +157,16 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
       export const again = (n: number) => html\`<x-button .size=\${n}></x-button>\`;
     `,
     'src/app.ts': `
-      import {LitElement, html} from 'lit';
+      import {LitElement, html, nothing} from 'lit';
       import './x-button.js';
       export class XApp extends LitElement {
         name = 'x';
         render() {
+          const hooks = {down: nothing};
           return html\`<x-button .size=\${this.name} size=\${this.name} title=\${this.missing}
-            @click=\${(e: MouseEvent) => e}></x-button>
+            @click=\${(e: MouseEvent) => e} @mousedown=\${hooks.down}
+            @change=\${(e: CustomEvent<{at: number}>) => e}
+            @took=\${(e: CustomEvent<{thing: string}>) => e}></x-button>
             <x-plain .anything=\${1}></x-plain>\`;
         }
       }
@@ -196,12 +205,12 @@ describe('checkBindingTypes, with the repo’s TypeScript', () => {
       ).toEqual([
         {
           file: 'src/app.ts',
-          line: 7,
+          line: 8,
           message: '`.size` takes `"large" | "small"`, but this is `string`.',
         },
         {
           file: 'src/app.ts',
-          line: 7,
+          line: 8,
           message: '`size` takes `"large" | "small"`, but this is `string`.',
         },
         {

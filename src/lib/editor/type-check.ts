@@ -37,7 +37,11 @@ import type {Binding} from './markup.js';
 
 /** Declarations every shadow copy is checked with. */
 export const PRELUDE = `\
-type __LitSpecial = typeof import('lit').nothing | typeof import('lit').noChange;
+// Lit's \`nothing\` and \`noChange\` are unique symbols, but a \`nothing\` put in
+// an object literal, \`{down: nothing}\`, widens to \`symbol\`: any symbol passes.
+type __LitSpecial = symbol;
+declare const __litNoType: unique symbol;
+type __LitNoType = typeof __litNoType;
 type __LitElementOf<K> = K extends keyof HTMLElementTagNameMap
   ? HTMLElementTagNameMap[K]
   : K extends keyof SVGElementTagNameMap
@@ -53,7 +57,11 @@ type __LitLoose<T> = 0 extends 1 & T
         ? readonly __LitLoose<U>[]
         : T;
 type __LitPropOf<K, P> = P extends keyof __LitElementOf<K> ? __LitLoose<__LitElementOf<K>[P]> : any;
-type __LitEventOf<N, F> = N extends keyof HTMLElementEventMap ? HTMLElementEventMap[N] : F;
+type __LitEventOf<N, F> = [F] extends [__LitNoType]
+  ? N extends keyof HTMLElementEventMap
+    ? HTMLElementEventMap[N]
+    : any
+  : F;
 declare function __litProp<K extends string, P extends string>(value: __LitPropOf<K, P> | __LitSpecial): void;
 declare function __litAttr(value: string | number | bigint | __LitSpecial): void;
 type __LitTextOf<T> = [T & {}] extends [string]
@@ -65,7 +73,7 @@ declare function __litAttrOf<K extends string, P extends string>(value: __LitTex
 declare function __litAttrMaybe(value: string | number | bigint | null | undefined | __LitSpecial): void;
 declare function __litAttrMaybeOf<K extends string, P extends string>(value: __LitTextOf<__LitPropOf<K, P>> | null | undefined | __LitSpecial): void;
 declare function __litBool(value: boolean | null | undefined | __LitSpecial): void;
-declare function __litEvent<N extends string, F = any>(
+declare function __litEvent<N extends string, F = __LitNoType>(
   value:
     | ((event: __LitEventOf<N, F>) => unknown)
     | {handleEvent(event: __LitEventOf<N, F>): unknown}
@@ -137,7 +145,10 @@ const callFor = (
     case '?':
       return '__litBool';
     case '@':
-      return known ? `__litEvent<${name}, ${known}>` : `__litEvent<${name}>`;
+      // The docs say `unknown` for what they couldn't infer: any, here.
+      return known
+        ? `__litEvent<${name}, ${known.replace(/\bunknown\b/g, 'any')}>`
+        : `__litEvent<${name}>`;
     default: {
       const text = maybe ? '__litAttrMaybe' : '__litAttr';
       return known ? `${text}Of<${tag}, ${literal(known)}>` : text;
@@ -244,6 +255,21 @@ export const toSource = (insertions: Insertion[], offset: number): number => {
   return offset - shift;
 };
 
+/** Whether an offset into the copy falls in text the copy inserted. */
+export const isInserted = (
+  insertions: Insertion[],
+  offset: number
+): boolean => {
+  let shift = 0;
+  for (const {at, text} of insertions) {
+    const inCopy = at + shift;
+    if (offset < inCopy) return false;
+    if (offset < inCopy + text.length) return true;
+    shift += text.length;
+  }
+  return false;
+};
+
 /** The innermost wrapped binding holding a source offset. */
 export const wrapAt = (wraps: Wrap[], offset: number): Wrap | undefined =>
   wraps
@@ -300,8 +326,12 @@ const takes = (wrap: Wrap, expected: string): string => {
   }
 };
 
+/** A type without the `nothing` and `noChange` every binding takes. */
 const withoutSpecial = (type: string): string =>
-  type.replace(/ \| __LitSpecial|__LitSpecial \| /g, '');
+  type.replace(
+    / \| (?:__LitSpecial|symbol)\b|\b(?:__LitSpecial|symbol) \| /g,
+    ''
+  );
 
 /** What a diagnostic in a wrapped binding says, in the binding's terms. */
 export const bindingMessage = (

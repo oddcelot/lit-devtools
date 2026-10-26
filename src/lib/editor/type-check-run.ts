@@ -17,14 +17,17 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import {eventTypeOf} from './features.js';
+import {DOM_EVENT_TYPES} from './dom-events.js';
 import {kindOfFile} from './navigation.js';
 import {suppressionsOf} from './suppressions.js';
+import {packageOf} from './workspace-packages.js';
 import {projectFor} from './tsconfig-project.js';
 import {
   PRELUDE,
   type Shadow,
   type TscDiagnostic,
   bindingMessage,
+  isInserted,
   parseTscOutput,
   shadowSource,
   toSource,
@@ -141,6 +144,8 @@ const scriptsOf = async (
       [...listed.flat(), ...read].filter(
         (file) =>
           !path.relative(root, file).startsWith('..') &&
+          // A nested package's scripts are its own to check.
+          (packageOf(workspace.packages, file)?.dir ?? root) === root &&
           SCRIPT_RE.test(file) &&
           !/\.d\.[cm]?ts$/.test(file) &&
           !file.includes(`${path.sep}node_modules${path.sep}`) &&
@@ -150,6 +155,14 @@ const scriptsOf = async (
     ),
   ];
 };
+
+/**
+ * A docs type that names an event, `CustomEvent<{id: string}>` or
+ * `MouseEvent`; anything else a manifest writes there, such as the shape of
+ * the detail alone, can't type a listener.
+ */
+const asEventType = (type: string | undefined): string | undefined =>
+  type && /^[A-Z]\w*Event\b/.test(type.trim()) ? type : undefined;
 
 /** The shadow copies of the scripts that have bindings. */
 const shadowCopies = async (
@@ -164,7 +177,17 @@ const shadowCopies = async (
     const shadow = await shadowSource(
       {file: source, code, kind, templateTags},
       {
-        eventType: (tag, name) => eventTypeOf(workspace, source, tag, name),
+        // The component's own event first, so its `change` isn't the DOM's;
+        // the DOM's own events are left to HTMLElementEventMap.
+        eventType: async (tag, name) =>
+          asEventType(
+            (await workspace.get(source, tag))?.events.find(
+              (entry) => entry.name === name
+            )?.type ??
+              (name in DOM_EVENT_TYPES
+                ? undefined
+                : await eventTypeOf(workspace, source, tag, name))
+          ),
         propertyOf: async (tag, name) =>
           (await workspace.get(source, tag))?.attributes.find(
             (entry) => entry.name === name
@@ -234,6 +257,9 @@ const writeCopies = async (
     extends: path.relative(cache, project),
     compilerOptions: {
       rootDirs: [path.relative(cache, root), '.'],
+      // The copies sit in the package's node_modules, outside a `rootDir`
+      // such as `src`; the package's folder holds both.
+      rootDir: path.relative(cache, root),
       noEmit: true,
       incremental: false,
       composite: false,
@@ -274,10 +300,11 @@ const problemsIn = (
     const copy = byCopy.get(path.resolve(root, d.file));
     if (!copy) continue;
     const {shadow, source, code} = copy;
-    const offset = toSource(
-      shadow.insertions,
-      offsetAt(shadow.text, d.line, d.column)
-    );
+    const inCopy = offsetAt(shadow.text, d.line, d.column);
+    // An error in the inserted call, such as a name the docs' event type
+    // uses that the file doesn't import, is the wrapping's, not the code's.
+    if (isInserted(shadow.insertions, inCopy)) continue;
+    const offset = toSource(shadow.insertions, inCopy);
     const wrap = wrapAt(shadow.wraps, offset);
     if (!wrap || inSources.has(keyOf(source, offset, d.code))) continue;
     if (copy.suppressed({rule: 'binding-type', start: wrap.start})) continue;
