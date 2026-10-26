@@ -16,7 +16,7 @@ import StoreButtons from '../../../components/StoreButtons.astro';
 import DocsSources from '../../../components/landing/DocsSources.astro';
 
 See every feature of the plugin running, each next to the guide that sets it
-up. Everything on this page is live: the figures are the plugin's own UI, not
+up. Every figure on this page is live: the plugin's own UI, not
 screenshots.
 
 ## Hot patching that keeps state
@@ -93,6 +93,31 @@ The same docs reach Lit Inspector and, through the `lit_component-docs` MCP
 tool, your coding agent.
 
 Guide: [Read a component's documentation](/guides/devtools/components/#read-a-components-documentation).
+
+## Catch template mistakes in your editor
+
+The language server completes your components' tags, attributes, properties
+and events in `html` templates, and shows their docs on hover, read from the
+same JSDoc. As you type, it reports what would go wrong in the browser; when
+you save, it type-checks the file's bindings with your own TypeScript:
+
+```ts title="src/x-app.ts"
+html`<x-buton></x-buton>`;
+//    ^^^^^^^ unknown-element: Did you mean `<x-button>`?
+html`<x-button size="huge"></x-button>`;
+//                   ^^^^ invalid-value: `size` takes one of `small`, `large`, not `huge`.
+html`<x-button .size=${this.name}></x-button>`;
+//                     ^^^^^^^^^ binding-type, on save: `.size` takes `"small" | "large"`, but this is `string`.
+html`<div class=${styleMap(s)}></div>`;
+//                ^^^^^^^^^^^ directive-binding: `styleMap` belongs to `style`.
+```
+
+It reads Lit templates, and custom elements in JSX, Astro, MDX and HTML
+files. The same checks fail a CI run, through the Oxlint plugin and
+`lit-devtools check`.
+
+Guide: [Use the Lit language server](/guides/language-server/). Coming from
+lit-analyzer: [Template checkers compared](/overview/compare-language-server/).
 
 ## See every update and its cause
 
