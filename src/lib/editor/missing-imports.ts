@@ -11,7 +11,7 @@
  * defining module.
  */
 
-import {readFile} from 'node:fs/promises';
+import {readFile, stat} from 'node:fs/promises';
 import path from 'node:path';
 import {type Node, child, nodes, nodesOf} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
@@ -58,32 +58,73 @@ interface Graph {
   packages: Set<string>;
 }
 
-/** A module's text: the open file's buffer, else the file on disk. */
-const codeOf = (
+/** Where one module's imports lead. */
+interface Edges {
+  files: string[];
+  packages: string[];
+}
+
+/**
+ * Each module's edges, by path, with the version they were read at: the
+ * open file's text, else the file's modification time. A keystroke then
+ * re-reads only the file typed in, and every other module costs a `stat`.
+ */
+const edgesCache = new Map<string, {version: string; edges: Edges}>();
+
+/** The version of a module, or undefined when it can't be read. */
+const versionOf = async (
   file: string,
   open: {file: string; code: string}
-): Promise<string | undefined> =>
-  file === open.file
-    ? Promise.resolve(open.code)
-    : readFile(file, 'utf8').catch(() => undefined);
+): Promise<string | undefined> => {
+  if (file === open.file) return `open:${open.code}`;
+  const stats = await stat(file).catch(() => undefined);
+  return stats && `disk:${stats.mtimeMs}`;
+};
 
-/** Adds a module's imports to the graph: files to visit, packages as reached. */
-const follow = async (
+/**
+ * Where a module's imports lead, read afresh. `settled` is false when a
+ * relative import didn't resolve: the file may appear later, so the edges
+ * aren't kept.
+ */
+const readEdges = async (
   imports: ImportSource,
-  graph: Graph,
-  queue: string[],
   file: string,
   code: string
-): Promise<void> => {
+): Promise<{edges: Edges; settled: boolean}> => {
+  const edges: Edges = {files: [], packages: []};
+  let settled = true;
   for (const specifier of specifiersOf(code, file)) {
     const target = await imports.resolve(specifier, file);
     if (target && 'file' in target) {
-      queue.push(target.file);
+      edges.files.push(target.file);
     } else if (target || !/^[./]/.test(specifier)) {
       // A bare specifier is the package's import even when it won't resolve.
-      graph.packages.add(packageName(target?.external ?? specifier));
+      edges.packages.push(packageName(target?.external ?? specifier));
+    } else {
+      settled = false;
     }
   }
+  return {edges, settled};
+};
+
+const edgesOf = async (
+  imports: ImportSource,
+  file: string,
+  open: {file: string; code: string}
+): Promise<Edges | undefined> => {
+  const version = await versionOf(file, open);
+  if (version === undefined) return undefined;
+  const cached = edgesCache.get(file);
+  if (cached?.version === version) return cached.edges;
+  const code =
+    file === open.file
+      ? open.code
+      : await readFile(file, 'utf8').catch(() => undefined);
+  if (code === undefined) return undefined;
+  const {edges, settled} = await readEdges(imports, file, code);
+  if (settled) edgesCache.set(file, {version, edges});
+  else edgesCache.delete(file);
+  return edges;
 };
 
 /** The modules and packages reachable from `starts`, the open file's text first. */
@@ -98,8 +139,9 @@ const graphFrom = async (
     const file = queue.shift()!;
     if (graph.files.has(file)) continue;
     graph.files.add(file);
-    const code = await codeOf(file, open);
-    if (code !== undefined) await follow(imports, graph, queue, file, code);
+    const edges = await edgesOf(imports, file, open);
+    queue.push(...(edges?.files ?? []));
+    for (const name of edges?.packages ?? []) graph.packages.add(name);
   }
   return graph;
 };

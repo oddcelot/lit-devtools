@@ -1,5 +1,12 @@
 /// <reference types="node" />
-import {mkdir, mkdtemp, realpath, rm, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  realpath,
+  rm,
+  utimes,
+  writeFile,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
@@ -101,6 +108,30 @@ test('components the file uses but its imports and the entries never reach', asy
     // After the last import.
     expect(problems[0].fix?.start).toBe(APP.indexOf('\n\nexport') + 1);
   } finally {
+    await workspace.close();
+  }
+});
+
+test('reads a module again once it changes on disk', async () => {
+  const workspace = (await createWorkspace(root, {viteResolution: false}))!;
+  const reexport = join(root, 'src/lib/re-export.ts');
+  try {
+    const file = join(root, 'src/app.ts');
+    const missing = async () =>
+      (
+        await missingImportProblems(docsSourceFor(workspace, 'script'), {
+          file,
+          code: APP,
+          kind: 'script',
+        })
+      ).map((p) => APP.slice(p.start, p.end));
+    expect(await missing()).toEqual(['x-a', 'other-thing']);
+    await writeFile(reexport, '// no imports now\n');
+    const later = new Date(Date.now() + 5000);
+    await utimes(reexport, later, later);
+    expect(await missing()).toEqual(['x-a', 'x-b', 'other-thing']);
+  } finally {
+    await writeFile(reexport, "import '../x-b.js';\n");
     await workspace.close();
   }
 });
