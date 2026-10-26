@@ -80,7 +80,12 @@ export default defineConfig(async ({mode}) => {
       },
     },
     plugins: lazyPlugins(() => [
-      litPlugin({timeline: true, sourceOverlay: true}),
+      litPlugin({
+        timeline: true,
+        sourceOverlay: true,
+        // @lit-labs/virtualizer ships no Custom Elements Manifest.
+        languageServer: {ignoreTags: ['lit-virtualizer']},
+      }),
       Inspect(),
     ]),
   };

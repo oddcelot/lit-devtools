@@ -1,0 +1,5 @@
+{
+  "languageServer": {
+    "ignoreTags": ["video-player", "video-skin"]
+  }
+}
