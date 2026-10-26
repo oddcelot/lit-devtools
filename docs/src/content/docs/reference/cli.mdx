@@ -185,10 +185,10 @@ src/x-app.ts:12:35  `.size` takes `"small" | "large"`, but this is `string`.  bi
 [lit-devtools] 1 binding problem in 6 files with bindings
 ```
 
-| Flag               | Repeatable | Meaning                                             |
-| ------------------ | ---------- | --------------------------------------------------- |
-| `[root]`           | no         | The project folder; defaults to the current one     |
-| `--project <file>` | no         | tsconfig to check with; defaults to `tsconfig.json` |
+| Flag               | Repeatable | Meaning                                         |
+| ------------------ | ---------- | ----------------------------------------------- |
+| `[root]`           | no         | The project folder; defaults to the current one |
+| `--project <file>` | no         | tsconfig to check with; see below               |
 
 It reads the `binding-type` rule's severity from the
 [settings](/reference/language-server/#settings): `off` skips the check,
@@ -218,9 +218,10 @@ then, or when `tsc` can't read the tsconfig.
   allowed for `ifDefined`. An element's type
   parameters read as `any`, so a generic element such as
   `<lit-virtualizer>` takes any `items`.
-- **Project references.** With a solution-style `tsconfig.json` that only
-  lists references, point `--project` at the one with your sources,
-  `--project tsconfig.app.json`.
+- **Which tsconfig.** `tsconfig.json`, unless it only lists `references`, as
+  Vite's templates write it: then the referenced config whose `include`
+  covers your sources, `tsconfig.app.json` in a Vite project. The check on
+  save picks the same. `--project` names another.
 - **Skipping a binding.** Put `<!-- lit-ignore binding-type -->` before
   its element, or `// lit-ignore-next-line` above the line of code, as in
   the [editor](/reference/language-server/#silence-a-problem). A

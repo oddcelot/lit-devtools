@@ -19,6 +19,7 @@ import process from 'node:process';
 import {eventTypeOf} from './features.js';
 import {kindOfFile} from './navigation.js';
 import {suppressionsOf} from './suppressions.js';
+import {projectFor} from './tsconfig-project.js';
 import {
   PRELUDE,
   type Shadow,
@@ -58,7 +59,10 @@ export interface BindingTypeCheck {
 const CACHE = path.join('node_modules', '.cache');
 
 export interface CheckOptions {
-  /** The tsconfig, `tsconfig.json` in the package by default. */
+  /**
+   * The tsconfig. By default `tsconfig.json` in the package, or, when that
+   * only lists references, the referenced config that includes the scripts.
+   */
   project?: string;
   /** Check these scripts only; every one of the package's by default. */
   only?: readonly string[];
@@ -299,9 +303,9 @@ export const checkBindingTypes = async (
 ): Promise<BindingTypeCheck> => {
   // The workspace names files by their real path (`/private/tmp` on macOS).
   const root = realpathSync(dir);
-  const project = options.project ?? path.join(root, 'tsconfig.json');
   const cache = path.join(root, CACHE, options.cache ?? 'lit-check');
   const scripts = await scriptsOf(workspace, root);
+  const project = options.project ?? projectFor(root, scripts);
   const only = options.only?.map((file) => realpathSync(file));
   const copies = await shadowCopies(
     workspace,
