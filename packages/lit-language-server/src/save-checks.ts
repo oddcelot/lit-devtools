@@ -9,7 +9,6 @@
 import {realpathSync} from 'node:fs';
 import type {Problem} from '../../../src/lib/editor/diagnostics.js';
 import {checkBindingTypes} from '../../../src/lib/editor/type-check-run.js';
-import {packageOf} from '../../../src/lib/editor/workspace-packages.js';
 import type {Workspace} from '../../../src/lib/editor/workspace.js';
 
 export interface SaveChecks {
@@ -69,7 +68,7 @@ export const createSaveChecks = (
       const config = workspace.configOf(file);
       if (!SCRIPT_RE.test(file) || !config?.checkOnSave) return;
       if (config.diagnostics['binding-type'] === 'off') return;
-      const pkg = packageOf(workspace.packages, file);
+      const pkg = workspace.packageOf(file);
       if (!pkg) return;
       const files = waiting.get(pkg.dir) ?? new Set<string>();
       files.add(file);

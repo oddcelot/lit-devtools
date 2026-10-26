@@ -1,5 +1,12 @@
 /// <reference types="node" />
-import {mkdir, mkdtemp, realpath, rm, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  realpath,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {dirname, join} from 'node:path';
 import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
@@ -77,5 +84,33 @@ test('reads the manifests the settings list, local and remote', async () => {
     ]);
   } finally {
     await workspace.close();
+  }
+});
+
+test('reads them for a project opened through a symlink', async () => {
+  // As macOS opens /tmp, a symlink to /private/tmp: the editor's paths go
+  // through the link, the workspace's folders are real.
+  const link = join(
+    await realpath(await mkdtemp(join(tmpdir(), 'lit-link-'))),
+    'app'
+  );
+  await symlink(root, link);
+  const workspace = (await createWorkspace(link))!;
+  try {
+    const file = join(link, 'src/app.ts');
+    expect(workspace.configOf(file)?.manifests).toEqual(
+      expect.arrayContaining(['vendor/virtualizer.json'])
+    );
+    const local = await workspace.get(file, 'lit-virtualizer');
+    expect(local?.attributes.map((a) => a.name)).toEqual(['scroller']);
+    await workspace.update(
+      join(link, 'src/x-linked.ts'),
+      "import {customElement} from 'lit/decorators.js';\n" +
+        "@customElement('x-linked') export class XLinked {}\n"
+    );
+    expect(workspace.sourceTags()).toContain('x-linked');
+  } finally {
+    await workspace.close();
+    await rm(dirname(link), {recursive: true, force: true});
   }
 });

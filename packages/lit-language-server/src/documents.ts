@@ -11,7 +11,6 @@ import type {
   FeatureRequest,
   ImportSource,
 } from '../../../src/lib/editor/features.js';
-import {packageOf} from '../../../src/lib/editor/workspace-packages.js';
 import {resolve as resolvePath} from 'node:path';
 import {
   type HtmlData,
@@ -91,7 +90,7 @@ const importSourceFor = (workspace: Workspace): ImportSource => ({
     return docs?.origin.package ? {package: docs.origin.package} : undefined;
   },
   entries(file) {
-    const pkg = packageOf(workspace.packages, file);
+    const pkg = workspace.packageOf(file);
     const entries = workspace.configOf(file)?.entries ?? [];
     return pkg ? entries.map((entry) => resolvePath(pkg.dir, entry)) : [];
   },
