@@ -119,6 +119,16 @@ and `.github/workflows/release-zed.yaml` opens the update pull request to
 `zed-industries/extensions`. Both workflows say what they need set up in
 their headers.
 
+Updating the language server must never break an installed extension: Zed
+runs the project's server or the latest one on npm, and VS Code a project's
+own, whatever their versions. So these are a contract, pinned by
+`src/test/unit/editor-server-contract_test.ts` and the umbrella's e2e test:
+the package names `@oddsquad/lit-language-server` and
+`@oddsquad/lit-devtools`, the files `dist/bin.mjs` and
+`bin/lit-language-server.mjs` that start the server, and LSP over
+`--stdio`. A change to any of them is breaking for every user: ship an
+extension release that handles both forms first, and only then the server.
+
 Work lands on a branch named for its kind (`feature/`, `fix/`, `docs/`) and
 merges with `--no-ff`. Release commits bump `package.json` and
 `packages/lit-devtools/package.json`, write the `CHANGELOG.md` section, and
