@@ -1,0 +1,3 @@
+# Written by the `manifest` option while the dev server runs, and by
+# `npm run manifest`.
+/custom-elements.json

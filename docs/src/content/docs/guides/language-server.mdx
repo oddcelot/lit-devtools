@@ -20,6 +20,8 @@ type-checks the file's bindings with your own TypeScript. It reads your
 sources as you type, so a component's docs are current before you save, and
 it works in a project without Vite.
 [Language server](/reference/language-server/) lists everything it does.
+The [checks example](/start/demos/#checks) has one of each mistake it
+reports, to open in your editor.
 
 ## Set it up in VS Code
 
@@ -263,9 +265,10 @@ As you type, the editor and Oxlint read types as text, so they catch
 That takes your project's TypeScript. The editor runs it over a script's
 bindings when you save the file, and shows what it finds until you edit
 again; set `checkOnSave: false` to turn that off. In CI, run it over every
-script next to the lint run:
+script next to the lint run. The command needs `cac`, an optional peer:
 
 ```sh
+npm install -D cac
 npx lit-devtools check
 ```
 

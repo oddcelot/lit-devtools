@@ -158,6 +158,24 @@ toolbar; it asks once for the code the terminal prints. See the
   title="The Astro example running on StackBlitz"
 />
 
+## Checks
+
+Every check the [language server](/guides/language-server/) makes, with one
+example of each mistake in `src/mistakes/`, next to a small documented
+component set it completes, documents and writes a manifest for. This one
+shows in your editor rather than in a browser, so there's no embed: open it
+with the Lit DevTools extension installed and the mistakes are underlined.
+In a terminal, the same problems fail `npm run lint` and `npm run check`:
+
+```sh frame="terminal"
+npx degit oddcelot/lit-devtools/examples/checks lit-checks
+cd lit-checks && npm install
+npm run lint
+```
+
+See the [example's README](https://github.com/oddcelot/lit-devtools/tree/main/examples/checks)
+for a tour of the editor features and what each file shows.
+
 ## Playground
 
 The repo's playground, with the Vite DevTools dock. Click the counter, edit
