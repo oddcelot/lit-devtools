@@ -115,6 +115,10 @@ const DESCRIPTIONS: Record<DiagnosticRule, string> = {
   'missing-element-type': 'A component missing from HTMLElementTagNameMap.',
   'unclosed-tag': 'A component never closed, or closed with />.',
   'binding-syntax': 'A binding written so Lit reads it wrong.',
+  'invalid-name': "A tag or attribute name HTML can't use.",
+  'property-type': "A property's type option that doesn't fit its type.",
+  'property-visibility':
+    '@property() on private state, or @state() on a public field.',
   css: 'A problem in a css template.',
 };
 

@@ -16,6 +16,9 @@ export const DIAGNOSTIC_RULES = [
   'missing-element-type',
   'unclosed-tag',
   'binding-syntax',
+  'invalid-name',
+  'property-type',
+  'property-visibility',
   'css',
 ] as const;
 
@@ -69,5 +72,8 @@ export const DEFAULT_SEVERITIES: Readonly<Record<DiagnosticRule, Severity>> = {
   'missing-element-type': 'warning',
   'unclosed-tag': 'warning',
   'binding-syntax': 'error',
+  'invalid-name': 'error',
+  'property-type': 'warning',
+  'property-visibility': 'off',
   css: 'warning',
 };

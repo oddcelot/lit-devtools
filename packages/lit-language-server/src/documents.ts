@@ -16,7 +16,8 @@ import {
 } from '../../../src/lib/editor/html-data.js';
 import {svgData} from '../../../src/lib/editor/svg-data.js';
 import {bindingLiteralProblems} from '../../../src/lib/editor/binding-literals.js';
-import {missingElementTypeProblems} from '../../../src/lib/editor/element-definitions.js';
+import {elementDefinitionProblems} from '../../../src/lib/editor/element-definitions.js';
+import {propertyDefinitionProblems} from '../../../src/lib/editor/property-definitions.js';
 import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
 import {
@@ -114,7 +115,8 @@ export const documentProblems = async (
 ): Promise<Problem[]> => [
   ...(await eventTypeProblems(source, request)),
   ...(await bindingLiteralProblems(source, request)),
-  ...missingElementTypeProblems(request),
+  ...elementDefinitionProblems(request),
+  ...propertyDefinitionProblems(request),
   ...(await unknownNameProblems(source, request)),
   ...templateSyntaxProblems(request),
   ...cssDiagnostics(document, cssTags).map((diagnostic): Problem => ({
