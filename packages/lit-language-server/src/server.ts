@@ -9,6 +9,7 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {TextDocument} from 'vscode-languageserver-textdocument';
 import {
+  type CodeAction,
   CodeActionKind,
   type CompletionItem,
   type Connection,
@@ -28,6 +29,13 @@ import {
   TextDocuments,
   createConnection,
 } from 'vscode-languageserver/node';
+
+/** A problem's quick fix, carried in its diagnostic's `data`. */
+interface DiagnosticFix {
+  title: string;
+  range: Range;
+  newText: string;
+}
 import {
   type Completion,
   type DocsSource,
@@ -357,6 +365,20 @@ export const startServer = (streams?: ServerStreams): Connection => {
           source: 'lit',
           code: problem.rule,
           message: problem.message,
+          ...(problem.fix
+            ? {
+                data: {
+                  fix: {
+                    title: problem.fix.title,
+                    range: {
+                      start: document.positionAt(problem.fix.start),
+                      end: document.positionAt(problem.fix.end),
+                    },
+                    newText: problem.fix.newText,
+                  } satisfies DiagnosticFix,
+                },
+              }
+            : {}),
         },
       ];
     });
@@ -483,15 +505,32 @@ export const startServer = (streams?: ServerStreams): Connection => {
     return locationsOf(spans);
   });
 
-  // Writes an inline handler's event type in, so TypeScript can take over.
-  connection.onCodeAction(async ({textDocument, range}) => {
-    const found = await handlersIn(textDocument.uri, range);
-    return (found?.within ?? []).map(({type, edit}) => ({
+  /** The quick fixes of the diagnostics a code action request names. */
+  const problemFixes = (uri: string, diagnostics: Diagnostic[]): CodeAction[] =>
+    diagnostics.flatMap((diagnostic) => {
+      const fix = (diagnostic.data as {fix?: DiagnosticFix} | undefined)?.fix;
+      if (!fix) return [];
+      return [
+        {
+          title: fix.title,
+          kind: CodeActionKind.QuickFix,
+          diagnostics: [diagnostic],
+          edit: {changes: {[uri]: [{range: fix.range, newText: fix.newText}]}},
+        },
+      ];
+    });
+
+  /** "Add event type" for the untyped inline handlers `handlersIn` found. */
+  const handlerFixes = (
+    uri: string,
+    found: Awaited<ReturnType<typeof handlersIn>>
+  ): CodeAction[] =>
+    (found?.within ?? []).map(({type, edit}) => ({
       title: `Add event type ${type}`,
       kind: CodeActionKind.QuickFix,
       edit: {
         changes: {
-          [textDocument.uri]: [
+          [uri]: [
             {
               range: {
                 start: found!.document.positionAt(edit.start),
@@ -503,6 +542,15 @@ export const startServer = (streams?: ServerStreams): Connection => {
         },
       },
     }));
+
+  // Writes an inline handler's event type in, so TypeScript can take over;
+  // and applies the fixes problems carry in their diagnostic's `data`.
+  connection.onCodeAction(async ({textDocument, range, context}) => {
+    const found = await handlersIn(textDocument.uri, range);
+    return [
+      ...problemFixes(textDocument.uri, context.diagnostics),
+      ...handlerFixes(textDocument.uri, found),
+    ];
   });
 
   // Shows an untyped inline handler's event type after its parameter.

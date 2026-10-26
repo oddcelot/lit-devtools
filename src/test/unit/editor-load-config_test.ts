@@ -38,6 +38,7 @@ describe('loadLanguageServerConfig', () => {
         'missing-import': 'off',
         'event-type': 'error',
         'binding-type': 'error',
+        'missing-element-type': 'warning',
         css: 'warning',
       },
       source: 'default',
