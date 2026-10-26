@@ -219,6 +219,7 @@ html`<x-button size="huge"></x-button>`;
 | `unknown-attribute` | An attribute, plain or `?`, the element doesn't have           |
 | `unknown-binding`   | A `.property` a component doesn't have, nor every HTML element |
 | `invalid-value`     | A component's attribute written with a value outside its type  |
+| `unknown-slot`      | A child's `slot="…"` its parent component doesn't declare      |
 
 - `data-*`, `aria-*`, namespaced names, `xmlns` and Lit SSR's
   `defer-hydration` are always accepted, and so is every property all HTML
@@ -229,6 +230,9 @@ html`<x-button size="huge"></x-button>`;
   read.
 - `invalid-value` reads an attribute whose type is a union of string
   literals, or a number.
+- `unknown-slot` reads a component's slots from its `@slot` docs, and only
+  when it documents some: `<h2 slot="heder">` in an `<x-card>` with a
+  `header` slot is reported, with the slots it has.
 - A component known only from a library without a manifest, or one that
   inherits members the server can't read, shows up as unknown. Name it in
   `ignoreTags`, or its attributes in `ignoreAttributes`.
@@ -359,6 +363,7 @@ the config file is reported as ignored.
 | `unknown-attribute`    | `warning` | An attribute the element doesn't have            |
 | `unknown-binding`      | `warning` | A property a component doesn't have              |
 | `invalid-value`        | `warning` | An attribute value outside its type              |
+| `unknown-slot`         | `warning` | A slot the parent component doesn't declare      |
 | `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`    |
 | `binding-syntax`       | `error`   | A binding written so Lit reads it wrong          |
 | `invalid-name`         | `error`   | A tag or attribute name HTML can't use           |
@@ -385,6 +390,7 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/unknown-attribute`    | An attribute the element doesn't have            |
 | `lit-devtools/unknown-binding`      | A property a component doesn't have              |
 | `lit-devtools/invalid-value`        | An attribute value outside its type              |
+| `lit-devtools/unknown-slot`         | A slot the parent component doesn't declare      |
 | `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`    |
 | `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong          |
 | `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use           |
