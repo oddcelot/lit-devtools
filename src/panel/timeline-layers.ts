@@ -4,6 +4,7 @@ import {customElement, property} from 'lit/decorators.js';
 import '../../packages/lit-components/src/button.js';
 import './wa-icons.js';
 import {tokens} from '../lib/tokens.js';
+import '../../packages/lit-components/src/icon.js';
 
 export interface LayerState {
   id: string;
