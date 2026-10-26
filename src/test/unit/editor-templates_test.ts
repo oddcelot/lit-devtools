@@ -144,4 +144,12 @@ describe('findDocumentRegions', () => {
       'jsx: <x-item label={} />',
     ]);
   });
+
+  test('leaves out a fenced block indented in a list item', () => {
+    const code =
+      '- Write it:\n  ```ts\n  html`<x-fenced>`\n  ```\n- Then <x-after />';
+    expect(regions(code, findDocumentRegions(code, 'mdx'))).toEqual([
+      'jsx: - Write it:\n  {}\n- Then <x-after />',
+    ]);
+  });
 });
