@@ -62,6 +62,21 @@ const requirePeer = async (specifier, hint) => {
   }
 };
 
+const plural = (count, noun) => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
+/** What `lit-devtools check` found, one problem a line, as `file:line:column`. */
+const printBindingCheck = ({problems, checked, notes}, path) => {
+  for (const note of notes) console.error(`[lit-devtools] ${note}`);
+  for (const {file, line, column, message} of problems) {
+    const at = `${path.relative(process.cwd(), file)}:${line}:${column}`;
+    console.log(`${at}  ${message}  binding-type`);
+  }
+  console.log(
+    `[lit-devtools] ${plural(problems.length, 'binding problem')} in ` +
+      `${plural(checked, 'file')} with bindings`
+  );
+};
+
 const main = async () => {
   const {default: cac} = await requirePeer('cac', 'cac');
   const cli = cac('lit-devtools');
@@ -228,6 +243,49 @@ const main = async () => {
         `[lit-devtools] wrote ${out}: ${count} module${count === 1 ? '' : 's'} ` +
           `with classes, of ${files} read`
       );
+    });
+
+  cli
+    .command(
+      'check [root]',
+      "Check the types of template bindings with the project's TypeScript"
+    )
+    .option(
+      '--project <file>',
+      'tsconfig to check with, relative to the root',
+      {
+        default: 'tsconfig.json',
+      }
+    )
+    .action(async (root = '.', flags) => {
+      // The check the language server can't make as you type: every
+      // `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}` expression
+      // checked by the project's own tsc, against what the element takes.
+      const [{createWorkspace}, {checkBindingTypes}, path] = await Promise.all([
+        import('./lib/editor/workspace.js'),
+        import('./lib/editor/type-check-run.js'),
+        import('node:path'),
+      ]);
+      const dir = path.resolve(String(root));
+      const workspace = await createWorkspace(dir);
+      if (!workspace) {
+        console.error(`[lit-devtools] ${dir} isn't in a package`);
+        process.exit(1);
+      }
+      let result;
+      try {
+        result = await checkBindingTypes(
+          workspace,
+          dir,
+          path.resolve(dir, String(flags.project))
+        );
+      } finally {
+        await workspace.close();
+      }
+      printBindingCheck(result, path);
+      if (result.problems.length > 0 || result.notes.length > 0) {
+        process.exitCode = 1;
+      }
     });
 
   cli
