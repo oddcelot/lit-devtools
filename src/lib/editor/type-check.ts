@@ -20,17 +20,19 @@
  * sets it, it never writes to it.
  *
  * Lit's `DirectiveResult` loses its members when Lit's types are built, so
- * it would accept anything; a call to a directive (`live(x)`, `classMap(…)`)
- * is left unwrapped instead.
+ * it would accept anything; a call to a directive (`classMap(…)`) is left
+ * unwrapped instead. `live(x)` and an attribute's `ifDefined(x)` pass `x`
+ * on, so `x` is wrapped.
  */
 
-import {type Node, child, nodes, walk} from '../component-docs/ast.js';
+import {type Node, child, nodes} from '../component-docs/ast.js';
 import {parseModule} from '../component-docs/parse.js';
 import {
   type BindingsRequest,
   type TemplateBinding,
   templateBindings,
 } from './bindings.js';
+import {type Directive, calleeOf, directivesIn} from './directives.js';
 import type {Binding} from './markup.js';
 
 /** Declarations every shadow copy is checked with. */
@@ -60,6 +62,8 @@ type __LitTextOf<T> = [T & {}] extends [string]
     : T & {}
   : string | number | bigint;
 declare function __litAttrOf<K extends string, P extends string>(value: __LitTextOf<__LitPropOf<K, P>> | __LitSpecial): void;
+declare function __litAttrMaybe(value: string | number | bigint | null | undefined | __LitSpecial): void;
+declare function __litAttrMaybeOf<K extends string, P extends string>(value: __LitTextOf<__LitPropOf<K, P>> | null | undefined | __LitSpecial): void;
 declare function __litBool(value: boolean | null | undefined | __LitSpecial): void;
 declare function __litEvent<N extends string, F = any>(
   value:
@@ -122,7 +126,8 @@ const typeArgumentFor = (
  */
 const callFor = (
   {element, attribute}: TemplateBinding,
-  known: string | undefined
+  known: string | undefined,
+  maybe?: true
 ): string => {
   const tag = literal(element.tag.toLowerCase());
   const name = literal(attribute.name);
@@ -133,51 +138,57 @@ const callFor = (
       return '__litBool';
     case '@':
       return known ? `__litEvent<${name}, ${known}>` : `__litEvent<${name}>`;
-    default:
-      return known ? `__litAttrOf<${tag}, ${literal(known)}>` : '__litAttr';
+    default: {
+      const text = maybe ? '__litAttrMaybe' : '__litAttr';
+      return known ? `${text}Of<${tag}, ${literal(known)}>` : text;
+    }
   }
 };
 
-/** The local names an `import … from '…directive…'` binds. */
-const importedDirectives = (node: Node): string[] => {
-  if (node.type !== 'ImportDeclaration') return [];
-  const from = child(node, 'source')?.value;
-  if (typeof from !== 'string' || !/directive/i.test(from)) return [];
-  return nodes(node.specifiers).flatMap((specifier) => {
-    const local = child(specifier, 'local')?.name;
-    return typeof local === 'string' ? [local] : [];
-  });
-};
-
-/** The name `const x = directive(…)` binds. */
-const madeDirective = (node: Node): string[] => {
-  if (node.type !== 'VariableDeclarator') return [];
-  const init = child(node, 'init');
-  const id = child(node, 'id')?.name;
-  return init?.type === 'CallExpression' &&
-    child(init, 'callee')?.name === 'directive' &&
-    typeof id === 'string'
-    ? [id]
-    : [];
-};
-
-/** Names bound to directives: imported from a `…directive…` module, or made with `directive(…)`. */
-const directiveNames = (code: string, file: string): Set<string> => {
-  const names = new Set<string>();
+/** The first argument of the call an expression is, as offsets into `code`. */
+const firstArgument = (
+  code: string,
+  start: number,
+  end: number
+): {start: number; end: number} | undefined => {
   let program: Node;
   try {
-    program = parseModule(code, file);
+    program = parseModule(`(${code.slice(start, end)});`, 'binding.ts');
   } catch {
-    return names;
+    return undefined;
   }
-  for (const node of walk(program)) {
-    for (const name of [...importedDirectives(node), ...madeDirective(node)])
-      names.add(name);
+  let call = child(nodes(program.body)[0], 'expression');
+  while (call?.type === 'ParenthesizedExpression') {
+    call = child(call, 'expression');
   }
-  return names;
+  const argument = nodes(call?.arguments)[0];
+  return argument && argument.type !== 'SpreadElement'
+    ? {start: start + argument.start - 1, end: start + argument.end - 1}
+    : undefined;
 };
 
-const CALL_RE = /^\s*([A-Za-z_$][\w$]*)\s*\(/;
+/**
+ * What of a binding's expression is checked. A call to a directive isn't,
+ * except `live(x)`, which hands `x` on as it is, and `ifDefined(x)` on an
+ * attribute, which hands it on or leaves the attribute out: `x` then may
+ * also be `undefined` (`maybe`).
+ */
+const checkedRange = (
+  code: string,
+  {attribute, start, end}: TemplateBinding,
+  directives: Map<string, Directive>
+): {start: number; end: number; maybe?: true} | undefined => {
+  const callee = calleeOf(code.slice(start, end));
+  const directive =
+    callee === undefined ? undefined : directives.get(callee)?.name;
+  if (directive === undefined) return {start, end};
+  if (directive === 'live') return firstArgument(code, start, end);
+  if (directive === 'ifDefined' && attribute.binding === '') {
+    const argument = firstArgument(code, start, end);
+    return argument && {...argument, maybe: true};
+  }
+  return undefined;
+};
 
 /** The shadow copy of a script, or undefined when it has no binding to wrap. */
 export const shadowSource = async (
@@ -187,24 +198,24 @@ export const shadowSource = async (
   const {code, file} = request;
   const bindings = templateBindings(request);
   if (bindings.length === 0) return undefined;
-  const directives = directiveNames(code, file);
+  const directives = directivesIn(code, file);
   const wraps: Wrap[] = [];
   const insertions: Insertion[] = [];
   for (const binding of bindings) {
-    const {element, attribute, start, end} = binding;
-    const callee = CALL_RE.exec(code.slice(start, end))?.[1];
-    if (callee && directives.has(callee)) continue;
+    const target = checkedRange(code, binding, directives);
+    if (!target) continue;
     const type = await typeArgumentFor(binding, lookup);
+    const call = callFor(binding, type, target.maybe);
     insertions.push(
-      {at: start, text: `${callFor(binding, type)}((`},
-      {at: end, text: '))'}
+      {at: target.start, text: `${call}((`},
+      {at: target.end, text: '))'}
     );
     wraps.push({
-      binding: attribute.binding,
-      name: attribute.name,
-      tag: element.tag,
-      start,
-      end,
+      binding: binding.attribute.binding,
+      name: binding.attribute.name,
+      tag: binding.element.tag,
+      start: target.start,
+      end: target.end,
     });
   }
   if (wraps.length === 0) return undefined;
