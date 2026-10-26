@@ -1,8 +1,8 @@
 # Changelog
 
 All notable changes to Lit DevTools for VS Code, including the language
-server it bundles, which also has its own
-[changelog](https://github.com/oddcelot/lit-devtools/blob/main/packages/lit-language-server/CHANGELOG.md).
+server it bundles. The rest of Lit DevTools is in the repository's
+[changelog](https://github.com/oddcelot/lit-devtools/blob/main/CHANGELOG.md).
 
 ## 0.1.0 — 2026-10-25
 

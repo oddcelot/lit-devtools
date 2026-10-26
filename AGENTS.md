@@ -78,33 +78,26 @@ A change to two parts that users meet separately, such as an editor fix that
 also changes what the lint rules report, is two commits or one entry under
 the part most users see.
 
-`CHANGELOG.md` is the changelog of Lit DevTools: `@oddsquad/lit-devtools`
-and everything it installs, organised by the shared headings above.
-`pnpm run changelog` drafts its section from every part. The language
-server, the Oxlint plugin and the VS Code extension keep their own
-changelogs on their own versions, drafted from their parts:
-`pnpm run changelog:language-server` (`language-server`),
-`changelog:oxlint-plugin` (`oxlint`) and `changelog:vscode` (`vscode`, and
-`language-server`, since it bundles the server).
+`CHANGELOG.md` is the changelog of Lit DevTools, organised by the shared
+headings above; `pnpm run changelog` drafts its section from every part. The
+VS Code extension keeps its own changelog on its own versions, drafted from
+its parts with `pnpm run changelog:vscode` (`vscode`, and `language-server`,
+since it bundles the server).
 
-`@oddsquad/lit-devtools` (`packages/lit-devtools`) re-exports the plugin,
-the server and the Oxlint plugin, and releases with the plugin at its
-version: a release commit bumps both `package.json` files (a unit test keeps
-them equal), and `release.yaml` publishes the umbrella right after the
-plugin, with the shared `CHANGELOG.md` copied in as it packs. It depends on
-the server and the Oxlint plugin with `workspace:^`, which pnpm turns into
-their current versions as it packs, so release those first; the job stops
-if one isn't on npm. A change that makes one of its parts load the others by
-package name breaks it under pnpm, which
-`src/test/e2e/lit-devtools-umbrella_test.ts` catches.
-
-The server and the Oxlint plugin release on their own tags: a release commit
-bumps the package's `package.json` and writes its section, and a
-`lit-language-server-v<version>` or `oxlint-plugin-lit-v<version>` tag
-publishes it through `release-language-server.yaml` or
-`release-oxlint-plugin.yaml`, which also create its GitHub Release (a version
-already on npm, such as a first one published by hand, only gets the
-release).
+Four packages release together at one version from one `v*` tag: the plugin
+(`@oddsquad/vite-plugin-lit`), the language server
+(`packages/lit-language-server`), the Oxlint plugin
+(`packages/oxlint-plugin-lit`) and `@oddsquad/lit-devtools`
+(`packages/lit-devtools`), which re-exports the other three. A release commit
+bumps all four `package.json` files, which a unit test keeps equal;
+`release.yaml` publishes the plugin, then the server, the Oxlint plugin and
+the umbrella, skipping any already on npm so a failed job can be rerun. The
+umbrella depends on the others with `workspace:^`, which pnpm turns into
+that version as it packs, and ships the shared `CHANGELOG.md`, copied in as
+it packs. A change that makes one of its parts load the others by package
+name breaks it under pnpm, which `src/test/e2e/lit-devtools-umbrella_test.ts`
+catches. The server's and the Oxlint plugin's own `CHANGELOG.md` files keep
+their history from before 0.25.0, when they had versions of their own.
 
 The editor extensions release on their own tags too. The VS Code extension
 (`packages/vscode`): a release commit bumps its `package.json` and writes its
@@ -130,13 +123,12 @@ the package names `@oddsquad/lit-language-server` and
 extension release that handles both forms first, and only then the server.
 
 Work lands on a branch named for its kind (`feature/`, `fix/`, `docs/`) and
-merges with `--no-ff`. Release commits bump `package.json` and
-`packages/lit-devtools/package.json`, write the `CHANGELOG.md` section, and
-get a `v<version>` tag. Pushing that tag (`git push origin main --follow-tags`)
-is the release: `.github/workflows/release.yaml` runs the gate, publishes the
-plugin and then `@oddsquad/lit-devtools` to npm over trusted publishing, and
-creates the GitHub Release from the changelog section. Don't `pnpm publish`
-by hand.
+merges with `--no-ff`. Release commits bump the four `package.json` files,
+write the `CHANGELOG.md` section, and get a `v<version>` tag. Pushing that tag
+(`git push origin main --follow-tags`) is the release:
+`.github/workflows/release.yaml` runs the gate, publishes the four packages
+to npm over trusted publishing, and creates the GitHub Release from the
+changelog section. Don't `pnpm publish` by hand.
 
 A release can carry a video: commit the render of its HyperFrames project as
 `assets/release-<version>/renders/video.mp4`. Committed before the tag, the
@@ -152,7 +144,7 @@ inline (`docs/scripts/sync-changelog.mjs`).
 
 At release time, `/changelog release v0.6.0` assembles the section: it runs
 the draft, rewrites any entry that fell back to a commit body, writes the
-intro paragraph, inserts the section into `CHANGELOG.md` and bumps both
+intro paragraph, inserts the section into `CHANGELOG.md` and bumps the four
 `package.json` files, then stops for review. The draft alone is
 
 ```sh

@@ -1,10 +1,10 @@
 // Prints one version's section of a changelog, without its heading, for use
 // as GitHub Release notes. The plugin's CHANGELOG.md by default; a tag such
-// as `lit-language-server-v0.1.1` names its version after the last `v`:
+// as `vscode-v0.1.1` names its version after the last `v`:
 //
 //   node scripts/release-notes.mjs 0.3.0 > notes.md
-//   node scripts/release-notes.mjs lit-language-server-v0.1.1 \
-//     packages/lit-language-server/CHANGELOG.md > notes.md
+//   node scripts/release-notes.mjs vscode-v0.1.1 \
+//     packages/vscode/CHANGELOG.md > notes.md
 //
 // Exits non-zero when the section is missing or empty, so a release can't go
 // out with the changelog entry forgotten.

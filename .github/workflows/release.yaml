@@ -1,9 +1,10 @@
 name: Release
 
 # `git push origin main --follow-tags` is the whole release: a `v*` tag runs
-# the same gate as CI, publishes the plugin to npm and @oddsquad/lit-devtools
-# after it at the same version, then mirrors the plugin to JSR,
-# creates the GitHub Release from that version's CHANGELOG.md section, and
+# the same gate as CI, publishes the plugin to npm and then, at the same
+# version, the language server, the Oxlint plugin and @oddsquad/lit-devtools,
+# mirrors the plugin to JSR, creates the GitHub Release from that version's
+# CHANGELOG.md section, and
 # (once approved in the `stores` environment) submits Lit Inspector to the
 # Chrome Web Store and to Firefox Add-ons. A release that commits a video
 # (`assets/release-<version>/renders/video.mp4`) also gets it attached to the
@@ -11,7 +12,7 @@ name: Release
 #
 # Publishing authenticates over OIDC on both registries, so there is no token
 # to expire. npm needs a one-time trusted publisher entry on npmjs.com for this
-# repository and `release.yaml`, for each of the two packages; JSR needs this
+# repository and `release.yaml`, for each of the four packages; JSR needs this
 # repository linked in the package settings on jsr.io/@oddsquad/vite-plugin-lit.
 #
 # Running the workflow by hand with a tag retries one target for that tag:
@@ -66,12 +67,15 @@ jobs:
             echo "::error::tag $GITHUB_REF_NAME does not match package.json version $version"
             exit 1
           fi
-          # @oddsquad/lit-devtools releases with the plugin, at its version.
-          umbrella=$(node -p "require('./packages/lit-devtools/package.json').version")
-          if [ "$umbrella" != "$version" ]; then
-            echo "::error::packages/lit-devtools is at $umbrella; it releases with the plugin at $version"
-            exit 1
-          fi
+          # The umbrella, the language server and the Oxlint plugin release
+          # with the plugin, at its version.
+          for dir in packages/lit-devtools packages/lit-language-server packages/oxlint-plugin-lit; do
+            other=$(node -p "require('./$dir/package.json').version")
+            if [ "$other" != "$version" ]; then
+              echo "::error::$dir is at $other; it releases with the plugin at $version"
+              exit 1
+            fi
+          done
       - name: Check CHANGELOG.md has a section for it
         run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > /dev/null
       # Same gate as ci.yaml's check job.
@@ -92,10 +96,11 @@ jobs:
             *) npm publish package.tgz --access public ;;
           esac
 
-  # @oddsquad/lit-devtools, at the plugin's version and with its changelog,
-  # once the plugin it depends on is on npm. A separate job, so a failure
-  # can be rerun on its own. Its npm trusted publisher names this file.
-  publish-lit-devtools:
+  # The language server, the Oxlint plugin and then @oddsquad/lit-devtools,
+  # which depends on all three, at the plugin's version. A separate job, so a
+  # failure can be rerun on its own: a package already on npm is skipped.
+  # Each package's npm trusted publisher names this file.
+  publish-packages:
     needs: publish
     runs-on: ubuntu-latest
     permissions:
@@ -110,30 +115,27 @@ jobs:
         with:
           node-version: 26
           registry-url: https://registry.npmjs.org
+      # No dependency cache: a release build shouldn't trust one.
       - run: pnpm install --frozen-lockfile
-      # pnpm writes the server's and the Oxlint plugin's current versions
-      # into its dependencies as it packs; they release on their own tags.
-      # Outside the checkout, where package.json's `devEngines` would stop npm.
-      - name: Check its parts are on npm at the versions it names
-        working-directory: ${{ runner.temp }}
-        run: |
-          for dir in . packages/lit-language-server packages/oxlint-plugin-lit; do
-            spec=$(node -p "const p = require('$GITHUB_WORKSPACE/$dir/package.json'); p.name + '@' + p.version")
-            if ! npm view "$spec" version > /dev/null 2>&1; then
-              echo "::error::$spec isn't on npm; release it first"
-              exit 1
-            fi
-          done
-      # Its prepack copies the shared CHANGELOG.md in.
-      - run: pnpm pack --out "$RUNNER_TEMP/lit-devtools.tgz"
-        working-directory: packages/lit-devtools
+      - run: pnpm --filter ./packages/lit-language-server --filter ./packages/oxlint-plugin-lit run build
+      # pnpm packs each (applying `files`, writing the parts' versions into
+      # the umbrella's dependencies, and running its prepack, which copies the
+      # shared CHANGELOG.md in); npm publishes outside the checkout, where
+      # package.json's `devEngines` would stop it.
       - name: Publish
-        working-directory: ${{ runner.temp }}
         run: |
-          case "$GITHUB_REF_NAME" in
-            *-*) npm publish lit-devtools.tgz --access public --tag next ;;
-            *) npm publish lit-devtools.tgz --access public ;;
-          esac
+          tag=latest
+          case "$GITHUB_REF_NAME" in *-*) tag=next ;; esac
+          for dir in packages/lit-language-server packages/oxlint-plugin-lit packages/lit-devtools; do
+            spec=$(node -p "const p = require('./$dir/package.json'); p.name + '@' + p.version")
+            if (cd "$RUNNER_TEMP" && npm view "$spec" version > /dev/null 2>&1); then
+              echo "::notice::$spec is on npm already; not publishing it again."
+              continue
+            fi
+            tarball="$RUNNER_TEMP/$(basename "$dir").tgz"
+            (cd "$dir" && pnpm pack --out "$tarball")
+            (cd "$RUNNER_TEMP" && npm publish "$tarball" --access public --tag "$tag")
+          done
 
   # A separate job, so a JSR failure can be rerun on its own: rerunning
   # `publish` would fail on the npm version that already exists. JSR has no

@@ -1,14 +1,15 @@
 ---
 name: changelog
-description: Draft the user-facing changelog entry for a commit, or assemble a changelog section for a release from the commits since the last tag. Covers CHANGELOG.md, the changelog of Lit DevTools (@oddsquad/lit-devtools and the plugin, released together), and the language server's, the Oxlint plugin's and the VS Code extension's own. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.25.0`, `/changelog release lit-language-server-v0.3.0`, `/changelog release oxlint-plugin-lit-v0.2.0`, `/changelog release vscode-v0.2.0`).
+description: Draft the user-facing changelog entry for a commit, or assemble a changelog section for a release from the commits since the last tag. Covers CHANGELOG.md, the changelog of Lit DevTools (the plugin, the language server, the Oxlint plugin and @oddsquad/lit-devtools, released together at one version), and the VS Code extension's own. Use at commit time (`/changelog entry`) and at release time (`/changelog release v0.25.0`, `/changelog release vscode-v0.2.0`).
 ---
 
 # Changelog
 
 The changelogs are hand-written prose. Each commit carries its own entry,
 folded under one `Changelog:` trailer that names the kind of change and the
-part of Lit DevTools it changes, and `pnpm run changelog` (or a package's
-`changelog:*` script) assembles those entries into a draft section. This
+part of Lit DevTools it changes, and `pnpm run changelog` (or
+`changelog:vscode` for the VS Code extension) assembles those entries into a
+draft section. This
 skill writes the entry at commit time and turns the draft into the committed
 section at release time.
 
@@ -29,19 +30,19 @@ Changelog: Fixed panel
 ```
 
 The part decides where the entry lands: under its heading in `CHANGELOG.md`,
-and in a package's own changelog for the parts that have one.
+and also in the VS Code extension's changelog for the parts it covers.
 
-| Part              | Changed files                                     | Also drafts into    |
-| ----------------- | ------------------------------------------------- | ------------------- |
-| `plugin`          | the Vite plugin: HMR, CSS, the manifest, the CLI  |                     |
-| `astro`           | `src/astro.ts`, `src/lib/astro/`                  |                     |
-| `panel`           | `src/panel/`, the panel's runtime and devframe    |                     |
-| `inspector`       | `extension/` (Lit Inspector)                      |                     |
-| `language-server` | `packages/lit-language-server`, `src/lib/editor/` | server's, VS Code's |
-| `vscode`          | `packages/vscode`                                 | VS Code's           |
-| `zed`             | `packages/zed`                                    |                     |
-| `oxlint`          | `packages/oxlint-plugin-lit`                      | Oxlint plugin's     |
-| `docs`            | `docs/`, `examples/`                              |                     |
+| Part              | Changed files                                     | Also drafts into |
+| ----------------- | ------------------------------------------------- | ---------------- |
+| `plugin`          | the Vite plugin: HMR, CSS, the manifest, the CLI  |                  |
+| `astro`           | `src/astro.ts`, `src/lib/astro/`                  |                  |
+| `panel`           | `src/panel/`, the panel's runtime and devframe    |                  |
+| `inspector`       | `extension/` (Lit Inspector)                      |                  |
+| `language-server` | `packages/lit-language-server`, `src/lib/editor/` | VS Code's        |
+| `vscode`          | `packages/vscode`                                 | VS Code's        |
+| `zed`             | `packages/zed`                                    |                  |
+| `oxlint`          | `packages/oxlint-plugin-lit`                      |                  |
+| `docs`            | `docs/`, `examples/`                              |                  |
 
 Pick the part whose users notice the change. Write the entry for them: an
 editor entry speaks of hovers and completions, a lint entry of what a run
@@ -66,8 +67,9 @@ Rules for the entry:
 
 ## `/changelog release vX.Y.Z`
 
-Assemble and write the Lit DevTools section: the plugin and
-`@oddsquad/lit-devtools` release together at this version. Nothing here tags
+Assemble and write the Lit DevTools section: the plugin, the language
+server, the Oxlint plugin and `@oddsquad/lit-devtools` release together at
+this version. Nothing here tags
 or pushes; that stays with the person.
 
 1. `pnpm run changelog --tag vX.Y.Z` prints the draft: one `###` heading per
@@ -88,8 +90,10 @@ or pushes; that stays with the person.
    previous release. The heading must read `## X.Y.Z — YYYY-MM-DD` with an em
    dash; `scripts/release-notes.mjs` finds the section by that heading and
    the release workflow fails without it.
-5. Bump `version` in `package.json` and in
-   `packages/lit-devtools/package.json`, to the same version.
+5. Bump `version` to the same version in `package.json`,
+   `packages/lit-devtools/package.json`,
+   `packages/lit-language-server/package.json` and
+   `packages/oxlint-plugin-lit/package.json`.
 6. Show the resulting diff and stop. The release commit itself is described in
    AGENTS.md ("Commits and the changelog"); its subject is `Release X.Y.Z`,
    its body a two-sentence summary ending in "See CHANGELOG.md for the full
@@ -97,26 +101,6 @@ or pushes; that stays with the person.
 
 If the draft is empty, say so and stop: either HEAD is already tagged or every
 commit since the tag was `skip`.
-
-## `/changelog release lit-language-server-vX.Y.Z`
-
-The same steps for the language server's own changelog, with its own files:
-`pnpm run changelog:language-server --tag lit-language-server-vX.Y.Z` for
-the draft (the `language-server` part, and the `Changelog-Language-Server:`
-trailers commits before 0.25.0 carried), `packages/lit-language-server/CHANGELOG.md`
-for the section, with `### Added` / `### Changed` / … headings as before,
-and the `version` in `packages/lit-language-server/package.json`. The
-release commit's subject is `Release the language server X.Y.Z`; the tag
-that publishes it is `lit-language-server-vX.Y.Z`.
-
-## `/changelog release oxlint-plugin-lit-vX.Y.Z`
-
-The same again for the Oxlint plugin:
-`pnpm run changelog:oxlint-plugin --tag oxlint-plugin-lit-vX.Y.Z` (the
-`oxlint` part), `packages/oxlint-plugin-lit/CHANGELOG.md`, and the `version`
-in `packages/oxlint-plugin-lit/package.json`. The release commit's subject is
-`Release the Oxlint plugin X.Y.Z`; the tag that publishes it is
-`oxlint-plugin-lit-vX.Y.Z`.
 
 ## `/changelog release vscode-vX.Y.Z`
 
