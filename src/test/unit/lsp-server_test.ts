@@ -588,6 +588,13 @@ describe('the language server', () => {
       '  :host { colo: red; }',
       '  .a { margin: ${gap}; }',
       '  .b { gap: var(--x-b); }',
+      // A selector, and a block's whole body, from expressions.
+      '  ${selector} {',
+      '    cursor: pointer;',
+      '  }',
+      '  :root {',
+      '    ${tokens}',
+      '  }',
       '`;',
       '',
     ];
@@ -629,7 +636,8 @@ describe('the language server', () => {
         n.params.uri === uri &&
         n.params.diagnostics.length > 0
     );
-    // The unknown property is reported; the line with a hole isn't.
+    // The unknown property is reported; the lines with a hole aren't, nor
+    // the rules around them, which parse as they will at runtime.
     expect(published.params.diagnostics).toMatchObject([
       {range: {start: {line: 2}}, severity: 2, source: 'lit', code: 'css'},
     ]);
