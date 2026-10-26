@@ -1,8 +1,9 @@
 /**
  * CSS in a script's `css` tagged templates, prepared for a CSS language
  * service: the script as one CSS text of the same length, everything outside
- * the templates and every `${…}` hole blanked to spaces, line breaks kept,
- * so a position in it is the same position in the script.
+ * the templates blanked to spaces and every `${…}` hole filled to fit where
+ * it stands (`fillHole`), line breaks kept, so a position in it is the same
+ * position in the script.
  *
  * Plus what only the components' docs know: the custom properties they
  * document after `var(--`, and the parts they expose after `::part(`.
@@ -22,6 +23,27 @@ export interface CssText {
 
 const blank = (text: string): string => text.replace(/[^\r\n]/g, ' ');
 
+/**
+ * What stands in for a hole, the same length: a selector before `{` reads
+ * as a type selector, one that stands where a declaration or a whole block
+ * would (between `{`, `;` and `}`) as a custom property, so the rule around
+ * it isn't empty; a value is blanked. Its line's problems are dropped
+ * anyway, but the CSS after it then parses as it will at runtime.
+ */
+const fillHole = (code: string, start: number, end: number): string => {
+  const text = code.slice(start, end);
+  if (/[\r\n]/.test(text)) return blank(text);
+  const after = /^\s*(.)/.exec(code.slice(end))?.[1];
+  const before = /(.)\s*$/.exec(code.slice(0, start))?.[1];
+  if (after === '{') return 'x'.repeat(text.length);
+  const standsAlone =
+    (before === undefined || '{;}'.includes(before)) &&
+    (after === undefined || ';}'.includes(after));
+  return standsAlone && text.length >= 5
+    ? `--x:0${' '.repeat(text.length - 5)}`
+    : blank(text);
+};
+
 const lineOf = (code: string, offset: number): number =>
   code.slice(0, offset).split('\n').length - 1;
 
@@ -39,8 +61,7 @@ export const cssTextOf = (
     text += blank(code.slice(at, region.start));
     at = region.start;
     for (const hole of region.holes) {
-      text +=
-        code.slice(at, hole.start) + blank(code.slice(hole.start, hole.end));
+      text += code.slice(at, hole.start) + fillHole(code, hole.start, hole.end);
       for (
         let line = lineOf(code, hole.start);
         line <= lineOf(code, hole.end);
