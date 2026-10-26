@@ -253,6 +253,12 @@ html`<input .value="x" title=${t}">`;
 
 - `unclosed-tag`, a warning: a component never closed, or closed with `/>`.
   Standard elements are left alone, since HTML lets many go unclosed.
+- `directive-binding`, an error: a Lit directive where Lit can't apply it,
+  which throws on first render. `classMap` and `styleMap` belong to
+  `class` and `style`, `ifDefined` to attributes, `ref` to the element
+  itself (`<div ${ref(…)}>`), `live` to anything but a listener, and
+  `repeat`, `unsafeHTML` and the other directives that render children
+  between tags.
 - `binding-syntax`, an error: a `.`, `?` or `@` binding without `${…}`; a
   stray `"`, `'` or `}` next to the expression, or `/` next to an unquoted
   one; Polymer's `name$=`.
@@ -393,6 +399,7 @@ the config file is reported as ignored.
 | `unknown-slot`         | `warning` | A slot the parent component doesn't declare      |
 | `unclosed-tag`         | `warning` | A component never closed, or closed with `/>`    |
 | `binding-syntax`       | `error`   | A binding written so Lit reads it wrong          |
+| `directive-binding`    | `error`   | A Lit directive where Lit can't apply it         |
 | `invalid-name`         | `error`   | A tag or attribute name HTML can't use           |
 | `property-type`        | `warning` | A property's `type` option that doesn't fit      |
 | `property-visibility`  | `off`     | `@property()` on private state, or the reverse   |
@@ -424,6 +431,7 @@ eslint-plugin-lit's `lit/` rules:
 | `lit-devtools/unknown-slot`         | A slot the parent component doesn't declare      |
 | `lit-devtools/unclosed-tag`         | A component never closed, or closed with `/>`    |
 | `lit-devtools/binding-syntax`       | A binding written so Lit reads it wrong          |
+| `lit-devtools/directive-binding`    | A Lit directive where Lit can't apply it         |
 | `lit-devtools/invalid-name`         | A tag or attribute name HTML can't use           |
 | `lit-devtools/property-type`        | A property's `type` option that doesn't fit      |
 | `lit-devtools/property-visibility`  | `@property()` on private state, or the reverse   |

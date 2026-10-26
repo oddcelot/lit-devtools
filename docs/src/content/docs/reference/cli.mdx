@@ -211,9 +211,11 @@ then, or when `tsc` can't read the tsconfig.
   those: `size=${this.name}` is reported when `name` is any `string` and
   `size` is `'small' | 'large'`.
 - **What it skips.** A value that mixes text and expressions,
-  `class="a ${b}"`, is text. A call to a directive, `live(x)` or anything
-  imported from a module whose name says `directive`, isn't checked,
-  because Lit's types let any directive result through. An element's type
+  `class="a ${b}"`, is text. A call to a directive, anything imported from
+  a module whose name says `directive`, isn't checked, because Lit's types
+  let any directive result through. `live(x)` and an attribute's
+  `ifDefined(x)` hand `x` on, so `x` is checked instead, `undefined`
+  allowed for `ifDefined`. An element's type
   parameters read as `any`, so a generic element such as
   `<lit-virtualizer>` takes any `items`.
 - **Project references.** With a solution-style `tsconfig.json` that only
