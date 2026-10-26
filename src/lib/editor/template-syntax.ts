@@ -18,6 +18,7 @@ import {
   markupRegions,
   scanMarkup,
 } from './markup.js';
+import {closingTags, inHole} from './markup-tree.js';
 
 type Request = Omit<FeatureRequest, 'offset'>;
 
@@ -25,20 +26,6 @@ const isComponent = (tag: string) => tag.includes('-');
 
 const selfClosed = (code: string, element: MarkupElement) =>
   element.closed && code[element.end - 2] === '/';
-
-const inHole = (region: MarkupRegion, offset: number) =>
-  region.holes.some((hole) => hole.start <= offset && offset < hole.end);
-
-/** The `</tag>`s of components in a region, outside its holes. */
-const closingTags = (code: string, region: MarkupRegion) => {
-  const text = code.slice(region.start, region.end);
-  const tags: {tag: string; at: number}[] = [];
-  for (const match of text.matchAll(/<\/([a-z][\w.-]*-[\w.-]*)\s*>/gi)) {
-    const at = region.start + match.index;
-    if (!inHole(region, at)) tags.push({tag: match[1].toLowerCase(), at});
-  }
-  return tags;
-};
 
 /** The components a region opens and never closes. */
 const unclosedIn = (code: string, region: MarkupRegion): Problem[] => {
