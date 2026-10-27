@@ -126,11 +126,10 @@ export class DevtoolsSettings extends LitElement {
         align-items: center;
         gap: var(--lit-devtools-space-4);
         margin: 0;
-        font-size: var(--lit-devtools-text-2xs);
+        font-family: var(--lit-devtools-font-display);
+        font-size: var(--lit-devtools-text-xs);
         font-weight: var(--lit-devtools-weight-semibold);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--lit-devtools-text-secondary);
+        color: var(--lit-devtools-text);
       }
       /* Section status: a soft tint, not a solid fill, so it never outshouts
          the controls below it. */

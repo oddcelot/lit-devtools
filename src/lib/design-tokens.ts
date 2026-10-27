@@ -47,6 +47,9 @@ export const designBaseCSS = `
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --lit-devtools-font-mono:
     'Lilex Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* Lexend, the docs' heading face: the wordmark and section labels, so the
+     panel and the site share a voice. Interface text stays in the sans. */
+  --lit-devtools-font-display: 'Lexend Variable', var(--lit-devtools-font-sans);
 
   --lit-devtools-weight-regular: 400;
   --lit-devtools-weight-medium: 500;
@@ -141,6 +144,8 @@ export const designDarkCSS = `
   /* Keyboard focus: opaque, 3.9:1 or more on every dark surface, where
      the translucent ring above measured 1.7:1. */
   --lit-devtools-focus-ring: var(--lit-devtools-accent-hover);
+  /* The Lit flame's blue into its cyan: the active tab's underline. */
+  --lit-devtools-flame: linear-gradient(90deg, var(--lit-devtools-lit-blue-bright), var(--lit-devtools-lit-dark-cyan));
   --lit-devtools-on-accent: #ffffff;
   --lit-devtools-accent-cyan: var(--lit-devtools-lit-dark-cyan);
 
@@ -204,6 +209,9 @@ export const designLightCSS = `
   /* Keyboard focus: opaque, 4.6:1 or more on every light surface, where
      the translucent ring above measured 1.85:1. */
   --lit-devtools-focus-ring: var(--lit-devtools-accent);
+  /* The Lit flame's blue into its cyan, the cyan deepened from #00e8ff
+     (1.35:1 on the light header) to #0097b2, which holds 3:1. */
+  --lit-devtools-flame: linear-gradient(90deg, var(--lit-devtools-lit-blue), #0097b2);
   --lit-devtools-on-accent: #ffffff;
   --lit-devtools-accent-cyan: var(--lit-devtools-lit-dark-cyan);
 

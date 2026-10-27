@@ -52,16 +52,15 @@ typography:
     fontWeight: 400
     lineHeight: 1.5
   label:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
-    fontSize: '11px'
-    fontWeight: 600
-    lineHeight: 1.3
-    letterSpacing: '0.04em'
-  wordmark:
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+    fontFamily: "'Lexend Variable', ui-sans-serif, system-ui, sans-serif"
     fontSize: '12px'
-    fontWeight: 700
-    letterSpacing: '0.06em'
+    fontWeight: 500
+    lineHeight: 1.3
+  wordmark:
+    fontFamily: "'Lexend Variable', ui-sans-serif, system-ui, sans-serif"
+    fontSize: '13px'
+    fontWeight: 600
+    letterSpacing: '-0.01em'
 rounded:
   none: '0'
   pill: '9999px'
@@ -138,7 +137,8 @@ today and are under review; unmarked rules are firm.
 - Quiet ink and paper surfaces; the user's data is the loudest thing on screen.
 - One brand accent, Lit blue, for selection, focus and primary action.
 - Square everything, hairline borders, no shadows on resting surfaces.
-- Mono for data and code, system sans for interface text.
+- Lexend names things, the system sans carries the interface, mono sets data.
+- One authored brand moment: the flame gradient under the active tab.
 - Dense: 13px body text, 28px controls, 24px rows.
 - Light and dark are equal, generated from one token source.
 
@@ -206,20 +206,27 @@ an opaque accent (the accent in light, the accent's hover step in dark), never
 in the translucent `--lit-devtools-accent-ring`, which measured under 2:1. The
 translucent ring is for tinted fills such as a timeline range.
 
+**The One Flame Rule.** The Lit flame's blue-into-cyan gradient
+(`--lit-devtools-flame`) appears once: under the active tab. It is the
+panel's one authored brand moment; don't spread it to buttons, borders or
+text. In light, its cyan is deepened to `#0097b2` to hold 3:1.
+
 **The Two Schemes Rule.** Every colour exists in both schemes. A change that
 only defines or checks one scheme is unfinished.
 
 ## Typography
 
+**Display Font:** Lexend Variable (with the system sans), bundled from
+`@fontsource-variable/lexend`
 **Interface Font:** the platform's system sans (`ui-sans-serif`, `system-ui`,
-then -apple-system, Segoe UI, Roboto) **(provisional)**
+then -apple-system, Segoe UI, Roboto)
 **Data Font:** Lilex Variable (with ui-monospace, SF Mono, Menlo, Consolas)
 
-**Character:** a neutral system sans for chrome and prose, so the panel feels
-native beside the browser's own DevTools, and a crisp coding mono for
-everything the user wrote: tag names, values, paths, timings. The docs site
-sets its headings in Lexend; the panel does not, and whether it should is
-open.
+**Character:** Lexend, the docs' heading face, names things: the wordmark and
+the section labels, so the panel and the site speak in one voice. A neutral
+system sans carries the chrome and prose, so the panel still feels native
+beside the browser's own DevTools, and a crisp coding mono sets everything
+the user wrote: tag names, values, paths, timings.
 
 ### Hierarchy
 
@@ -229,10 +236,13 @@ open.
   panel's base size; Web Awesome's scale is set to 0.8125 to match.
 - **Data** (mono, 400, 12–13px): tree rows, property names and values,
   timeline rows, settings values, source links.
-- **Label** (sans, 600, 11px, 0.04em, uppercase): section headers in the
-  details pane and settings cards **(provisional)**.
-- **Wordmark** (sans, 700, 12px, 0.06em, uppercase): "LIT DEVTOOLS" beside the
-  logo, nowhere else.
+- **Label** (Lexend, 500–600, 11–12px, sentence case): section headers in the
+  details pane, settings card titles, the Updates column heads. No
+  uppercase, no tracking: Lexend's width does the work capitals used to.
+- **Wordmark** (Lexend, 600, 13px, -0.01em): "Lit DevTools" beside the logo,
+  nowhere else.
+- **Mark label** (sans, 9px): the inline label in a timeline track mark,
+  which is 11px tall. The one size below the scale, and only there.
 
 ### Named Rules
 
@@ -278,7 +288,8 @@ never with a shadow. A shadow means "this is above the page".
 ## Shapes
 
 Square corners everywhere (`rounded.none`): buttons, inputs, selects, cards,
-the split panel, the tab underline **(provisional)**. The pill radius is the
+the split panel, focus outlines, inline chips and swatches. There is no small
+radius; a corner is square or, for the few pills, round. The pill radius is the
 one round shape, kept for small things: count badges on tabs, timeline layer
 chips, dots. Borders are 1px; 2px is reserved for the focus ring and the
 selection bar.
@@ -332,8 +343,10 @@ do not hand-roll a control the set already has.
 ### Navigation
 
 - **Tabs** (`lit-tabs`): icon plus label, full header height, 13px. Active:
-  brand-coloured label with a 2px underline; inactive tabs carry a
-  transparent underline so heights never shift. Count badges are brand-blue
+  brand-coloured label over a 2px underline in the flame gradient
+  (`--lit-devtools-flame`); inactive tabs carry a transparent underline so
+  heights never shift. A narrow header drops the labels for icons, with the
+  label as tooltip and accessible name. Count badges are brand-blue
   pills; warning counts are warning pills.
 
 ### Component tree (signature)

@@ -13,6 +13,7 @@
 
 import './wa-theme.css';
 import '@fontsource-variable/lilex/wght.css';
+import '@fontsource-variable/lexend/wght.css';
 import {injectTokens} from '../lib/tokens.js';
 import {
   applyColorScheme,

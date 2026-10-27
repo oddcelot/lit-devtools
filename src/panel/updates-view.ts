@@ -98,9 +98,9 @@ export class UpdatesView extends LitElement {
       /* Column labels share the row's numeric cells so they line up. */
       .head.columns {
         gap: var(--lit-devtools-space-4);
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        font-size: 10px;
+        font-family: var(--lit-devtools-font-display);
+        font-weight: var(--lit-devtools-weight-medium);
+        font-size: var(--lit-devtools-text-2xs);
         min-height: var(--lit-devtools-row-height);
         padding-top: 0;
         padding-bottom: 0;

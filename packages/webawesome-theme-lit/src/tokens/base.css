@@ -47,6 +47,9 @@
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono:
     'Lilex Variable', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* Lexend, the docs' heading face: the wordmark and section labels, so the
+     panel and the site share a voice. Interface text stays in the sans. */
+  --font-display: 'Lexend Variable', var(--font-sans);
 
   --weight-regular: 400;
   --weight-medium: 500;

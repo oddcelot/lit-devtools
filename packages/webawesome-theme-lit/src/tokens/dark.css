@@ -11,6 +11,8 @@
   /* Keyboard focus: opaque, 3.9:1 or more on every dark surface, where
      the translucent ring above measured 1.7:1. */
   --focus-ring: var(--accent-hover);
+  /* The Lit flame's blue into its cyan: the active tab's underline. */
+  --flame: linear-gradient(90deg, var(--lit-blue-bright), var(--lit-dark-cyan));
   --on-accent: #ffffff;
   --accent-cyan: var(--lit-dark-cyan);
 
