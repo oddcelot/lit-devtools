@@ -73,14 +73,25 @@ export class DevtoolsSettings extends LitElement {
         line-height: var(--lit-devtools-leading-normal);
       }
       .note {
+        max-width: 72ch;
         color: var(--lit-devtools-text-muted);
         margin: 0 0 var(--lit-devtools-space-5);
+      }
+      /* A note closing a card: inset like the rows above it. */
+      .card-note {
+        max-width: none;
+        margin: 0;
+        padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
+        border-top: 1px solid var(--lit-devtools-border);
       }
       .note code {
         color: var(--lit-devtools-accent);
         font-family: var(--lit-devtools-font-mono);
       }
+      /* A form, not a spreadsheet: on a wide panel the values stay within
+         reach of their labels instead of stranding the row's far edge. */
       section {
+        max-width: 760px;
         margin-bottom: var(--lit-devtools-space-5);
       }
       lit-card {
@@ -166,7 +177,7 @@ export class DevtoolsSettings extends LitElement {
       /* An origin tag, "(option)" or "(env)": muted text, not a button. */
       lit-badge.env:not(.ovr) {
         border: 0;
-        background: var(--lit-devtools-surface-container);
+        background: none;
         color: var(--lit-devtools-text-muted);
         font-size: var(--lit-devtools-text-2xs);
         font-weight: var(--lit-devtools-weight-regular);
@@ -939,7 +950,7 @@ export class DevtoolsSettings extends LitElement {
               </td>
             </tr>
           </table>
-          <p class="note">
+          <p class="note card-note">
             Settings resolve in this order: panel override, then plugin option,
             then default. An explicit <code>timeline: false</code> in the plugin
             options is final.
