@@ -1,0 +1,446 @@
+<template id="s11-editor-template">
+  <style>
+    @font-face {
+      font-family: 'Lexend Variable';
+      font-weight: 100 900;
+      font-style: normal;
+      src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    #s11-editor {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    }
+    #s11-editor * {
+      box-sizing: border-box;
+    }
+    #s11-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 664px;
+      transform-origin: 50% 664px;
+      clip-path: inset(100px 40px 0 40px);
+    }
+    .s11-mono {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+    }
+    #s11-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 22px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #af7a51;
+    }
+    .s11-h {
+      position: absolute;
+      left: 96px;
+      width: 604px;
+      height: 72px;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 600;
+      font-size: 68px;
+      line-height: 72px;
+      letter-spacing: -0.045em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .s11-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      padding-right: 4px;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    #s11-where {
+      position: absolute;
+      left: 96px;
+      top: 370px;
+      font-size: 20px;
+      line-height: 28px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    /* editor card */
+    #s11-ed {
+      position: absolute;
+      left: 760px;
+      top: 130px;
+      width: 1080px;
+      height: 262px;
+      background: #0d0d0d;
+      border: 1px solid #363636;
+    }
+    #s11-tabs {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 40px;
+      background: #121212;
+      border-bottom: 1px solid #363636;
+    }
+    #s11-tab {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 40px;
+      padding: 0 18px;
+      line-height: 40px;
+      font-size: 17px;
+      color: #c7c7c7;
+      border-bottom: 2px solid #324fff;
+      white-space: nowrap;
+    }
+    #s11-tabcount {
+      color: #ff6b6b;
+      margin-left: 10px;
+    }
+    .s11-ln {
+      position: absolute;
+      left: 0;
+      height: 44px;
+      line-height: 44px;
+      font-size: 24px;
+      color: #eeffff;
+      white-space: nowrap;
+    }
+    .s11-ln > span {
+      white-space: pre;
+    }
+    .s11-num {
+      display: inline-block;
+      width: 64px;
+      padding-right: 18px;
+      text-align: right;
+      color: #474747;
+    }
+    .s11-tg {
+      color: #89ddff;
+    }
+    .s11-pr {
+      color: #b2ccd6;
+    }
+    .s11-pn {
+      color: #919191;
+    }
+    .s11-st {
+      color: #c3e88d;
+    }
+    .s11-kw {
+      color: #c792ea;
+    }
+    .s11-sq {
+      position: relative;
+      display: inline-block;
+    }
+    .s11-wave {
+      position: absolute;
+      left: 0;
+      bottom: 4px;
+      width: 100%;
+      height: 6px;
+      transform-origin: 0 50%;
+    }
+    .s11-wave svg {
+      display: block;
+      width: 100%;
+      height: 6px;
+    }
+    #s11-lens {
+      position: absolute;
+      left: 600px;
+      top: 0;
+      font-size: 19px;
+      color: #f4bf4f;
+      white-space: nowrap;
+    }
+    /* hover */
+    #s11-tip {
+      position: absolute;
+      left: 920px;
+      top: 290px;
+      width: 900px;
+      background: #121212;
+      border: 1px solid #474747;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+      padding: 14px 18px;
+    }
+    #s11-tip1 {
+      font-size: 20px;
+      line-height: 28px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    #s11-tip1 code {
+      background: #212121;
+      padding: 0 6px;
+      color: #eeffff;
+    }
+    #s11-tip2 {
+      margin-top: 6px;
+      font-size: 17px;
+      line-height: 24px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    #s11-tip2 b {
+      color: #ff6b6b;
+      font-weight: 500;
+    }
+    /* terminal */
+    #s11-term {
+      position: absolute;
+      left: 760px;
+      top: 432px;
+      width: 1080px;
+      height: 200px;
+      background: #0d0d0d;
+      border: 1px solid #363636;
+    }
+    #s11-tbar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 40px;
+      background: #121212;
+      border-bottom: 1px solid #363636;
+    }
+    .s11-dot {
+      position: absolute;
+      top: 15px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #363636;
+    }
+    #s11-ttl {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      line-height: 40px;
+      text-align: center;
+      font-size: 16px;
+      color: #919191;
+    }
+    .s11-tl {
+      position: absolute;
+      left: 22px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 19px;
+      color: #c7c7c7;
+      white-space: pre;
+    }
+    .s11-tl .p {
+      color: #00e8ff;
+    }
+    .s11-tl .f {
+      color: #7c9fff;
+    }
+    .s11-tl .r {
+      color: #919191;
+    }
+    #s11-exit {
+      position: absolute;
+      right: 22px;
+      top: 150px;
+      height: 32px;
+      padding: 0 12px;
+      line-height: 30px;
+      font-size: 17px;
+      color: #ff6b6b;
+      background: #3a0d14;
+      border: 1px solid #8a1f2b;
+      white-space: nowrap;
+    }
+    #s11-termglow {
+      position: absolute;
+      inset: -1px;
+      border: 1px solid #ff6b6b;
+      box-shadow: 0 0 24px rgba(255, 107, 107, 0.45);
+      opacity: 0;
+    }
+  </style>
+  <div
+    data-hf-id="hf-e11r"
+    id="s11-editor"
+    data-composition-id="s11-editor"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-e11s" id="s11-stage">
+      <div data-hf-id="hf-e11e" id="s11-eyebrow">Editor</div>
+      <div data-hf-id="hf-e11a" class="s11-h" id="s11-h1" style="top: 186px">
+        Your editor
+      </div>
+      <div data-hf-id="hf-e11b" class="s11-h" id="s11-h2" style="top: 258px">
+        <span data-hf-id="hf-e11c" class="s11-shine" id="s11-shine"
+          >knows Lit.</span
+        >
+      </div>
+      <div data-hf-id="hf-e11w" id="s11-where" class="s11-mono">
+        VS Code &middot; Zed &middot; any LSP editor
+      </div>
+
+      <div data-hf-id="hf-e11d" id="s11-ed" class="s11-mono">
+        <div data-hf-id="hf-e11f" id="s11-tabs">
+          <div data-hf-id="hf-e11g" id="s11-tab">
+            cart-item.ts<span data-hf-id="hf-e11h" id="s11-tabcount">● 2</span>
+          </div>
+        </div>
+        <div data-hf-id="hf-e1l1" class="s11-ln" style="top: 52px">
+          <span data-hf-id="hf-e1n1" class="s11-num">26</span
+          ><span data-hf-id="hf-e1c1"><span data-hf-id="hf-zhmf" class="s11-kw">return</span> html<span data-hf-id="hf-1gqd" class="s11-pn">`&lt;</span><span data-hf-id="hf-syl9" class="s11-tg">x-card</span><span data-hf-id="hf-t67p" class="s11-pn">&gt;</span></span>
+        </div>
+        <div data-hf-id="hf-e1l2" class="s11-ln" style="top: 96px">
+          <span data-hf-id="hf-e1n2" class="s11-num">27</span
+          ><span data-hf-id="hf-e1c2">  <span data-hf-id="hf-tytr" class="s11-pn">&lt;</span><span data-hf-id="hf-5e8j" class="s11-tg">x-button</span> <span data-hf-id="hf-05p3" class="s11-sq"><span data-hf-id="hf-t0vk" class="s11-pr">.size</span><span data-hf-id="hf-6jux" class="s11-pn">=${</span>this.label<span data-hf-id="hf-4xj0" class="s11-pn">}</span><span data-hf-id="hf-e1w1" class="s11-wave" id="s11-w1"><svg data-hf-id="hf-r6l7" viewBox="0 0 24 6" preserveAspectRatio="none"><path data-hf-id="hf-89qc" d="M0 4 Q3 0 6 4 T12 4 T18 4 T24 4" fill="none" stroke="#ff6b6b" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg></span></span><span data-hf-id="hf-nvu1" class="s11-pn">&gt;</span>Add<span data-hf-id="hf-sijk" class="s11-pn">&lt;/</span><span data-hf-id="hf-j92r" class="s11-tg">x-button</span><span data-hf-id="hf-p2r4" class="s11-pn">&gt;</span></span>
+        </div>
+        <div data-hf-id="hf-e1l3" class="s11-ln" style="top: 140px">
+          <span data-hf-id="hf-e1n3" class="s11-num">28</span
+          ><span data-hf-id="hf-e1c3">  <span data-hf-id="hf-jcfj" class="s11-pn">&lt;</span><span data-hf-id="hf-mn82" class="s11-tg">h2</span> <span data-hf-id="hf-7xxd" class="s11-pr">slot</span><span data-hf-id="hf-ud4s" class="s11-pn">=</span><span data-hf-id="hf-rlk3" class="s11-sq"><span data-hf-id="hf-b5uc" class="s11-st">"heder"</span><span data-hf-id="hf-e1w2" class="s11-wave" id="s11-w2"><svg data-hf-id="hf-c6sb" viewBox="0 0 24 6" preserveAspectRatio="none"><path data-hf-id="hf-3eyo" d="M0 4 Q3 0 6 4 T12 4 T18 4 T24 4" fill="none" stroke="#f4bf4f" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg></span></span><span data-hf-id="hf-oog3" class="s11-pn">&gt;</span>Cart<span data-hf-id="hf-p2ag" class="s11-pn">&lt;/</span><span data-hf-id="hf-ndcm" class="s11-tg">h2</span><span data-hf-id="hf-mowy" class="s11-pn">&gt;</span></span>
+          <span data-hf-id="hf-e1lz" id="s11-lens"
+            >unknown-slot: did you mean "header"?</span
+          >
+        </div>
+        <div data-hf-id="hf-e1l4" class="s11-ln" style="top: 184px">
+          <span data-hf-id="hf-e1n4" class="s11-num">29</span
+          ><span data-hf-id="hf-e1c4"><span data-hf-id="hf-nvdd" class="s11-pn">&lt;/</span><span data-hf-id="hf-q2b5" class="s11-tg">x-card</span><span data-hf-id="hf-ulov" class="s11-pn">&gt;`</span>;</span>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-e11t" id="s11-tip" class="s11-mono">
+        <div data-hf-id="hf-e1t1" id="s11-tip1">
+          <code data-hf-id="hf-g82v">.size</code> takes <code data-hf-id="hf-ilso">"large" | "small"</code>, but this is
+          <code data-hf-id="hf-baul">string</code>.
+        </div>
+        <div data-hf-id="hf-e1t2" id="s11-tip2">
+          <b data-hf-id="hf-q1qt">binding-type</b> &middot; Lit DevTools &middot; checked on save
+        </div>
+      </div>
+
+      <div data-hf-id="hf-e11m" id="s11-term" class="s11-mono">
+        <div data-hf-id="hf-e1b0" id="s11-tbar">
+          <div data-hf-id="hf-e1d1" class="s11-dot" style="left: 16px"></div>
+          <div data-hf-id="hf-e1d2" class="s11-dot" style="left: 34px"></div>
+          <div data-hf-id="hf-e1d3" class="s11-dot" style="left: 52px"></div>
+          <div data-hf-id="hf-e1tt" id="s11-ttl">CI &middot; npm run check</div>
+        </div>
+        <div data-hf-id="hf-e1o0" class="s11-tl" id="s11-o0" style="top: 52px"><span data-hf-id="hf-41jt" class="p">$</span> npx lit-devtools check</div>
+        <div data-hf-id="hf-e1o1" class="s11-tl" id="s11-o1" style="top: 84px"><span data-hf-id="hf-lyp8" class="f">src/cart-item.ts:27:20</span>  .size takes "large" | "small", but this is string.  <span data-hf-id="hf-s7h1" class="r">binding-type</span></div>
+        <div data-hf-id="hf-e1o3" class="s11-tl" id="s11-o3" style="top: 116px"><span data-hf-id="hf-ixxl" class="r">[lit-devtools] 1 binding problem in 7 files with bindings</span></div>
+        <div data-hf-id="hf-e1ex" id="s11-exit">exit 1</div>
+        <div data-hf-id="hf-e1gl" id="s11-termglow"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({paused: true});
+      var E = 'power3.out';
+      var IN = function (sel, at, from) {
+        tl.fromTo(
+          sel,
+          from || {opacity: 0, y: 24},
+          {opacity: 1, x: 0, y: 0, duration: 0.3, ease: E},
+          at
+        );
+      };
+      IN('#s11-eyebrow', 0.05, {opacity: 0, x: -16});
+      IN('#s11-ed', 0.0, {opacity: 0, y: 12});
+      IN('#s11-h1', 0.1);
+      IN('#s11-h2', 0.48);
+      tl.fromTo(
+        '#s11-shine',
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 3.0, ease: 'none'},
+        0.48
+      );
+      tl.fromTo('#s11-tabcount', {opacity: 0}, {opacity: 1, duration: 0.15}, 0.48);
+      // the binding underline, then its hover
+      tl.fromTo(
+        '#s11-w1',
+        {scaleX: 0},
+        {scaleX: 1, duration: 0.3, ease: 'power2.out'},
+        0.48
+      );
+      tl.fromTo(
+        '#s11-tip',
+        {opacity: 0, y: -8},
+        {opacity: 1, y: 0, duration: 0.25, ease: E},
+        0.96
+      );
+      // the slot typo, as you type
+      tl.fromTo(
+        '#s11-w2',
+        {scaleX: 0},
+        {scaleX: 1, duration: 0.3, ease: 'power2.out'},
+        1.44
+      );
+      tl.fromTo(
+        '#s11-lens',
+        {opacity: 0, x: -10},
+        {opacity: 1, x: 0, duration: 0.3, ease: E},
+        1.5
+      );
+      tl.to('#s11-tip', {opacity: 0, duration: 0.2, ease: 'power1.in'}, 1.36);
+      // CI run
+      IN('#s11-term', 1.92, {opacity: 0, y: 40});
+      IN('#s11-o0', 1.92, {opacity: 0, x: -10});
+      IN('#s11-o1', 2.4, {opacity: 0, x: -10});
+            IN('#s11-o3', 2.64, {opacity: 0, x: -10});
+      tl.fromTo(
+        '#s11-exit',
+        {opacity: 0, scale: 0.7},
+        {opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(2.2)'},
+        2.88
+      );
+      tl.fromTo(
+        '#s11-termglow',
+        {opacity: 0},
+        {opacity: 1, duration: 0.12, ease: 'power1.out'},
+        2.88
+      );
+      tl.to('#s11-termglow', {opacity: 0, duration: 0.5, ease: 'power1.in'}, 3.0);
+      IN('#s11-where', 3.36, {opacity: 0, y: 12});
+      tl.to(
+        '#s11-stage',
+        {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+        3.56
+      );
+      window.__timelines['s11-editor'] = tl;
+    })();
+  </script>
+</template>

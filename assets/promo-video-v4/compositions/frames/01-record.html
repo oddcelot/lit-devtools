@@ -1,0 +1,520 @@
+<template id="s01-record-template">
+  <style>
+    @font-face {
+      font-family: 'Lexend Variable';
+      font-weight: 100 900;
+      font-style: normal;
+      src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    #s01-record {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    }
+    #s01-record * {
+      box-sizing: border-box;
+    }
+    #s01-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 664px;
+      transform-origin: 50% 664px;
+      clip-path: inset(100px 40px 0 40px);
+    }
+    #s01-btnwrap {
+      position: absolute;
+      left: 400px;
+      top: 150px;
+      width: 1120px;
+      height: 410px;
+      background: #030303;
+      border: 1px solid #363636;
+      font-size: 19px;
+      font-weight: 500;
+      color: #e3e3e3;
+    }
+    #s01-btnwrap svg {
+      display: block;
+      width: 19px;
+      height: 19px;
+      flex: none;
+    }
+    #s01-tb {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      height: 66px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #363636;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 19px;
+    }
+    .s01-b {
+      position: relative;
+      height: 45px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #717584;
+      white-space: nowrap;
+    }
+    #s01-recb {
+      width: 128px;
+    }
+    #s01-recb .rec svg {
+      color: #ff6b6b;
+    }
+    #s01-recb .rec,
+    #s01-recb .stop {
+      position: absolute;
+      inset: -1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 16px;
+    }
+    #s01-recb .stop {
+      background: #5e081c;
+      color: #fd8f90;
+      opacity: 0;
+    }
+    #s01-modes {
+      display: flex;
+      height: 45px;
+      border: 1px solid #717584;
+    }
+    #s01-modes div {
+      padding: 0 16px;
+      line-height: 43px;
+      color: #9194a2;
+    }
+    #s01-modes .act {
+      background: #0f1d67;
+      color: #82a5ff;
+    }
+    #s01-lyb .cnt {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 17px;
+      color: #919191;
+    }
+    #s01-tb .sp {
+      flex: 1;
+    }
+    #s01-pop {
+      position: absolute;
+      left: -1px;
+      top: 52px;
+      width: 330px;
+      background: #121212;
+      border: 1px solid #363636;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+      padding: 10px 12px 12px;
+      opacity: 0;
+      z-index: 3;
+    }
+    #s01-pop .hd {
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+      font-size: 17px;
+      color: #919191;
+      margin: 0 0 8px 4px;
+    }
+    .s01-chip {
+      height: 33px;
+      margin-bottom: 4px;
+      padding: 0 14px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 9999px;
+      color: #919191;
+      font-size: 18px;
+      white-space: nowrap;
+    }
+    .s01-chip i {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--c);
+      flex: none;
+    }
+    .s01-chip.on {
+      background: #292929;
+      color: #e3e3e3;
+    }
+    .s01-chip.on i {
+      background: var(--c);
+    }
+    #s01-empty {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 66px;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    #s01-e1 {
+      font-size: 24px;
+      color: #e3e3e3;
+    }
+    #s01-e2 {
+      font-size: 19px;
+      font-weight: 400;
+      color: #919191;
+    }
+    #s01-start {
+      margin-top: 8px;
+    }
+    #s01-start svg {
+      color: #ff6b6b;
+    }
+    #s01-recing {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 66px;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 24px;
+      color: #e3e3e3;
+      opacity: 0;
+    }
+    #s01-recing i {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ff6b6b;
+      box-shadow: 0 0 12px rgba(255, 107, 107, 0.8);
+    }
+    #s01-cur {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 26px;
+      height: 26px;
+      opacity: 0;
+      z-index: 5;
+    }
+    .s01-ring {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      left: -22px;
+      top: -22px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      opacity: 0;
+      z-index: 4;
+    }
+    #s01-glow {
+      position: absolute;
+      left: 890px;
+      top: 0px;
+      width: 800px;
+      height: 760px;
+      background: radial-gradient(
+        closest-side,
+        rgba(0, 232, 255, 0.34),
+        rgba(50, 79, 255, 0.22) 45%,
+        rgba(42, 44, 157, 0) 100%
+      );
+      opacity: 0;
+    }
+    #s01-flamewrap {
+      position: absolute;
+      left: 1110px;
+      top: 168px;
+      width: 360px;
+      height: 360px;
+    }
+    #s01-flame {
+      display: block;
+      width: 360px;
+      height: 360px;
+      overflow: visible;
+    }
+    .s01-fp {
+      fill: #111326;
+      stroke: #2b2e52;
+      stroke-width: 1.5;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+    #s01-floor {
+      position: absolute;
+      left: 1040px;
+      top: 540px;
+      width: 500px;
+      height: 60px;
+      border-radius: 50%;
+      background: radial-gradient(
+        closest-side,
+        rgba(0, 232, 255, 0.28),
+        rgba(0, 232, 255, 0)
+      );
+      opacity: 0;
+    }
+    #s01-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 148px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-weight: 400;
+      font-size: 22px;
+      line-height: 26px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    .s01-hl {
+      position: absolute;
+      left: 96px;
+      width: 604px;
+      height: 72px;
+      font-weight: 600;
+      font-size: 68px;
+      line-height: 72px;
+      letter-spacing: -0.045em;
+      color: #fff;
+      white-space: nowrap;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    }
+    .s01-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+      padding-right: 4px;
+    }
+    .s01-stat {
+      position: absolute;
+      left: 760px;
+      height: 30px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-weight: 400;
+      font-size: 26px;
+      line-height: 34px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .s01-stat i {
+      display: block;
+      width: 8px;
+      height: 8px;
+      background: #4d63ff;
+      flex: none;
+    }
+    .s01-stat span {
+      color: #919191;
+    }
+  </style>
+  <div
+    data-hf-id="hf-tm6v"
+    id="s01-record"
+    data-composition-id="s01-record"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-scyw" id="s01-stage">
+      <div data-hf-id="hf-poqa" id="s01-btnwrap"><div data-hf-id="hf-01tb" id="s01-tb"><div data-hf-id="hf-01rb" class="s01-b" id="s01-recb"><span data-hf-id="hf-01rr" class="rec"><svg data-hf-id="hf-j71f" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-mg9a" d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm0-160a72,72,0,1,0,72,72A72.08,72.08,0,0,0,128,56Zm0,128a56,56,0,1,1,56-56A56.06,56.06,0,0,1,128,184Z"/></svg>Record</span><span data-hf-id="hf-01rs" class="stop" id="s01-stopface"><svg data-hf-id="hf-1jz7" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-f0af" d="M200,40H56A16,16,0,0,0,40,56V200a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,160H56V56H200V200Z"/></svg>Stop</span></div><div data-hf-id="hf-01md" id="s01-modes"><div data-hf-id="hf-f7x0" class="act">List</div><div data-hf-id="hf-9z3w">Tracks</div></div><div data-hf-id="hf-01ly" class="s01-b" id="s01-lyb"><svg data-hf-id="hf-15o6" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-vqpa" d="M230.91,172A8,8,0,0,1,228,182.91l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,36,169.09l92,53.65,92-53.65A8,8,0,0,1,230.91,172ZM220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09ZM24,80a8,8,0,0,1,4-6.91l96-56a8,8,0,0,1,8.06,0l96,56a8,8,0,0,1,0,13.82l-96,56a8,8,0,0,1-8.06,0l-96-56A8,8,0,0,1,24,80Zm23.88,0L128,126.74,208.12,80,128,33.26Z"/></svg>Layers <span data-hf-id="hf-zbag" class="cnt" id="s01-cnt6">6/9</span><span data-hf-id="hf-ybi8" class="cnt" id="s01-cnt7" style="display:none">7/9</span><svg data-hf-id="hf-0rd5" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-t0xx" d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><div data-hf-id="hf-01pp" id="s01-pop"><div data-hf-id="hf-gvxl" class="hd">Record</div><div data-hf-id="hf-ecla" class="s01-chip on" style="--c:#4d63ff"><i data-hf-id="hf-wt6k"></i>Lit Lifecycle</div><div data-hf-id="hf-y5eo" class="s01-chip on" style="--c:#325cff"><i data-hf-id="hf-zeb8"></i>Lit Render</div><div data-hf-id="hf-fijz" class="s01-chip" style="--c:#99aeff"><i data-hf-id="hf-y7e5"></i>Lit Render (verbose)</div><div data-hf-id="hf-amw1" class="s01-chip on" style="--c:#6b7bff"><i data-hf-id="hf-ylp6"></i>Changed values</div><div data-hf-id="hf-jxn0" class="s01-chip" id="s01-mouse" style="--c:#a451af"><i data-hf-id="hf-0l8b"></i>Mouse</div><div data-hf-id="hf-z7tm" class="s01-chip" style="--c:#8151af"><i data-hf-id="hf-0zjc"></i>Keyboard</div><div data-hf-id="hf-lvlh" class="s01-chip on" style="--c:#af7a51"><i data-hf-id="hf-zsm9"></i>Custom events</div><div data-hf-id="hf-hlay" class="s01-chip on" style="--c:#f4bf4f"><i data-hf-id="hf-06xa"></i>Lit warnings</div><div data-hf-id="hf-s8jl" class="s01-chip on" style="--c:#ff6b35"><i data-hf-id="hf-26gf"></i>Router</div></div></div><span data-hf-id="hf-uym4" class="sp"></span><div data-hf-id="hf-01cl" class="s01-b"><svg data-hf-id="hf-0d24" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-8qvp" d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></svg>Clear</div></div><div data-hf-id="hf-01em" id="s01-empty"><div data-hf-id="hf-wmta" id="s01-e1">No events yet</div><div data-hf-id="hf-h878" id="s01-e2">Interact with the page, or press Record to capture a session.</div><div data-hf-id="hf-01st" class="s01-b" id="s01-start"><svg data-hf-id="hf-zyr3" viewBox="0 0 256 256" fill="currentColor"><path data-hf-id="hf-xgpe" d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm0-160a72,72,0,1,0,72,72A72.08,72.08,0,0,0,128,56Zm0,128a56,56,0,1,1,56-56A56.06,56.06,0,0,1,128,184Z"/></svg>Start recording</div></div><div data-hf-id="hf-01rc" id="s01-recing"><i data-hf-id="hf-2krg"></i>Recording.</div></div><div data-hf-id="hf-01g1" class="s01-ring" id="s01-ring1"></div><div data-hf-id="hf-01g2" class="s01-ring" id="s01-ring2"></div><div data-hf-id="hf-01g3" class="s01-ring" id="s01-ring3"></div><svg data-hf-id="hf-01cu" id="s01-cur" viewBox="0 0 24 24"><path data-hf-id="hf-7smn" d="M1 1 L1 19 L6 14.5 L9.5 22 L12.5 20.6 L9.2 13.4 L15.5 13.4 Z" fill="#ffffff" stroke="#030303" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      <div data-hf-id="hf-q1gp" id="s01-eyebrow">@oddsquad/lit-devtools</div>
+      <div data-hf-id="hf-2clm" class="s01-hl" id="s01-hl1" style="top: 186px">
+        Lit,
+      </div>
+      <div data-hf-id="hf-jb1c" class="s01-hl" id="s01-hl2" style="top: 258px">
+        <span data-hf-id="hf-oxr8" class="s01-shine" id="s01-shine"
+          >with the</span
+        >
+      </div>
+      <div data-hf-id="hf-l3v4" class="s01-hl" id="s01-hl3" style="top: 330px">
+        <span data-hf-id="hf-l3s4" class="s01-shine" id="s01-shine2"
+          >lights on.</span
+        >
+      </div>
+      <div data-hf-id="hf-01gw" id="s01-glow"></div>
+      <div data-hf-id="hf-01fl" id="s01-flamewrap"><svg data-hf-id="hf-01fs" id="s01-flame" viewBox="-32 0 320 320"><path data-hf-id="hf-01fl1" id="s01-fl1" class="s01-fp" d="M64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"/><path data-hf-id="hf-01fl2" id="s01-fl2" class="s01-fp" d="M128 256V128l64-64v128z"/><path data-hf-id="hf-01fl3" id="s01-fl3" class="s01-fp" d="M0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"/><path data-hf-id="hf-01fl4" id="s01-fl4" class="s01-fp" d="M64 192V64l64-64v128z"/><path data-hf-id="hf-01fl5" id="s01-fl5" class="s01-fp" d="M192 320V192l64-64v128z"/><path data-hf-id="hf-01fl6" id="s01-fl6" class="s01-fp" d="M0 256V128l64 64z"/><path data-hf-id="hf-01fl7" id="s01-fl7" class="s01-fp" d="M64 320V192l64 64z"/></svg></div>
+      <div data-hf-id="hf-01fr" id="s01-floor"></div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({paused: true});
+      // the empty Timeline: open Layers, add Mouse, then Start recording
+      tl.fromTo(
+        '#s01-btnwrap',
+        {opacity: 0, y: 14},
+        {opacity: 1, y: 0, duration: 0.35, ease: 'power3.out'},
+        0.1
+      );
+      tl.set('#s01-cur', {x: 1000, y: 470}, 0);
+      tl.to('#s01-cur', {opacity: 1, duration: 0.15}, 0.2);
+      tl.to('#s01-cur', {x: 812, y: 184, duration: 0.24, ease: 'power2.inOut'}, 0.2);
+      var RING = function (id, x, y, at) {
+        tl.set(id, {x: x, y: y}, 0);
+        tl.fromTo(
+          id,
+          {opacity: 0.9, scale: 0.4},
+          {opacity: 0, scale: 1.3, duration: 0.35, ease: 'power2.out', immediateRender: false},
+          at
+        );
+      };
+      RING('#s01-ring1', 812, 184, 0.4);
+      tl.fromTo(
+        '#s01-pop',
+        {opacity: 0, y: -8},
+        {opacity: 1, y: 0, duration: 0.2, ease: 'power3.out'},
+        0.4
+      );
+      tl.to('#s01-cur', {x: 800, y: 418, duration: 0.24, ease: 'power2.inOut'}, 0.5);
+      RING('#s01-ring2', 800, 418, 0.68);
+      tl.set('#s01-mouse', {backgroundColor: '#292929', color: '#e3e3e3'}, 0.68);
+      tl.set('#s01-mouse i', {backgroundColor: '#a451af'}, 0.68);
+      tl.set('#s01-cnt6', {display: 'none'}, 0.68);
+      tl.set('#s01-cnt7', {display: 'inline'}, 0.68);
+      tl.to('#s01-pop', {opacity: 0, y: -6, duration: 0.15, ease: 'power1.in'}, 0.84);
+      tl.to('#s01-cur', {x: 962, y: 428, duration: 0.24, ease: 'power2.inOut'}, 0.8);
+      RING('#s01-ring3', 962, 428, 0.96);
+      tl.fromTo(
+        '#s01-start',
+        {scale: 0.94},
+        {scale: 1, duration: 0.25, ease: 'back.out(2.5)', immediateRender: false},
+        0.96
+      );
+      tl.set('#s01-stopface', {opacity: 1}, 0.96);
+      tl.to('#s01-empty', {opacity: 0, duration: 0.12}, 0.96);
+      tl.to('#s01-recing', {opacity: 1, duration: 0.2}, 1.02);
+      tl.to('#s01-cur', {opacity: 0, duration: 0.2}, 1.1);
+      tl.to(
+        '#s01-btnwrap',
+        {y: -30, opacity: 0, duration: 0.25, ease: 'power2.in'},
+        1.2
+      );
+      tl.fromTo(
+        '#s01-eyebrow',
+        {opacity: 0, x: -16},
+        {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'},
+        1.2
+      );
+      tl.fromTo(
+        '#s01-hl1',
+        {opacity: 0, y: 24},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        1.32
+      );
+      tl.fromTo(
+        '#s01-hl2',
+        {opacity: 0, y: 24},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        1.56
+      );
+      tl.fromTo(
+        '#s01-hl3',
+        {opacity: 0, y: 24},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        1.8
+      );
+      tl.fromTo(
+        '#s01-shine2',
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 0.68, ease: 'none'},
+        1.8
+      );
+      tl.fromTo(
+        '#s01-shine',
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 0.92, ease: 'none'},
+        1.56
+      );
+      // the Lit flame: pieces assemble dark, then the lights come on
+      tl.fromTo('#s01-fl1', {x: 30, y: 40, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.26);
+      tl.fromTo('#s01-fl2', {x: 40, y: -30, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.32);
+      tl.fromTo('#s01-fl3', {x: -40, y: 30, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.38);
+      tl.fromTo('#s01-fl4', {x: -30, y: -50, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.44);
+      tl.fromTo('#s01-fl5', {x: 50, y: 10, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.50);
+      tl.fromTo('#s01-fl6', {x: -50, y: -10, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.56);
+      tl.fromTo('#s01-fl7', {x: -10, y: 50, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 0.36, ease: 'power3.out'}, 1.62);
+      tl.set('#s01-fl1', {fill: '#00e8ff', stroke: '#00e8ff'}, 1.80);
+      tl.set('#s01-fl2', {fill: '#283198', stroke: '#283198'}, 1.80);
+      tl.set('#s01-fl3', {fill: '#283198', stroke: '#283198'}, 1.80);
+      tl.set('#s01-fl4', {fill: '#324fff', stroke: '#324fff'}, 1.80);
+      tl.set('#s01-fl5', {fill: '#324fff', stroke: '#324fff'}, 1.80);
+      tl.set('#s01-fl6', {fill: '#324fff', stroke: '#324fff'}, 1.80);
+      tl.set('#s01-fl7', {fill: '#00ffff', stroke: '#00ffff'}, 1.80);
+      tl.set(['#s01-glow', '#s01-floor'], {opacity: 0.55}, 1.80);
+      tl.set('#s01-fl1', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl2', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl3', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl4', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl5', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl6', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set('#s01-fl7', {fill: '#111326', stroke: '#2b2e52'}, 1.86);
+      tl.set(['#s01-glow', '#s01-floor'], {opacity: 0}, 1.86);
+      tl.set('#s01-fl1', {fill: '#00e8ff', stroke: '#00e8ff'}, 1.94);
+      tl.set('#s01-fl2', {fill: '#283198', stroke: '#283198'}, 1.94);
+      tl.set('#s01-fl3', {fill: '#283198', stroke: '#283198'}, 1.94);
+      tl.set('#s01-fl4', {fill: '#324fff', stroke: '#324fff'}, 1.94);
+      tl.set('#s01-fl5', {fill: '#324fff', stroke: '#324fff'}, 1.94);
+      tl.set('#s01-fl6', {fill: '#324fff', stroke: '#324fff'}, 1.94);
+      tl.set('#s01-fl7', {fill: '#00ffff', stroke: '#00ffff'}, 1.94);
+      tl.fromTo(
+        ['#s01-glow', '#s01-floor'],
+        {opacity: 0.6, scale: 0.85},
+        {opacity: 1, scale: 1, duration: 0.5, ease: 'power2.out', immediateRender: false},
+        1.94
+      );
+      tl.fromTo(
+        '#s01-flamewrap',
+        {scale: 1},
+        {scale: 1.04, duration: 0.3, ease: 'power2.out', immediateRender: false},
+        1.94
+      );
+      tl.to('#s01-flamewrap', {scale: 1, duration: 1.4, ease: 'sine.inOut'}, 2.24);
+      tl.to('#s01-glow', {scale: 1.08, opacity: 0.85, duration: 1.3, ease: 'sine.inOut'}, 2.44);
+      tl.to(
+        '#s01-stage',
+        {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+        3.71
+      );
+      window.__timelines['s01-record'] = tl;
+    })();
+  </script>
+</template>

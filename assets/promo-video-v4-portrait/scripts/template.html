@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+      integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      @font-face {
+        font-family: 'Lexend Variable';
+        font-weight: 100 900;
+        src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #030308;
+        font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+        color: #fff;
+      }
+      /* moving gradients: big soft blobs drifting under everything */
+      .blob {
+        position: absolute;
+        width: 1500px;
+        height: 1500px;
+        margin: -750px 0 0 -750px;
+        border-radius: 50%;
+        mix-blend-mode: screen;
+      }
+      #b1 {
+        left: 200px;
+        top: 300px;
+        background: radial-gradient(closest-side, rgba(50, 79, 255, 0.32), rgba(50, 79, 255, 0));
+      }
+      #b2 {
+        left: 900px;
+        top: 900px;
+        background: radial-gradient(closest-side, rgba(0, 232, 255, 0.16), rgba(0, 232, 255, 0));
+      }
+      #b3 {
+        left: 300px;
+        top: 1600px;
+        background: radial-gradient(closest-side, rgba(42, 44, 157, 0.45), rgba(42, 44, 157, 0));
+      }
+      #b4 {
+        left: 950px;
+        top: 200px;
+        width: 1100px;
+        height: 1100px;
+        margin: -550px 0 0 -550px;
+        background: radial-gradient(closest-side, rgba(77, 99, 255, 0.22), rgba(77, 99, 255, 0));
+      }
+      #sweep {
+        position: absolute;
+        left: -900px;
+        top: -400px;
+        width: 700px;
+        height: 2800px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 255, 255, 0),
+          rgba(0, 255, 255, 0.06) 50%,
+          rgba(0, 255, 255, 0)
+        );
+        transform-origin: 50% 50%;
+      }
+      #bloom {
+        position: absolute;
+        left: -460px;
+        top: 230px;
+        width: 2000px;
+        height: 1800px;
+        background: radial-gradient(closest-side, rgba(0, 232, 255, 0.4), rgba(0, 232, 255, 0));
+        opacity: 0;
+      }
+      .head {
+        position: absolute;
+        left: 80px;
+        top: 250px;
+        width: 920px;
+        height: 360px;
+      }
+      .ln {
+        position: absolute;
+        left: 0;
+        height: 120px;
+        font-weight: 600;
+        font-size: 112px;
+        line-height: 118px;
+        letter-spacing: -0.045em;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .shine,
+      .sh {
+        padding-bottom: 0.16em;
+        margin-bottom: -0.16em;
+        padding-right: 6px;
+        background: linear-gradient(100deg, #4d63ff 10%, #00ffff 55%, #4d63ff 95%);
+        background-size: 200% 100%;
+        background-position: 0% 50%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+__SHOTCSS__
+      #lock {
+        position: absolute;
+        inset: 0;
+      }
+      #l-glow {
+        position: absolute;
+        left: 40px;
+        top: 260px;
+        width: 1000px;
+        height: 1000px;
+        background: radial-gradient(
+          closest-side,
+          rgba(0, 232, 255, 0.4),
+          rgba(50, 79, 255, 0.25) 45%,
+          rgba(42, 44, 157, 0)
+        );
+        opacity: 0;
+      }
+      #l-flame {
+        position: absolute;
+        left: 396px;
+        top: 480px;
+        width: 288px;
+        height: 360px;
+        opacity: 0;
+      }
+      .l-line {
+        position: absolute;
+        left: 0;
+        width: 1080px;
+        display: flex;
+        justify-content: center;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #l-title {
+        top: 920px;
+        font-weight: 600;
+        font-size: 132px;
+        line-height: 150px;
+        letter-spacing: -0.04em;
+      }
+      #l-chip {
+        top: 1130px;
+      }
+      #l-chip div {
+        background: #0d0d0d;
+        border: 1px solid #363636;
+        padding: 18px 36px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 44px;
+        color: #919191;
+      }
+      #l-npm {
+        top: 1270px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 34px;
+        color: #c7c7c7;
+      }
+      #l-logos {
+        top: 1470px;
+        align-items: center;
+        gap: 34px;
+      }
+      #l-logos img {
+        display: block;
+        height: 64px;
+        width: 64px;
+        object-fit: contain;
+        opacity: 0;
+      }
+      #l-cap {
+        top: 1570px;
+        font-size: 27px;
+        color: #c7c7c7;
+      }
+      #l-url {
+        top: 1340px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 36px;
+        color: #7c9fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Portrait (1080x1920) 15.36 s cut for X/Twitter, drawn natively (no footage) on the
+      v4 film's music window and beats: flame, HMR, 1,000 shadow roots, cause rails, lockup.
+      index.html is generated by scripts/build.py; edit that and rerun.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="15.36"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div class="blob" id="b1"></div>
+      <div class="blob" id="b2"></div>
+      <div class="blob" id="b3"></div>
+      <div class="blob" id="b4"></div>
+      <div id="sweep"></div>
+      <div id="bloom"></div>
+
+__SHOTS__
+__HEADS__
+
+      <div id="lock" class="clip" data-start="11.52" data-duration="3.84" data-track-index="4">
+        <div id="l-glow"></div>
+        <img id="l-flame" src="assets/flame.svg" alt="" />
+        <div class="l-line" id="l-title"><span class="shine" id="l-lit">Lit</span>&nbsp;DevTools</div>
+        <div class="l-line" id="l-chip">
+          <div><span style="color: #b2ccd6">plugins</span>: [<span style="color: #82aaff">litPlugin</span>()]</div>
+        </div>
+        <div class="l-line" id="l-npm">npm i -D @oddsquad/lit-devtools</div>
+        <div class="l-line" id="l-url">lit-devtools.oddsquad.dev</div>
+        <div class="l-line" id="l-logos" style="opacity: 1"><img class="lg" src="assets/logos/vite.svg" alt="Vite" /><img class="lg" src="assets/logos/astro-on-dark.svg" alt="Astro" /><img class="lg" src="assets/logos/vscode.svg" alt="VS Code" /><img class="lg" src="assets/logos/zed.svg" alt="Zed" /><img class="lg" src="assets/logos/chrome.svg" alt="Chrome" /><img class="lg" src="assets/logos/firefox.svg" alt="Firefox" /><img class="lg" src="assets/logos/inspector-icon.svg" alt="Lit Inspector" /><img class="lg" src="assets/logos/mcp.svg" alt="MCP" style="filter: invert(0.8)" /></div>
+        <div class="l-line" id="l-cap">Vite · Astro · VS Code · Zed · Chrome · Firefox · Lit Inspector · MCP</div>
+      </div>
+
+      <audio
+        id="bgm"
+        src="assets/bgm/bounce-energique.m4a"
+        data-start="0"
+        data-duration="15.36"
+        data-media-start="15.41"
+        data-volume="0.9"
+        data-fade-out="0.8"
+        data-track-index="11"
+      ></audio>
+    </div>
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        // background drift, the whole film
+        tl.fromTo('#b1', {x: 0, y: 0}, {x: 520, y: 700, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b1', {x: 120, y: 1200, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b2', {x: 0, y: 0}, {x: -620, y: -420, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b2', {x: -200, y: -900, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b3', {x: 0, y: 0, scale: 1}, {x: 560, y: -500, scale: 1.25, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b3', {x: 200, y: -1100, scale: 1, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b4', {x: 0, y: 0}, {x: -700, y: 500, duration: 15.36, ease: 'sine.inOut'}, 0);
+        // a light sweep across on every cut
+        [0, 1.92, 5.76, 9.6, 11.52].forEach(function (t) {
+          tl.fromTo(
+            '#sweep',
+            {x: 0, rotation: 18},
+            {x: 2700, rotation: 18, duration: 0.9, ease: 'power2.inOut', immediateRender: t === 0},
+            t
+          );
+        });
+        // the drop: bloom and the blobs swell
+        tl.fromTo('#bloom', {opacity: 0.9, scale: 0.7}, {opacity: 0, scale: 1.2, duration: 0.9, ease: 'power2.out', immediateRender: false}, 6.24);
+        tl.fromTo(['#b1', '#b2'], {scale: 1.35}, {scale: 1, duration: 1.2, ease: 'power3.out', immediateRender: false}, 6.24);
+        __JS__
+        // lockup
+        tl.fromTo('#l-glow', {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out'}, 11.52);
+        tl.fromTo('#l-flame', {opacity: 0, scale: 0.5, rotation: -8}, {opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(1.6)'}, 11.52);
+        tl.fromTo('#l-title', {opacity: 0, y: 60}, {opacity: 1, y: 0, duration: 0.45, ease: 'power3.out'}, 12.0);
+        tl.fromTo('#l-lit', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 3.36, ease: 'none'}, 12.0);
+        tl.fromTo('#l-chip', {opacity: 0, y: 40}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 12.48);
+        tl.fromTo('#l-npm', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 12.96);
+        tl.fromTo('#l-url', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 13.2);
+        tl.fromTo('#l-logos .lg', {opacity: 0, y: 30, scale: 0.6}, {opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.08}, 13.44);
+        tl.fromTo('#l-cap', {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 13.92);
+        tl.to('#l-glow', {scale: 1.12, duration: 2.4, ease: 'sine.inOut'}, 12.32);
+        window.__timelines['main'] = tl;
+      })();
+    </script>
+  </body>
+</html>

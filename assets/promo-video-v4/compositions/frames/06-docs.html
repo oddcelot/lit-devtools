@@ -1,0 +1,1101 @@
+<template id="s06-docs-template">
+  <style>
+    @font-face {
+      font-family: 'Lexend Variable';
+      font-weight: 100 900;
+      font-style: normal;
+      src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: normal;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-style: italic;
+      font-weight: 100 700;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s06-docs,
+    #s06-docs * {
+      box-sizing: border-box;
+    }
+    #s06-docs {
+      position: absolute;
+      inset: 0;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+    }
+    #s06-docs .d6-stage {
+      position: absolute;
+      inset: 0;
+      transform-origin: 960px 664px;
+    }
+    #s06-docs .d6-m {
+      font-family: 'Lilex Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+    }
+    #s06-docs svg.d6-ic {
+      display: block;
+      fill: currentColor;
+    }
+
+    .d6-eyebrow {
+      position: absolute;
+      left: 96px;
+      top: 150px;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6b7bff;
+      line-height: 24px;
+      white-space: nowrap;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    }
+    .d6-hl {
+      position: absolute;
+      left: 96px;
+      font-weight: 600;
+      font-size: 68px;
+      line-height: 72px;
+      letter-spacing: -0.045em;
+      color: #fff;
+      white-space: nowrap;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    }
+    .d6-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background-image: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      background-position: 0% 50%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* panel fragment */
+    .d6-frag {
+      position: absolute;
+      left: 740px;
+      top: 124px;
+      width: 1100px;
+      height: 516px;
+      background: #030303;
+      border: 1px solid #363636;
+      overflow: hidden;
+    }
+    .d6-tb {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 66px;
+      background: #0d0d0d;
+      border-bottom: 1px solid #363636;
+    }
+    .d6-btn {
+      position: absolute;
+      top: 10px;
+      height: 45px;
+      border: 1px solid #717584;
+      color: #9194a2;
+      font-weight: 500;
+      font-size: 19px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 19px;
+      white-space: nowrap;
+    }
+    .d6-btn svg {
+      width: 19px;
+      height: 19px;
+    }
+    .d6-live {
+      background: #0f1d67;
+      border-color: transparent;
+      color: #82a5ff;
+    }
+    .d6-in {
+      position: absolute;
+      top: 10px;
+      height: 45px;
+      border: 1px solid #717584;
+      background: #121212;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 0 19px;
+      color: #717584;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+    .d6-in svg {
+      width: 19px;
+      height: 19px;
+      color: #9194a2;
+    }
+
+    .d6-tree {
+      position: absolute;
+      left: 0;
+      top: 66px;
+      width: 396px;
+      height: 450px;
+    }
+    .d6-row {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 35px;
+      line-height: 35px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .d6-row .d6-b {
+      color: #919191;
+    }
+    .d6-row .d6-tw {
+      position: absolute;
+      top: 9px;
+      width: 16px;
+      height: 16px;
+      color: #919191;
+    }
+    .d6-row .d6-tag {
+      position: absolute;
+      top: 0;
+    }
+    .d6-sel {
+      position: absolute;
+      inset: 0;
+      background: #181d3d;
+      box-shadow: inset 3px 0 #324fff;
+    }
+    .d6-div {
+      position: absolute;
+      left: 396px;
+      top: 66px;
+      width: 1px;
+      height: 450px;
+      background: #363636;
+    }
+
+    .d6-vp {
+      position: absolute;
+      left: 397px;
+      top: 66px;
+      width: 703px;
+      height: 450px;
+      overflow: hidden;
+    }
+    .d6-scroll {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 703px;
+      height: 1200px;
+    }
+    .d6-blk {
+      position: absolute;
+      left: 19px;
+      width: 665px;
+    }
+    .d6-head {
+      top: 14px;
+      height: 45px;
+    }
+    .d6-head .d6-tagh {
+      position: absolute;
+      left: 0;
+      top: 0;
+      line-height: 45px;
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+    }
+    .d6-head .d6-tagh span {
+      color: #919191;
+    }
+    .d6-hbtn {
+      position: absolute;
+      top: 0;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9194a2;
+    }
+    .d6-hbtn svg {
+      width: 21px;
+      height: 21px;
+    }
+    .d6-meta {
+      height: 29px;
+      line-height: 29px;
+      font-size: 19px;
+      white-space: nowrap;
+    }
+    .d6-meta .d6-dt {
+      position: absolute;
+      left: 0;
+      color: #919191;
+    }
+    .d6-meta .d6-dd {
+      position: absolute;
+      left: 194px;
+      color: #c7c7c7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .d6-link {
+      color: #7c9fff;
+    }
+    .d6-meta svg {
+      width: 16px;
+      height: 16px;
+      color: #7c9fff;
+    }
+
+    .d6-sec {
+      border-top: 1px solid #363636;
+    }
+    .d6-sh {
+      position: absolute;
+      left: 0;
+      top: 13px;
+      height: 24px;
+      line-height: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+      color: #919191;
+      white-space: nowrap;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+      font-weight: 500;
+    }
+    .d6-sh svg {
+      width: 18px;
+      height: 18px;
+    }
+    .d6-sh .d6-cnt {
+      letter-spacing: 0;
+      font-size: 18px;
+    }
+    .d6-origin {
+      position: absolute;
+      right: 0;
+      top: 14px;
+      width: 21px;
+      height: 21px;
+      color: #919191;
+    }
+    .d6-prose {
+      position: absolute;
+      left: 0;
+      top: 46px;
+      width: 665px;
+      font-size: 19px;
+      line-height: 29px;
+      color: #c7c7c7;
+    }
+    .d6-prose b {
+      color: #fff;
+      font-weight: 700;
+    }
+    .d6-code {
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 17.6px;
+      background: #212121;
+      padding: 0 3px;
+      color: #c7c7c7;
+    }
+    .d6-r {
+      position: absolute;
+      left: 0;
+      width: 665px;
+      height: 32px;
+      line-height: 32px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+    }
+    .d6-r .d6-sw {
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 13px;
+      height: 13px;
+      border-radius: 2px;
+    }
+    .d6-r .d6-n {
+      position: absolute;
+      left: 19px;
+    }
+    .d6-r .d6-n.d6-nn {
+      left: 0;
+      text-decoration: underline dotted #616161;
+      text-underline-offset: 5px;
+    }
+    .d6-r .d6-v {
+      position: absolute;
+      left: 194px;
+    }
+    .d6-badge {
+      display: inline-block;
+      height: 24px;
+      line-height: 24px;
+      padding: 0 6px;
+      margin-left: 8px;
+      background: #212121;
+      color: #919191;
+      font-size: 17.6px;
+      position: relative;
+      top: -1px;
+    }
+    .d6-t {
+      color: #89ddff;
+    }
+    .d6-s {
+      color: #c3e88d;
+    }
+    .d6-num {
+      color: #f78c6c;
+    }
+    .d6-kw {
+      color: #c792ea;
+    }
+    .d6-desc {
+      position: absolute;
+      left: 19px;
+      top: 80px;
+      width: 646px;
+      font-size: 19px;
+      line-height: 29px;
+      color: #c7c7c7;
+    }
+
+    .d6-tip {
+      position: absolute;
+      height: 40px;
+      line-height: 40px;
+      padding: 0 13px;
+      background: #363636;
+      border: 1px solid #363636;
+      color: #e3e3e3;
+      font-size: 19px;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    .d6-ring {
+      position: absolute;
+      border: 2px solid #00e8ff;
+      box-shadow:
+        0 0 22px rgba(0, 232, 255, 0.55),
+        inset 0 0 14px rgba(0, 232, 255, 0.18);
+    }
+
+    /* terminal card */
+    .d6-term {
+      position: absolute;
+      left: 1280px;
+      top: 500px;
+      width: 560px;
+      height: 130px;
+      background: #0d0d0d;
+      border: 1px solid #363636;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+    }
+    .d6-tstrip {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 40px;
+      background: #121212;
+      border-bottom: 1px solid #363636;
+    }
+    .d6-tstrip i {
+      position: absolute;
+      top: 15px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #363636;
+    }
+    .d6-ttl {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      top: 0;
+      line-height: 40px;
+      text-align: center;
+      font-size: 17px;
+      color: #919191;
+    }
+    .d6-tl {
+      position: absolute;
+      left: 20px;
+      height: 29px;
+      line-height: 29px;
+      font-size: 19px;
+      color: #e3e3e3;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .d6-tl .d6-pr {
+      color: #00e8ff;
+    }
+    .d6-tl2 {
+      color: #919191;
+    }
+  </style>
+
+  <div
+    data-hf-id="hf-x9jp"
+    id="s06-docs"
+    data-composition-id="s06-docs"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div data-hf-id="hf-igrn" class="d6-stage">
+      <div data-hf-id="hf-wvii" class="d6-eyebrow">Component docs</div>
+      <div data-hf-id="hf-mvqv" class="d6-hl d6-h1" style="top: 186px">
+        Every component
+      </div>
+      <div data-hf-id="hf-k6wg" class="d6-hl d6-h2" style="top: 258px">
+        <span data-hf-id="hf-h6k6" class="d6-shine">explains itself.</span>
+      </div>
+
+      <div data-hf-id="hf-ba17" class="d6-frag">
+        <div data-hf-id="hf-pial" class="d6-tb">
+          <div data-hf-id="hf-kn6p" class="d6-btn" style="left: 19px">
+            <i data-hf-id="hf-9xy1" data-ic="crosshair"></i>Pick
+          </div>
+          <div
+            data-hf-id="hf-dlry"
+            class="d6-in d6-m"
+            style="left: 150px; width: 320px"
+          >
+            <i data-hf-id="hf-2o4n" data-ic="magnifying-glass"></i>Filter tags
+          </div>
+          <div data-hf-id="hf-g1br" class="d6-btn d6-live" style="right: 337px">
+            <i data-hf-id="hf-jqqe" data-ic="eye"></i>Live
+          </div>
+          <div data-hf-id="hf-st1b" class="d6-btn" style="right: 194px">
+            <i data-hf-id="hf-rxvz" data-ic="lightning"></i>Flash
+          </div>
+          <div data-hf-id="hf-bfdm" class="d6-btn" style="right: 19px">
+            <i data-hf-id="hf-c6nv" data-ic="bounding-box"></i>Anatomy
+          </div>
+        </div>
+
+        <div data-hf-id="hf-3421" class="d6-tree d6-m">
+          <div data-hf-id="hf-msrt" class="d6-row" style="top: 10px">
+            <i
+              data-hf-id="hf-c4g7"
+              class="d6-tw"
+              data-ic="caret-down"
+              style="left: 13px"
+            ></i
+            ><span data-hf-id="hf-kifq" class="d6-tag" style="left: 38px"
+              ><span data-hf-id="hf-l70y" class="d6-b">&lt;</span>fh-app<span
+                data-hf-id="hf-lzn0"
+                class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-d2db" class="d6-row" style="top: 45px">
+            <i
+              data-hf-id="hf-aiyc"
+              class="d6-tw"
+              data-ic="caret-right"
+              style="left: 38px"
+            ></i
+            ><span data-hf-id="hf-v2d8" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-ardi" class="d6-b">&lt;</span>fh-header<span
+                data-hf-id="hf-9oas"
+                class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-xc3y" class="d6-row" style="top: 80px">
+            <div data-hf-id="hf-gtg5" class="d6-sel"></div>
+            <span
+              data-hf-id="hf-3fbu"
+              class="d6-tag"
+              style="left: 61px; color: #fff"
+              ><span data-hf-id="hf-b5oj" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-8hdp" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-b1k5" class="d6-row" style="top: 115px">
+            <i
+              data-hf-id="hf-g80c"
+              class="d6-tw"
+              data-ic="caret-right"
+              style="left: 38px"
+            ></i
+            ><span data-hf-id="hf-g809" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-bjzk" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-8voq" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-z9f0" class="d6-row" style="top: 150px">
+            <span data-hf-id="hf-egzh" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-8rud" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-av7v" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-eg2u" class="d6-row" style="top: 185px">
+            <span data-hf-id="hf-fnwk" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-965e" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-b9iw" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-8r8e" class="d6-row" style="top: 220px">
+            <span data-hf-id="hf-f9lj" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-9kgf" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-a2lt" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-4yl6" class="d6-row" style="top: 255px">
+            <span data-hf-id="hf-ggim" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-9yrg" class="d6-b">&lt;</span
+              >fh-product-card<span data-hf-id="hf-agwu" class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+          <div data-hf-id="hf-pwjn" class="d6-row" style="top: 290px">
+            <span data-hf-id="hf-vjdw" class="d6-tag" style="left: 61px"
+              ><span data-hf-id="hf-76m9" class="d6-b">&lt;</span>fh-toast<span
+                data-hf-id="hf-cgfz"
+                class="d6-b"
+                >&gt;</span
+              ></span
+            >
+          </div>
+        </div>
+        <div data-hf-id="hf-wrss" class="d6-div"></div>
+
+        <div data-hf-id="hf-q5gl" class="d6-vp">
+          <div data-hf-id="hf-ymvk" class="d6-scroll">
+            <div data-hf-id="hf-bk8c" class="d6-blk d6-head d6-m d6-hd">
+              <div data-hf-id="hf-4beg" class="d6-tagh">
+                <span data-hf-id="hf-dep3">&lt;</span>fh-product-card<span
+                  data-hf-id="hf-cm31"
+                  >&gt;</span
+                >
+              </div>
+              <div data-hf-id="hf-ar94" class="d6-hbtn" style="right: 45px">
+                <i data-hf-id="hf-uaao" data-ic="arrows-clockwise"></i>
+              </div>
+              <div data-hf-id="hf-9egz" class="d6-hbtn" style="right: 0">
+                <i data-hf-id="hf-jd9k" data-ic="target"></i>
+              </div>
+            </div>
+            <div
+              data-hf-id="hf-98ox"
+              class="d6-blk d6-meta d6-m d6-mt"
+              style="top: 66px"
+            >
+              <span data-hf-id="hf-drlp" class="d6-dt">defined</span
+              ><span data-hf-id="hf-3js0" class="d6-dd"
+                ><span data-hf-id="hf-yome" class="d6-link"
+                  >src/fh-product-card.ts:18</span
+                ><i data-hf-id="hf-ytlx" data-ic="arrow-square-out"></i
+              ></span>
+            </div>
+            <div
+              data-hf-id="hf-hp3v"
+              class="d6-blk d6-meta d6-m d6-mt"
+              style="top: 95px"
+            >
+              <span data-hf-id="hf-331d" class="d6-dt">rendered</span
+              ><span data-hf-id="hf-nhlk" class="d6-dd"
+                ><span data-hf-id="hf-474t" class="d6-link"
+                  >src/fh-app.ts:159</span
+                ><i data-hf-id="hf-cq7t" data-ic="arrow-square-out"></i
+              ></span>
+            </div>
+            <div
+              data-hf-id="hf-hv74"
+              class="d6-blk d6-meta d6-m d6-mt"
+              style="top: 124px"
+            >
+              <span data-hf-id="hf-7354" class="d6-dt">root</span
+              ><span data-hf-id="hf-qtbg" class="d6-dd" style="color: #e3e3e3"
+                >shadow, open</span
+              >
+            </div>
+            <div
+              data-hf-id="hf-o2k7"
+              class="d6-in d6-m d6-mt"
+              style="left: 19px; top: 164px; width: 665px"
+            >
+              <i data-hf-id="hf-gimf" data-ic="magnifying-glass"></i>Filter rows
+            </div>
+
+            <div
+              data-hf-id="hf-9dg6"
+              class="d6-blk d6-sec d6-about"
+              style="top: 228px; height: 146px"
+            >
+              <div data-hf-id="hf-ftwf" class="d6-sh">
+                <i data-hf-id="hf-i68p" data-ic="caret-down"></i>About
+              </div>
+              <i data-hf-id="hf-y5lv" class="d6-origin" data-ic="file-code"></i>
+              <div data-hf-id="hf-1i8k" class="d6-prose">
+                A plant in the shop: its picture, name, price and an
+                <b data-hf-id="hf-edcp">Add to cart</b> button. Adding marks the
+                card as in the cart and tells the page, which updates the cart
+                and shows a toast.
+              </div>
+            </div>
+            <div
+              data-hf-id="hf-b0me"
+              class="d6-tip d6-tip1"
+              style="left: 372px; top: 234px"
+            >
+              From src/fh-product-card.ts
+            </div>
+
+            <div
+              data-hf-id="hf-mp17"
+              class="d6-blk d6-sec d6-m d6-wf"
+              style="top: 380px; height: 144px"
+            >
+              <div data-hf-id="hf-xu6b" class="d6-sh">
+                <i data-hf-id="hf-kmp9" data-ic="caret-down"></i>Slots
+                <span data-hf-id="hf-padq" class="d6-cnt">3</span>
+              </div>
+              <div data-hf-id="hf-3vc8" class="d6-r" style="top: 48px">
+                <i
+                  data-hf-id="hf-mcq7"
+                  class="d6-sw"
+                  style="background: #4d63ff"
+                ></i
+                ><span data-hf-id="hf-8rs6" class="d6-n">media</span
+                ><span data-hf-id="hf-lwwc" class="d6-v"
+                  ><span
+                    data-hf-id="hf-cs6w"
+                    class="d6-b"
+                    style="color: #919191"
+                    >&lt;</span
+                  >svg<span data-hf-id="hf-3etk" style="color: #919191"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-tsro" class="d6-r" style="top: 80px">
+                <i
+                  data-hf-id="hf-n0j0"
+                  class="d6-sw"
+                  style="background: #e8590c"
+                ></i
+                ><span data-hf-id="hf-s4dj" class="d6-n"
+                  >price<span data-hf-id="hf-hd87" class="d6-badge"
+                    >fallback</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-o3c8" class="d6-r" style="top: 112px">
+                <i
+                  data-hf-id="hf-ykfo"
+                  class="d6-sw"
+                  style="background: #2f9e44"
+                ></i
+                ><span
+                  data-hf-id="hf-ebou"
+                  class="d6-n"
+                  style="font-style: italic"
+                  >default</span
+                ><span data-hf-id="hf-2etq" class="d6-v" style="color: #c7c7c7"
+                  >1 text</span
+                >
+              </div>
+            </div>
+
+            <div
+              data-hf-id="hf-ez4k"
+              class="d6-blk d6-sec d6-m d6-wf"
+              style="top: 540px; height: 112px"
+            >
+              <div data-hf-id="hf-zzes" class="d6-sh">
+                <i data-hf-id="hf-ltmc" data-ic="caret-down"></i>Parts
+                <span data-hf-id="hf-ow2p" class="d6-cnt">2</span>
+              </div>
+              <div data-hf-id="hf-99wg" class="d6-r" style="top: 48px">
+                <i
+                  data-hf-id="hf-f63q"
+                  class="d6-sw"
+                  style="background: #c2255c"
+                ></i
+                ><span data-hf-id="hf-i4w0" class="d6-n">title</span
+                ><span data-hf-id="hf-tgem" class="d6-v"
+                  ><span data-hf-id="hf-2m7i" style="color: #919191">&lt;</span
+                  ><span data-hf-id="hf-0pc5" class="d6-t">h3</span
+                  ><span data-hf-id="hf-jk8w" style="color: #919191"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+              <div data-hf-id="hf-5tp8" class="d6-r" style="top: 80px">
+                <i
+                  data-hf-id="hf-vdi5"
+                  class="d6-sw"
+                  style="background: #1098ad"
+                ></i
+                ><span data-hf-id="hf-s5z4" class="d6-n">cta</span
+                ><span data-hf-id="hf-vyaa" class="d6-v"
+                  ><span data-hf-id="hf-ud4i" style="color: #919191">&lt;</span
+                  ><span data-hf-id="hf-euc0" class="d6-t">button</span
+                  ><span data-hf-id="hf-idbt" style="color: #919191"
+                    >&gt;</span
+                  ></span
+                >
+              </div>
+            </div>
+
+            <div
+              data-hf-id="hf-7nep"
+              class="d6-blk d6-sec d6-m d6-wf"
+              style="top: 668px; height: 176px"
+            >
+              <div data-hf-id="hf-o1cj" class="d6-sh">
+                <i data-hf-id="hf-lfbb" data-ic="caret-down"></i>Properties
+                <span data-hf-id="hf-o3gn" class="d6-cnt">4</span>
+              </div>
+              <div data-hf-id="hf-82zd" class="d6-r" style="top: 48px">
+                <span data-hf-id="hf-eci1" class="d6-n d6-nn">productId</span
+                ><span data-hf-id="hf-nkjb" class="d6-v d6-s">"monstera"</span>
+              </div>
+              <div data-hf-id="hf-4ms5" class="d6-r" style="top: 80px">
+                <span data-hf-id="hf-51by" class="d6-n d6-nn">name</span
+                ><span data-hf-id="hf-1h5j" class="d6-v d6-s">"Monstera"</span>
+              </div>
+              <div data-hf-id="hf-gb1c" class="d6-r" style="top: 112px">
+                <span data-hf-id="hf-de5e" class="d6-n d6-nn">price</span
+                ><span data-hf-id="hf-m22w" class="d6-v d6-num">34</span>
+              </div>
+              <div data-hf-id="hf-qejh" class="d6-r" style="top: 144px">
+                <span data-hf-id="hf-wvfk" class="d6-n d6-nn">badge</span
+                ><span data-hf-id="hf-y31n" class="d6-v d6-s"
+                  >"Bestseller"</span
+                >
+              </div>
+            </div>
+
+            <div
+              data-hf-id="hf-937z"
+              class="d6-blk d6-sec d6-m d6-wf"
+              style="top: 860px; height: 80px"
+            >
+              <div data-hf-id="hf-jifv" class="d6-sh">
+                <i data-hf-id="hf-qo7i" data-ic="caret-down"></i>State
+                <span data-hf-id="hf-q2zs" class="d6-cnt">1</span>
+              </div>
+              <div data-hf-id="hf-8hae" class="d6-r" style="top: 48px">
+                <span data-hf-id="hf-9q46" class="d6-n" style="left: 0"
+                  >inCart</span
+                ><span data-hf-id="hf-ny5e" class="d6-v d6-kw">false</span>
+              </div>
+            </div>
+
+            <div
+              data-hf-id="hf-ns31"
+              class="d6-blk d6-sec d6-m d6-ev"
+              style="top: 956px; height: 152px"
+            >
+              <div data-hf-id="hf-blf7" class="d6-sh">
+                <i data-hf-id="hf-m7xd" data-ic="caret-down"></i>Events
+                <span data-hf-id="hf-404g" class="d6-cnt">1</span>
+              </div>
+              <div data-hf-id="hf-7adb" class="d6-r" style="top: 48px">
+                <span data-hf-id="hf-30jt" class="d6-n" style="left: 0"
+                  >add-to-cart</span
+                >
+              </div>
+              <div
+                data-hf-id="hf-b1qs"
+                class="d6-desc"
+                style="
+                  font-family:
+                    ui-sans-serif,
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    Roboto,
+                    sans-serif;
+                "
+              >
+                When the button is clicked.
+                <span data-hf-id="hf-h1l2" class="d6-code">detail</span> carries
+                the product's
+                <span data-hf-id="hf-0dka" class="d6-code">id</span>,
+                <span data-hf-id="hf-9w4k" class="d6-code">name</span> and
+                <span data-hf-id="hf-3sw0" class="d6-code">price</span>.
+              </div>
+            </div>
+            <div
+              data-hf-id="hf-rfut"
+              class="d6-ring"
+              style="left: 9px; top: 962px; width: 685px; height: 140px"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-qn2v" class="d6-term d6-m">
+        <div data-hf-id="hf-plgl" class="d6-tstrip">
+          <i data-hf-id="hf-7iu5" style="left: 16px"></i
+          ><i data-hf-id="hf-acx1" style="left: 34px"></i
+          ><i data-hf-id="hf-tgmt" style="left: 52px"></i>
+          <div data-hf-id="hf-bel3" class="d6-ttl">claude</div>
+        </div>
+        <div data-hf-id="hf-j4yl" class="d6-tl d6-tl1" style="top: 52px">
+          <span data-hf-id="hf-p0go" class="d6-pr">›</span> lit_component-docs
+          fh-product-card
+        </div>
+        <div data-hf-id="hf-kuas" class="d6-tl d6-tl2" style="top: 83px">
+          ⎿ 3 slots · 2 parts · 4 properties · 1 event
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var R = document.getElementById('s06-docs');
+      var q = function (s) {
+        return R.querySelector(s);
+      };
+      var qa = function (s) {
+        return R.querySelectorAll(s);
+      };
+
+      /* Phosphor regular icons (assets/icons/*.svg; carets are Phosphor caret-down / caret-right) */
+      var IC = {
+        crosshair:
+          'M232,120h-8.34A96.14,96.14,0,0,0,136,32.34V24a8,8,0,0,0-16,0v8.34A96.14,96.14,0,0,0,32.34,120H24a8,8,0,0,0,0,16h8.34A96.14,96.14,0,0,0,120,223.66V232a8,8,0,0,0,16,0v-8.34A96.14,96.14,0,0,0,223.66,136H232a8,8,0,0,0,0-16Zm-96,87.6V200a8,8,0,0,0-16,0v7.6A80.15,80.15,0,0,1,48.4,136H56a8,8,0,0,0,0-16H48.4A80.15,80.15,0,0,1,120,48.4V56a8,8,0,0,0,16,0V48.4A80.15,80.15,0,0,1,207.6,120H200a8,8,0,0,0,0,16h7.6A80.15,80.15,0,0,1,136,207.6ZM128,88a40,40,0,1,0,40,40A40,40,0,0,0,128,88Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,152Z',
+        'magnifying-glass':
+          'M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z',
+        eye: 'M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z',
+        lightning:
+          'M215.79,118.17a8,8,0,0,0-5-5.66L153.18,90.9l14.66-73.33a8,8,0,0,0-13.69-7l-112,120a8,8,0,0,0,3,13l57.63,21.61L88.16,238.43a8,8,0,0,0,13.69,7l112-120A8,8,0,0,0,215.79,118.17ZM109.37,214l10.47-52.38a8,8,0,0,0-5-9.06L62,132.71l84.62-90.66L136.16,94.43a8,8,0,0,0,5,9.06l52.8,19.8Z',
+        'bounding-box':
+          'M208,96a16,16,0,0,0,16-16V48a16,16,0,0,0-16-16H176a16,16,0,0,0-16,16v8H96V48A16,16,0,0,0,80,32H48A16,16,0,0,0,32,48V80A16,16,0,0,0,48,96h8v64H48a16,16,0,0,0-16,16v32a16,16,0,0,0,16,16H80a16,16,0,0,0,16-16v-8h64v8a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16V176a16,16,0,0,0-16-16h-8V96ZM176,48h32V80H176ZM48,48H80V63.9a.51.51,0,0,0,0,.2V80H48ZM80,208H48V176H80v15.9a.51.51,0,0,0,0,.2V208Zm128,0H176V176h32Zm-24-48h-8a16,16,0,0,0-16,16v8H96v-8a16,16,0,0,0-16-16H72V96h8A16,16,0,0,0,96,80V72h64v8a16,16,0,0,0,16,16h8Z',
+        'arrows-clockwise':
+          'M224,48V96a8,8,0,0,1-8,8H168a8,8,0,0,1,0-16h28.69L182.06,73.37a79.56,79.56,0,0,0-56.13-23.43h-.45A79.52,79.52,0,0,0,69.59,72.71,8,8,0,0,1,58.41,61.27a96,96,0,0,1,135,.79L208,76.69V48a8,8,0,0,1,16,0ZM186.41,183.29a80,80,0,0,1-112.47-.66L59.31,168H88a8,8,0,0,0,0-16H40a8,8,0,0,0-8,8v48a8,8,0,0,0,16,0V179.31l14.63,14.63A95.43,95.43,0,0,0,130,222.06h.53a95.36,95.36,0,0,0,67.07-27.33,8,8,0,0,0-11.18-11.44Z',
+        target:
+          'M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z',
+        'arrow-square-out':
+          'M224,104a8,8,0,0,1-16,0V59.32l-66.33,66.34a8,8,0,0,1-11.32-11.32L196.68,48H152a8,8,0,0,1,0-16h64a8,8,0,0,1,8,8Zm-40,24a8,8,0,0,0-8,8v72H48V80h72a8,8,0,0,0,0-16H48A16,16,0,0,0,32,80V208a16,16,0,0,0,16,16H176a16,16,0,0,0,16-16V136A8,8,0,0,0,184,128Z',
+        'file-code':
+          'M181.66,146.34a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32-11.32L164.69,152l-18.35-18.34a8,8,0,0,1,11.32-11.32Zm-72-24a8,8,0,0,0-11.32,0l-24,24a8,8,0,0,0,0,11.32l24,24a8,8,0,0,0,11.32-11.32L91.31,152l18.35-18.34A8,8,0,0,0,109.66,122.34ZM216,88V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88Zm-56-8h28.69L160,51.31Zm40,136V96H152a8,8,0,0,1-8-8V40H56V216H200Z',
+        'caret-down':
+          'M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z',
+        'caret-right':
+          'M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z',
+      };
+      qa('i[data-ic]').forEach(function (el) {
+        var svg =
+          '<svg class="d6-ic" viewBox="0 0 256 256" width="100%" height="100%"><path d="' +
+          IC[el.getAttribute('data-ic')] +
+          '"/></svg>';
+        if (el.classList.length) {
+          el.innerHTML = svg;
+          el.style.display = 'block';
+        } else {
+          el.outerHTML = svg;
+        }
+      });
+
+      var tl = gsap.timeline({paused: true});
+      var slam = function (el, t) {
+        tl.fromTo(
+          el,
+          {opacity: 0, y: 24},
+          {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+          t
+        );
+      };
+      var rise = function (el, t, dy) {
+        tl.fromTo(
+          el,
+          {opacity: 0, y: dy || 12},
+          {opacity: 1, y: 0, duration: 0.28, ease: 'power3.out'},
+          t
+        );
+      };
+
+      /* 0.00 eyebrow + fragment, 0.10 / 0.48 headline */
+      tl.fromTo(
+        q('.d6-eyebrow'),
+        {opacity: 0, y: 8},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        0
+      );
+      slam(q('.d6-h1'), 0.1);
+      slam(q('.d6-h2'), 0.48);
+      tl.fromTo(
+        q('.d6-shine'),
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 3.0, ease: 'none'},
+        0.48
+      );
+      tl.fromTo(
+        q('.d6-frag'),
+        {opacity: 0, y: 12},
+        {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'},
+        0
+      );
+      tl.fromTo(
+        qa('.d6-row'),
+        {opacity: 0, x: -10},
+        {opacity: 1, x: 0, duration: 0.22, ease: 'power3.out', stagger: 0.025},
+        0.04
+      );
+      tl.fromTo(
+        q('.d6-sel'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.15, ease: 'power2.out'},
+        0.2
+      );
+
+      /* 0.24 details head + meta */
+      rise(q('.d6-hd'), 0.24, 10);
+      tl.fromTo(
+        qa('.d6-mt'),
+        {opacity: 0, y: 10},
+        {opacity: 1, y: 0, duration: 0.25, ease: 'power3.out', stagger: 0.04},
+        0.3
+      );
+
+      /* 0.48 HIT: ABOUT unfolds, origin icon + tooltip */
+      tl.fromTo(
+        q('.d6-about'),
+        {opacity: 0},
+        {opacity: 1, duration: 0.12, ease: 'power2.out'},
+        0.48
+      );
+      tl.fromTo(
+        q('.d6-prose'),
+        {clipPath: 'inset(0% 0% 100% 0%)'},
+        {clipPath: 'inset(0% 0% 0% 0%)', duration: 0.32, ease: 'power3.out'},
+        0.48
+      );
+      tl.fromTo(
+        q('.d6-origin'),
+        {opacity: 0, scale: 0.6},
+        {opacity: 1, scale: 1, duration: 0.2, ease: 'back.out(2)'},
+        0.52
+      );
+      tl.fromTo(
+        q('.d6-tip1'),
+        {opacity: 0, y: -6},
+        {opacity: 1, y: 0, duration: 0.16, ease: 'power2.out'},
+        0.62
+      );
+      tl.to(
+        q('.d6-tip1'),
+        {opacity: 0, duration: 0.12, ease: 'power2.in'},
+        0.94
+      );
+
+      /* 0.96 / 1.20 / 1.44 sections waterfall in, the details scroll to follow */
+      var wf = qa('.d6-wf');
+      var sc = q('.d6-scroll');
+      rise(wf[0], 0.96);
+      tl.to(sc, {y: -90, duration: 0.3, ease: 'power2.inOut'}, 0.96);
+      rise(wf[1], 1.2);
+      tl.to(sc, {y: -216, duration: 0.3, ease: 'power2.inOut'}, 1.2);
+      rise(wf[2], 1.44);
+      rise(wf[3], 1.56);
+      tl.to(sc, {y: -500, duration: 0.36, ease: 'power2.inOut'}, 1.44);
+
+      /* 1.92 HIT: EVENTS unfolds, cyan ring pulses once */
+      tl.to(sc, {y: -800, duration: 0.3, ease: 'power3.out'}, 1.92);
+      rise(q('.d6-ev'), 1.92, 16);
+      tl.fromTo(
+        q('.d6-desc'),
+        {clipPath: 'inset(0% 0% 100% 0%)'},
+        {clipPath: 'inset(0% 0% 0% 0%)', duration: 0.3, ease: 'power3.out'},
+        2.0
+      );
+      tl.fromTo(
+        q('.d6-ring'),
+        {opacity: 0, scale: 1.04},
+        {opacity: 1, scale: 1, duration: 0.2, ease: 'power3.out'},
+        2.06
+      );
+      tl.to(q('.d6-ring'), {opacity: 0, duration: 0.4, ease: 'power2.in'}, 2.3);
+
+      /* 2.40 terminal card: agents read the same docs */
+      tl.fromTo(
+        q('.d6-term'),
+        {opacity: 0, x: 40},
+        {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'},
+        2.4
+      );
+      tl.fromTo(
+        q('.d6-tl1'),
+        {width: 0},
+        {width: 450, duration: 0.42, ease: 'steps(36)'},
+        2.46
+      );
+      tl.fromTo(
+        q('.d6-tl2'),
+        {opacity: 0, x: -8},
+        {opacity: 1, x: 0, duration: 0.22, ease: 'power3.out'},
+        2.88
+      );
+
+      /* snap shut */
+      tl.fromTo(
+        q('.d6-stage'),
+        {scaleY: 1, opacity: 1},
+        {scaleY: 0, opacity: 0, duration: 0.18, ease: 'power3.in'},
+        3.51
+      );
+
+      window.__timelines['s06-docs'] = tl;
+    })();
+  </script>
+</template>

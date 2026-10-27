@@ -1,0 +1,354 @@
+<template id="s14-lockup-template">
+  <style>
+    @font-face {
+      font-family: 'Lexend Variable';
+      font-weight: 100 900;
+      font-style: normal;
+      src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: normal;
+      src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Lilex Variable';
+      font-weight: 100 700;
+      font-style: italic;
+      src: url('assets/lilex-latin-wght-italic.woff2') format('woff2');
+    }
+    #s14-lockup {
+      overflow: hidden;
+      font-family:
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      z-index: 2;
+    }
+    #s14-lockup * {
+      box-sizing: border-box;
+    }
+    .s14-shine {
+      padding-bottom: 0.16em;
+      margin-bottom: -0.16em;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+      background: linear-gradient(
+        100deg,
+        #4d63ff 10%,
+        #00ffff 55%,
+        #4d63ff 95%
+      );
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    .s14-head {
+      position: absolute;
+      left: 0;
+      width: 1920px;
+      height: 86px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 76px;
+      line-height: 82px;
+      letter-spacing: -0.045em;
+      color: #fff;
+      white-space: nowrap;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    }
+    #s14-head1 {
+      top: 244px;
+    }
+    #s14-head2 {
+      top: 326px;
+    }
+    #s14-head2 span {
+      display: inline-block;
+      padding: 0 4px 4px;
+    }
+    #s14-lock {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1080px;
+    }
+    #s14-glow {
+      position: absolute;
+      left: 560px;
+      top: -60px;
+      width: 800px;
+      height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle,
+        rgba(50, 79, 255, 0.55) 0%,
+        rgba(42, 44, 157, 0.35) 38%,
+        rgba(42, 44, 157, 0) 70%
+      );
+    }
+    #s14-flame {
+      position: absolute;
+      left: 872px;
+      top: 230px;
+      width: 176px;
+      height: 220px;
+      filter: drop-shadow(0 0 28px rgba(0, 232, 255, 0.35));
+    }
+    .s14-line {
+      position: absolute;
+      left: 0;
+      width: 1920px;
+      display: flex;
+      justify-content: center;
+      font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+    }
+    #s14-title {
+      top: 486px;
+      height: 108px;
+      font-weight: 600;
+      font-size: 96px;
+      line-height: 104px;
+      letter-spacing: -0.03em;
+      color: #fff;
+      white-space: nowrap;
+    }
+    #s14-title span {
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+    #s14-codewrap {
+      top: 622px;
+      height: 72px;
+    }
+    #s14-code {
+      background: #0d0d0d;
+      border: 1px solid #363636;
+      padding: 0 32px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 30px;
+      color: #eeffff;
+      white-space: nowrap;
+    }
+    #s14-npm {
+      top: 722px;
+      height: 36px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 24px;
+      line-height: 36px;
+      color: #919191;
+      white-space: nowrap;
+    }
+    #s14-marks {
+      top: 800px;
+      height: 40px;
+      align-items: center;
+      gap: 18px;
+    }
+    #s14-url {
+      top: 872px;
+      height: 36px;
+      font-family: 'Lilex Variable', ui-monospace, monospace;
+      font-size: 24px;
+      line-height: 36px;
+      color: #7c9fff;
+    }
+    #s14-marks img {
+      display: block;
+      height: 40px;
+    }
+    #s14-marks div {
+      font-weight: 500;
+      font-size: 20px;
+      line-height: 40px;
+      color: #919191;
+      white-space: nowrap;
+      margin-left: 6px;
+    }
+  </style>
+  <div
+    data-hf-id="hf-9owb"
+    id="s14-lockup"
+    data-composition-id="s14-lockup"
+    data-width="1920"
+    data-height="1080"
+    style="position: absolute; inset: 0"
+  >
+    <div data-hf-id="hf-oods" class="s14-head" id="s14-head1">
+      Lit,
+    </div>
+    <div data-hf-id="hf-vlbo" class="s14-head" id="s14-head2">
+      <span data-hf-id="hf-bu5e" class="s14-shine" id="s14-shine2"
+        >with the lights on.</span
+      >
+    </div>
+    <div data-hf-id="hf-irih" id="s14-lock">
+      <div data-hf-id="hf-ebi7" id="s14-glow"></div>
+      <img data-hf-id="hf-ykuj" id="s14-flame" src="assets/flame.svg" alt="" />
+      <div data-hf-id="hf-hh92" class="s14-line" id="s14-title">
+        <span data-hf-id="hf-63li" class="s14-shine" id="s14-lit">Lit</span
+        ><span data-hf-id="hf-muic">&nbsp;DevTools</span>
+      </div>
+      <div data-hf-id="hf-r4bn" class="s14-line" id="s14-codewrap">
+        <div data-hf-id="hf-tp1v" id="s14-code">
+          <span data-hf-id="hf-in78" style="color: #b2ccd6">plugins</span
+          ><span data-hf-id="hf-58qt" style="color: #919191">: [</span
+          ><span data-hf-id="hf-p2l2" style="color: #82aaff">litPlugin</span
+          ><span data-hf-id="hf-9vrg" style="color: #919191">()]</span>
+        </div>
+      </div>
+      <div data-hf-id="hf-4gtc" class="s14-line" id="s14-npm">
+        npm i -D @oddsquad/lit-devtools
+      </div>
+      <div data-hf-id="hf-sety" class="s14-line" id="s14-marks">
+        <img
+          data-hf-id="hf-psyq"
+          id="s14-vite"
+          src="assets/logos/vite.svg"
+          alt="Vite"
+          style="width: 42px"
+        /><img
+          data-hf-id="hf-kmy3"
+          id="s14-astro"
+          src="assets/logos/astro-on-dark.svg"
+          alt="Astro"
+          style="width: 32px"
+        /><img
+          data-hf-id="hf-k4vs"
+          src="assets/logos/vscode.svg"
+          alt="VS Code"
+          style="width: 38px"
+        /><img
+          data-hf-id="hf-k4zd"
+          src="assets/logos/zed.svg"
+          alt="Zed"
+          style="width: 36px"
+        /><img
+          data-hf-id="hf-k4cr"
+          src="assets/logos/chrome.svg"
+          alt="Chrome"
+          style="width: 40px"
+        /><img
+          data-hf-id="hf-k4ff"
+          src="assets/logos/firefox.svg"
+          alt="Firefox"
+          style="width: 40px"
+        /><img
+          data-hf-id="hf-k4mc"
+          src="assets/logos/mcp.svg"
+          alt="MCP"
+          style="width: 40px; filter: invert(0.7)"
+        />
+        <div data-hf-id="hf-7rwd" id="s14-mcap">
+          Vite · Astro · VS Code · Zed · Chrome · Firefox
+        </div>
+      </div>
+      <div data-hf-id="hf-url4" class="s14-line" id="s14-url">
+        lit-devtools.oddsquad.dev
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var tl = gsap.timeline({paused: true});
+      var E = 'power3.out';
+      // headline over the zoom-out
+      tl.fromTo(
+        '#s14-head1',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.1
+      );
+      tl.fromTo(
+        '#s14-head2',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.3, ease: E},
+        0.58
+      );
+      tl.fromTo(
+        '#s14-shine2',
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 1.72, ease: 'none'},
+        0.58
+      );
+      tl.to(
+        ['#s14-head1', '#s14-head2'],
+        {opacity: 0, duration: 0.2, ease: 'power1.in'},
+        2.1
+      );
+
+      // lockup, from tg 52.40 as the window collapses
+      tl.fromTo(
+        '#s14-flame',
+        {scale: 0.6, opacity: 0, transformOrigin: '50% 50%'},
+        {scale: 1, opacity: 1, duration: 0.55, ease: E},
+        2.43
+      );
+      tl.fromTo(
+        '#s14-glow',
+        {scale: 0.6, opacity: 0, transformOrigin: '50% 50%'},
+        {scale: 1, opacity: 1, duration: 0.9, ease: 'power2.out'},
+        2.43
+      );
+      tl.fromTo(
+        '#s14-title',
+        {y: 28, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.5, ease: E},
+        2.9
+      );
+      tl.fromTo(
+        '#s14-lit',
+        {backgroundPosition: '0% 50%'},
+        {backgroundPosition: '100% 50%', duration: 2.05, ease: 'none'},
+        2.9
+      );
+      tl.fromTo(
+        '#s14-codewrap',
+        {y: 24, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.5, ease: E},
+        3.3
+      );
+      tl.fromTo(
+        '#s14-npm',
+        {y: 20, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.5, ease: E},
+        3.6
+      );
+      tl.fromTo(
+        '#s14-marks',
+        {y: 16, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.45, ease: E},
+        3.8
+      );
+      tl.fromTo(
+        '#s14-url',
+        {y: 16, opacity: 0},
+        {y: 0, opacity: 1, duration: 0.45, ease: E},
+        3.92
+      );
+      // fade with the ground
+      tl.fromTo(
+        '#s14-lock',
+        {opacity: 1},
+        {
+          opacity: 0,
+          duration: 0.52,
+          ease: 'power1.inOut',
+          immediateRender: false,
+        },
+        4.43
+      );
+      window.__timelines['s14-lockup'] = tl;
+    })();
+  </script>
+</template>
