@@ -20,6 +20,11 @@ export class LitSwitch extends WaSwitch {
       .switch .thumb {
         border-radius: var(--wa-border-radius-s);
       }
+      /* The whole label is the target; at size s WA's is 15px tall, under
+         the 24px a pointer target needs. */
+      [part~='base'] {
+        min-height: 24px;
+      }
     `
   );
 

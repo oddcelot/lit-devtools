@@ -153,15 +153,16 @@ export class TimelineView extends LitElement {
          which are underlined. */
       .modes {
         display: inline-flex;
-        padding: 2px;
-        gap: 2px;
+        padding: 1px;
+        gap: 1px;
         border: 1px solid var(--lit-devtools-border);
         border-radius: var(--lit-devtools-radius-sm);
         background: var(--lit-devtools-surface);
       }
       .modes button {
         box-sizing: border-box;
-        height: calc(var(--lit-devtools-control-height, 28px) - 6px);
+        /* 24px, the smallest target a pointer should have to hit. */
+        height: calc(var(--lit-devtools-control-height, 28px) - 4px);
         padding: 0 var(--lit-devtools-space-5);
         border: 0;
         border-radius: var(--lit-devtools-radius-sm);
