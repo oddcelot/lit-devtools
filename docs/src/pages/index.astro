@@ -28,7 +28,7 @@ import changelog from '../../../CHANGELOG.md?raw';
 import {latestRelease} from '../lib/latest-release.mjs';
 import {phosphor, type IconName} from '../lib/phosphor';
 
-const title = 'Lit DevTools: edit a Lit component, keep the page';
+const title = 'Lit DevTools: Lit, with the lights on';
 const description =
   'True HMR for Lit in Vite: edits patch the running page and keep its state. Shared shadow-root stylesheets and a DevTools panel for every re-render.';
 const release = latestRelease(changelog);
@@ -112,7 +112,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Edit a Lit component, keep the page: a saved edit to my-counter.ts patches the live counter in 9 ms and its count of 42 stays."
+      content="Lit, with the lights on: a live counter keeps its count through a 9 ms patch, the DevTools panel counts every render, and the editor flags a binding that can't fit."
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@oddcelot" />
@@ -148,7 +148,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             <Fragment set:html={phosphor('arrow-right')} />
           </a>
           <h1>
-            Edit a Lit component.<br /><span class="shine">Keep the page.</span>
+            Lit,<br /><span class="shine">with the lights on.</span>
           </h1>
           <p class="lede">
             Lit DevTools patches your components in place when you save. The
