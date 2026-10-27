@@ -91,6 +91,21 @@ export class LitDevtoolsPanel extends LitElement {
         border-bottom: 1px solid var(--lit-devtools-border);
         background: var(--lit-devtools-surface-low);
         flex-shrink: 0;
+        /* A narrow dock sizes the header; the wordmark and the tabs query it. */
+        container-type: inline-size;
+      }
+      /* The tabs take the rest of the row, so they can tell when their
+         labels no longer fit (see lit-tabs' compact). */
+      lit-tabs {
+        flex: 1;
+        min-width: 0;
+      }
+      /* Below this the wordmark and the labelled tabs don't fit side by
+         side; the logo alone still says whose panel this is. */
+      @container (max-width: 680px) {
+        .brand-name {
+          display: none;
+        }
       }
       .brand {
         display: flex;
@@ -268,7 +283,9 @@ export class LitDevtoolsPanel extends LitElement {
       iconUrl === undefined
         ? LIT_LOGO_SVG
         : html`<img src=${iconUrl} width="20" height="20" alt="" />`;
-    return html`<span class="brand">${mark} ${name}</span>`;
+    return html`<span class="brand"
+      >${mark} <span class="brand-name">${name}</span></span
+    >`;
   }
 
   override render() {

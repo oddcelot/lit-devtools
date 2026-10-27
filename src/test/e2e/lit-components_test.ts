@@ -276,6 +276,39 @@ test('lit-button opens a wa-dropdown as its trigger', async () => {
     .toEqual({host: null, button: 'true'});
 });
 
+test('lit-tabs drops to icons when its labels no longer fit', async () => {
+  await mount(`<div id="tabs-box" style="display: flex; width: 600px">
+    <lit-tabs style="flex: 1; min-width: 0" value="a"></lit-tabs></div>`);
+  const state = () =>
+    page.$eval('#tabs-box lit-tabs', (el) => {
+      const tab = el.shadowRoot!.querySelector('wa-tab')!;
+      return {
+        compact: el.hasAttribute('compact'),
+        tip: tab.getAttribute('data-tip'),
+        label: tab.querySelector('.label')!.getBoundingClientRect().width,
+        // What assistive tech reads: the label, icon or not.
+        name: tab.textContent!.trim(),
+      };
+    });
+  await page.$eval('#tabs-box lit-tabs', (el) => {
+    (el as HTMLElement & {items: unknown[]}).items = [
+      {id: 'a', label: 'Components', icon: 'cube'},
+      {id: 'b', label: 'Timeline', icon: 'clock'},
+    ];
+  });
+  await expect.poll(state).toMatchObject({compact: false, tip: null});
+  await page.$eval('#tabs-box', (el) => (el.style.width = '90px'));
+  await expect.poll(state).toMatchObject({
+    compact: true,
+    tip: 'Components',
+    label: 1,
+    name: 'Components',
+  });
+  // And back, at the width it left.
+  await page.$eval('#tabs-box', (el) => (el.style.width = '600px'));
+  await expect.poll(state).toMatchObject({compact: false, tip: null});
+});
+
 test('lit-icon gets the spacing and colour Web Awesome gives wa-icon', async () => {
   // wa-tab spaces a slotted wa-icon from its label by 0.5em.
   const margin = await page.$eval('#lit-tabs lit-tabs', (el) => {

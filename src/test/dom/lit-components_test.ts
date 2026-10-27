@@ -211,6 +211,27 @@ describe('lit-* compounds', () => {
     expect(el.value).toBe('b');
   });
 
+  test('compact lit-tabs tips the tabs that show only an icon', async () => {
+    const el = await mount<Updating & {items: unknown[]; compact: boolean}>(
+      '<lit-tabs></lit-tabs>'
+    );
+    el.items = [
+      {id: 'a', label: 'Components', icon: 'cube'},
+      {id: 'b', label: 'Plain'},
+    ];
+    el.compact = true;
+    await el.updateComplete;
+    const tabs = [...el.shadowRoot!.querySelectorAll('wa-tab')];
+    expect(tabs.map((t) => t.getAttribute('data-tip'))).toEqual([
+      'Components',
+      null,
+    ]);
+    // A tab with no icon keeps its label on screen.
+    expect(
+      tabs.map((t) => t.querySelector('.label')!.classList.contains('hideable'))
+    ).toEqual([true, false]);
+  });
+
   test('lit-state-row toggles its children and says so', async () => {
     const el = await mount<Updating & {expanded: boolean}>(
       `<lit-state-row name="config" value="{…}" expandable>

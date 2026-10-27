@@ -83,11 +83,74 @@ export class LitTabs extends LitElement {
     wa-tab > lit-icon:last-child {
       margin-inline-start: 0.5em;
     }
+    /* Too narrow for the labels: icons alone, the label kept for assistive
+       tech (and shown as the tab's tooltip). */
+    :host([compact]) wa-tab > lit-icon:first-child {
+      margin-inline-end: 0;
+    }
+    :host([compact]) .label.hideable {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   `;
 
   @property({type: Array}) items: TabItem[] = [];
   @property() value = '';
   @property({reflect: true}) size: 'sm' | 'md' = 'md';
+  /**
+   * Set by the element itself when its labelled tabs don't fit its width:
+   * tabs with an icon then show only the icon. Style hook; not an input.
+   */
+  @property({type: Boolean, reflect: true}) compact = false;
+
+  /** The tabs' width with their labels showing, last measured. */
+  private _labelledWidth = 0;
+  private readonly _resize =
+    typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(() => this._fit());
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this._resize?.observe(this);
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this._resize?.disconnect();
+  }
+
+  protected override updated() {
+    // The tabs too: a badge appearing, or a tab finishing its first render,
+    // changes the labelled width without changing ours.
+    for (const tab of this.shadowRoot?.querySelectorAll('wa-tab') ?? []) {
+      this._resize?.observe(tab);
+    }
+    this._fit();
+  }
+
+  /**
+   * Labels while they fit, icons when they don't. The labelled width is
+   * measured only while the labels show, so the switch back happens at the
+   * same width as the switch away and the two never fight.
+   */
+  private _fit() {
+    // Fractional, like the tabs' widths: a host sized to its tabs must
+    // not read as a pixel short of them.
+    const width = this.getBoundingClientRect().width;
+    if (width === 0) return;
+    if (!this.compact) {
+      this._labelledWidth = [
+        ...(this.shadowRoot?.querySelectorAll('wa-tab') ?? []),
+      ].reduce((sum, tab) => sum + tab.getBoundingClientRect().width, 0);
+    }
+    const compact = width + 0.5 < this._labelledWidth;
+    if (compact !== this.compact) this.compact = compact;
+  }
 
   private _onTabShow(e: WaTabShowEvent) {
     // The group also announces selections made through `value`; only a pick
@@ -111,9 +174,15 @@ export class LitTabs extends LitElement {
       @wa-tab-show=${this._onTabShow}
     >
       ${this.items.map(
-        (item) => html`<wa-tab slot="nav" panel=${item.id}>
+        (item) => html`<wa-tab
+          slot="nav"
+          panel=${item.id}
+          data-tip=${this.compact && item.icon ? item.label : nothing}
+        >
           ${item.icon ? html`<lit-icon name=${item.icon}></lit-icon>` : nothing}
-          ${item.label}
+          <span class="label ${item.icon ? 'hideable' : ''}"
+            >${item.label}</span
+          >
           ${
             item.badge
               ? html`<lit-badge variant="brand" appearance="accent" pill
