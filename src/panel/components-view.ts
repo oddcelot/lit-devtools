@@ -106,6 +106,9 @@ import {
 const DETAILS_WIDTH_LS_KEY = 'lit-devtools-components-details-width';
 const DETAILS_WIDTH_DEFAULT = 400;
 const DETAILS_WIDTH_MIN = 220;
+/** Narrower than this, the details pane goes under the tree, not beside it:
+ *  side by side, its minimum width would leave the tree a sliver. */
+const STACK_BELOW = 520;
 
 /** localStorage key remembering that Anatomy was left on. */
 const ANATOMY_LS_KEY = 'lit-devtools-components-anatomy';
@@ -722,6 +725,9 @@ export class ComponentsView extends LitElement {
       }
       .toolbar {
         display: flex;
+        /* In a narrow dock the actions drop to a second row instead of
+           running off the edge. */
+        flex-wrap: wrap;
         align-items: center;
         gap: var(--lit-devtools-space-4);
         padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
@@ -780,6 +786,11 @@ export class ComponentsView extends LitElement {
         min-height: 0;
         --min: ${DETAILS_WIDTH_MIN}px;
         --max: calc(100% - 200px);
+      }
+      /* Stacked: room for a few tree rows above and a heading below. */
+      lit-split-panel[orientation='vertical'] {
+        --min: 96px;
+        --max: calc(100% - 96px);
       }
       .tree {
         height: 100%;
@@ -1731,7 +1742,25 @@ export class ComponentsView extends LitElement {
   @state() private _hmrExpanded = true;
   /** Details pane width in pixels, restored once; the split panel owns it
    *  after that and `_saveDetailsWidth` persists each drag. */
-  private readonly _detailsWidth = readDetailsWidth();
+  private _detailsWidth = readDetailsWidth();
+  /** Details under the tree, in a narrow dock (see {@link STACK_BELOW}). */
+  @state() private _stacked = false;
+  /** The details pane's height when stacked, set as the view stacks; a
+   *  drag after that is the split panel's own. */
+  private _stackedHeight = 0;
+  private readonly _resize =
+    typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(() => {
+          const width = this.clientWidth;
+          // Hidden behind another tab: keep the layout it last had.
+          if (width === 0) return;
+          const stacked = width < STACK_BELOW;
+          if (stacked && !this._stacked) {
+            this._stackedHeight = Math.round(this.clientHeight * 0.55);
+          }
+          this._stacked = stacked;
+        });
   private _unsubscribeOverride: (() => void) | null = null;
   private _unsubscribeSession: (() => void) | null = null;
   private _unsubscribeTimeline: (() => void) | null = null;
@@ -1779,6 +1808,7 @@ export class ComponentsView extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
+    this._resize?.observe(this);
     window.addEventListener('keydown', this._onShift);
     window.addEventListener('keyup', this._onShift);
     window.addEventListener('pagehide', this._onPageHide);
@@ -1819,6 +1849,7 @@ export class ComponentsView extends LitElement {
 
   override disconnectedCallback() {
     super.disconnectedCallback();
+    this._resize?.disconnect();
     window.removeEventListener('keydown', this._onShift);
     window.removeEventListener('keyup', this._onShift);
     window.removeEventListener('pagehide', this._onPageHide);
@@ -2277,8 +2308,12 @@ export class ComponentsView extends LitElement {
   }
 
   private _saveDetailsWidth(e: Event): void {
+    // Stacked, the split measures a height; the width it remembers is for
+    // when the dock is wide again.
+    if (this._stacked) return;
     const width = Math.round((e.target as LitSplitPanel).positionInPixels);
     if (!(width >= DETAILS_WIDTH_MIN)) return;
+    this._detailsWidth = width;
     try {
       localStorage.setItem(DETAILS_WIDTH_LS_KEY, String(width));
     } catch {
@@ -4238,7 +4273,10 @@ export class ComponentsView extends LitElement {
       ${this._renderRuntimesBanner()}${this._renderHmrBanner()}${this._renderLastPatch()}${this._renderOverridesBar()}
       <lit-split-panel
         primary="end"
-        position-in-pixels=${this._detailsWidth}
+        orientation=${this._stacked ? 'vertical' : 'horizontal'}
+        position-in-pixels=${
+          this._stacked ? this._stackedHeight : this._detailsWidth
+        }
         @wa-reposition=${this._saveDetailsWidth}
       >
         <div
