@@ -110,7 +110,7 @@
       },
       {
         "name": "ring",
-        "value": "0 0 0 2px hsla(232 100% 65% / 0.45)",
+        "value": "0 0 0 2px #6478ff",
         "purpose": "Focus ring (dark)."
       }
     ],
@@ -150,7 +150,7 @@
       "refersTo": "button-brand",
       "description": "Primary action: the default lit-button variant.",
       "html": "<button class=\"ds-btn-brand\">Export snapshot</button>",
-      "css": ".ds-btn-brand { height: 28px; padding: 0 12px; background: #324fff; color: #fff; border: 1px solid #324fff; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background 140ms cubic-bezier(0.2,0,0,1); } .ds-btn-brand:hover { background: #1f3bff; } .ds-btn-brand:active { background: #2a2c9d; } .ds-btn-brand:focus-visible { outline: 2px solid hsla(232 100% 60% / 0.4); outline-offset: 1px; }"
+      "css": ".ds-btn-brand { height: 28px; padding: 0 12px; background: #324fff; color: #fff; border: 1px solid #324fff; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background 140ms cubic-bezier(0.2,0,0,1); } .ds-btn-brand:hover { background: #1f3bff; } .ds-btn-brand:active { background: #2a2c9d; } .ds-btn-brand:focus-visible { outline: 2px solid #324fff; outline-offset: 1px; }"
     },
     {
       "name": "Neutral Outlined Button",
@@ -158,7 +158,7 @@
       "refersTo": "button-neutral-outlined",
       "description": "Toolbar actions such as Flash, Anatomy and Clear, usually icon-led.",
       "html": "<button class=\"ds-btn-outlined\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M215.79 118.17a8 8 0 0 0-5-5.66L153.18 90.9l14.66-73.33a8 8 0 0 0-13.69-7l-112 120a8 8 0 0 0 3 13l57.63 21.61-14.62 73.25a8 8 0 0 0 13.69 7l112-120a8 8 0 0 0 1.94-7.26Z\"/></svg>Flash</button>",
-      "css": ".ds-btn-outlined { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: transparent; color: #e3e3e3; border: 1px solid #474747; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-btn-outlined:hover { background: hsl(0 0% 100% / 0.04); border-color: #616161; } .ds-btn-outlined:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: 1px; }"
+      "css": ".ds-btn-outlined { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: transparent; color: #e3e3e3; border: 1px solid #717584; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-btn-outlined:hover { background: hsl(0 0% 100% / 0.04); border-color: #616161; } .ds-btn-outlined:focus-visible { outline: 2px solid #6478ff; outline-offset: 1px; }"
     },
     {
       "name": "Filter Input",
@@ -166,7 +166,7 @@
       "refersTo": "input",
       "description": "Search-led filter field with a sentence-case placeholder.",
       "html": "<label class=\"ds-input\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M229.66 218.34 179.6 168.28a88.21 88.21 0 1 0-11.32 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32ZM40 112a72 72 0 1 1 72 72 72.08 72.08 0 0 1-72-72Z\"/></svg><input placeholder=\"Filter tags\"></label>",
-      "css": ".ds-input { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid #474747; border-radius: 0; color: #919191; } .ds-input input { all: unset; color: #e3e3e3; font: 400 12px 'Lilex Variable', ui-monospace, monospace; } .ds-input input::placeholder { color: #919191; } .ds-input:focus-within { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: -1px; }"
+      "css": ".ds-input { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid #717584; border-radius: 0; color: #919191; } .ds-input input { all: unset; color: #e3e3e3; font: 400 12px 'Lilex Variable', ui-monospace, monospace; } .ds-input input::placeholder { color: #919191; } .ds-input:focus-within { outline: 2px solid #6478ff; outline-offset: -1px; }"
     },
     {
       "name": "Tabs",
@@ -174,7 +174,7 @@
       "refersTo": "tab-active",
       "description": "Header tabs: icon plus label, a 2px brand underline on the active tab.",
       "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab is-active\" href=\"#\">Components</a><a class=\"ds-tab\" href=\"#\">Updates</a><a class=\"ds-tab\" href=\"#\">Timeline</a><a class=\"ds-tab\" href=\"#\">Settings</a></nav>",
-      "css": ".ds-tabs { display: flex; height: 36px; background: #0d0d0d; border-bottom: 1px solid #363636; } .ds-tab { display: flex; align-items: center; padding: 0 12px; color: #c7c7c7; font: 400 13px ui-sans-serif, system-ui, sans-serif; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tab:hover { color: #e3e3e3; } .ds-tab.is-active { color: #4d63ff; border-bottom-color: #4d63ff; } .ds-tab:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: -2px; }"
+      "css": ".ds-tabs { display: flex; height: 36px; background: #0d0d0d; border-bottom: 1px solid #363636; } .ds-tab { display: flex; align-items: center; padding: 0 12px; color: #c7c7c7; font: 400 13px ui-sans-serif, system-ui, sans-serif; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tab:hover { color: #e3e3e3; } .ds-tab.is-active { color: #4d63ff; border-bottom-color: #4d63ff; } .ds-tab:focus-visible { outline: 2px solid #6478ff; outline-offset: -2px; }"
     },
     {
       "name": "Layer Chip",
@@ -182,7 +182,7 @@
       "refersTo": "layer-chip",
       "description": "Timeline layer toggle: the one pill-shaped control, with a square colour swatch.",
       "html": "<button class=\"ds-chip\" aria-pressed=\"true\"><span class=\"ds-chip-dot\" style=\"--layer:#324fff\"></span>Lit Render</button><button class=\"ds-chip\" aria-pressed=\"false\"><span class=\"ds-chip-dot\" style=\"--layer:#c792ea\"></span>Mouse</button>",
-      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; margin-right: 4px; border: 1px solid #363636; border-radius: 9999px; background: #292929; color: #e3e3e3; font: 400 12px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-chip:hover { border-color: #474747; } .ds-chip[aria-pressed='false'] { background: transparent; color: #919191; } .ds-chip-dot { width: 8px; height: 8px; box-sizing: border-box; background: var(--layer); border: 1px solid var(--layer); } .ds-chip[aria-pressed='false'] .ds-chip-dot { background: transparent; } .ds-chip:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: 1px; }"
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; margin-right: 4px; border: 1px solid #363636; border-radius: 9999px; background: #292929; color: #e3e3e3; font: 400 12px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-chip:hover { border-color: #474747; } .ds-chip[aria-pressed='false'] { background: transparent; color: #919191; } .ds-chip-dot { width: 8px; height: 8px; box-sizing: border-box; background: var(--layer); border: 1px solid var(--layer); } .ds-chip[aria-pressed='false'] .ds-chip-dot { background: transparent; } .ds-chip:focus-visible { outline: 2px solid #6478ff; outline-offset: 1px; }"
     },
     {
       "name": "Component Tree Row",

@@ -119,7 +119,7 @@ export const designBaseCSS = `
   --lit-devtools-shadow-xl: 0 24px 64px hsl(0 0% 0% / 0.55);
   --lit-devtools-shadow-window:
     0 24px 80px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(0 0% 100% / 0.06);
-  --lit-devtools-ring: 0 0 0 2px var(--lit-devtools-accent-ring);
+  --lit-devtools-ring: 0 0 0 2px var(--lit-devtools-focus-ring);
 
   /* ---- Motion ---- */
   --lit-devtools-ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -138,6 +138,9 @@ export const designDarkCSS = `
   --lit-devtools-accent-pressed: #3d54f0;
   --lit-devtools-accent-soft: hsla(232 100% 65% / 0.16);
   --lit-devtools-accent-ring: hsla(232 100% 65% / 0.45);
+  /* Keyboard focus: opaque, 3.9:1 or more on every dark surface, where
+     the translucent ring above measured 1.7:1. */
+  --lit-devtools-focus-ring: var(--lit-devtools-accent-hover);
   --lit-devtools-on-accent: #ffffff;
   --lit-devtools-accent-cyan: var(--lit-devtools-lit-dark-cyan);
 
@@ -161,6 +164,9 @@ export const designDarkCSS = `
   --lit-devtools-border: var(--lit-devtools-ink-6);
   --lit-devtools-border-strong: var(--lit-devtools-ink-7);
   --lit-devtools-border-subtle: hsl(0 0% 100% / 0.06);
+  /* The outline of an input, a select or an outlined button. Web Awesome's
+     neutral-50, which dark already used: 3:1 or more on the dark surfaces. */
+  --lit-devtools-border-control: #717584;
 
   --lit-devtools-success: hsl(158 74% 53%);
   --lit-devtools-success-soft: hsl(158 74% 53% / 0.15);
@@ -195,6 +201,9 @@ export const designLightCSS = `
   --lit-devtools-accent-pressed: #2a2c9d;
   --lit-devtools-accent-soft: hsla(232 100% 60% / 0.12);
   --lit-devtools-accent-ring: hsla(232 100% 60% / 0.4);
+  /* Keyboard focus: opaque, 4.6:1 or more on every light surface, where
+     the translucent ring above measured 1.85:1. */
+  --lit-devtools-focus-ring: var(--lit-devtools-accent);
   --lit-devtools-on-accent: #ffffff;
   --lit-devtools-accent-cyan: var(--lit-devtools-lit-dark-cyan);
 
@@ -217,8 +226,12 @@ export const designLightCSS = `
   --lit-devtools-border: #e2e2e2;
   --lit-devtools-border-strong: #c6c6c6;
   --lit-devtools-border-subtle: hsl(0 0% 0% / 0.07);
+  /* The outline of an input, a select or an outlined button: 3:1 on the
+     panel's #f3f3f3, where Web Awesome's neutral-60 measured 2.7:1. */
+  --lit-devtools-border-control: #8a8a8a;
 
-  --lit-devtools-success: #00865b;
+  /* #00865b in the design system; darkened for 4.5:1 on its own soft tint. */
+  --lit-devtools-success: #007a52;
   --lit-devtools-success-soft: hsl(158 100% 26% / 0.1);
   --lit-devtools-warning: #b26a00;
   --lit-devtools-warning-soft: hsl(40 100% 35% / 0.1);

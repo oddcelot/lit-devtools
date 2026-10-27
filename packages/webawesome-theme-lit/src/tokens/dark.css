@@ -8,6 +8,9 @@
   --accent-pressed: #3d54f0;
   --accent-soft: hsla(232 100% 65% / 0.16);
   --accent-ring: hsla(232 100% 65% / 0.45);
+  /* Keyboard focus: opaque, 3.9:1 or more on every dark surface, where
+     the translucent ring above measured 1.7:1. */
+  --focus-ring: var(--accent-hover);
   --on-accent: #ffffff;
   --accent-cyan: var(--lit-dark-cyan);
 
@@ -31,6 +34,9 @@
   --border: var(--ink-6);
   --border-strong: var(--ink-7);
   --border-subtle: hsl(0 0% 100% / 0.06);
+  /* The outline of an input, a select or an outlined button. Web Awesome's
+     neutral-50, which dark already used: 3:1 or more on the dark surfaces. */
+  --border-control: #717584;
 
   --success: hsl(158 74% 53%);
   --success-soft: hsl(158 74% 53% / 0.15);

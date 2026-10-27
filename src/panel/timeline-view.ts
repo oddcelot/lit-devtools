@@ -180,7 +180,7 @@ export class TimelineView extends LitElement {
         font-weight: 600;
       }
       .modes button:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 1px;
       }
       .toolbar lit-button::part(base),

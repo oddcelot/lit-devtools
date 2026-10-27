@@ -835,7 +835,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-strong);
       }
       .row:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: -2px;
       }
       .twisty {
@@ -1051,7 +1051,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-secondary);
       }
       .section > .origin:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 2px;
         border-radius: 2px;
       }
@@ -1154,7 +1154,7 @@ export class ComponentsView extends LitElement {
         text-decoration: underline;
       }
       .link:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 1px;
         border-radius: 2px;
       }
@@ -1197,7 +1197,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text-secondary);
       }
       .section > summary:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 2px;
         border-radius: 2px;
       }
@@ -1307,7 +1307,7 @@ export class ComponentsView extends LitElement {
       .copy:focus-visible,
       .store:focus-visible,
       .edit:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
       }
       .edit-input {
         box-sizing: border-box;
@@ -1322,7 +1322,7 @@ export class ComponentsView extends LitElement {
         font: inherit;
       }
       .edit-input:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
       }
       .edit-input[aria-invalid='true'] {
         border-color: var(--lit-devtools-error);
@@ -1370,7 +1370,7 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-text);
       }
       .expander:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         border-radius: 2px;
       }
       .children {
@@ -1641,14 +1641,14 @@ export class ComponentsView extends LitElement {
         color: var(--lit-devtools-accent);
       }
       .pin-override:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
       }
       .overrides-bar .waiting {
         color: var(--lit-devtools-text-muted);
       }
       .remove-override:focus-visible,
       .overrides-list .tag:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
       }
     `,
   ];

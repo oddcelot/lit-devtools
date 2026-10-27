@@ -137,7 +137,7 @@ export class TimelineLayers extends LitElement {
         border-color: var(--lit-devtools-border-strong);
       }
       .chip:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 1px;
       }
       .chip[aria-pressed='false'] {
