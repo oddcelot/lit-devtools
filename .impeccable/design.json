@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-27T12:00:00Z",
+  "title": "Design System: Lit DevTools",
+  "extensions": {
+    "colorMeta": {
+      "lit-blue": {
+        "role": "primary",
+        "displayName": "Lit Flame Blue",
+        "canonical": "#324fff",
+        "tonalRamp": [
+          "oklch(0.15 0.05 268)",
+          "oklch(0.28 0.13 268)",
+          "oklch(0.36 0.19 268)",
+          "oklch(0.44 0.23 268)",
+          "#324fff",
+          "oklch(0.64 0.21 268)",
+          "oklch(0.84 0.09 268)",
+          "oklch(0.96 0.02 268)"
+        ]
+      },
+      "lit-blue-bright": {
+        "role": "primary",
+        "displayName": "Bright Flame Blue",
+        "canonical": "#4d63ff"
+      },
+      "lit-indigo": {
+        "role": "primary",
+        "displayName": "Deep Indigo",
+        "canonical": "#2a2c9d"
+      },
+      "lit-cyan": {
+        "role": "secondary",
+        "displayName": "Flame Cyan",
+        "canonical": "#00ffff"
+      },
+      "lit-dark-cyan": {
+        "role": "secondary",
+        "displayName": "Deep Flame Cyan",
+        "canonical": "#00e8ff"
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Ink Black",
+        "canonical": "hsl(0 0% 1%)",
+        "tonalRamp": [
+          "#030303",
+          "#121212",
+          "#212121",
+          "#363636",
+          "#616161",
+          "#919191",
+          "#c7c7c7",
+          "#ffffff"
+        ]
+      },
+      "light-bg": {
+        "role": "neutral",
+        "displayName": "Paper Grey",
+        "canonical": "#f4f4f4",
+        "tonalRamp": [
+          "#242424",
+          "#595959",
+          "#6f6f6f",
+          "#c6c6c6",
+          "#e2e2e2",
+          "#e8e8e8",
+          "#f4f4f4",
+          "#ffffff"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "body": {
+        "displayName": "Body",
+        "purpose": "Interface text, notes and descriptions; the panel's 13px base."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "The selected element's tag in the details pane."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Everything from the user's code or runtime: tags, values, paths, timings."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase section headers in details and settings cards (provisional)."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "LIT DEVTOOLS beside the logo only."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-xs",
+        "value": "0 1px 2px hsl(0 0% 0% / 0.3)",
+        "purpose": "Smallest float, e.g. a tooltip."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 14px hsl(0 0% 0% / 0.4)",
+        "purpose": "Menus and popovers."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 32px hsl(0 0% 0% / 0.5)",
+        "purpose": "Dialogs and the in-page overlay."
+      },
+      {
+        "name": "ring",
+        "value": "0 0 0 2px hsla(232 100% 65% / 0.45)",
+        "purpose": "Focus ring (dark)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Default easing for state transitions."
+      },
+      {
+        "name": "ease-emphasized",
+        "value": "cubic-bezier(0.3, 0, 0, 1)",
+        "purpose": "Larger moves."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0, 0, 0.2, 1)",
+        "purpose": "Entrances."
+      },
+      {
+        "name": "dur-fast",
+        "value": "140ms",
+        "purpose": "Hover and toggle feedback."
+      },
+      {
+        "name": "dur-normal",
+        "value": "220ms",
+        "purpose": "Panels and disclosure."
+      }
+    ],
+    "breakpoints": []
+  },
+  "components": [
+    {
+      "name": "Brand Button",
+      "kind": "button",
+      "refersTo": "button-brand",
+      "description": "Primary action: the default lit-button variant.",
+      "html": "<button class=\"ds-btn-brand\">Export snapshot</button>",
+      "css": ".ds-btn-brand { height: 28px; padding: 0 12px; background: #324fff; color: #fff; border: 1px solid #324fff; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; transition: background 140ms cubic-bezier(0.2,0,0,1); } .ds-btn-brand:hover { background: #1f3bff; } .ds-btn-brand:active { background: #2a2c9d; } .ds-btn-brand:focus-visible { outline: 2px solid hsla(232 100% 60% / 0.4); outline-offset: 1px; }"
+    },
+    {
+      "name": "Neutral Outlined Button",
+      "kind": "button",
+      "refersTo": "button-neutral-outlined",
+      "description": "Toolbar actions such as Flash, Anatomy and Clear, usually icon-led.",
+      "html": "<button class=\"ds-btn-outlined\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M215.79 118.17a8 8 0 0 0-5-5.66L153.18 90.9l14.66-73.33a8 8 0 0 0-13.69-7l-112 120a8 8 0 0 0 3 13l57.63 21.61-14.62 73.25a8 8 0 0 0 13.69 7l112-120a8 8 0 0 0 1.94-7.26Z\"/></svg>Flash</button>",
+      "css": ".ds-btn-outlined { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; background: transparent; color: #e3e3e3; border: 1px solid #474747; border-radius: 0; font: 400 13px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-btn-outlined:hover { background: hsl(0 0% 100% / 0.04); border-color: #616161; } .ds-btn-outlined:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: 1px; }"
+    },
+    {
+      "name": "Filter Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Search-led filter field with a sentence-case placeholder.",
+      "html": "<label class=\"ds-input\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 256 256\" fill=\"currentColor\"><path d=\"M229.66 218.34 179.6 168.28a88.21 88.21 0 1 0-11.32 11.31l50.06 50.07a8 8 0 0 0 11.32-11.32ZM40 112a72 72 0 1 1 72 72 72.08 72.08 0 0 1-72-72Z\"/></svg><input placeholder=\"Filter tags\"></label>",
+      "css": ".ds-input { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 10px; border: 1px solid #474747; border-radius: 0; color: #919191; } .ds-input input { all: unset; color: #e3e3e3; font: 400 12px 'Lilex Variable', ui-monospace, monospace; } .ds-input input::placeholder { color: #919191; } .ds-input:focus-within { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: -1px; }"
+    },
+    {
+      "name": "Tabs",
+      "kind": "nav",
+      "refersTo": "tab-active",
+      "description": "Header tabs: icon plus label, a 2px brand underline on the active tab.",
+      "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab is-active\" href=\"#\">Components</a><a class=\"ds-tab\" href=\"#\">Updates</a><a class=\"ds-tab\" href=\"#\">Timeline</a><a class=\"ds-tab\" href=\"#\">Settings</a></nav>",
+      "css": ".ds-tabs { display: flex; height: 36px; background: #0d0d0d; border-bottom: 1px solid #363636; } .ds-tab { display: flex; align-items: center; padding: 0 12px; color: #c7c7c7; font: 400 13px ui-sans-serif, system-ui, sans-serif; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tab:hover { color: #e3e3e3; } .ds-tab.is-active { color: #4d63ff; border-bottom-color: #4d63ff; } .ds-tab:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: -2px; }"
+    },
+    {
+      "name": "Layer Chip",
+      "kind": "chip",
+      "refersTo": "layer-chip",
+      "description": "Timeline layer toggle: the one pill-shaped control, with a square colour swatch.",
+      "html": "<button class=\"ds-chip\" aria-pressed=\"true\"><span class=\"ds-chip-dot\" style=\"--layer:#324fff\"></span>Lit Render</button><button class=\"ds-chip\" aria-pressed=\"false\"><span class=\"ds-chip-dot\" style=\"--layer:#c792ea\"></span>Mouse</button>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; margin-right: 4px; border: 1px solid #363636; border-radius: 9999px; background: #292929; color: #e3e3e3; font: 400 12px ui-sans-serif, system-ui, sans-serif; cursor: pointer; } .ds-chip:hover { border-color: #474747; } .ds-chip[aria-pressed='false'] { background: transparent; color: #919191; } .ds-chip-dot { width: 8px; height: 8px; box-sizing: border-box; background: var(--layer); border: 1px solid var(--layer); } .ds-chip[aria-pressed='false'] .ds-chip-dot { background: transparent; } .ds-chip:focus-visible { outline: 2px solid hsla(232 100% 65% / 0.45); outline-offset: 1px; }"
+    },
+    {
+      "name": "Component Tree Row",
+      "kind": "custom",
+      "refersTo": "tree-row",
+      "description": "Signature row: 24px, mono tag name, selected with a soft tint and a 2px inset bar.",
+      "html": "<div class=\"ds-tree\"><div class=\"ds-row\">&lt;hmr-counter&gt;</div><div class=\"ds-row is-selected\">&lt;hmr-properties&gt;</div><div class=\"ds-row\">&lt;hmr-clock&gt;</div></div>",
+      "css": ".ds-tree { background: #030303; width: 280px; } .ds-row { height: 24px; display: flex; align-items: center; padding-left: 20px; color: #e3e3e3; font: 400 13px 'Lilex Variable', ui-monospace, monospace; cursor: default; } .ds-row:hover { background: hsl(0 0% 100% / 0.04); } .ds-row.is-selected { background: hsla(232 100% 65% / 0.16); box-shadow: inset 2px 0 0 #4d63ff; }"
+    },
+    {
+      "name": "Settings Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Square card with an uppercase label header, a soft status badge and hairline-separated rows.",
+      "html": "<section class=\"ds-card\"><header class=\"ds-card-head\">HMR <span class=\"ds-badge-on\">enabled</span></header><div class=\"ds-card-row\"><span class=\"ds-key\">indicator</span><span class=\"ds-val\">shown</span></div><div class=\"ds-card-row\"><span class=\"ds-key\">indicator count</span><span class=\"ds-val\">shown <span class=\"ds-origin\">(option)</span></span></div></section>",
+      "css": ".ds-card { max-width: 480px; background: #121212; border: 1px solid #363636; border-radius: 0; font: 400 12px ui-sans-serif, system-ui, sans-serif; } .ds-card-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #363636; color: #c7c7c7; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; } .ds-badge-on { padding: 1px 6px; background: hsl(158 74% 53% / 0.15); color: hsl(158 74% 53%); text-transform: none; letter-spacing: 0; } .ds-card-row { display: grid; grid-template-columns: 11em 1fr; align-items: center; min-height: 28px; padding: 4px 12px; } .ds-card-row + .ds-card-row { border-top: 1px solid #363636; } .ds-key { color: #919191; } .ds-val { color: #e3e3e3; font-family: 'Lilex Variable', ui-monospace, monospace; } .ds-origin { color: #919191; font-size: 11px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Lit Workbench",
+    "overview": "A clean bench beside the running app. The panel is where a Lit developer lays a component out to look at it: its properties, its renders, its parts. The bench itself stays quiet. Surfaces are near-black ink in dark and paper greys in light, separated by hairlines rather than shadows. Colour belongs to what is being inspected (syntax hues for values, layer colours on the timeline) and to the one brand voice, the blue of the Lit flame, which marks what is selected, active or actionable.\n\nIt is precise and exact. Corners are square, borders are one pixel, numbers and code are set in a monospace with fixed widths, and every size steps along a fine 2px/4px grid made for dense tooling. Nothing is approximate or decorative; anything that does not help the user read their component is left off the bench.\n\nThe system is open to revision. The panel's design system (tokens, `packages/lit-components`, the Web Awesome theme) may change as the panel is redesigned. Rules below marked **(provisional)** describe how the system is today and are under review; unmarked rules are firm.",
+    "keyCharacteristics": [
+      "Quiet ink and paper surfaces; the user's data is the loudest thing on screen.",
+      "One brand accent, Lit blue, for selection, focus and primary action.",
+      "Square everything, hairline borders, no shadows on resting surfaces.",
+      "Mono for data and code, system sans for interface text.",
+      "Dense: 13px body text, 28px controls, 24px rows.",
+      "Light and dark are equal, generated from one token source."
+    ],
+    "rules": [
+      {
+        "name": "The One Blue Rule",
+        "body": "Lit blue means \"selected, active or yours to act on\". It is not decoration, not a heading colour and not a background for areas.",
+        "section": "colors"
+      },
+      {
+        "name": "The Earned Contrast Rule",
+        "body": "Every text token clears 4.5:1 on the surfaces it sits on. Where the upstream design system's value fell short, the token was lightened or darkened and the source comment says so. Keep doing that rather than reverting to the upstream value.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Schemes Rule",
+        "body": "Every colour exists in both schemes. A change that only defines or checks one scheme is unfinished.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Means Data Rule",
+        "body": "Monospace marks what came from the user's code or runtime (names, values, paths, durations). Interface words such as setting labels and button text stay in the sans.",
+        "section": "typography"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Separate regions with a 1px border or one tonal step, never with a shadow. A shadow means \"this is above the page\".",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** read every colour, size and space from a `--lit-devtools-*` token, and add a token in `packages/webawesome-theme-lit/src/tokens/` when one is missing.",
+      "**Do** check every change in light and dark.",
+      "**Do** keep text at 4.5:1 or better, and say so in a comment when a token departs from the upstream design system to get there.",
+      "**Do** set user data in mono and interface text in sans.",
+      "**Do** keep clickable rows at least 24px tall."
+    ],
+    "donts": [
+      "**Don't** use Lit blue for decoration, headings or large fills.",
+      "**Don't** put a shadow on a resting surface; use a border or a tonal step.",
+      "**Don't** round a control, card or panel while the square rule stands; the pill is only for badges, chips and dots.",
+      "**Don't** fill an origin tag or metadata label like a button; muted text is enough.",
+      "**Don't** let a form or a line of prose run the full width of a wide panel."
+    ]
+  }
+}
