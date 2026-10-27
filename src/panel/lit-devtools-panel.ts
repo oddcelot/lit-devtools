@@ -4,12 +4,24 @@ import {tokens} from '../lib/tokens.js';
 import './timeline-view.js';
 import {panelBrand} from './brand.js';
 import {litRpc} from './client.js';
-import {hostInfo} from './host.js';
+import {hostInfo, sendToPage} from './host.js';
 import {clearTimelineEvents} from './timeline-store.js';
 import type {
   LitRuntimeInfo,
   PageChangedEvent,
 } from '../lib/devframe/protocol.js';
+import type {PageLocation} from '../types/inspector.js';
+
+/** How long a page asked to announce itself gets before it counts as gone. */
+const FOLLOW_TIMEOUT_MS = 2000;
+
+/** A page change the notice tells about: the event, and where the earlier
+ *  page was, read before the new page's own announcement replaced it. */
+interface PageChangeNotice extends PageChangedEvent {
+  previous?: PageLocation;
+  /** The earlier page didn't answer when asked to be followed again. */
+  previousGone?: boolean;
+}
 
 import './components-view.js';
 import type {ComponentsView} from './components-view.js';
@@ -136,6 +148,39 @@ export class LitDevtoolsPanel extends LitElement {
       .page-changed span {
         flex: 1;
       }
+      .page-changed code,
+      .follow-earlier code {
+        font-family: var(--lit-devtools-font-mono);
+      }
+      /* The followed page, at the far end of the header: data, so mono and
+         muted, shortened before it ever pushes the tabs. */
+      .followed {
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: 40%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--lit-devtools-text-muted);
+        font-family: var(--lit-devtools-font-mono);
+        font-size: var(--lit-devtools-text-xs);
+      }
+      /* A narrow dock keeps its width for the tabs. Hidden by the header's
+         width, not the tabs' compact state, which this would feed back
+         into. */
+      @container (max-width: 760px) {
+        .followed {
+          display: none;
+        }
+      }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
       .view {
         display: flex;
         flex-direction: column;
@@ -161,7 +206,10 @@ export class LitDevtoolsPanel extends LitElement {
   @state() private _runtime: LitRuntimeInfo | null = null;
 
   /** The latest `page-changed` notice, until dismissed. */
-  @state() private _pageChange: PageChangedEvent | null = null;
+  @state() private _pageChange: PageChangeNotice | null = null;
+  /** The page asked to announce itself from the notice, while it hasn't. */
+  @state() private _followRequest: string | null = null;
+  private _followTimer: ReturnType<typeof setTimeout> | undefined;
 
   @query('components-view') private _componentsView?: ComponentsView;
 
@@ -196,8 +244,19 @@ export class LitDevtoolsPanel extends LitElement {
           // page that is no longer followed, on a different clock.
           clearTimelineEvents();
           this._componentsView?.pageChanged();
-          // A reload of the same tab is not news.
-          if (!event.reload) this._pageChange = event;
+          // The new page's own announcement may have gone out before it was
+          // followed, and been dropped; ask again, so the header can name it.
+          sendToPage({type: 'announce', pageId: event.pageId});
+          const requested = this._followRequest;
+          this._followRequest = null;
+          clearTimeout(this._followTimer);
+          // A reload of the same tab is not news, and neither is the page
+          // the user just asked to follow.
+          if (event.reload || event.pageId === requested) {
+            this._pageChange = null;
+            return;
+          }
+          this._pageChange = {...event, previous: this._runtime?.location};
         },
       });
     } catch {
@@ -223,6 +282,7 @@ export class LitDevtoolsPanel extends LitElement {
     super.disconnectedCallback();
     this._locationOff?.();
     this._locationOff = null;
+    clearTimeout(this._followTimer);
   }
 
   private _onTabChange(e: CustomEvent<{value: string}>) {
@@ -277,6 +337,86 @@ export class LitDevtoolsPanel extends LitElement {
     this._location.apply({componentId: e.detail.id});
   }
 
+  /** Follow the page the notice says was left; it announces itself again. */
+  private _followEarlier(): void {
+    const change = this._pageChange;
+    if (change === null) return;
+    const id = change.previousPageId;
+    this._followRequest = id;
+    sendToPage({type: 'announce', pageId: id});
+    clearTimeout(this._followTimer);
+    this._followTimer = setTimeout(() => {
+      if (this._followRequest !== id) return;
+      // Closed, or reloaded into a new page: nothing answered.
+      this._followRequest = null;
+      if (this._pageChange?.previousPageId === id) {
+        this._pageChange = {...this._pageChange, previousGone: true};
+      }
+    }, FOLLOW_TIMEOUT_MS);
+  }
+
+  /** The followed page's path at the header's far end, title as its tip. */
+  private _renderFollowed() {
+    const where = this._runtime?.location;
+    if (where === undefined || where.path === '') return nothing;
+    const tip =
+      where.title === '' ? where.path : `${where.title} — ${where.path}`;
+    return html`<span class="followed" data-tip=${tip}
+      ><span class="sr-only">Following </span>${where.path}</span
+    >`;
+  }
+
+  private _renderPageChange() {
+    const change = this._pageChange;
+    if (change === null) return nothing;
+    const now = this._runtime?.location?.path;
+    const before = change.previous?.path;
+    const following = this._followRequest !== null;
+    return html`<lit-callout
+      class="page-changed"
+      variant="neutral"
+      size="s"
+      role="status"
+    >
+      <lit-icon slot="icon" name="info"></lit-icon>
+      <span>
+        Now following ${now ? html`<code>${now}</code>` : 'another page'},
+        opened in another tab or frame, since
+        ${new Date(change.at).toLocaleTimeString()}. The recording restarted.
+        ${
+          change.previousGone
+            ? html`${before ? html`<code>${before}</code>` : 'The earlier page'}
+              is no longer open.`
+            : nothing
+        }
+      </span>
+      ${
+        change.previousGone
+          ? nothing
+          : html`<lit-button
+              class="follow-earlier"
+              variant="neutral"
+              appearance="outlined"
+              size="s"
+              ?loading=${following}
+              data-tip="Follow the earlier page again. Its recording can't come back; a new one starts."
+              @click=${this._followEarlier}
+            >
+              <lit-icon slot="start" name="arrow-u-up-left"></lit-icon>
+              Follow
+              ${before ? html`<code>${before}</code>` : 'the earlier page'}
+              again
+            </lit-button>`
+      }
+      <lit-icon-button
+        data-tip="Dismiss"
+        @click=${() => (this._pageChange = null)}
+        icon="x"
+        label="Dismiss"
+      ></lit-icon-button>
+    </lit-callout>`;
+  }
+
   private _renderBrand() {
     const {name, iconUrl} = panelBrand();
     const mark =
@@ -305,30 +445,9 @@ export class LitDevtoolsPanel extends LitElement {
           .value=${this._location.tab}
           @change=${this._onTabChange}
         ></lit-tabs>
+        ${this._renderFollowed()}
       </header>
-      ${
-        this._pageChange === null
-          ? nothing
-          : html`<lit-callout
-              class="page-changed"
-              variant="warning"
-              size="s"
-              role="status"
-            >
-              <lit-icon slot="icon" name="warning"></lit-icon>
-              <span
-                >Another page connected at
-                ${new Date(this._pageChange.at).toLocaleTimeString()} — the
-                panel now follows it. The earlier recording was cleared.</span
-              >
-              <lit-icon-button
-                data-tip="Dismiss"
-                @click=${() => (this._pageChange = null)}
-                icon="x"
-                label="Dismiss"
-              ></lit-icon-button>
-            </lit-callout>`
-      }
+      ${this._renderPageChange()}
       <div class="view" @inspect-element=${this._onInspectElement}>
         <timeline-view
           ?hidden=${this._location.tab !== 'timeline'}
