@@ -105,16 +105,16 @@ export default defineConfig({
       subsets: ['latin', 'latin-ext', 'vietnamese'],
       fallbacks: ['sans-serif'],
     },
-    // Manrope, for the Open Graph cards only (src/pages/og/). Satori renders
+    // Lexend again, for the Open Graph cards (src/pages/og/). Satori renders
     // without system fonts, so a card needs a font file; it reads neither
     // woff2 nor variable fonts, so this entry asks for static TTF instances
     // of the two weights a card uses. No <Font> tag renders it,
     // so browsers never download these files.
     {
-      name: 'Manrope',
-      cssVariable: '--font-manrope-og',
+      name: 'Lexend',
+      cssVariable: '--font-lexend-og',
       provider: fontProviders.fontsource(),
-      weights: [500, 800],
+      weights: [400, 600],
       styles: ['normal'],
       subsets: ['latin'],
       formats: ['ttf'],
