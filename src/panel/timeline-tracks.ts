@@ -684,7 +684,7 @@ export class TimelineTracks extends LitElement {
       return html`${
         this.visibleTracks.length === 0
           ? html`<div class="empty">
-              <span>No tracks shown. Pick some above.</span>
+              <span>No tracks shown. Turn some on under Layers.</span>
             </div>`
           : this.filtered
             ? html`<div class="empty">

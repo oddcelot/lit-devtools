@@ -41,6 +41,7 @@ import packageIcon from '@phosphor-icons/core/assets/regular/package.svg?raw';
 import notification from '@phosphor-icons/core/assets/regular/notification.svg?raw';
 import pushPin from '@phosphor-icons/core/assets/regular/push-pin.svg?raw';
 import record from '@phosphor-icons/core/assets/regular/record.svg?raw';
+import stack from '@phosphor-icons/core/assets/regular/stack.svg?raw';
 import stop from '@phosphor-icons/core/assets/regular/stop.svg?raw';
 import target from '@phosphor-icons/core/assets/regular/target.svg?raw';
 import terminal from '@phosphor-icons/core/assets/regular/terminal.svg?raw';
@@ -81,6 +82,7 @@ const ICONS = {
   'pencil-simple': pencilSimple,
   'push-pin': pushPin,
   record,
+  stack,
   stop,
   target,
   terminal,

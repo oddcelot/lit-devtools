@@ -7,7 +7,7 @@ const layers: LayerState[] = [
   {id: 'mouse', label: 'Mouse', color: 0x00ff00, enabled: false},
 ];
 
-const mount = async (props: {layers: LayerState[]; caption?: string}) => {
+const mount = async (props: {layers: LayerState[]}) => {
   const el = document.createElement('timeline-layers');
   Object.assign(el, props);
   document.body.append(el);
@@ -41,19 +41,47 @@ test('a click asks the view to toggle that layer', async () => {
   expect(toggled).toEqual(['mouse']);
 });
 
-test('the caption labels the strip only when set', async () => {
-  const plain = await mount({layers});
-  expect(plain.el.shadowRoot!.querySelector('.caption')).toBeNull();
-  const tracks = await mount({layers, caption: 'Tracks'});
-  expect(tracks.el.shadowRoot!.querySelector('.caption')?.textContent).toBe(
-    'Tracks'
-  );
-});
-
 test('each chip exposes its state as aria-pressed', async () => {
   const {buttons} = await mount({layers});
   expect(buttons.map((b) => b.getAttribute('aria-pressed'))).toEqual([
     'true',
     'false',
   ]);
+});
+
+test('as a menu, a row per layer with a track toggle for the trackable', async () => {
+  const el = document.createElement('timeline-layers');
+  Object.assign(el, {
+    layers: [
+      ...layers,
+      {id: 'lit-render', label: 'Render', color: 0x0000ff, enabled: true},
+    ],
+    menu: true,
+    tracks: {
+      trackable: new Set(['lit-lifecycle', 'lit-render']),
+      hidden: new Set(['lit-render']),
+    },
+  });
+  document.body.append(el);
+  await el.updateComplete;
+  const root = el.shadowRoot!;
+  const tracks = [...root.querySelectorAll<HTMLButtonElement>('.track')];
+  expect(
+    tracks.map((t) => [t.getAttribute('aria-pressed'), t.disabled])
+  ).toEqual([
+    ['true', false],
+    // Mouse is off: nothing recorded, so no track to show.
+    ['false', true],
+    ['false', false],
+  ]);
+  const toggled: string[] = [];
+  el.addEventListener('track-toggle', (e) =>
+    toggled.push((e as CustomEvent<{id: string}>).detail.id)
+  );
+  tracks[2]!.click();
+  expect(toggled).toEqual(['lit-render']);
+  // In the List view there are no tracks to toggle.
+  Object.assign(el, {tracks: null});
+  await el.updateComplete;
+  expect(root.querySelectorAll('.track')).toHaveLength(0);
 });

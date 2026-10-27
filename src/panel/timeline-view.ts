@@ -19,6 +19,7 @@ import {TimelineModel} from '../lib/timeline/model.js';
 import {describeRange, sameRange, spansInRange} from '../lib/timeline/range.js';
 import type {TimeRange} from '../lib/timeline/range.js';
 import './timeline-layers.js';
+import '@awesome.me/webawesome/dist/components/popover/popover.js';
 import './timeline-event-list.js';
 import type {TimelineEventList} from './timeline-event-list.js';
 import './timeline-tracks.js';
@@ -129,6 +130,14 @@ export class TimelineView extends LitElement {
         border-bottom: 1px solid var(--lit-devtools-border);
         background: var(--lit-devtools-surface-low);
         flex-shrink: 0;
+      }
+      .layer-count {
+        color: var(--lit-devtools-text-muted);
+        font-family: var(--lit-devtools-font-mono);
+        font-variant-numeric: tabular-nums;
+      }
+      .layers-popover::part(body) {
+        padding: var(--lit-devtools-space-2) 0;
       }
       .spacer {
         flex: 1;
@@ -679,6 +688,25 @@ export class TimelineView extends LitElement {
     const {filter} = model;
     return html`
       <div class="toolbar">
+        ${
+          // A frozen session has nothing to record and no server to tell.
+          this._snapshot
+            ? nothing
+            : html`<lit-button
+                class="record ${this._recording ? 'active' : ''}"
+                size="s"
+                variant=${this._recording ? 'danger' : 'neutral'}
+                appearance=${this._recording ? 'filled' : 'outlined'}
+                data-tip=${this._recording ? 'Stop recording' : 'Start recording'}
+                @click=${this._toggleRecord}
+              >
+                <lit-icon
+                  slot="start"
+                  name=${this._recording ? 'stop' : 'record'}
+                ></lit-icon>
+                ${this._recording ? 'Stop' : 'Record'}
+              </lit-button>`
+        }
         <div
           class="modes"
           role="radiogroup"
@@ -698,6 +726,42 @@ export class TimelineView extends LitElement {
             </button>`
           )}
         </div>
+        <lit-button
+          id="layers-trigger"
+          class="layers-trigger"
+          variant="neutral"
+          size="s"
+          appearance="outlined"
+          data-tip="What to record, and in Tracks mode which layers get a track"
+        >
+          <lit-icon slot="start" name="stack"></lit-icon>
+          Layers
+          <span class="layer-count"
+            >${this._layers.filter((l) => l.enabled).length}/${this._layers.length}</span
+          >
+          <lit-icon slot="end" name="caret-down"></lit-icon>
+        </lit-button>
+        <wa-popover
+          for="layers-trigger"
+          placement="bottom-start"
+          without-arrow
+          class="layers-popover"
+        >
+          <timeline-layers
+            menu
+            .layers=${this._layers}
+            .tracks=${
+              tracks
+                ? {
+                    trackable: new Set(captured.map((l) => l.id)),
+                    hidden: this._hiddenTracks,
+                  }
+                : null
+            }
+            @layer-toggle=${this._onLayerToggle}
+            @track-toggle=${this._onTrackToggle}
+          ></timeline-layers>
+        </wa-popover>
         ${
           this._exportNote === null
             ? nothing
@@ -730,30 +794,7 @@ export class TimelineView extends LitElement {
           <lit-icon slot="start" name="trash"></lit-icon>
           Clear
         </lit-button>
-        ${
-          // A frozen session has nothing to record and no server to tell.
-          this._snapshot
-            ? nothing
-            : html`<lit-button
-                class="record ${this._recording ? 'active' : ''}"
-                size="s"
-                variant=${this._recording ? 'danger' : 'neutral'}
-                appearance=${this._recording ? 'filled' : 'outlined'}
-                data-tip=${this._recording ? 'Stop recording' : 'Start recording'}
-                @click=${this._toggleRecord}
-              >
-                <lit-icon
-                  slot="start"
-                  name=${this._recording ? 'stop' : 'record'}
-                ></lit-icon>
-                ${this._recording ? 'Stop' : 'Record'}
-              </lit-button>`
-        }
       </div>
-      <timeline-layers
-        .layers=${this._layers}
-        @layer-toggle=${this._onLayerToggle}
-      ></timeline-layers>
       ${this._renderDebugHint()}
       ${
         this._events.length > 0
@@ -811,19 +852,6 @@ export class TimelineView extends LitElement {
                       Time ${describeRange(filter.range)}
                       <lit-icon slot="end" name="x"></lit-icon>
                     </lit-button>`
-              }
-              ${
-                tracks
-                  ? html`<timeline-layers
-                      compact
-                      caption="Show as tracks"
-                      .layers=${captured.map((l) => ({
-                        ...l,
-                        enabled: !this._hiddenTracks.has(l.id),
-                      }))}
-                      @layer-toggle=${this._onTrackToggle}
-                    ></timeline-layers>`
-                  : nothing
               }
             </div>`
           : nothing
