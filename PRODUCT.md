@@ -55,7 +55,9 @@ carry across all of them.
   (`packages/lit-components`, `packages/webawesome-theme-lit`,
   `src/lib/design-tokens.ts`). It is **open to revision**: design work on the
   panel may change the design system itself, not only build on it.
-- Status: experimental, released often.
+- Status: pre-1.0, released often. The Astro integration and the language
+  server are no longer experimental; the panel's timeline still defaults off
+  while it is.
 
 ## Brand Commitments
 
