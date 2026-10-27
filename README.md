@@ -1,3 +1,5 @@
+[![Lit DevTools: Lit, with the lights on. HMR that keeps state, a panel for every render, an editor that knows your tags.](https://lit-devtools.oddsquad.dev/og/index.png)](https://lit-devtools.oddsquad.dev/)
+
 # @oddsquad/vite-plugin-lit
 
 [![CI](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml?query=branch%3Amain)
