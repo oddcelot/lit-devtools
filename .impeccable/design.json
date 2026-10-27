@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-27T12:00:00Z",
+  "generatedAt": "2026-10-27T15:00:00Z",
   "title": "Design System: Lit DevTools",
   "extensions": {
     "colorMeta": {
@@ -85,11 +85,11 @@
       },
       "label": {
         "displayName": "Label",
-        "purpose": "Uppercase section headers in details and settings cards (provisional)."
+        "purpose": "Section headers, card titles and column heads, in Lexend, sentence case."
       },
       "wordmark": {
         "displayName": "Wordmark",
-        "purpose": "LIT DEVTOOLS beside the logo only."
+        "purpose": "\"Lit DevTools\" in Lexend beside the logo only."
       }
     },
     "shadows": [
@@ -172,9 +172,9 @@
       "name": "Tabs",
       "kind": "nav",
       "refersTo": "tab-active",
-      "description": "Header tabs: icon plus label, a 2px brand underline on the active tab.",
+      "description": "Header tabs: icon plus label, a 2px flame-gradient underline on the active tab.",
       "html": "<nav class=\"ds-tabs\"><a class=\"ds-tab is-active\" href=\"#\">Components</a><a class=\"ds-tab\" href=\"#\">Updates</a><a class=\"ds-tab\" href=\"#\">Timeline</a><a class=\"ds-tab\" href=\"#\">Settings</a></nav>",
-      "css": ".ds-tabs { display: flex; height: 36px; background: #0d0d0d; border-bottom: 1px solid #363636; } .ds-tab { display: flex; align-items: center; padding: 0 12px; color: #c7c7c7; font: 400 13px ui-sans-serif, system-ui, sans-serif; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tab:hover { color: #e3e3e3; } .ds-tab.is-active { color: #4d63ff; border-bottom-color: #4d63ff; } .ds-tab:focus-visible { outline: 2px solid #6478ff; outline-offset: -2px; }"
+      "css": ".ds-tabs { display: flex; height: 36px; background: #0d0d0d; border-bottom: 1px solid #363636; } .ds-tab { display: flex; align-items: center; padding: 0 12px; color: #c7c7c7; font: 400 13px ui-sans-serif, system-ui, sans-serif; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; } .ds-tab:hover { color: #e3e3e3; } .ds-tab.is-active { color: #4d63ff; border-bottom: 2px solid; border-image: linear-gradient(90deg, #4d63ff, #00e8ff) 1; } .ds-tab:focus-visible { outline: 2px solid #6478ff; outline-offset: -2px; }"
     },
     {
       "name": "Layer Chip",
@@ -198,7 +198,7 @@
       "refersTo": "card",
       "description": "Square card with an uppercase label header, a soft status badge and hairline-separated rows.",
       "html": "<section class=\"ds-card\"><header class=\"ds-card-head\">HMR <span class=\"ds-badge-on\">enabled</span></header><div class=\"ds-card-row\"><span class=\"ds-key\">indicator</span><span class=\"ds-val\">shown</span></div><div class=\"ds-card-row\"><span class=\"ds-key\">indicator count</span><span class=\"ds-val\">shown <span class=\"ds-origin\">(option)</span></span></div></section>",
-      "css": ".ds-card { max-width: 480px; background: #121212; border: 1px solid #363636; border-radius: 0; font: 400 12px ui-sans-serif, system-ui, sans-serif; } .ds-card-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #363636; color: #c7c7c7; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; } .ds-badge-on { padding: 1px 6px; background: hsl(158 74% 53% / 0.15); color: hsl(158 74% 53%); text-transform: none; letter-spacing: 0; } .ds-card-row { display: grid; grid-template-columns: 11em 1fr; align-items: center; min-height: 28px; padding: 4px 12px; } .ds-card-row + .ds-card-row { border-top: 1px solid #363636; } .ds-key { color: #919191; } .ds-val { color: #e3e3e3; font-family: 'Lilex Variable', ui-monospace, monospace; } .ds-origin { color: #919191; font-size: 11px; }"
+      "css": ".ds-card { max-width: 480px; background: #121212; border: 1px solid #363636; border-radius: 0; font: 400 12px ui-sans-serif, system-ui, sans-serif; } .ds-card-head { display: flex; align-items: center; gap: 8px; padding: 6px 12px; border-bottom: 1px solid #363636; color: #c7c7c7; font-family: 'Lexend Variable', ui-sans-serif, sans-serif; font-size: 12px; font-weight: 600; color: #e3e3e3; } .ds-badge-on { padding: 1px 6px; background: hsl(158 74% 53% / 0.15); color: hsl(158 74% 53%); text-transform: none; letter-spacing: 0; } .ds-card-row { display: grid; grid-template-columns: 11em 1fr; align-items: center; min-height: 28px; padding: 4px 12px; } .ds-card-row + .ds-card-row { border-top: 1px solid #363636; } .ds-key { color: #919191; } .ds-val { color: #e3e3e3; font-family: 'Lilex Variable', ui-monospace, monospace; } .ds-origin { color: #919191; font-size: 11px; }"
     }
   ],
   "narrative": {
@@ -208,9 +208,10 @@
       "Quiet ink and paper surfaces; the user's data is the loudest thing on screen.",
       "One brand accent, Lit blue, for selection, focus and primary action.",
       "Square everything, hairline borders, no shadows on resting surfaces.",
-      "Mono for data and code, system sans for interface text.",
       "Dense: 13px body text, 28px controls, 24px rows.",
-      "Light and dark are equal, generated from one token source."
+      "Light and dark are equal, generated from one token source.",
+      "Lexend names things, the system sans carries the interface, mono sets data.",
+      "One authored brand moment: the flame gradient under the active tab."
     ],
     "rules": [
       {
@@ -237,6 +238,11 @@
         "name": "The Hairline Rule",
         "body": "Separate regions with a 1px border or one tonal step, never with a shadow. A shadow means \"this is above the page\".",
         "section": "elevation"
+      },
+      {
+        "name": "The One Flame Rule",
+        "body": "The Lit flame's blue-into-cyan gradient (`--lit-devtools-flame`) appears once: under the active tab. It is the panel's one authored brand moment; don't spread it to buttons, borders or text. In light, its cyan is deepened to `#0097b2` to hold 3:1.",
+        "section": "colors"
       }
     ],
     "dos": [

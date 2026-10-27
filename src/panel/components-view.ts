@@ -1053,7 +1053,7 @@ export class ComponentsView extends LitElement {
       .section > .origin:focus-visible {
         outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 2px;
-        border-radius: 2px;
+        border-radius: 0;
       }
       /* Documented names hint, faintly, that hovering explains them. */
       .described {
@@ -1156,7 +1156,7 @@ export class ComponentsView extends LitElement {
       .link:focus-visible {
         outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 1px;
-        border-radius: 2px;
+        border-radius: 0;
       }
       .link lit-icon {
         margin-left: var(--lit-devtools-space-1);
@@ -1199,14 +1199,16 @@ export class ComponentsView extends LitElement {
       .section > summary:focus-visible {
         outline: 2px solid var(--lit-devtools-focus-ring);
         outline-offset: 2px;
-        border-radius: 2px;
+        border-radius: 0;
       }
       .section:not([open]) > summary {
         margin-bottom: 0;
       }
       summary .label {
-        text-transform: uppercase;
-        letter-spacing: var(--lit-devtools-tracking-caps);
+        font-family: var(--lit-devtools-font-display);
+        font-size: var(--lit-devtools-text-xs);
+        font-weight: var(--lit-devtools-weight-medium);
+        color: var(--lit-devtools-text-secondary);
       }
       summary .count {
         font-family: var(--lit-devtools-font-mono);
@@ -1221,7 +1223,7 @@ export class ComponentsView extends LitElement {
       mark {
         background: var(--lit-devtools-warning-soft);
         color: inherit;
-        border-radius: 2px;
+        border-radius: 0;
       }
       .no-match {
         margin-top: var(--lit-devtools-space-5);
@@ -1262,7 +1264,7 @@ export class ComponentsView extends LitElement {
         display: inline-flex;
         padding: 2px var(--lit-devtools-space-2);
         border: 0;
-        border-radius: 2px;
+        border-radius: 0;
         background: var(--lit-devtools-bg);
         color: var(--lit-devtools-text-muted);
         cursor: pointer;
@@ -1279,7 +1281,7 @@ export class ComponentsView extends LitElement {
         margin-left: var(--lit-devtools-space-1);
         padding: 0 2px;
         border: 0;
-        border-radius: 2px;
+        border-radius: 0;
         background: transparent;
         color: var(--lit-devtools-text-muted);
         cursor: pointer;
@@ -1316,7 +1318,7 @@ export class ComponentsView extends LitElement {
         text-indent: 0;
         padding: 0 var(--lit-devtools-space-2);
         border: 1px solid var(--lit-devtools-border);
-        border-radius: 2px;
+        border-radius: 0;
         background: var(--lit-devtools-surface);
         color: var(--lit-devtools-text);
         font: inherit;
@@ -1371,7 +1373,7 @@ export class ComponentsView extends LitElement {
       }
       .expander:focus-visible {
         outline: 2px solid var(--lit-devtools-focus-ring);
-        border-radius: 2px;
+        border-radius: 0;
       }
       .children {
         display: block;
@@ -1439,7 +1441,7 @@ export class ComponentsView extends LitElement {
         width: 8px;
         height: 8px;
         margin-right: var(--lit-devtools-space-2);
-        border-radius: 2px;
+        border-radius: 0;
         vertical-align: middle;
       }
       .slot-default {
@@ -1617,7 +1619,7 @@ export class ComponentsView extends LitElement {
         margin-left: var(--lit-devtools-space-1);
         padding: 0 2px;
         border: 0;
-        border-radius: 2px;
+        border-radius: 0;
         background: transparent;
         color: var(--lit-devtools-text-muted);
         cursor: pointer;
@@ -1632,7 +1634,7 @@ export class ComponentsView extends LitElement {
         margin-left: var(--lit-devtools-space-1);
         padding: 0 2px;
         border: 0;
-        border-radius: 2px;
+        border-radius: 0;
         background: transparent;
         color: var(--lit-devtools-text-muted);
         cursor: pointer;

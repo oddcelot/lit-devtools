@@ -124,10 +124,10 @@ export class LitDevtoolsPanel extends LitElement {
         align-items: center;
         gap: var(--lit-devtools-space-4);
         color: var(--lit-devtools-text-strong);
-        font-weight: var(--lit-devtools-weight-bold);
-        font-size: var(--lit-devtools-text-xs);
-        letter-spacing: var(--lit-devtools-tracking-caps);
-        text-transform: uppercase;
+        font-family: var(--lit-devtools-font-display);
+        font-weight: var(--lit-devtools-weight-semibold);
+        font-size: var(--lit-devtools-text-sm);
+        letter-spacing: var(--lit-devtools-tracking-snug);
         padding: var(--lit-devtools-space-5) 0;
       }
       .brand svg,

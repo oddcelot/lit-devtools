@@ -55,8 +55,10 @@ export class LitTabs extends LitElement {
       border-block-end: solid var(--safe-track-width) transparent;
       margin-block-end: calc(-1 * var(--safe-track-width));
     }
+    /* The Lit flame, blue into cyan, under the tab in front. */
     wa-tab[active] {
       border-block-end-color: var(--indicator-color);
+      border-image: var(--flame, none) 1;
     }
     wa-tab-group::part(body) {
       display: none;
