@@ -88,10 +88,23 @@ export default defineConfig({
   // Font files pulled from Fontsource at build time. Astro downloads, subsets
   // and fingerprints them into the build, and generates fallback metrics so
   // swapping in the real face does not shift the layout. Nothing is fetched
-  // from a CDN at runtime. The fonts pages show come from Fontsource's npm
-  // packages instead (src/styles/fonts.css); only the Open Graph cards need
-  // an entry here.
+  // from a CDN at runtime. Lilex, the code font, comes from Fontsource's npm
+  // package instead (src/styles/fonts.css), the way the panel loads it.
   fonts: [
+    // Lexend, for headings and the site title on every page. A <Font> tag in
+    // Head.astro and on the landing page writes its @font-face rules and
+    // preloads the latin file. The fallback is metric-matched sans, so the
+    // heading text does not reflow when Lexend arrives, which matters since
+    // Lexend runs much wider than the system sans it replaces.
+    {
+      name: 'Lexend',
+      cssVariable: '--font-lexend',
+      provider: fontProviders.fontsource(),
+      weights: ['100 900'],
+      styles: ['normal'],
+      subsets: ['latin', 'latin-ext', 'vietnamese'],
+      fallbacks: ['sans-serif'],
+    },
     // Manrope, for the Open Graph cards only (src/pages/og/). Satori renders
     // without system fonts, so a card needs a font file; it reads neither
     // woff2 nor variable fonts, so this entry asks for static TTF instances

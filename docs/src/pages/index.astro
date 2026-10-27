@@ -8,7 +8,7 @@
  * /start/installation/; every link out of here goes into them.
  */
 import {Icon} from '@astrojs/starlight/components';
-import lexend from '@fontsource-variable/lexend/files/lexend-latin-wght-normal.woff2?url';
+import {Font} from 'astro:assets';
 import '@oddsquad/webawesome-theme-lit/lit.css';
 import '../styles/fonts.css';
 import '../styles/custom.css';
@@ -118,7 +118,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <meta name="twitter:site" content="@oddcelot" />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
     <link rel="ai-catalog" href="/.well-known/ai-catalog.json" />
-    <link rel="preload" href={lexend} as="font" type="font/woff2" crossorigin />
+    <Font cssVariable="--font-lexend" preload={[{subset: 'latin'}]} />
     <script is:inline>
       // The theme before the first paint, from the key Starlight keeps.
       (() => {
