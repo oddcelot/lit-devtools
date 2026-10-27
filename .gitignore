@@ -44,3 +44,6 @@ lit-devtools-snapshot/
 /packages/oxlint-plugin-lit/dist/
 # Copied from the root CHANGELOG.md when the package is packed.
 /packages/lit-devtools/CHANGELOG.md
+
+# Impeccable critique reports: dated snapshots; their findings go into beads.
+.impeccable/critique/
