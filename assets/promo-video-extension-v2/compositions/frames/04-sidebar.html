@@ -1,0 +1,208 @@
+<template id="s04-sidebar-template">
+  <style>
+    @font-face{font-family:"Lexend Variable";font-weight:100 900;src:url("assets/lexend-latin-wght-normal.woff2") format("woff2")}
+    @font-face{font-family:"Lilex Variable";font-weight:100 700;src:url("assets/lilex-latin-wght-normal.woff2") format("woff2")}
+
+    #s04-sidebar { overflow: hidden; background: transparent; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    #s04-sidebar * { box-sizing: border-box; }
+    .s04-eyebrow { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; top: 330px; width: 420px; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: #4d63ff; line-height: 20px; white-space: nowrap; }
+    .s04-line { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; width: 440px; font-weight: 600; font-size: 58px; letter-spacing: -0.045em; line-height: 60px; color: #fff; white-space: nowrap; }
+    .s04-line em { font-style: normal; background: linear-gradient(100deg,#4d63ff 10%,#00ffff 55%,#4d63ff 95%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-bottom: .16em; margin-bottom: -.16em; padding-right: 3px; }
+    .s04-sub { position: absolute; left: 80px; width: 380px; font-weight: 500; font-size: 22px; line-height: 30px; color: #c7c7c7; }
+    .s04-cursor { position: absolute; left: 0; top: 0; width: 24px; height: 28px; pointer-events: none; z-index: 20; }
+    .s04-cursor svg { position: absolute; left: 0; top: 0; width: 24px; height: 28px; overflow: visible; transform-origin: 0 0; }
+    .s04-ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); opacity: 0; z-index: 19; }
+
+    /* Chrome Elements body */
+    #s04-body { position: absolute; left: 540px; top: 504px; width: 1340px; height: 536px; background: #1e1e1e; overflow: hidden; font-family: 'Lilex Variable', ui-monospace, monospace; }
+    #s04-dom { position: absolute; left: 0; top: 0; width: 800px; height: 506px; padding-top: 8px; }
+    .s04-row { position: relative; height: 24px; line-height: 24px; font-size: 15px; color: #e8eaed; white-space: nowrap; }
+    .s04-row .tw { position: absolute; top: 0; width: 14px; text-align: center; font-size: 11px; color: #9aa0a6; }
+    .s04-row .tx { position: absolute; top: 0; }
+    .s04-row .t { color: #5db0d7; } .s04-row .g { color: #9aa0a6; } .s04-row .a { color: #9bbbdc; } .s04-row .v { color: #f29766; }
+    .s04-sel { position: absolute; left: 0; top: 0; width: 800px; height: 24px; background: #2c3e57; }
+    .s04-dollar { color: #b4b8bd; opacity: 0; font-variant-ligatures: none; }
+    #s04-crumb { position: absolute; left: 0; top: 506px; width: 800px; height: 30px; background: #282828; border-top: 1px solid #3c3c3c; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 14px; color: #c4c7c5; padding: 0 14px; line-height: 29px; display: flex; gap: 16px; }
+    #s04-crumb b { font-weight: 500; color: #e8eaed; }
+
+    /* Elements sidebar */
+    #s04-side { position: absolute; left: 800px; top: 0; width: 540px; height: 536px; border-left: 1px solid #3c3c3c; background: #1e1e1e; }
+    #s04-stabs { position: absolute; left: 0; top: 0; width: 539px; height: 34px; background: #282828; border-bottom: 1px solid #3c3c3c; display: flex; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; color: #c4c7c5; }
+    #s04-stabs span { height: 33px; line-height: 33px; text-align: center; white-space: nowrap; flex: none; }
+    #s04-ul { position: absolute; left: 0; top: 31px; width: 74px; transform-origin: 0 0; height: 2px; background: #a8c7fa; }
+    #s04-tabhover { position: absolute; left: 254px; top: 0; width: 50px; height: 33px; background: rgba(255,255,255,.08); opacity: 0; }
+    #s04-styles { position: absolute; left: 0; top: 34px; width: 539px; height: 502px; }
+    #s04-sfilter { margin: 8px 12px; height: 26px; border: 1px solid #3c3c3c; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 14px; color: #9aa0a6; padding: 0 10px; line-height: 24px; display: flex; }
+    #s04-sfilter b { margin-left: auto; font-weight: 500; letter-spacing: .04em; }
+    .s04-rule { padding: 6px 14px 4px; font-size: 14px; line-height: 22px; color: #e8eaed; white-space: nowrap; }
+    .s04-rule .p { color: #5db0d7; } .s04-rule .val { color: #f29766; } .s04-rule .src { float: right; color: #9aa0a6; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    .s04-rule .ind { padding-left: 22px; }
+
+    /* Lit pane (the extension's page, details only) */
+    #s04-lit { position: absolute; left: 0; top: 34px; width: 539px; height: 502px; background: #030303; opacity: 0; overflow: hidden; }
+    #s04-det { position: absolute; left: 20px; top: 14px; right: 20px; font-size: 15px; color: #e3e3e3; }
+    #s04-det .ico { width: 17px; height: 17px; fill: none; stroke: #919191; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    #s04-det .d-sec { border-top: 1px solid #363636; padding: 6px 0 8px; }
+    #s04-det .d-sh { height: 24px; line-height: 24px; display: flex; align-items: center; gap: 8px; font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; font-weight: 500; font-size: 14px; color: #c7c7c7; }
+    #s04-det .d-sh svg { width: 12px; height: 12px; fill: none; stroke: #919191; stroke-width: 2; }
+    #s04-det .d-sh b { font-weight: 500; color: #919191; }
+    #s04-det .d-ent { position: relative; display: flex; align-items: center; height: 26px; white-space: nowrap; }
+    #s04-det .nm { width: 120px; flex: none; color: #e3e3e3; display: flex; align-items: center; }
+    #s04-det .sw { width: 10px; height: 10px; margin-right: 8px; flex: none; }
+    #s04-det .str { color: #c3e88d; }
+    #s04-det .num { color: #f78c6c; }
+    #s04-det .bool { color: #c792ea; }
+    #s04-det .ref { color: #82aaff; }
+    #s04-det .swap { display: inline-grid; }
+    #s04-det .swap > span { grid-area: 1 / 1; }
+    #s04-det .badge { font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 12px; line-height: 18px; padding: 0 6px; background: #292929; color: #a1a1a1; }
+
+    /* page overlays: Chrome's element highlight */
+    #s04-pagelayer { position: absolute; left: 540px; top: 128px; width: 1340px; height: 342px; overflow: hidden; }
+    .s04-hi { position: absolute; top: 72px; width: 412px; height: 252px; background: rgba(111,168,220,.55); opacity: 0; }
+    .s04-tip { position: absolute; top: 34px; height: 30px; padding: 0 12px; background: #202124; border: 1px solid #5f6368; border-radius: 4px; box-shadow: 0 6px 18px rgba(0,0,0,.5); font-family: 'Lilex Variable', ui-monospace, monospace; font-size: 13px; line-height: 28px; color: #9aa0a6; white-space: nowrap; opacity: 0; }
+    .s04-tip b { font-weight: 400; color: #c58af9; }
+  </style>
+
+  <div id="s04-sidebar" data-composition-id="s04-sidebar" data-width="1920" data-height="1080" style="position:absolute;inset:0">
+    <div id="s04-cap">
+      <div class="s04-eyebrow" id="s04-eyebrow">Elements panel</div>
+      <div class="s04-line" id="s04-l1" style="top:362px">Right in</div>
+      <div class="s04-line" id="s04-l2" style="top:422px"><em>Elements.</em></div>
+      <div class="s04-sub" id="s04-sub" style="top:500px">A Lit tab beside Styles that follows your selection.</div>
+    </div>
+
+    <div id="s04-body">
+      <div id="s04-dom">
+        <div class="s04-row" id="s04-r0"><span class="tx" style="left:28px"><span class="g">&lt;!DOCTYPE html&gt;</span></span></div>
+        <div class="s04-row" id="s04-r1"><span class="tw" style="left:8px">▾</span><span class="tx" style="left:28px">&lt;<span class="t">html</span> <span class="a">lang</span>=<span class="v">"en"</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r2"><span class="tw" style="left:26px">▸</span><span class="tx" style="left:46px">&lt;<span class="t">head</span>&gt;…&lt;/<span class="t">head</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r3"><span class="tw" style="left:26px">▾</span><span class="tx" style="left:46px">&lt;<span class="t">body</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r4"><span class="tw" style="left:44px">▾</span><span class="tx" style="left:64px">&lt;<span class="t">fh-app</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r5"><span class="tw" style="left:62px">▾</span><span class="tx" style="left:82px"><span class="g">#shadow-root (open)</span></span></div>
+        <div class="s04-row" id="s04-r6"><span class="tw" style="left:80px">▸</span><span class="tx" style="left:100px">&lt;<span class="t">fh-header</span>&gt;…&lt;/<span class="t">fh-header</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r7"><div class="s04-sel" id="s04-sel7"></div><span class="tw" style="left:80px">▸</span><span class="tx" style="left:100px">&lt;<span class="t">fh-product-card</span>&gt;…&lt;/<span class="t">fh-product-card</span>&gt;<span class="s04-dollar" id="s04-d7">&nbsp;== $0</span></span></div>
+        <div class="s04-row" id="s04-r8"><div class="s04-sel" id="s04-sel8" style="opacity:0"></div><span class="tw" style="left:80px">▸</span><span class="tx" style="left:100px">&lt;<span class="t">fh-product-card</span>&gt;…&lt;/<span class="t">fh-product-card</span>&gt;<span class="s04-dollar" id="s04-d8">&nbsp;== $0</span></span></div>
+        <div class="s04-row" id="s04-r9"><div class="s04-sel" id="s04-sel9" style="opacity:0"></div><span class="tw" style="left:80px">▸</span><span class="tx" style="left:100px">&lt;<span class="t">fh-product-card</span>&gt;…&lt;/<span class="t">fh-product-card</span>&gt;<span class="s04-dollar" id="s04-d9">&nbsp;== $0</span></span></div>
+        <div class="s04-row" id="s04-r10"><span class="tw" style="left:80px">▸</span><span class="tx" style="left:100px">&lt;<span class="t">fh-toast</span>&gt;…&lt;/<span class="t">fh-toast</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r11"><span class="tx" style="left:64px">&lt;/<span class="t">fh-app</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r12"><span class="tx" style="left:46px">&lt;/<span class="t">body</span>&gt;</span></div>
+        <div class="s04-row" id="s04-r13"><span class="tx" style="left:28px">&lt;/<span class="t">html</span>&gt;</span></div>
+      </div>
+      <div id="s04-crumb"><span>html</span><span>body</span><span>fh-app</span><span>#shadow-root</span><b>fh-product-card</b></div>
+
+      <div id="s04-side">
+        <div id="s04-stabs">
+          <div id="s04-tabhover"></div>
+          <span style="width:74px">Styles</span><span style="width:100px">Computed</span><span style="width:80px">Layout</span><span id="s04-littab" style="width:50px">Lit</span><span style="width:36px">»</span>
+          <div id="s04-ul"></div>
+        </div>
+        <div id="s04-styles">
+          <div id="s04-sfilter">Filter<b>:hov .cls +</b></div>
+          <div class="s04-rule">element.style {<br>}</div>
+          <div class="s04-rule">:host {<span class="src">&lt;style&gt;</span><br><span class="ind"><span class="p">display</span>: <span class="val">block</span>;</span><br><span class="ind"><span class="p">border-radius</span>: <span class="val">10px</span>;</span><br><span class="ind"><span class="p">background</span>: <span class="val">#fff</span>;</span><br>}</div>
+          <div class="s04-rule">fh-product-card {<span class="src">user agent stylesheet</span><br><span class="ind"><span class="p">display</span>: <span class="val">inline</span>;</span><br>}</div>
+        </div>
+
+        <div id="s04-lit">
+          <div id="s04-det">
+            <div class="d-blk" style="display:flex;align-items:center;height:30px"><span style="font-family:'Lilex Variable',ui-monospace,monospace;font-size:20px;font-weight:700;color:#fff"><span style="color:#919191;font-weight:400">&lt;</span>fh-product-card<span style="color:#919191;font-weight:400">&gt;</span></span>
+              <span style="margin-left:auto;display:flex;gap:14px"><svg class="ico" viewBox="0 0 20 20"><path d="M16 5.5v3.5h-3.5M4 14.5V11h3.5"/><path d="M15.2 8.2A5.6 5.6 0 0 0 5 6.6M4.8 11.8A5.6 5.6 0 0 0 15 13.4"/></svg><svg class="ico" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3"/></svg></span></div>
+            <div class="d-blk" style="display:flex;height:24px;line-height:24px;margin-top:2px"><span style="width:84px;color:#919191">root</span><span>shadow, open</span></div>
+            <div class="d-blk" style="height:32px;margin:8px 0 12px;border:1px solid #363636;display:flex;align-items:center;gap:9px;padding:0 10px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:500;color:#919191"><svg class="ico" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter rows</div>
+
+            <div class="d-blk d-sec"><div class="d-sh"><svg viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>Slots <b>2</b></div>
+              <div class="d-ent"><span class="nm"><span class="sw" style="background:#4d63ff"></span>badge</span><span class="swap"><span class="ref s04-v0">&lt;span&gt;</span><span class="s04-v1" style="opacity:0"><span class="badge">empty</span></span><span class="ref s04-v2" style="opacity:0">&lt;span&gt;</span></span></div>
+              <div class="d-ent"><span class="nm"><span class="sw" style="background:#e8590c"></span>media</span><span class="ref">&lt;img&gt;</span></div></div>
+            <div class="d-blk d-sec"><div class="d-sh"><svg viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>Parts <b>2</b></div>
+              <div class="d-ent"><span class="nm"><span class="sw" style="background:#2f9e44"></span>title</span><span class="ref">&lt;h3&gt;</span></div>
+              <div class="d-ent"><span class="nm"><span class="sw" style="background:#c2255c"></span>cta</span><span class="ref">&lt;button&gt;</span></div></div>
+            <div class="d-blk d-sec"><div class="d-sh"><svg viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>Properties <b>2</b></div>
+              <div class="d-ent"><span class="nm">name</span><span class="swap"><span class="str s04-v0">"Monstera"</span><span class="str s04-v1" style="opacity:0">"Fiddle Leaf Fig"</span><span class="str s04-v2" style="opacity:0">"Snake Plant"</span></span></div>
+              <div class="d-ent"><span class="nm">price</span><span class="swap"><span class="num s04-v0">34</span><span class="num s04-v1" style="opacity:0">48</span><span class="num s04-v2" style="opacity:0">22</span></span></div></div>
+            <div class="d-blk d-sec"><div class="d-sh"><svg viewBox="0 0 12 12"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>State <b>1</b></div>
+              <div class="d-ent"><span class="nm">inCart</span><span class="swap"><span class="bool s04-v0">false</span><span class="bool s04-v1" style="opacity:0">true</span><span class="bool s04-v2" style="opacity:0">false</span></span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s04-pagelayer">
+      <div class="s04-hi" id="s04-hi1" style="left:464px"></div>
+      <div class="s04-tip" id="s04-tip1" style="left:464px"><b>fh-product-card</b>&nbsp;&nbsp;412 × 252</div>
+      <div class="s04-hi" id="s04-hi2" style="left:896px"></div>
+      <div class="s04-tip" id="s04-tip2" style="left:896px"><b>fh-product-card</b>&nbsp;&nbsp;412 × 252</div>
+    </div>
+
+    <div class="s04-ring" id="s04-ring1"></div>
+    <div class="s04-ring" id="s04-ring2"></div>
+    <div class="s04-ring" id="s04-ring3"></div>
+    <div class="s04-cursor" id="s04-cursor"><svg viewBox="0 0 24 28"><path d="M1.5 1.5 L1.5 21.5 L6.8 16.9 L10.4 25 L14 23.4 L10.4 15.6 L17.6 15.6 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  </div>
+
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var slam = function (sel, at) { tl.fromTo(sel, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, at); };
+      var cur = "#s04-cursor", svg = "#s04-cursor svg";
+      var click = function (ring, x, y, at) {
+        tl.fromTo(svg, { scale: 1 }, { scale: 0.82, duration: 0.06, ease: "power1.out", immediateRender: false }, at - 0.06);
+        tl.to(svg, { scale: 1, duration: 0.08, ease: "power1.in" }, at);
+        tl.fromTo(ring, { x: x, y: y, scale: 0.3, opacity: 0.9 }, { scale: 1.7, opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, at);
+      };
+
+      // caption rail
+      tl.fromTo("#s04-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0);
+      slam("#s04-l1", 0); slam("#s04-l2", 0.48); slam("#s04-sub", 1.92);
+
+      // 0.00 Elements: the tree waterfalls in with the first card selected, Styles active
+      for (var i = 0; i < 14; i++) {
+        tl.fromTo("#s04-r" + i, { opacity: 0, x: -12 }, { opacity: 1, x: 0, duration: 0.2, ease: "power2.out" }, i * 0.025);
+      }
+      tl.fromTo("#s04-stabs span, #s04-styles, #s04-crumb", { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.05);
+      tl.fromTo("#s04-d7", { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.2);
+
+      // cursor to the sidebar's Lit tab
+      tl.fromTo(cur, { x: 1500, y: 800, opacity: 0 }, { x: 1500, y: 800, opacity: 1, duration: 0.08 }, 0);
+      tl.fromTo(cur, { x: 1500, y: 800 }, { x: 1612, y: 527, duration: 0.4, ease: "power2.inOut", immediateRender: false }, 0.02);
+      tl.fromTo("#s04-tabhover", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 0.36);
+      tl.to("#s04-tabhover", { opacity: 0, duration: 0.15 }, 0.9);
+
+      // 0.48 HIT: Lit tab clicked, the pane opens on the selected card
+      click("#s04-ring1", 1612, 527, 0.48);
+      tl.fromTo("#s04-ul", { x: 0, scaleX: 1 }, { x: 254, scaleX: 50 / 74, duration: 0.2, ease: "power2.out", immediateRender: false }, 0.48);
+      tl.set("#s04-littab", { color: "#e3e3e3" }, 0.48);
+      tl.set("#s04-lit", { opacity: 1 }, 0.48);
+      tl.set("#s04-styles", { opacity: 0 }, 0.48);
+      tl.fromTo("#s04-det .d-blk", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.2, ease: "power2.out", stagger: 0.04 }, 0.5);
+
+      // cursor to the second card's row
+      tl.fromTo(cur, { x: 1612, y: 527 }, { x: 640, y: 712, duration: 0.6, ease: "power2.inOut", immediateRender: false }, 0.8);
+
+      // 1.44 HIT: select card 2; page highlights it, the Lit pane follows
+      click("#s04-ring2", 640, 712, 1.44);
+      tl.set("#s04-sel7, #s04-d7", { opacity: 0 }, 1.44);
+      tl.set("#s04-sel8, #s04-d8", { opacity: 1 }, 1.44);
+      tl.fromTo("#s04-hi1, #s04-tip1", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 1.4);
+      tl.set(".s04-v0", { opacity: 0 }, 1.44);
+      tl.fromTo(".s04-v1", { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power2.out" }, 1.46);
+      tl.to("#s04-hi1, #s04-tip1", { opacity: 0, duration: 0.1 }, 2.28);
+
+      // 2.40 HIT: one row down, to the third card
+      tl.fromTo(cur, { x: 640, y: 712 }, { x: 640, y: 736, duration: 0.3, ease: "power2.inOut", immediateRender: false }, 2.04);
+      tl.fromTo("#s04-hi2, #s04-tip2", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 2.34);
+      click("#s04-ring3", 640, 736, 2.40);
+      tl.set("#s04-sel8, #s04-d8", { opacity: 0 }, 2.40);
+      tl.set("#s04-sel9, #s04-d9", { opacity: 1 }, 2.40);
+      tl.set(".s04-v1", { opacity: 0 }, 2.40);
+      tl.fromTo(".s04-v2", { opacity: 0 }, { opacity: 1, duration: 0.14, ease: "power2.out" }, 2.42);
+      tl.to("#s04-hi2, #s04-tip2", { opacity: 0, duration: 0.15 }, 3.3);
+      tl.fromTo(cur, { x: 640, y: 736 }, { x: 760, y: 820, duration: 0.6, ease: "sine.inOut", immediateRender: false }, 2.7);
+
+      // snap shut before the cut back to the Lit tab
+      tl.to("#s04-body, #s04-cap, #s04-cursor", { opacity: 0, duration: 0.12, ease: "power1.in" }, 3.57);
+
+      window.__timelines["s04-sidebar"] = tl;
+    })();
+  </script>
+</template>

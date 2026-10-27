@@ -1,0 +1,310 @@
+<template id="s06-pause-template">
+  <style>
+    @font-face{font-family:"Lexend Variable";font-weight:100 900;src:url("assets/lexend-latin-wght-normal.woff2") format("woff2")}
+    @font-face{font-family:"Lilex Variable";font-weight:100 700;src:url("assets/lilex-latin-wght-normal.woff2") format("woff2")}
+
+    #s06-pause { overflow: hidden; background: transparent; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    #s06-pause * { box-sizing: border-box; }
+
+    /* ---------- caption rail ---------- */
+    .s06-eyebrow { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; top: 330px; width: 420px; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: #4d63ff; line-height: 20px; white-space: nowrap; }
+    .s06-line { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; width: 440px; font-weight: 600; font-size: 58px; letter-spacing: -0.045em; line-height: 60px; color: #fff; white-space: nowrap; }
+    .s06-line em { font-style: normal; background: linear-gradient(100deg,#4d63ff 10%,#00ffff 55%,#4d63ff 95%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-bottom: .16em; margin-bottom: -.16em; padding-right: 3px; }
+    .s06-sub { position: absolute; left: 80px; width: 400px; font-weight: 500; font-size: 22px; line-height: 30px; color: #c7c7c7; }
+
+    /* ---------- cursor ---------- */
+    .s06-cursor { position: absolute; left: 0; top: 0; width: 24px; height: 28px; pointer-events: none; z-index: 30; }
+    .s06-cursor svg { position: absolute; left: 0; top: 0; width: 24px; height: 28px; overflow: visible; transform-origin: 0 0; }
+    .s06-ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); opacity: 0; z-index: 29; }
+
+    /* ---------- Lit body (Components) ---------- */
+    #s06-lit { position: absolute; left: 540px; top: 548px; width: 1340px; height: 464px; background: #030303; overflow: hidden; font-family: 'Lilex Variable', ui-monospace, monospace; }
+    #s06-tb { position: absolute; left: 0; top: 0; width: 1340px; height: 40px; background: #0d0d0d; border-bottom: 1px solid #363636; }
+    .s06-btn { position: absolute; top: 5px; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #545868; color: #9194a2; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .s06-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; flex: none; }
+    .s06-btn.on { background: #1a2366; border-color: #1a2366; color: #8a9bff; }
+    #s06-filter { position: absolute; left: 100px; top: 5px; width: 200px; height: 30px; border: 1px solid #363636; background: #030303; display: flex; align-items: center; padding: 0 10px; gap: 9px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; color: #919191; }
+    #s06-filter svg { width: 15px; height: 15px; fill: none; stroke: #919191; stroke-width: 1.7; flex: none; }
+    #s06-tree { position: absolute; left: 0; top: 40px; width: 900px; height: 424px; border-right: 1px solid #363636; padding-top: 6px; overflow: hidden; }
+    .s06-row { position: relative; height: 27px; font-size: 15px; line-height: 27px; color: #e3e3e3; white-space: nowrap; }
+    .s06-row .tw { position: absolute; top: 0; color: #919191; font-size: 13px; width: 14px; text-align: center; }
+    .s06-row .tx { position: absolute; top: 0; }
+    .s06-row .tg { color: #82aaff; }
+    .s06-row .br { color: #6b7ab8; }
+    .s06-row.sel { background: rgb(24,29,61); }
+    .s06-row.sel::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 27px; background: #4d63ff; }
+    #s06-chip { position: absolute; left: 596px; top: 52px; height: 26px; padding: 0 12px 0 10px; display: flex; align-items: center; gap: 8px; background: #292929; border: 1px solid #363636; font-size: 14px; color: #c7c7c7; white-space: nowrap; }
+    #s06-chip i { width: 8px; height: 8px; border-radius: 50%; background: #f4bf4f; display: block; }
+
+    #s06-det { position: absolute; left: 901px; top: 40px; width: 439px; height: 424px; font-size: 15px; color: #e3e3e3; }
+    #s06-det .ico { width: 17px; height: 17px; fill: none; stroke: #919191; stroke-width: 1.6; }
+    .s06-d { position: absolute; left: 20px; right: 20px; white-space: nowrap; }
+    .s06-dt { position: absolute; left: 0; top: 0; color: #919191; }
+    .s06-sh { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; font-weight: 500; font-size: 15px; color: #919191; height: 24px; line-height: 24px; border-top: 1px solid #363636; padding-top: 0; }
+    .s06-sh b { font-weight: 500; margin-left: 8px; color: #6f6f6f; }
+    .s06-ent { height: 26px; line-height: 26px; }
+    .s06-ent .nm { display: inline-block; width: 96px; color: #e3e3e3; }
+    .s06-str { color: #c3e88d; } .s06-num { color: #f78c6c; } .s06-bool { color: #c792ea; }
+    /* the "break on" toggles: .break / .break[aria-pressed=true] at 1.25x, square corners */
+    .s06-brk { position: absolute; top: 0; height: 28px; display: flex; align-items: center; gap: 6px; padding: 0 6px; border: 1px solid transparent; color: #919191; font-size: 15px; }
+    .s06-brk svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+    .s06-brk.on { color: #ff6b6b; border-color: #ff6b6b; }
+    .s06-brk.hov { color: #e3e3e3; }
+    #s06-tip { position: absolute; left: 1412px; top: 698px; width: 352px; padding: 5px 10px; background: #292929; border: 1px solid #363636; box-shadow: 0 6px 18px rgba(0,0,0,.5); color: #e3e3e3; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 15px; line-height: 21px; z-index: 25; }
+
+    /* ---------- page overlays ---------- */
+    #s06-pagelayer { position: absolute; left: 540px; top: 128px; width: 1340px; height: 342px; overflow: hidden; }
+    #s06-btnpress { position: absolute; left: 48px; top: 272px; width: 124px; height: 36px; border-radius: 6px; background: rgba(47,111,78,.16); opacity: 0; }
+    #s06-dim { position: absolute; inset: 0; background: rgba(32,33,36,.16); opacity: 0; }
+    #s06-paused { position: absolute; left: 538px; top: 10px; height: 34px; display: flex; align-items: center; gap: 4px; padding: 0 4px 0 14px; background: #ffffc2; border: 1px solid rgba(0,0,0,.22); border-radius: 3px; box-shadow: 0 2px 8px rgba(0,0,0,.18); color: #222; font-size: 15px; font-weight: 500; white-space: nowrap; opacity: 0; }
+    #s06-paused span { margin-right: 8px; }
+    #s06-paused .pb { width: 30px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 3px; }
+    #s06-paused .pb svg { width: 18px; height: 18px; }
+
+    /* ---------- Chrome Sources body ---------- */
+    #s06-src { position: absolute; left: 540px; top: 504px; width: 1340px; height: 536px; background: #1e1e1e; overflow: hidden; opacity: 0; color: #e3e3e3; }
+    #s06-nav { position: absolute; left: 0; top: 0; width: 210px; height: 536px; border-right: 1px solid #3c3c3c; }
+    .s06-ntabs { position: absolute; left: 0; top: 0; width: 209px; height: 34px; background: #282828; border-bottom: 1px solid #3c3c3c; font-weight: 500; font-size: 14px; color: #c4c7c5; }
+    .s06-ntabs span { position: absolute; top: 0; line-height: 33px; white-space: nowrap; }
+    .s06-ntabs .act { color: #e3e3e3; height: 34px; border-bottom: 2px solid #a8c7fa; }
+    .s06-nr { position: absolute; left: 0; width: 209px; height: 24px; line-height: 24px; font-size: 14px; font-weight: 500; color: #e8eaed; white-space: nowrap; }
+    .s06-nr.selr { background: #2c3e57; }
+    .s06-nr i { position: absolute; top: 9px; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #9aa0a6; }
+    .s06-nr .ic { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: -3px; }
+    .s06-nr .ic.fo { background: #8ab4f8; opacity: .8; height: 11px; border-radius: 2px; vertical-align: -1px; }
+    .s06-nr .ic.fr { border: 1.5px solid #9aa0a6; border-radius: 2px; height: 11px; vertical-align: -1px; }
+    .s06-nr .ic.cl { background: #9aa0a6; border-radius: 7px 7px 4px 4px; height: 10px; vertical-align: -1px; }
+    .s06-nr .ic.ex { border: 1.5px solid #9aa0a6; border-radius: 3px; height: 12px; vertical-align: -2px; }
+    .s06-nr .ic.js { background: #f1c84c; border-radius: 2px; }
+    .s06-nr .ic.doc { border: 1.5px solid #9aa0a6; border-radius: 1px; width: 11px; height: 13px; vertical-align: -2px; }
+
+    #s06-etab { position: absolute; left: 211px; top: 0; width: 729px; height: 34px; background: #282828; border-bottom: 1px solid #3c3c3c; }
+    #s06-etab .tab { position: absolute; left: 0; top: 0; height: 34px; width: 128px; background: #1e1e1e; border-right: 1px solid #3c3c3c; border-bottom: 2px solid #a8c7fa; color: #e8eaed; font-size: 14px; font-weight: 500; line-height: 32px; padding-left: 14px; white-space: nowrap; }
+    #s06-etab .tab em { position: absolute; right: 12px; font-style: normal; color: #9aa0a6; }
+    #s06-code { position: absolute; left: 211px; top: 34px; width: 729px; height: 470px; overflow: hidden; }
+    .s06-ln { position: absolute; left: 0; width: 729px; height: 24px; line-height: 24px; font-family: 'Lilex Variable', ui-monospace, monospace; font-size: 15px; color: #e8eaed; white-space: pre; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    .s06-ln .no { position: absolute; left: 0; width: 60px; text-align: right; color: #7a7d82; padding-right: 12px; }
+    .s06-ln .tx { position: absolute; left: 72px; }
+    .s06-ln .k { color: #ff7ab2; } .s06-ln .s { color: #f29766; } .s06-ln .f { color: #dcdc9f; } .s06-ln .c { color: #7ca06b; } .s06-ln .p { color: #9cdcfe; }
+    .s06-ln .iv { margin-left: 12px; padding: 1px 6px; background: #303134; color: #a8c7fa; font-size: 13px; }
+    #s06-exec { position: absolute; left: 0; top: 240px; width: 729px; height: 24px; background: rgba(214,196,74,.17); }
+    #s06-execno { position: absolute; left: 6px; top: 242px; width: 52px; height: 20px; background: #a8c7fa; border-radius: 0 8px 8px 0; }
+    #s06-execglow { position: absolute; left: 0; top: 240px; width: 729px; height: 24px; background: rgba(240,220,110,.22); box-shadow: inset 3px 0 0 #f0dc6e; opacity: 0; }
+    .s06-ln.hot .no { color: #062e6f; font-weight: 600; }
+    #s06-stat { position: absolute; left: 211px; top: 504px; width: 729px; height: 32px; background: #282828; border-top: 1px solid #3c3c3c; font-size: 13px; font-weight: 500; color: #9aa0a6; line-height: 31px; }
+
+    #s06-dbg { position: absolute; left: 940px; top: 0; width: 400px; height: 536px; border-left: 1px solid #3c3c3c; background: #1e1e1e; }
+    #s06-dtool { position: absolute; left: 0; top: 0; width: 399px; height: 34px; background: #282828; border-bottom: 1px solid #3c3c3c; }
+    #s06-dtool svg { position: absolute; top: 7px; width: 20px; height: 20px; }
+    #s06-banner { position: absolute; left: 8px; top: 42px; width: 383px; height: 32px; line-height: 30px; background: #3d3a1c; border: 1px solid #6b6127; color: #f3e7a6; font-size: 14px; font-weight: 500; padding-left: 12px; white-space: nowrap; }
+    .s06-dh { position: absolute; left: 0; width: 399px; height: 28px; line-height: 27px; background: #282828; border-top: 1px solid #3c3c3c; border-bottom: 1px solid #3c3c3c; font-size: 13px; font-weight: 600; color: #e3e3e3; padding-left: 28px; white-space: nowrap; }
+    .s06-dh i { position: absolute; left: 12px; top: 9px; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #9aa0a6; }
+    .s06-dh i.o { left: 10px; top: 11px; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #9aa0a6; border-bottom: 0; }
+    .s06-sr { position: absolute; left: 0; width: 399px; height: 24px; line-height: 24px; font-family: 'Lilex Variable', ui-monospace, monospace; font-size: 14px; color: #e3e3e3; white-space: nowrap; }
+    .s06-sr i { position: absolute; top: 9px; border-top: 4px solid transparent; border-bottom: 4px solid transparent; border-left: 6px solid #9aa0a6; }
+    .s06-sr i.o { top: 10px; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid #9aa0a6; border-bottom: 0; }
+    .s06-sr .kk { color: #c792ea; } .s06-sr .sv { color: #f29766; } .s06-sr .ov { color: #e3e3e3; } .s06-sr .gr { color: #9aa0a6; }
+    .s06-cs { position: absolute; left: 0; width: 399px; height: 26px; line-height: 26px; font-size: 14px; font-weight: 500; color: #e3e3e3; white-space: nowrap; }
+    .s06-cs .fn { position: absolute; left: 32px; }
+    .s06-cs .loc { position: absolute; right: 14px; color: #9aa0a6; font-weight: 400; }
+    .s06-cs.top { background: #2c3e57; }
+    .s06-cs .arr { position: absolute; left: 12px; top: 8px; border-top: 5px solid transparent; border-bottom: 5px solid transparent; border-left: 8px solid #a8c7fa; }
+    #s06-csglow { position: absolute; left: 0; width: 399px; height: 26px; background: rgba(168,199,250,.16); opacity: 0; }
+  </style>
+
+  <div id="s06-pause" data-composition-id="s06-pause" data-width="1920" data-height="1080" style="position:absolute;inset:0">
+    <div id="s06-cap" style="position:absolute;inset:0">
+      <div class="s06-eyebrow" id="s06-eyebrow">Break on update</div>
+      <div class="s06-line" id="s06-l1" style="top:362px">Stop it</div>
+      <div class="s06-line" id="s06-l2" style="top:422px"><em>mid-update.</em></div>
+      <div class="s06-sub" id="s06-sub" style="top:500px">Pause in the debugger when a component updates or a property changes.</div>
+    </div>
+
+    <!-- Lit Components body, 0 -> 1.44 -->
+    <div id="s06-lit">
+      <div id="s06-litin">
+        <div id="s06-tb">
+          <div class="s06-btn" style="left:16px"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="5.5"/><circle cx="10" cy="10" r="1.5"/></svg>Pick</div>
+          <div id="s06-filter"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter tags</div>
+          <div class="s06-btn on" style="right:244px"><svg viewBox="0 0 20 20"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.3"/></svg>Live</div>
+          <div class="s06-btn on" style="right:148px"><svg viewBox="0 0 20 20"><path d="M11 2L4 11h5l-1 7 8-10h-5z"/></svg>Flash</div>
+          <div class="s06-btn" style="right:16px"><svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>Anatomy</div>
+        </div>
+        <div id="s06-tree">
+          <div class="s06-row"><span class="tw" style="left:6px">▾</span><span class="tx" style="left:26px"><span class="br">&lt;</span><span class="tg">fh-app</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-header</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-search</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-cart-button</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row sel"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-reviews</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+          <div class="s06-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-toast</span><span class="br">&gt;</span></span></div>
+        </div>
+        <div id="s06-chip"><i></i>production build · minified</div>
+        <div id="s06-det">
+          <div class="s06-d" style="top:14px;height:30px;display:flex;align-items:center"><span style="font-size:20px;font-weight:700;color:#fff"><span style="color:#919191;font-weight:400">&lt;</span>fh-product-card<span style="color:#919191;font-weight:400">&gt;</span></span>
+            <span style="margin-left:auto;display:flex;gap:12px"><svg class="ico" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2"/></svg><svg class="ico" viewBox="0 0 20 20"><path d="M8 4H4v4M12 4h4v4M16 12v4h-4M8 16H4v-4"/></svg></span></div>
+          <div class="s06-d" style="top:50px;height:24px;line-height:24px"><span class="s06-dt">root</span><span style="position:absolute;left:96px">shadow, open</span></div>
+          <div class="s06-d" style="top:78px;height:28px;line-height:28px"><span class="s06-dt">break on</span>
+            <div class="s06-brk" id="s06-bupd" style="left:90px"><svg viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM112,96v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Z"/></svg>update</div>
+            <div class="s06-brk" style="left:190px"><svg viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216ZM112,96v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Z"/></svg>render</div>
+          </div>
+          <div class="s06-d" style="top:118px;height:32px;border:1px solid #363636;display:flex;align-items:center;gap:9px;padding:0 10px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:500;color:#919191"><svg class="ico" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter rows</div>
+          <div class="s06-d" style="top:164px">
+            <div class="s06-sh">⌄ Properties<b>2</b></div>
+            <div class="s06-ent"><span class="nm">name</span><span class="s06-str">"Monstera"</span></div>
+            <div class="s06-ent"><span class="nm">price</span><span class="s06-num">34</span></div>
+          </div>
+          <div class="s06-d" style="top:254px">
+            <div class="s06-sh">⌄ State<b>1</b></div>
+            <div class="s06-ent"><span class="nm">inCart</span><span class="s06-bool">false</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="s06-tip">Pause in the debugger when this element enters update()</div>
+
+    <!-- Chrome Sources body, paused, 1.44 -> end -->
+    <div id="s06-src">
+      <div id="s06-srcin">
+      <div id="s06-nav">
+        <div class="s06-ntabs"><span class="act" style="left:14px">Page</span><span style="left:62px">Workspace</span><span style="left:146px">&raquo;</span></div>
+        <div class="s06-nr" style="top:42px"><i style="left:4px"></i><span style="position:absolute;left:18px"><b class="ic fr"></b>top</span></div>
+        <div class="s06-nr" style="top:66px"><i style="left:20px"></i><span style="position:absolute;left:34px"><b class="ic cl"></b>fernhouse.example</span></div>
+        <div class="s06-nr" style="top:90px"><i style="left:36px"></i><span style="position:absolute;left:50px"><b class="ic fo"></b>assets</span></div>
+        <div class="s06-nr" style="top:114px"><span style="position:absolute;left:66px"><b class="ic js"></b>index-DkP3a1.js</span></div>
+        <div class="s06-nr" style="top:138px"><span style="position:absolute;left:50px"><b class="ic doc"></b>(index)</span></div>
+        <div class="s06-nr" style="top:162px"><i style="left:20px"></i><span style="position:absolute;left:34px"><b class="ic ex"></b>Lit Inspector</span></div>
+        <div class="s06-nr selr" style="top:186px"><span style="position:absolute;left:50px"><b class="ic js"></b>page.js</span></div>
+      </div>
+      <div id="s06-etab"><div class="tab">page.js<em>&times;</em></div></div>
+      <div id="s06-code">
+        <div id="s06-exec"></div>
+        <div id="s06-execno"></div>
+        <div id="s06-execglow"></div>
+        <div class="s06-ln" style="top:0px"><span class="no">8366</span><span class="tx">  <span class="k">var</span> <span class="p">changed</span> = (el, name, old) =&gt; {</span></div>
+        <div class="s06-ln" style="top:24px"><span class="no">8367</span><span class="tx">    <span class="k">const</span> value = el[name];</span></div>
+        <div class="s06-ln" style="top:48px"><span class="no">8368</span><span class="tx">    <span class="k">try</span> {</span></div>
+        <div class="s06-ln" style="top:72px"><span class="no">8369</span><span class="tx">      <span class="k">const</span> hasChanged = el.constructor.<span class="f">getPropertyOptions</span>?.(name)?.hasChanged;</span></div>
+        <div class="s06-ln" style="top:96px"><span class="no">8370</span><span class="tx">      <span class="k">return</span> hasChanged === <span class="k">void</span> 0 ? !Object.<span class="f">is</span>(value, old) : <span class="f">hasChanged</span>(value, old);</span></div>
+        <div class="s06-ln" style="top:120px"><span class="no">8371</span><span class="tx">    } <span class="k">catch</span> {</span></div>
+        <div class="s06-ln" style="top:144px"><span class="no">8372</span><span class="tx">      <span class="k">return</span> <span class="k">true</span>;</span></div>
+        <div class="s06-ln" style="top:168px"><span class="no">8373</span><span class="tx">    }</span></div>
+        <div class="s06-ln" style="top:192px"><span class="no">8374</span><span class="tx">  };</span></div>
+        <div class="s06-ln" style="top:216px"><span class="no">8375</span><span class="tx">  <span class="k">function</span> <span class="f">pauseInMethod</span>(name, args) {<span class="iv">name = "update", args = [Map(1)]</span></span></div>
+        <div class="s06-ln hot" style="top:240px"><span class="no">8376</span><span class="tx">    <span class="k">debugger</span>;</span></div>
+        <div class="s06-ln" style="top:264px"><span class="no">8377</span><span class="tx">    <span class="k">return</span> <span class="f">protoMethod</span>(<span class="k">this</span>, name)?.<span class="f">apply</span>(<span class="k">this</span>, args);</span></div>
+        <div class="s06-ln" style="top:288px"><span class="no">8378</span><span class="tx">  }</span></div>
+        <div class="s06-ln" style="top:312px"><span class="no">8379</span><span class="tx">  <span class="k">function</span> <span class="f">pauseOnChange</span>(name, old, rest) {</span></div>
+        <div class="s06-ln" style="top:336px"><span class="no">8380</span><span class="tx">    <span class="k">if</span> (name !== <span class="k">void</span> 0 &amp;&amp; armed.<span class="f">get</span>(<span class="k">this</span>)?.props.<span class="f">has</span>(<span class="f">String</span>(name)) === <span class="k">true</span> &amp;&amp; ...</span></div>
+        <div class="s06-ln" style="top:360px"><span class="no">8381</span><span class="tx">      <span class="k">this</span>[name];</span></div>
+        <div class="s06-ln" style="top:384px"><span class="no">8382</span><span class="tx">      <span class="k">debugger</span>;</span></div>
+        <div class="s06-ln" style="top:408px"><span class="no">8383</span><span class="tx">    }</span></div>
+        <div class="s06-ln" style="top:432px"><span class="no">8384</span><span class="tx">    <span class="k">return</span> <span class="f">protoMethod</span>(<span class="k">this</span>, <span class="s">"requestUpdate"</span>)?.<span class="f">call</span>(<span class="k">this</span>, name, old, ...rest);</span></div>
+      </div>
+      <div id="s06-stat"><span style="position:absolute;left:14px">{ }&nbsp;&nbsp;Line 8376, Column 3</span></div>
+
+      <div id="s06-dbg">
+        <div id="s06-dtool">
+          <svg style="left:12px" viewBox="0 0 20 20"><rect x="4" y="4" width="2.4" height="12" fill="#a8c7fa"/><path d="M9 4l8 6-8 6z" fill="#a8c7fa"/></svg>
+          <svg style="left:46px" viewBox="0 0 20 20"><path d="M3 11a7 6 0 0 1 13 0" fill="none" stroke="#c4c7c5" stroke-width="1.7"/><path d="M16.5 6.5v4.5H12" fill="none" stroke="#c4c7c5" stroke-width="1.7"/><circle cx="10" cy="15.5" r="1.7" fill="#c4c7c5"/></svg>
+          <svg style="left:80px" viewBox="0 0 20 20"><path d="M10 2v10M6 8l4 4 4-4" fill="none" stroke="#c4c7c5" stroke-width="1.7"/><circle cx="10" cy="16" r="1.7" fill="#c4c7c5"/></svg>
+          <svg style="left:114px" viewBox="0 0 20 20"><path d="M10 13V3M6 7l4-4 4 4" fill="none" stroke="#c4c7c5" stroke-width="1.7"/><circle cx="10" cy="16" r="1.7" fill="#c4c7c5"/></svg>
+          <svg style="left:148px" viewBox="0 0 20 20"><path d="M4 10h10M10 6l4 4-4 4" fill="none" stroke="#c4c7c5" stroke-width="1.7"/><circle cx="17" cy="10" r="1.5" fill="#c4c7c5"/></svg>
+          <svg style="left:190px" viewBox="0 0 20 20"><path d="M3 5h10l4 5-4 5H3z" fill="none" stroke="#c4c7c5" stroke-width="1.6"/><path d="M2 17L17 3" stroke="#c4c7c5" stroke-width="1.6"/></svg>
+        </div>
+        <div id="s06-banner">Paused on debugger statement</div>
+        <div class="s06-dh" style="top:82px"><i></i>Watch</div>
+        <div class="s06-dh" style="top:110px"><i></i>Breakpoints</div>
+        <div class="s06-dh" style="top:138px"><i class="o"></i>Scope</div>
+        <div class="s06-sr" style="top:167px"><i class="o" style="left:14px"></i><span style="position:absolute;left:30px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:600;font-size:13px">Local</span></div>
+        <div class="s06-sr" style="top:191px"><i style="left:32px"></i><span style="position:absolute;left:46px"><span class="kk">this</span>: <span class="ov">fh-product-card</span></span></div>
+        <div class="s06-sr" style="top:215px"><i style="left:32px"></i><span style="position:absolute;left:46px"><span class="kk">args</span>: <span class="ov">Array(1)</span></span></div>
+        <div class="s06-sr" style="top:239px"><span style="position:absolute;left:46px"><span class="kk">name</span>: <span class="sv">"update"</span></span></div>
+        <div class="s06-sr" style="top:263px"><i style="left:14px"></i><span style="position:absolute;left:30px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:600;font-size:13px">Closure</span></div>
+        <div class="s06-sr" style="top:287px"><i style="left:14px"></i><span style="position:absolute;left:30px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:600;font-size:13px">Global</span><span class="gr" style="position:absolute;right:14px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:13px">Window</span></div>
+        <div class="s06-dh" style="top:314px"><i class="o"></i>Call Stack</div>
+        <div id="s06-csglow" style="top:343px"></div>
+        <div class="s06-cs top" style="top:343px"><span class="arr"></span><span class="fn">pauseInMethod</span><span class="loc">page.js:8376</span></div>
+        <div class="s06-cs" style="top:369px"><span class="fn">(anonymous)</span><span class="loc">page.js:8409</span></div>
+        <div class="s06-cs" style="top:395px"><span class="fn">performUpdate</span><span class="loc">index-DkP3a1.js:1</span></div>
+        <div class="s06-cs" style="top:421px"><span class="fn">scheduleUpdate</span><span class="loc">index-DkP3a1.js:1</span></div>
+        <div class="s06-dh" style="top:450px"><i></i>XHR/fetch Breakpoints</div>
+        <div class="s06-dh" style="top:478px"><i></i>DOM Breakpoints</div>
+        <div class="s06-dh" style="top:506px"><i></i>Global Listeners</div>
+      </div>
+      </div>
+    </div>
+
+    <div id="s06-pagelayer">
+      <div id="s06-btnpress"></div>
+      <div id="s06-dim"></div>
+      <div id="s06-paused"><span>Paused in debugger</span>
+        <div class="pb" style="background:#d3e3fd"><svg viewBox="0 0 20 20"><rect x="4" y="4" width="2.4" height="12" fill="#0b57d0"/><path d="M9 4l8 6-8 6z" fill="#0b57d0"/></svg></div>
+        <div class="pb"><svg viewBox="0 0 20 20"><path d="M3 11a7 6 0 0 1 13 0" fill="none" stroke="#444" stroke-width="1.7"/><path d="M16.5 6.5v4.5H12" fill="none" stroke="#444" stroke-width="1.7"/><circle cx="10" cy="15.5" r="1.7" fill="#444"/></svg></div>
+      </div>
+    </div>
+
+    <div class="s06-ring" id="s06-ring1"></div>
+    <div class="s06-ring" id="s06-ring2"></div>
+    <div class="s06-cursor" id="s06-cursor"><svg viewBox="0 0 24 28"><path d="M1.5 1.5 L1.5 21.5 L6.8 16.9 L10.4 25 L14 23.4 L10.4 15.6 L17.6 15.6 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  </div>
+
+  <script>
+    (function () {
+      var tl = gsap.timeline({ paused: true });
+      var slam = function (sel, at) { tl.fromTo(sel, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, at); };
+
+      // caption: calm, three entries on the bar
+      tl.fromTo("#s06-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 0);
+      slam("#s06-l1", 0); slam("#s06-l2", 0.48); slam("#s06-sub", 0.96);
+
+      // 0.00 Lit Components with the first product card selected
+      tl.fromTo("#s06-litin", { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "power1.out" }, 0);
+      tl.set("#s06-tip", { opacity: 0 }, 0);
+
+      var cur = "#s06-cursor", svg = "#s06-cursor svg";
+      var BX = 1588, BY = 677;      // "update" toggle
+      var AX = 650, AY = 418;       // Monstera's "Add to cart"
+      tl.fromTo(cur, { x: 1330, y: 870, opacity: 0 }, { x: 1330, y: 870, opacity: 1, duration: 0.12 }, 0.02);
+      tl.fromTo(cur, { x: 1330, y: 870 }, { x: BX, y: BY, duration: 0.36, ease: "power2.inOut", immediateRender: false }, 0.06);
+      tl.fromTo("#s06-bupd", { color: "#919191", borderColor: "rgba(255,107,107,0)" }, { color: "#e3e3e3", duration: 0.08 }, 0.34);
+      tl.fromTo("#s06-tip", { opacity: 0, y: -3 }, { opacity: 1, y: 0, duration: 0.14, ease: "power2.out", immediateRender: false }, 0.34);
+
+      // 0.48 HIT: arm update
+      tl.fromTo(svg, { scale: 1 }, { scale: 0.82, duration: 0.06, ease: "power1.out", immediateRender: false }, 0.44);
+      tl.to(svg, { scale: 1, duration: 0.08, ease: "power1.in" }, 0.5);
+      tl.fromTo("#s06-ring1", { x: BX, y: BY, scale: 0.3, opacity: 0.9 }, { scale: 1.6, opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, 0.48);
+      tl.to("#s06-bupd", { color: "#ff6b6b", borderColor: "rgba(255,107,107,1)", duration: 0.08 }, 0.48);
+
+      // tooltip leaves with the cursor; cursor glides to the page
+      tl.to("#s06-tip", { opacity: 0, duration: 0.12 }, 0.6);
+      tl.fromTo(cur, { x: BX, y: BY }, { x: AX, y: AY, duration: 0.34, ease: "power2.inOut", immediateRender: false }, 0.58);
+
+      // 0.96 HIT: click Add to cart on the Monstera card
+      tl.fromTo(svg, { scale: 1 }, { scale: 0.82, duration: 0.06, ease: "power1.out", immediateRender: false }, 0.92);
+      tl.to(svg, { scale: 1, duration: 0.08, ease: "power1.in" }, 0.98);
+      tl.fromTo("#s06-ring2", { x: AX, y: AY, scale: 0.3, opacity: 0.9 }, { scale: 1.6, opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, 0.96);
+      tl.fromTo("#s06-btnpress", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.96);
+
+      // 1.44 HIT: chrome switches to Sources; the page is paused
+      tl.set("#s06-lit", { opacity: 0 }, 1.44);
+      tl.set("#s06-src", { opacity: 1 }, 1.44);
+      tl.fromTo("#s06-srcin", { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power1.out" }, 1.44);
+      tl.fromTo("#s06-exec, #s06-execno", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.out" }, 1.5);
+      tl.fromTo("#s06-dim", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power1.out" }, 1.44);
+      tl.fromTo("#s06-paused", { opacity: 0, y: -6 }, { opacity: 1, y: 0, duration: 0.24, ease: "power3.out" }, 1.44);
+      tl.to(cur, { opacity: 0, duration: 0.24 }, 1.62);
+
+      // 2.40 gentle glow on the paused line and the top frame
+      tl.fromTo("#s06-execglow, #s06-csglow", { opacity: 0 }, { opacity: 1, duration: 0.36, ease: "sine.out" }, 2.40);
+      tl.to("#s06-execglow, #s06-csglow", { opacity: 0.35, duration: 0.7, ease: "sine.inOut" }, 2.76);
+
+      // out by local 3.69
+      tl.to("#s06-cap, #s06-src, #s06-dim, #s06-paused, #s06-btnpress", { opacity: 0, duration: 0.15, ease: "power1.in" }, 3.54);
+
+      window.__timelines["s06-pause"] = tl;
+    })();
+  </script>
+</template>

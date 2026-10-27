@@ -1,0 +1,233 @@
+<template id="s10-global-template">
+  <style>
+    @font-face{font-family:"Lexend Variable";font-weight:100 900;src:url("assets/lexend-latin-wght-normal.woff2") format("woff2")}
+    @font-face{font-family:"Lilex Variable";font-weight:100 700;src:url("assets/lilex-latin-wght-normal.woff2") format("woff2")}
+
+    #s10-global { overflow: hidden; background: transparent; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    #s10-global * { box-sizing: border-box; }
+    .s10-eyebrow { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; top: 330px; width: 420px; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: #4d63ff; line-height: 20px; white-space: nowrap; }
+    .s10-line { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; width: 440px; font-weight: 600; font-size: 58px; letter-spacing: -0.045em; line-height: 60px; color: #fff; white-space: nowrap; }
+    .s10-line b { background: linear-gradient(100deg,#4d63ff 10%,#00ffff 55%,#4d63ff 95%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-bottom: .16em; margin-bottom: -.16em; padding-right: 3px; font-weight: 600; }
+    .s10-sub { position: absolute; left: 80px; width: 400px; font-weight: 500; font-size: 22px; line-height: 30px; color: #c7c7c7; }
+    .s10-sub code { font-family: 'Lilex Variable', ui-monospace, monospace; font-size: 20px; color: #e3e3e3; }
+    .s10-cursor { position: absolute; left: 0; top: 0; width: 24px; height: 28px; pointer-events: none; z-index: 20; }
+    .s10-cursor svg { position: absolute; left: 0; top: 0; width: 24px; height: 28px; overflow: visible; transform-origin: 0 0; }
+    .s10-ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); opacity: 0; z-index: 19; }
+
+    /* ---------- Lit Components body (y 548 → 1012) ---------- */
+    #s10-body { position: absolute; left: 540px; top: 548px; width: 1340px; height: 464px; background: #030303; overflow: hidden; font-family: 'Lilex Variable', ui-monospace, monospace; }
+    #s10-tb { position: absolute; left: 0; top: 0; width: 1340px; height: 40px; background: #0d0d0d; border-bottom: 1px solid #363636; }
+    .s10-btn { position: absolute; top: 5px; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #545868; color: #9194a2; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .s10-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; flex: none; }
+    .s10-btn.on { background: #1a2366; border-color: #1a2366; color: #8a9bff; }
+    #s10-filter { position: absolute; left: 100px; top: 5px; width: 200px; height: 30px; border: 1px solid #363636; background: #030303; display: flex; align-items: center; padding: 0 10px; gap: 9px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; color: #919191; }
+    #s10-filter svg { width: 15px; height: 15px; fill: none; stroke: #919191; stroke-width: 1.7; flex: none; }
+    #s10-tree { position: absolute; left: 0; top: 40px; width: 900px; height: 424px; border-right: 1px solid #363636; padding-top: 6px; overflow: hidden; }
+    .s10-row { position: relative; height: 27px; font-size: 15px; line-height: 27px; color: #e3e3e3; white-space: nowrap; }
+    .s10-row .tw { position: absolute; top: 0; color: #919191; font-size: 13px; width: 14px; text-align: center; }
+    .s10-row .tx { position: absolute; top: 0; }
+    .s10-row .tg { color: #82aaff; }
+    .s10-row .br { color: #6b7ab8; }
+    .s10-row.sel { background: rgb(24,29,61); box-shadow: inset 2px 0 #4d63ff; }
+    #s10-det { position: absolute; left: 901px; top: 40px; width: 439px; height: 424px; }
+    #s10-detail { position: absolute; left: 20px; top: 14px; right: 20px; font-size: 15px; color: #e3e3e3; }
+    #s10-detail .ico { width: 17px; height: 17px; fill: none; stroke: #919191; stroke-width: 1.6; }
+    #s10-detail .d-sec { border-top: 1px solid #363636; padding: 6px 0 8px; }
+    #s10-detail .d-sh { height: 24px; line-height: 24px; font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; font-weight: 500; font-size: 13px; color: #919191; }
+    #s10-detail .d-sh b { font-weight: 600; margin-left: 8px; }
+    #s10-detail .d-ent { position: relative; display: flex; align-items: center; height: 26px; white-space: nowrap; }
+    #s10-detail .nm { width: 96px; flex: none; color: #e3e3e3; }
+    #s10-detail .str { color: #c3e88d; }
+    #s10-detail .num { color: #f78c6c; }
+    #s10-detail .bool { color: #c792ea; }
+    #s10-detail .pu { color: #919191; }
+    #s10-detail .type { margin-left: 10px; font-size: 12px; line-height: 17px; padding: 0 6px; background: rgba(255,255,255,.08); color: #919191; }
+    #s10-detail .wide { height: auto; display: block; padding: 2px 0; }
+    #s10-detail .wide .hd { display: flex; align-items: center; height: 24px; }
+    #s10-detail .wide .val { padding-left: 24px; line-height: 22px; white-space: normal; overflow-wrap: anywhere; }
+    #s10-detail .caret { color: #919191; font-size: 12px; margin-right: 6px; }
+    .s10-rb { position: absolute; top: 1px; width: 30px; height: 24px; display: flex; align-items: center; justify-content: center; background: #030303; color: #919191; opacity: 0; }
+    .s10-rb svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    #s10-store { right: 30px; }
+    #s10-copy { right: 0; }
+    #s10-storeon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #e3e3e3; opacity: 0; background: #030303; }
+    #s10-press { position: absolute; inset: 0; background: rgba(77,99,255,.3); opacity: 0; }
+    #s10-tip { position: absolute; left: 1420px; top: 708px; height: 30px; padding: 0 10px; display: flex; align-items: center; background: #1a1a1a; border: 1px solid #363636; color: #e3e3e3; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; white-space: nowrap; opacity: 0; z-index: 15; }
+
+    /* ---------- Chrome Console body (y 504 → 1040) ---------- */
+    #s10-con { position: absolute; left: 540px; top: 504px; width: 1340px; height: 536px; background: #1e1e1e; overflow: hidden; opacity: 0; font-family: 'Lilex Variable', ui-monospace, monospace; font-variant-ligatures: none; font-feature-settings: "calt" 0, "liga" 0; }
+    #s10-ctb { position: absolute; left: 0; top: 0; width: 1340px; height: 34px; background: #282828; border-bottom: 1px solid #3c3c3c; display: flex; align-items: center; gap: 14px; padding: 0 12px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; color: #c4c7c5; white-space: nowrap; }
+    #s10-ctb svg { width: 18px; height: 18px; fill: none; stroke: #9aa0a6; stroke-width: 1.6; flex: none; }
+    #s10-ctb .sep { width: 1px; height: 18px; background: #3c3c3c; }
+    #s10-ctb .dd { display: flex; align-items: center; gap: 6px; }
+    #s10-ctb .dd i { font-style: normal; font-size: 11px; color: #9aa0a6; }
+    #s10-cfilter { width: 380px; height: 24px; border: 1px solid #3c3c3c; border-radius: 4px; background: #1e1e1e; color: #9aa0a6; padding: 0 10px; line-height: 22px; }
+    #s10-ctb .right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+    .s10-cl { position: absolute; left: 0; width: 1340px; height: 32px; line-height: 32px; font-size: 16px; color: #e3e3e3; white-space: nowrap; padding-left: 34px; }
+    .s10-cl.msg { border-bottom: 1px solid #333; }
+    .s10-cl .gl { position: absolute; left: 12px; top: 0; width: 16px; text-align: center; color: #9aa0a6; }
+    .s10-cl .gl.blue { color: #a8c7fa; }
+    .s10-cl .src { position: absolute; right: 14px; top: 0; color: #9aa0a6; text-decoration: underline; text-underline-offset: 3px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 14px; }
+    .s10-cl .tri { color: #9aa0a6; font-size: 11px; margin-right: 6px; }
+    .s10-cl .str { color: #f29766; }
+    .s10-cl .n { color: #9980ff; }
+    .s10-cl .k { color: #9aa0a6; }
+    .s10-cl .ital { font-style: italic; }
+    .s10-cl.eager { color: #9aa0a6; }
+    .s10-cl.eager .str { color: #9aa0a6; }
+    .s10-caret { display: inline-block; width: 2px; height: 18px; background: #e3e3e3; vertical-align: -3px; margin-left: 1px; }
+    #s10-logflash { position: absolute; inset: 0; background: rgba(168,199,250,.12); opacity: 0; }
+  </style>
+
+  <div id="s10-global" data-composition-id="s10-global" data-width="1920" data-height="1080" style="position:absolute;inset:0">
+    <div class="s10-eyebrow" id="s10-eyebrow">Store as global</div>
+    <div class="s10-line" id="s10-l1" style="top:362px">Grab the</div>
+    <div class="s10-line" id="s10-l2" style="top:422px"><b>real object.</b></div>
+    <div class="s10-sub" id="s10-sub" style="top:500px">Any property as <code>temp1</code> in the console.</div>
+
+    <div id="s10-body">
+      <div id="s10-tb">
+        <div class="s10-btn" style="left:16px"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="5.5"/><circle cx="10" cy="10" r="1.5"/></svg>Pick</div>
+        <div id="s10-filter"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter tags</div>
+        <div class="s10-btn on" style="right:244px"><svg viewBox="0 0 20 20"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.3"/></svg>Live</div>
+        <div class="s10-btn on" style="right:148px"><svg viewBox="0 0 20 20"><path d="M11 2L4 11h5l-1 7 8-10h-5z"/></svg>Flash</div>
+        <div class="s10-btn" style="right:16px"><svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>Anatomy</div>
+      </div>
+      <div id="s10-tree">
+        <div class="s10-row"><span class="tw" style="left:6px">▾</span><span class="tx" style="left:26px"><span class="br">&lt;</span><span class="tg">fh-app</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-header</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-search</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row sel"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-cart-button</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-reviews</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s10-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-toast</span><span class="br">&gt;</span></span></div>
+      </div>
+      <div id="s10-det">
+        <div id="s10-detail">
+          <div style="display:flex;align-items:center;height:30px"><span style="font-size:20px;font-weight:700;color:#fff"><span style="color:#919191;font-weight:400">&lt;</span>fh-cart-button<span style="color:#919191;font-weight:400">&gt;</span></span>
+            <span style="margin-left:auto;display:flex;gap:12px"><svg class="ico" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2"/></svg><svg class="ico" viewBox="0 0 20 20"><path d="M8 4H4v4M12 4h4v4M16 12v4h-4M8 16H4v-4"/></svg></span></div>
+          <div style="display:flex;height:24px;line-height:24px;margin-top:2px"><span style="width:84px;color:#919191">root</span><span>shadow, open</span></div>
+          <div style="height:32px;margin:8px 0 12px;border:1px solid #363636;display:flex;align-items:center;gap:9px;padding:0 10px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:500;color:#919191"><svg class="ico" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter rows</div>
+
+          <div class="d-sec"><div class="d-sh">⌄ Properties<b>2</b></div>
+            <div class="d-ent wide" id="s10-items">
+              <div class="hd"><span class="nm" style="width:auto">items</span><span class="type">Array(3)</span></div>
+              <div class="val"><span class="caret">▸</span><span class="pu">[{</span>name<span class="pu">:</span> <span class="str">"Monstera"</span><span class="pu">,</span> qty<span class="pu">:</span> <span class="num">1</span><span class="pu">}, {</span>name<span class="pu">:</span> <span class="str">"Snake Plant"</span><span class="pu">,</span> qty<span class="pu">:</span> <span class="num">1</span><span class="pu">}, {</span>name<span class="pu">:</span> <span class="str">"Fiddle Leaf Fig"</span><span class="pu">,</span> qty<span class="pu">:</span> <span class="num">1</span><span class="pu">}]</span></div>
+              <div class="s10-rb" id="s10-store"><svg viewBox="0 0 20 20"><path d="M4 5l5 5-5 5M10.5 15H16"/></svg><div id="s10-storeon"><svg viewBox="0 0 20 20"><path d="M4 5l5 5-5 5M10.5 15H16"/></svg></div><div id="s10-press"></div></div>
+              <div class="s10-rb" id="s10-copy"><svg viewBox="0 0 20 20"><rect x="7" y="7" width="10" height="10"/><path d="M13 7V3H3v10h4"/></svg></div>
+            </div>
+            <div class="d-ent"><span class="nm">label</span><span class="str">"Cart"</span></div></div>
+          <div class="d-sec"><div class="d-sh">⌄ State<b>1</b></div>
+            <div class="d-ent"><span class="nm">open</span><span class="bool">false</span></div></div>
+          <div class="d-sec"><div class="d-sh">⌄ Instance<b>1</b></div>
+            <div class="d-ent"><span class="nm">renders</span><span class="num">2</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div id="s10-tip">Store as global variable (named in the console)</div>
+
+    <div id="s10-con">
+      <div id="s10-ctb">
+        <svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12"/><path d="M8 4v12"/></svg>
+        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="6.5"/><path d="M5.5 14.5l9-9"/></svg>
+        <div class="sep"></div>
+        <div class="dd">top<i>▼</i></div>
+        <svg viewBox="0 0 20 20"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.3"/></svg>
+        <div id="s10-cfilter">Filter</div>
+        <div class="dd">Default levels<i>▼</i></div>
+        <div class="right"><span style="color:#9aa0a6">No Issues</span><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.6"/><path d="M10 2.5v2.2M10 15.3v2.2M2.5 10h2.2M15.3 10h2.2M4.7 4.7l1.6 1.6M13.7 13.7l1.6 1.6M4.7 15.3l1.6-1.6M13.7 6.3l1.6-1.6"/></svg></div>
+      </div>
+      <div class="s10-cl msg" id="s10-log" style="top:34px"><div id="s10-logflash"></div><span style="position:relative">temp1 <span class="tri">▶</span><span class="ital">(3) [{…}, {…}, {…}]</span></span><span class="src">page.js:1</span></div>
+      <div class="s10-cl" id="s10-p1" style="top:66px"><span class="gl blue" id="s10-p1g">›</span><span id="s10-p1t"></span><span class="s10-caret" id="s10-c1"></span></div>
+      <div class="s10-cl eager" id="s10-e1" style="top:98px"><span class="str">'Monstera'</span></div>
+      <div class="s10-cl msg" id="s10-r1" style="top:98px"><span class="gl">←</span><span class="str">'Monstera'</span></div>
+      <div class="s10-cl" id="s10-p2" style="top:130px"><span class="gl blue" id="s10-p2g">›</span><span id="s10-p2t"></span><span class="s10-caret" id="s10-c2"></span></div>
+      <div class="s10-cl msg" id="s10-r2" style="top:162px"><span class="gl">←</span><span class="tri">▶</span><span class="ital">(3) [<span class="str">'Monstera'</span>, <span class="str">'Snake Plant'</span>, <span class="str">'Fiddle Leaf Fig'</span>]</span></div>
+      <div class="s10-cl" id="s10-p3" style="top:194px"><span class="gl blue">›</span><span class="s10-caret" id="s10-c3"></span></div>
+    </div>
+
+    <div class="s10-ring" id="s10-ring"></div>
+    <div class="s10-cursor" id="s10-cursor"><svg viewBox="0 0 24 28"><path d="M1.5 1.5 L1.5 21.5 L6.8 16.9 L10.4 25 L14 23.4 L10.4 15.6 L17.6 15.6 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  </div>
+
+  <script>
+    (function () {
+      // typed text: one span per character, revealed in order
+      var spell = function (id, text) {
+        var el = document.getElementById(id), h = "";
+        for (var i = 0; i < text.length; i++) h += '<span style="display:none">' + text[i].replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + "</span>";
+        el.innerHTML = h;
+        return el.children;
+      };
+      var t1 = spell("s10-p1t", "temp1[0].name");
+      var t2 = spell("s10-p2t", "temp1.map(i => i.name)");
+
+      var tl = gsap.timeline({ paused: true });
+      var slam = function (sel, at) { tl.fromTo(sel, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, at); };
+      tl.fromTo("#s10-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0);
+      slam("#s10-l1", 0); slam("#s10-l2", 0.96); slam("#s10-sub", 1.92);
+
+      // 0.00 Lit Components, <fh-cart-button> selected; cursor drifts to the items row
+      var cur = "#s10-cursor", svg = "#s10-cursor svg";
+      tl.fromTo(cur, { x: 1560, y: 930, opacity: 0 }, { x: 1560, y: 930, opacity: 1, duration: 0.12 }, 0);
+      tl.fromTo(cur, { x: 1560, y: 930 }, { x: 1690, y: 752, duration: 0.44, ease: "power2.inOut", immediateRender: false }, 0.04);
+      // 0.48 HIT: row hover, its buttons appear
+      tl.fromTo("#s10-store, #s10-copy", { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.48);
+      // to the store button, tooltip
+      tl.fromTo(cur, { x: 1690, y: 752 }, { x: 1812, y: 750, duration: 0.26, ease: "power2.inOut", immediateRender: false }, 0.5);
+      tl.fromTo("#s10-storeon", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 0.74);
+      tl.fromTo("#s10-tip", { opacity: 0, y: 4 }, { opacity: 1, y: 0, duration: 0.14, ease: "power2.out" }, 0.78);
+      // 0.96 HIT: click store
+      tl.fromTo(svg, { scale: 1 }, { scale: 0.82, duration: 0.06, ease: "power1.out", immediateRender: false }, 0.92);
+      tl.to(svg, { scale: 1, duration: 0.08, ease: "power1.in" }, 0.98);
+      tl.fromTo("#s10-ring", { x: 1812, y: 750, scale: 0.3, opacity: 0.9 }, { scale: 1.7, opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, 0.96);
+      tl.fromTo("#s10-press", { opacity: 0 }, { opacity: 1, duration: 0.05 }, 0.96);
+      tl.to("#s10-press", { opacity: 0, duration: 0.2 }, 1.02);
+
+      // 1.20 the chrome switches DevTools to Console: cut
+      tl.set(["#s10-body", "#s10-tip", cur, "#s10-ring"], { opacity: 0 }, 1.20);
+      tl.set("#s10-con", { opacity: 1 }, 1.20);
+      tl.fromTo("#s10-logflash", { opacity: 1 }, { opacity: 0, duration: 0.6, ease: "power1.in", immediateRender: false }, 1.20);
+      tl.set("#s10-logflash", { opacity: 0 }, 0);
+
+      // initial console state
+      tl.set(["#s10-e1", "#s10-r1", "#s10-p2", "#s10-r2", "#s10-p3"], { opacity: 0 }, 0);
+
+      // caret blink while idle on prompt 1
+      tl.set("#s10-c1", { opacity: 1 }, 0);
+      tl.set("#s10-c1", { opacity: 0 }, 1.44);
+      tl.set("#s10-c1", { opacity: 1 }, 1.56);
+
+      // type expression 1, finishing on 1.92 with Chrome's eager preview
+      var step1 = 0.36 / t1.length;
+      for (var i = 0; i < t1.length; i++) tl.set(t1[i], { display: "inline" }, 1.56 + step1 * (i + 1));
+      tl.fromTo("#s10-e1", { opacity: 0 }, { opacity: 1, duration: 0.1 }, 1.92);
+      // 2.40 HIT: Enter, result, new prompt
+      tl.set("#s10-c1", { opacity: 0 }, 2.40);
+      tl.set("#s10-p1g", { color: "#9aa0a6" }, 2.40);
+      tl.set("#s10-p1", { borderBottom: "1px solid #333" }, 2.40);
+      tl.set("#s10-e1", { opacity: 0 }, 2.40);
+      tl.fromTo("#s10-r1", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 2.40);
+      tl.set("#s10-p2", { opacity: 1 }, 2.40);
+
+      // type expression 2, Enter on 2.88
+      var step2 = 0.38 / t2.length;
+      for (var j = 0; j < t2.length; j++) tl.set(t2[j], { display: "inline" }, 2.44 + step2 * (j + 1));
+      tl.set("#s10-c2", { opacity: 0 }, 2.88);
+      tl.set("#s10-p2g", { color: "#9aa0a6" }, 2.88);
+      tl.set("#s10-p2", { borderBottom: "1px solid #333" }, 2.88);
+      tl.fromTo("#s10-r2", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 2.88);
+      tl.set("#s10-p3", { opacity: 1 }, 2.88);
+      tl.set("#s10-c3", { opacity: 0 }, 3.40);
+      tl.set("#s10-c3", { opacity: 1 }, 3.52);
+
+      // out by local dur - 0.12
+      var out = 3.69;
+      tl.to(["#s10-eyebrow", "#s10-l1", "#s10-l2", "#s10-sub", "#s10-con"], { opacity: 0, duration: 0.15, ease: "power1.in" }, out);
+
+      window.__timelines["s10-global"] = tl;
+    })();
+  </script>
+</template>

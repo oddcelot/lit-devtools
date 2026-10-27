@@ -1,0 +1,253 @@
+<template id="s05-docs-template">
+  <style>
+    @font-face{font-family:"Lexend Variable";font-weight:100 900;src:url("assets/lexend-latin-wght-normal.woff2") format("woff2")}
+    @font-face{font-family:"Lilex Variable";font-weight:100 700;src:url("assets/lilex-latin-wght-normal.woff2") format("woff2")}
+
+    #s05-docs { overflow: hidden; background: transparent; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    #s05-docs * { box-sizing: border-box; }
+    .s05-eyebrow { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; top: 330px; width: 420px; font-weight: 600; font-size: 16px; letter-spacing: .14em; text-transform: uppercase; color: #4d63ff; line-height: 20px; white-space: nowrap; }
+    .s05-line { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; position: absolute; left: 80px; width: 440px; font-weight: 600; font-size: 58px; letter-spacing: -0.045em; line-height: 60px; color: #fff; white-space: nowrap; }
+    .s05-line em { font-style: normal; background: linear-gradient(100deg,#4d63ff 10%,#00ffff 55%,#4d63ff 95%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; padding-bottom: .16em; margin-bottom: -.16em; padding-right: 3px; }
+    .s05-sub { position: absolute; left: 80px; width: 400px; font-weight: 500; font-size: 22px; line-height: 30px; color: #c7c7c7; }
+    .s05-cursor { position: absolute; left: 0; top: 0; width: 24px; height: 28px; pointer-events: none; z-index: 20; }
+    .s05-cursor svg { position: absolute; left: 0; top: 0; width: 24px; height: 28px; overflow: visible; }
+
+    /* Lit body */
+    #s05-body { position: absolute; left: 540px; top: 548px; width: 1340px; height: 464px; background: #030303; overflow: hidden; font-family: 'Lilex Variable', ui-monospace, monospace; }
+    #s05-tb { position: absolute; left: 0; top: 0; width: 1340px; height: 40px; background: #0d0d0d; border-bottom: 1px solid #363636; }
+    .s05-btn { position: absolute; top: 5px; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #545868; color: #9194a2; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 600; font-size: 15px; white-space: nowrap; }
+    .s05-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; flex: none; }
+    .s05-btn.on { background: #1a2366; border-color: #1a2366; color: #8a9bff; }
+    #s05-filter { position: absolute; left: 100px; top: 5px; width: 200px; height: 30px; border: 1px solid #363636; background: #030303; display: flex; align-items: center; padding: 0 10px; gap: 9px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-weight: 500; font-size: 15px; color: #919191; }
+    #s05-filter svg { width: 15px; height: 15px; fill: none; stroke: #919191; stroke-width: 1.7; flex: none; }
+    #s05-tree { position: absolute; left: 0; top: 40px; width: 480px; height: 424px; border-right: 1px solid #363636; padding-top: 6px; overflow: hidden; }
+    .s05-row { position: relative; height: 27px; font-size: 15px; line-height: 27px; color: #e3e3e3; white-space: nowrap; }
+    .s05-row .tw { position: absolute; top: 0; color: #919191; font-size: 13px; width: 14px; text-align: center; }
+    .s05-row .tx { position: absolute; top: 0; }
+    .s05-row .tg { color: #82aaff; }
+    .s05-row .br { color: #6b7ab8; }
+    .s05-row.sel { background: rgb(24,29,61); }
+    .s05-row.sel::before { content: ""; position: absolute; left: 0; top: 0; width: 2px; height: 27px; background: #4d63ff; }
+
+    /* details pane: the split is dragged wider than in the Pick scene */
+    #s05-det { position: absolute; left: 481px; top: 40px; width: 859px; height: 424px; overflow: hidden; }
+    #s05-scroll { position: absolute; left: 20px; top: 14px; width: 819px; height: 760px; font-size: 15px; color: #e3e3e3; }
+    #s05-scroll .blk { position: absolute; left: 0; width: 819px; }
+    #s05-scroll .ico { width: 17px; height: 17px; fill: none; stroke: #919191; stroke-width: 1.6; }
+    #s05-scroll .sec { border-top: 1px solid #363636; padding-top: 6px; }
+    #s05-scroll .sh { position: relative; height: 24px; line-height: 24px; display: flex; align-items: center; gap: 8px; }
+    #s05-scroll .sh .cv { width: 13px; height: 13px; fill: #919191; flex: none; }
+    #s05-scroll .sh .lb { font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif; font-weight: 500; font-size: 15px; color: #c7c7c7; }
+    #s05-scroll .sh .ct { font-size: 13px; color: #919191; }
+    #s05-scroll .ent { position: relative; display: flex; align-items: center; height: 26px; white-space: nowrap; }
+    #s05-scroll .ent > * { position: relative; }
+    #s05-scroll .nm { width: 210px; flex: none; color: #e3e3e3; display: flex; align-items: center; }
+    #s05-scroll .sw { width: 10px; height: 10px; margin-right: 9px; flex: none; }
+    #s05-scroll .bdg { margin-left: 8px; font-size: 12px; line-height: 17px; padding: 0 6px; background: #292929; color: #a1a1a1; }
+    #s05-scroll .ty { margin-left: 8px; font-size: 12px; line-height: 17px; padding: 0 6px; background: rgba(255,255,255,.08); color: #919191; }
+    #s05-scroll .p { color: #919191; }
+    #s05-scroll .t { color: #8fd8ff; }
+    #s05-scroll .str { color: #c3e88d; }
+    #s05-scroll .num { color: #f78c6c; }
+    #s05-scroll .dl { position: relative; height: 20px; line-height: 18px; padding-left: 10px; font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 14px; color: #919191; white-space: nowrap; }
+    #s05-scroll .prose { font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 16px; line-height: 24px; color: #c7c7c7; margin-top: 8px; }
+    #s05-scroll .prose b { color: #e3e3e3; font-weight: 600; }
+    #s05-scroll .evd { font-family: ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-size: 15px; color: #c7c7c7; white-space: nowrap; }
+    #s05-scroll .evd code { font-family: 'Lilex Variable', ui-monospace, monospace; font-size: 14px; color: #e3e3e3; background: rgba(255,255,255,.07); padding: 0 4px; }
+    #s05-origin { position: absolute; right: 0; top: 10px; width: 17px; height: 17px; color: #919191; }
+    #s05-origin svg { display: block; width: 17px; height: 17px; fill: currentColor; }
+    #s05-ev-flash { position: absolute; left: -10px; right: -10px; top: 30px; height: 30px; background: rgba(77,99,255,.32); border-left: 2px solid #4d63ff; opacity: 0; }
+    .s05-ring { position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(255,255,255,.9); opacity: 0; z-index: 19; }
+    .s05-hov { position: absolute; left: -10px; right: -10px; top: 0; height: 26px; background: rgba(255,255,255,.06); opacity: 0; }
+    /* anatomy overlay on the page (anatomy-overlay.ts: host dashed grey, slots solid + 12% fill, parts dashed, callout labels in gutters) */
+    #s05-anat { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+    .s05-ab { position: absolute; border-radius: 2px; opacity: 0; }
+    .s05-ab.slot { border-width: 2px; border-style: solid; }
+    .s05-ab.part { border-width: 1px; border-style: dashed; background: transparent; }
+    .s05-al { position: absolute; height: 20px; line-height: 20px; padding: 0 6px; border-radius: 2px; color: #fff; font-family: 'Lilex Variable', ui-monospace, monospace; font-weight: 500; font-size: 13px; white-space: nowrap; opacity: 0; z-index: 2; }
+    #s05-anat svg { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: visible; }
+    #s05-anat svg g { opacity: 0; }
+  </style>
+
+  <div id="s05-docs" data-composition-id="s05-docs" data-width="1920" data-height="1080" style="position:absolute;inset:0">
+    <div id="s05-cap">
+      <div class="s05-eyebrow" id="s05-eyebrow">Component docs</div>
+      <div class="s05-line" id="s05-l1" style="top:362px">Every</div>
+      <div class="s05-line" id="s05-l1b" style="top:422px">component</div>
+      <div class="s05-line" id="s05-l2" style="top:482px"><em>explains itself.</em></div>
+      <div class="s05-sub" id="s05-sub" style="top:560px">Read from the site's Custom Elements Manifest.</div>
+      <div class="s05-sub" id="s05-sub2" style="top:560px">Its slots and parts, outlined on the page.</div>
+    </div>
+
+    <div id="s05-body">
+      <div id="s05-tb">
+        <div class="s05-btn" style="left:16px"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="5.5"/><circle cx="10" cy="10" r="1.5"/></svg>Pick</div>
+        <div id="s05-filter"><svg viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter tags</div>
+        <div class="s05-btn on" style="right:244px"><svg viewBox="0 0 20 20"><path d="M2 10s3-5.5 8-5.5S18 10 18 10s-3 5.5-8 5.5S2 10 2 10z"/><circle cx="10" cy="10" r="2.3"/></svg>Live</div>
+        <div class="s05-btn on" style="right:148px"><svg viewBox="0 0 20 20"><path d="M11 2L4 11h5l-1 7 8-10h-5z"/></svg>Flash</div>
+        <div class="s05-btn" style="right:16px"><svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>Anatomy<div class="s05-btn on" id="s05-anaton" style="left:-1px;top:-1px;width:calc(100% + 2px);height:calc(100% + 2px);opacity:0"><svg viewBox="0 0 20 20"><path d="M3 7V3h4M13 3h4v4M17 13v4h-4M7 17H3v-4"/></svg>Anatomy</div></div>
+      </div>
+      <div id="s05-tree">
+        <div class="s05-row"><span class="tw" style="left:6px">▾</span><span class="tx" style="left:26px"><span class="br">&lt;</span><span class="tg">fh-app</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-header</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-search</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-cart-button</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row sel"><span class="tw" style="left:24px">▾</span><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:62px"><span class="br">&lt;</span><span class="tg">fh-reviews</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-product-card</span><span class="br">&gt;</span></span></div>
+        <div class="s05-row"><span class="tx" style="left:44px"><span class="br">&lt;</span><span class="tg">fh-toast</span><span class="br">&gt;</span></span></div>
+      </div>
+
+      <div id="s05-det">
+        <div id="s05-scroll">
+          <div class="blk s05-head" style="top:0;height:30px;display:flex;align-items:center"><span style="font-size:20px;font-weight:700;color:#fff"><span style="color:#919191;font-weight:400">&lt;</span>fh-product-card<span style="color:#919191;font-weight:400">&gt;</span></span>
+            <span style="margin-left:auto;display:flex;gap:12px"><svg class="ico" viewBox="0 0 20 20"><circle cx="10" cy="10" r="6"/><circle cx="10" cy="10" r="2"/></svg><svg class="ico" viewBox="0 0 20 20"><path d="M8 4H4v4M12 4h4v4M16 12v4h-4M8 16H4v-4"/></svg></span></div>
+          <div class="blk s05-head" style="top:32px;display:flex;height:24px;line-height:24px"><span style="width:84px;color:#919191">root</span><span>shadow, open</span></div>
+          <div class="blk s05-head" style="top:64px;height:32px;border:1px solid #363636;display:flex;align-items:center;gap:9px;padding:0 10px;font-family:ui-sans-serif,system-ui,sans-serif;font-weight:500;color:#919191"><svg class="ico" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M13 13l4.5 4.5"/></svg>Filter rows</div>
+
+          <!-- About -->
+          <div class="blk sec" id="s05-about" style="top:108px;height:96px">
+            <div class="sh s05-sh"><svg class="cv" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><span class="lb">About</span></div>
+            <div id="s05-origin"><svg viewBox="0 0 256 256"><path d="M223.68,66.15,135.68,18a15.88,15.88,0,0,0-15.36,0l-88,48.17a16,16,0,0,0-8.32,14v95.64a16,16,0,0,0,8.32,14l88,48.17a15.88,15.88,0,0,0,15.36,0l88-48.17a16,16,0,0,0,8.32-14V80.18A16,16,0,0,0,223.68,66.15ZM128,32l80.34,44-29.77,16.3-80.35-44ZM128,120,47.66,76l33.9-18.56,80.34,44ZM40,90l80,43.78v85.79L40,175.82Zm176,85.78h0l-80,43.79V133.82l32-17.51V152a8,8,0,0,0,16,0V107.55L216,90v85.77Z"/></svg></div>
+            <div class="prose" id="s05-prose">A plant in the shop: its picture, name, price and an <b>Add to cart</b> button. Adding marks the card as in the cart and tells the page, which updates the cart and shows a toast.</div>
+          </div>
+
+          <!-- Slots -->
+          <div class="blk sec s05-sec" id="s05-slots" style="top:212px">
+            <div class="sh s05-sh"><svg class="cv" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><span class="lb">Slots</span><span class="ct">3</span></div>
+            <div class="s05-r"><div class="ent"><span class="nm"><i class="sw" style="background:#4d63ff"></i>media</span><span><span class="p">&lt;</span>svg<span class="p">&gt;</span></span></div><div class="dl">The plant's picture.</div></div>
+            <div class="s05-r"><div class="ent"><span class="nm"><i class="sw" style="background:#e8590c"></i>price<span class="bdg">fallback</span></span></div><div class="dl">Overrides the formatted price.</div></div>
+            <div class="s05-r"><div class="ent"><span class="nm" style="font-style:italic"><i class="sw" style="background:#2f9e44"></i>default</span><span style="color:#c7c7c7">1 text</span></div></div>
+          </div>
+
+          <!-- Parts -->
+          <div class="blk sec s05-sec" id="s05-parts" style="top:368px">
+            <div class="sh s05-sh"><svg class="cv" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><span class="lb">Parts</span><span class="ct">2</span></div>
+            <div class="s05-r"><div class="ent"><span class="nm"><i class="sw" style="background:#c2255c"></i>title</span><span><span class="p">&lt;</span><span class="t">h3</span><span class="p">&gt;</span></span></div><div class="dl">The plant's name.</div></div>
+            <div class="s05-r"><div class="s05-hov" id="s05-hov-cta"></div><div class="ent"><span class="nm"><i class="sw" style="background:#1098ad"></i>cta</span><span><span class="p">&lt;</span><span class="t">button</span><span class="p">&gt;</span></span></div><div class="dl">The Add to cart button.</div></div>
+          </div>
+
+          <!-- Properties -->
+          <div class="blk sec s05-sec" id="s05-props" style="top:498px">
+            <div class="sh s05-sh"><svg class="cv" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><span class="lb">Properties</span><span class="ct">2</span></div>
+            <div class="s05-r"><div class="ent"><span class="nm">name</span><span class="str">"Fiddle Leaf Fig"</span></div><div class="dl">The plant's common name, shown as the title.</div></div>
+            <div class="s05-r"><div class="ent"><span class="nm">price</span><span class="num">48</span></div><div class="dl">The price in euros.</div></div>
+          </div>
+
+          <!-- Events -->
+          <div class="blk sec s05-sec" id="s05-events" style="top:630px">
+            <div class="sh s05-sh"><svg class="cv" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/></svg><span class="lb">Events</span><span class="ct">1</span></div>
+            <div id="s05-ev-flash"></div>
+            <div class="s05-r"><div class="ent" style="height:30px"><span class="nm">add-to-cart<span class="ty">CustomEvent</span></span><span class="evd">When the button is clicked. <code>detail</code> carries the product's <code>id</code>, <code>name</code> and <code>price</code>.</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="s05-anat" data-layout-allow-overlap>
+      <svg viewBox="0 0 1920 1080">
+        <g class="s05-ld" id="s05-ld-media"><path d="M1440 260 L1416 260" stroke="#4d63ff" stroke-width="1.25" stroke-opacity=".75" fill="none"/><circle cx="1416" cy="260" r="3" fill="#4d63ff" fill-opacity=".85"/></g>
+        <g class="s05-ld" id="s05-ld-price"><path d="M1440 300 L1424 300 L1400 346" stroke="#e8590c" stroke-width="1.25" stroke-opacity=".75" fill="none"/><circle cx="1400" cy="346" r="3" fill="#e8590c" fill-opacity=".85"/></g>
+        <g class="s05-ld" id="s05-ld-title"><path d="M980 324 L998 324 L1018 336" stroke="#c2255c" stroke-width="1.25" stroke-opacity=".75" fill="none"/><circle cx="1018" cy="336" r="3" fill="#c2255c" fill-opacity=".85"/></g>
+        <g class="s05-ld" id="s05-ld-def"><path d="M980 372 L998 372 L1020 352" stroke="#2f9e44" stroke-width="1.25" stroke-opacity=".75" fill="none"/><circle cx="1020" cy="352" r="3" fill="#2f9e44" fill-opacity=".85"/></g>
+        <g class="s05-ld" id="s05-ld-cta"><path d="M980 418 L1020 418" stroke="#1098ad" stroke-width="1.25" stroke-opacity=".75" fill="none"/><circle cx="1020" cy="418" r="3" fill="#1098ad" fill-opacity=".85"/></g>
+      </svg>
+      <div class="s05-ab" id="s05-ab-host" style="left:1004px;top:200px;width:412px;height:252px;border:1px dashed #868e96"></div>
+      <div class="s05-ab slot" id="s05-ab-media" style="left:1004px;top:200px;width:412px;height:120px;border-color:#4d63ff;background:#4d63ff1f"></div>
+      <div class="s05-ab part" id="s05-ab-title" style="left:1018px;top:331px;width:300px;height:30px;border-color:#c2255c"></div>
+      <div class="s05-ab slot" id="s05-ab-def" style="left:1020px;top:335px;width:126px;height:22px;border-color:#2f9e44;background:#2f9e441f"></div>
+      <div class="s05-ab slot" id="s05-ab-price" style="left:1362px;top:334px;width:38px;height:24px;border-color:#e8590c;background:#e8590c1f"></div>
+      <div class="s05-ab part" id="s05-ab-cta" style="left:1020px;top:400px;width:124px;height:36px;border-color:#1098ad"></div>
+      <div class="s05-al" id="s05-al-host" style="left:1003px;top:180px;color:#868e96;background:rgba(255,255,255,.9)">&lt;fh-product-card&gt;</div>
+      <div class="s05-al" id="s05-al-media" style="left:1440px;top:250px;background:#4d63ff">slot "media"</div>
+      <div class="s05-al" id="s05-al-price" style="left:1440px;top:290px;background:#e8590c">slot "price" · fallback</div>
+      <div class="s05-al" id="s05-al-title" style="right:940px;top:314px;background:#c2255c">::part(title)</div>
+      <div class="s05-al" id="s05-al-def" style="right:940px;top:362px;background:#2f9e44">default slot</div>
+      <div class="s05-al" id="s05-al-cta" style="right:940px;top:408px;background:#1098ad">::part(cta)</div>
+    </div>
+    <div class="s05-ring" id="s05-ring1"></div>
+    <div class="s05-cursor" id="s05-cursor"><svg viewBox="0 0 24 28"><path d="M1.5 1.5 L1.5 21.5 L6.8 16.9 L10.4 25 L14 23.4 L10.4 15.6 L17.6 15.6 Z" fill="#fff" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg></div>
+  </div>
+
+  <script>
+    (function () {
+      var R = document.getElementById("s05-docs");
+      var qa = function (s) { return Array.prototype.slice.call(R.querySelectorAll(s)); };
+      var tl = gsap.timeline({ paused: true });
+      var slam = function (sel, at) { tl.fromTo(sel, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.28, ease: "power3.out" }, at); };
+
+      /* caption */
+      tl.fromTo("#s05-eyebrow", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0);
+      slam("#s05-l1", 0); slam("#s05-l1b", 0); slam("#s05-l2", 0.48); slam("#s05-sub", 0.48);
+
+      /* 0.00 tree with the second <fh-product-card> selected, its header */
+      tl.fromTo(qa(".s05-row"), { opacity: 0 }, { opacity: 1, duration: 0.12, ease: "power2.out", stagger: 0.02 }, 0);
+      tl.fromTo(qa(".s05-head"), { opacity: 0, y: 6 }, { opacity: 1, y: 0, duration: 0.2, ease: "power2.out", stagger: 0.04 }, 0.06);
+
+      /* 0.48 HIT: About unfolds with the manifest description and the origin icon */
+      tl.fromTo("#s05-about", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 0.48);
+      tl.fromTo("#s05-about", { clipPath: "inset(0px 0px 100% 0px)" }, { clipPath: "inset(0px 0px 0% 0px)", duration: 0.34, ease: "power3.out", immediateRender: false }, 0.48);
+      tl.fromTo("#s05-prose", { y: -8 }, { y: 0, duration: 0.34, ease: "power3.out" }, 0.48);
+      tl.fromTo("#s05-origin", { scale: 0.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.26, ease: "back.out(2.6)" }, 0.6);
+      tl.fromTo("#s05-origin", { color: "#919191" }, { color: "#8a9bff", duration: 0.12, ease: "power2.out", immediateRender: false }, 0.6);
+      tl.to("#s05-origin", { color: "#919191", duration: 0.4, ease: "power1.in" }, 0.84);
+
+      /* 0.96 / 1.20 / 1.44 Slots, Parts, Properties waterfall in */
+      var section = function (id, at) {
+        tl.fromTo(id, { opacity: 0 }, { opacity: 1, duration: 0.01 }, at);
+        tl.fromTo(id + " .s05-sh", { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.22, ease: "power3.out" }, at);
+        tl.fromTo(qa(id + " .s05-r"), { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.22, ease: "power3.out", stagger: 0.05 }, at + 0.05);
+      };
+      section("#s05-slots", 0.96);
+      section("#s05-parts", 1.2);
+      section("#s05-props", 1.44);
+
+      /* the pane follows the new sections down */
+      tl.fromTo("#s05-scroll", { y: 0 }, { y: -84, duration: 0.24, ease: "power2.inOut" }, 1.2);
+      tl.to("#s05-scroll", { y: -220, duration: 0.4, ease: "power2.inOut" }, 1.44);
+      tl.to("#s05-scroll", { y: -300, duration: 0.2, ease: "power2.out" }, 1.86);
+
+      /* 1.92 HIT: Events, add-to-cart pulses once */
+      section("#s05-events", 1.92);
+      tl.fromTo("#s05-ev-flash", { opacity: 0 }, { opacity: 1, duration: 0.08 }, 1.98);
+      tl.to("#s05-ev-flash", { opacity: 0, duration: 0.5, ease: "power1.in" }, 2.1);
+
+      /* 2.00 the cursor heads for the toolbar's Anatomy toggle */
+      var cur = "#s05-cursor", csvg = "#s05-cursor svg";
+      tl.fromTo(cur, { x: 1640, y: 880, opacity: 0 }, { x: 1640, y: 880, opacity: 1, duration: 0.1 }, 2.0);
+      tl.fromTo(cur, { x: 1640, y: 880 }, { x: 1806, y: 566, duration: 0.34, ease: "power2.inOut", immediateRender: false }, 2.04);
+      tl.fromTo(csvg, { scale: 1 }, { scale: 0.82, duration: 0.06, ease: "power1.out" }, 2.36);
+      tl.to(csvg, { scale: 1, duration: 0.08, ease: "power1.in" }, 2.42);
+      tl.fromTo("#s05-ring1", { x: 1806, y: 566, scale: 0.3, opacity: 0.9 }, { scale: 1.7, opacity: 0, duration: 0.4, ease: "power2.out", immediateRender: false }, 2.4);
+
+      /* 2.40 HIT: Anatomy on, the overlay draws on the selected card */
+      tl.fromTo("#s05-anaton", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 2.4);
+      tl.to("#s05-sub", { opacity: 0, duration: 0.12, ease: "power1.in" }, 2.28);
+      slam("#s05-sub2", 2.4);
+      tl.fromTo("#s05-ab-host, #s05-al-host", { opacity: 0 }, { opacity: 1, duration: 0.12 }, 2.4);
+      var regs = ["media", "title", "def", "price", "cta"];
+      regs.forEach(function (k, i) {
+        var at = 2.44 + i * 0.04;
+        tl.fromTo("#s05-ab-" + k, { opacity: 0, scale: 1.04 }, { opacity: 1, scale: 1, duration: 0.2, ease: "power3.out" }, at);
+        tl.fromTo("#s05-ld-" + k, { opacity: 0 }, { opacity: 1, duration: 0.15 }, at + 0.04);
+        tl.fromTo("#s05-al-" + k, { opacity: 0, y: 4 }, { opacity: 1, y: 0, duration: 0.18, ease: "back.out(2)" }, at + 0.04);
+      });
+
+      /* 2.88 HIT: hovering the cta row focuses its region, the rest fade */
+      tl.fromTo(cur, { x: 1806, y: 566 }, { x: 1150, y: 752, duration: 0.4, ease: "power2.inOut", immediateRender: false }, 2.46);
+      tl.fromTo("#s05-hov-cta", { opacity: 0 }, { opacity: 1, duration: 0.1 }, 2.88);
+      var rest = ["host", "media", "title", "def", "price"];
+      var fade = [];
+      rest.forEach(function (k) { fade.push("#s05-ab-" + k, "#s05-al-" + k); if (k !== "host") fade.push("#s05-ld-" + k); });
+      tl.to(fade.join(","), { opacity: 0.25, duration: 0.15, ease: "power1.out" }, 2.88);
+      tl.to("#s05-ab-cta", { backgroundColor: "rgba(16,152,173,.2)", boxShadow: "0 0 0 3px rgba(16,152,173,.35)", duration: 0.15, ease: "power1.out" }, 2.88);
+      tl.to("#s05-ld-cta path", { attr: { "stroke-width": 2, "stroke-opacity": 1 }, duration: 0.15 }, 2.88);
+
+      /* snap shut */
+      tl.to("#s05-cap, #s05-body, #s05-anat, #s05-cursor", { opacity: 0, duration: 0.15, ease: "power1.in" }, 3.54);
+
+      window.__timelines["s05-docs"] = tl;
+    })();
+  </script>
+</template>
