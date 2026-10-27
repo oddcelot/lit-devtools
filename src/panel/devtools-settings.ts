@@ -71,6 +71,27 @@ export class DevtoolsSettings extends LitElement {
         padding: var(--lit-devtools-space-5) var(--lit-devtools-space-6);
         font-size: var(--lit-devtools-text-xs);
         line-height: var(--lit-devtools-leading-normal);
+        container-type: inline-size;
+      }
+      /* A narrow dock: the label column gives up width and wraps, and the
+         selects shrink to the cell, so no control runs past its card. */
+      @container (max-width: 420px) {
+        :host {
+          padding-inline: var(--lit-devtools-space-4);
+        }
+        /* Element-qualified: the base rules for these come later in the
+           sheet. */
+        td.key {
+          width: 7.5em;
+          white-space: normal;
+        }
+        table td {
+          padding-inline: var(--lit-devtools-space-4);
+        }
+        td lit-select {
+          min-width: 0;
+          max-width: 100%;
+        }
       }
       .note {
         max-width: 72ch;
