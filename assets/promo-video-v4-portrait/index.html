@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script
+      src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"
+      integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      @font-face {
+        font-family: 'Lexend Variable';
+        font-weight: 100 900;
+        src: url('assets/lexend-latin-wght-normal.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'Lilex Variable';
+        font-weight: 100 700;
+        src: url('assets/lilex-latin-wght-normal.woff2') format('woff2');
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #030308;
+        font-family: 'Lexend Variable', ui-sans-serif, system-ui, sans-serif;
+        color: #fff;
+      }
+      /* moving gradients: big soft blobs drifting under everything */
+      .blob {
+        position: absolute;
+        width: 1500px;
+        height: 1500px;
+        margin: -750px 0 0 -750px;
+        border-radius: 50%;
+        mix-blend-mode: screen;
+      }
+      #b1 {
+        left: 200px;
+        top: 300px;
+        background: radial-gradient(closest-side, rgba(50, 79, 255, 0.32), rgba(50, 79, 255, 0));
+      }
+      #b2 {
+        left: 900px;
+        top: 900px;
+        background: radial-gradient(closest-side, rgba(0, 232, 255, 0.16), rgba(0, 232, 255, 0));
+      }
+      #b3 {
+        left: 300px;
+        top: 1600px;
+        background: radial-gradient(closest-side, rgba(42, 44, 157, 0.45), rgba(42, 44, 157, 0));
+      }
+      #b4 {
+        left: 950px;
+        top: 200px;
+        width: 1100px;
+        height: 1100px;
+        margin: -550px 0 0 -550px;
+        background: radial-gradient(closest-side, rgba(77, 99, 255, 0.22), rgba(77, 99, 255, 0));
+      }
+      #sweep {
+        position: absolute;
+        left: -900px;
+        top: -400px;
+        width: 700px;
+        height: 2800px;
+        background: linear-gradient(
+          90deg,
+          rgba(0, 255, 255, 0),
+          rgba(0, 255, 255, 0.06) 50%,
+          rgba(0, 255, 255, 0)
+        );
+        transform-origin: 50% 50%;
+      }
+      #bloom {
+        position: absolute;
+        left: -460px;
+        top: 230px;
+        width: 2000px;
+        height: 1800px;
+        background: radial-gradient(closest-side, rgba(0, 232, 255, 0.4), rgba(0, 232, 255, 0));
+        opacity: 0;
+      }
+      .head {
+        position: absolute;
+        left: 80px;
+        top: 250px;
+        width: 920px;
+        height: 360px;
+      }
+      .ln {
+        position: absolute;
+        left: 0;
+        height: 120px;
+        font-weight: 600;
+        font-size: 112px;
+        line-height: 118px;
+        letter-spacing: -0.045em;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .shine,
+      .sh {
+        padding-bottom: 0.16em;
+        margin-bottom: -0.16em;
+        padding-right: 6px;
+        background: linear-gradient(100deg, #4d63ff 10%, #00ffff 55%, #4d63ff 95%);
+        background-size: 200% 100%;
+        background-position: 0% 50%;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-fill-color: transparent;
+      }
+      .shot {
+        position: absolute;
+        inset: 0;
+      }
+      .sin {
+        position: absolute;
+        inset: 0;
+      }
+      .mono {
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+      }
+      /* 1 · flame */
+      #f-glow {
+        position: absolute;
+        left: 40px;
+        top: 560px;
+        width: 1000px;
+        height: 1000px;
+        background: radial-gradient(
+          closest-side,
+          rgba(0, 232, 255, 0.45),
+          rgba(50, 79, 255, 0.25) 45%,
+          rgba(42, 44, 157, 0)
+        );
+        opacity: 0;
+      }
+      #f-floor {
+        position: absolute;
+        left: 240px;
+        top: 1330px;
+        width: 600px;
+        height: 80px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, rgba(0, 232, 255, 0.35), rgba(0, 232, 255, 0));
+        opacity: 0;
+      }
+      #f-flame {
+        position: absolute;
+        left: 240px;
+        top: 760px;
+        width: 600px;
+        height: 600px;
+        overflow: visible;
+      }
+      .fp {
+        fill: #111326;
+        stroke: #2b2e52;
+        stroke-width: 1.5;
+        stroke-linejoin: round;
+        vector-effect: non-scaling-stroke;
+      }
+      /* 2 · HMR */
+      #h-code {
+        position: absolute;
+        left: 80px;
+        top: 800px;
+        font-size: 44px;
+        line-height: 56px;
+        color: #eeffff;
+        white-space: nowrap;
+      }
+      #h-code .p {
+        color: #c7c7c7;
+      }
+      #h-code .t {
+        color: #89ddff;
+      }
+      #h-code .s {
+        color: #c3e88d;
+      }
+      #h-caret {
+        display: inline-block;
+        width: 4px;
+        height: 46px;
+        margin: 0 2px -8px;
+        background: #00e8ff;
+      }
+      #h-title {
+        position: absolute;
+        left: 80px;
+        top: 960px;
+        font-size: 76px;
+        line-height: 90px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      #h-title2 {
+        opacity: 0;
+      }
+      #h-btn {
+        position: absolute;
+        left: 80px;
+        top: 1110px;
+        height: 170px;
+        padding: 0 60px;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        border: 3px solid #4d63ff;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        font-size: 96px;
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        white-space: nowrap;
+      }
+      #h-glowline {
+        position: absolute;
+        inset: -3px;
+        border: 3px solid #00e8ff;
+        box-shadow: 0 0 60px rgba(0, 232, 255, 0.7);
+        opacity: 0;
+      }
+      #h-btn {
+        background: #0f1430;
+      }
+      #h-flap {
+        position: relative;
+        width: 150px;
+        height: 130px;
+        perspective: 600px;
+      }
+      .fl {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a2150;
+        border: 1px solid #2f3a8c;
+        color: #00e8ff;
+        backface-visibility: hidden;
+        transform-origin: 50% 50%;
+      }
+      .fl::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 2px;
+        background: rgba(3, 3, 8, 0.7);
+      }
+      #h-chip {
+        position: absolute;
+        left: 80px;
+        top: 1350px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 36px;
+        color: #c7c7c7;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #h-chip i {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #00e8ff;
+        box-shadow: 0 0 14px #00e8ff;
+      }
+      #h-renders {
+        position: absolute;
+        left: 80px;
+        top: 1420px;
+        font-size: 36px;
+        color: #c7c7c7;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #h-renders b {
+        color: #fff;
+        font-weight: 500;
+      }
+      /* 3 · 1,000 shadow roots */
+      #g-grid {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .dot {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #324fff;
+      }
+      #g-code {
+        position: absolute;
+        left: 80px;
+        top: 636px;
+        font-size: 34px;
+        line-height: 48px;
+        color: #eeffff;
+        white-space: nowrap;
+        transform-origin: 0 50%;
+        opacity: 0;
+      }
+      #g-code .k {
+        color: #c792ea;
+      }
+      #g-code .s {
+        color: #c3e88d;
+      }
+      #g-code .p {
+        color: #c7c7c7;
+      }
+      #g-chips {
+        position: absolute;
+        left: 0;
+        top: 1590px;
+        width: 1080px;
+        display: flex;
+        justify-content: center;
+        gap: 22px;
+      }
+      .chip {
+        padding: 8px 26px;
+        background: #0f1430;
+        border: 2px solid #2f3a8c;
+        font-size: 34px;
+        font-weight: 500;
+        color: #c7c7c7;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #g-count {
+        position: absolute;
+        left: 0;
+        top: 1690px;
+        width: 1080px;
+        text-align: center;
+        font-size: 38px;
+        color: #c7c7c7;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #g-count b {
+        color: #fff;
+        font-weight: 500;
+      }
+      #g-count i {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #2ee09f;
+        margin: 0 12px 2px 30px;
+      }
+      /* 4 · cause rails */
+      .row {
+        position: absolute;
+        left: 190px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        gap: 22px;
+        font-size: 44px;
+        color: #e3e3e3;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      .row i {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        flex: none;
+      }
+      .row span {
+        color: #c7c7c7;
+        font-size: 34px;
+      }
+      .row .warn {
+        color: #f4bf4f;
+      }
+      #r-rails {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: visible;
+      }
+
+      #lock {
+        position: absolute;
+        inset: 0;
+      }
+      #l-glow {
+        position: absolute;
+        left: 40px;
+        top: 260px;
+        width: 1000px;
+        height: 1000px;
+        background: radial-gradient(
+          closest-side,
+          rgba(0, 232, 255, 0.4),
+          rgba(50, 79, 255, 0.25) 45%,
+          rgba(42, 44, 157, 0)
+        );
+        opacity: 0;
+      }
+      #l-flame {
+        position: absolute;
+        left: 396px;
+        top: 480px;
+        width: 288px;
+        height: 360px;
+        opacity: 0;
+      }
+      .l-line {
+        position: absolute;
+        left: 0;
+        width: 1080px;
+        display: flex;
+        justify-content: center;
+        white-space: nowrap;
+        opacity: 0;
+      }
+      #l-title {
+        top: 920px;
+        font-weight: 600;
+        font-size: 132px;
+        line-height: 150px;
+        letter-spacing: -0.04em;
+      }
+      #l-chip {
+        top: 1130px;
+      }
+      #l-chip div {
+        background: #0d0d0d;
+        border: 1px solid #363636;
+        padding: 18px 36px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 44px;
+        color: #919191;
+      }
+      #l-npm {
+        top: 1270px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 34px;
+        color: #c7c7c7;
+      }
+      #l-logos {
+        top: 1470px;
+        align-items: center;
+        gap: 34px;
+      }
+      #l-logos img {
+        display: block;
+        height: 64px;
+        width: 64px;
+        object-fit: contain;
+        opacity: 0;
+      }
+      #l-cap {
+        top: 1570px;
+        font-size: 27px;
+        color: #c7c7c7;
+      }
+      #l-url {
+        top: 1340px;
+        font-family: 'Lilex Variable', ui-monospace, monospace;
+        font-size: 36px;
+        color: #7c9fff;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Portrait (1080x1920) 15.36 s cut for X/Twitter, drawn natively (no footage) on the
+      v4 film's music window and beats: flame, HMR, 1,000 shadow roots, cause rails, lockup.
+      index.html is generated by scripts/build.py; edit that and rerun.
+    -->
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="15.36"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div class="blob" id="b1"></div>
+      <div class="blob" id="b2"></div>
+      <div class="blob" id="b3"></div>
+      <div class="blob" id="b4"></div>
+      <div id="sweep"></div>
+      <div id="bloom"></div>
+
+      <div class="shot clip" id="s1" data-start="0" data-duration="1.92" data-track-index="1">
+        <div class="sin" id="s1in">
+          <div id="f-glow"></div>
+          <div id="f-floor"></div>
+          <svg id="f-flame" viewBox="-32 0 320 320"><path id="fl1" class="fp" d="M64 192l25.926-44.727l38.233-19.114l63.974 63.974l10.833 61.754L192 320l-64-64l-38.074-25.615z"/><path id="fl2" class="fp" d="M128 256V128l64-64v128z"/><path id="fl3" class="fp" d="M0 256l64 64l9.202-60.602L64 192l-37.542 23.71z"/><path id="fl4" class="fp" d="M64 192V64l64-64v128z"/><path id="fl5" class="fp" d="M192 320V192l64-64v128z"/><path id="fl6" class="fp" d="M0 256V128l64 64z"/><path id="fl7" class="fp" d="M64 320V192l64 64z"/></svg>
+        </div>
+      </div>
+      <div class="shot clip" id="s2" data-start="1.92" data-duration="3.84" data-track-index="1">
+        <div class="sin" id="s2in">
+          <div id="h-code" class="mono"><span class="p">&lt;</span><span class="t">h2</span><span class="p">&gt;</span><span class="s">Counter<span class="tc" id="tc0" style="display: none">:</span><span class="tc" id="tc1" style="display: none">&nbsp;</span><span class="tc" id="tc2" style="display: none">e</span><span class="tc" id="tc3" style="display: none">d</span><span class="tc" id="tc4" style="display: none">i</span><span class="tc" id="tc5" style="display: none">t</span><span class="tc" id="tc6" style="display: none">e</span><span class="tc" id="tc7" style="display: none">d</span><span class="tc" id="tc8" style="display: none">&nbsp;</span><span class="tc" id="tc9" style="display: none">l</span><span class="tc" id="tc10" style="display: none">i</span><span class="tc" id="tc11" style="display: none">v</span><span class="tc" id="tc12" style="display: none">e</span></span><i id="h-caret"></i><span class="p">&lt;/</span><span class="t">h2</span><span class="p">&gt;</span></div>
+          <div id="h-title"><span id="h-title1">Counter</span></div>
+          <div id="h-title2b" style="position: absolute; left: 80px; top: 960px; font-size: 76px; line-height: 90px; font-weight: 600; letter-spacing: -0.03em; white-space: nowrap"><span id="h-title2">Counter: edited live</span></div>
+          <div id="h-btn">Count:<div id="h-flap"><div class="fl" id="fl39">39</div><div class="fl" id="fl40">40</div><div class="fl" id="fl41">41</div><div class="fl" id="fl42">42</div><div class="fl" id="fl42b">42</div></div><div id="h-glowline"></div></div>
+          <div id="h-chip" class="mono"><i></i>hmr update · 0.8ms</div>
+          <div id="h-renders" class="mono">renders <b id="h-r1">1</b><b id="h-r2" style="display: none">2</b> · state kept</div>
+        </div>
+      </div>
+      <div class="shot clip" id="s3" data-start="5.76" data-duration="3.84" data-track-index="1">
+        <div class="sin" id="s3in">
+          <div id="g-grid"><i class="dot" style="left: 280px; top: 720px"></i><i class="dot" style="left: 301px; top: 720px"></i><i class="dot" style="left: 322px; top: 720px"></i><i class="dot" style="left: 343px; top: 720px"></i><i class="dot" style="left: 364px; top: 720px"></i><i class="dot" style="left: 385px; top: 720px"></i><i class="dot" style="left: 406px; top: 720px"></i><i class="dot" style="left: 427px; top: 720px"></i><i class="dot" style="left: 448px; top: 720px"></i><i class="dot" style="left: 469px; top: 720px"></i><i class="dot" style="left: 490px; top: 720px"></i><i class="dot" style="left: 511px; top: 720px"></i><i class="dot" style="left: 532px; top: 720px"></i><i class="dot" style="left: 553px; top: 720px"></i><i class="dot" style="left: 574px; top: 720px"></i><i class="dot" style="left: 595px; top: 720px"></i><i class="dot" style="left: 616px; top: 720px"></i><i class="dot" style="left: 637px; top: 720px"></i><i class="dot" style="left: 658px; top: 720px"></i><i class="dot" style="left: 679px; top: 720px"></i><i class="dot" style="left: 700px; top: 720px"></i><i class="dot" style="left: 721px; top: 720px"></i><i class="dot" style="left: 742px; top: 720px"></i><i class="dot" style="left: 763px; top: 720px"></i><i class="dot" style="left: 784px; top: 720px"></i><i class="dot" style="left: 280px; top: 741px"></i><i class="dot" style="left: 301px; top: 741px"></i><i class="dot" style="left: 322px; top: 741px"></i><i class="dot" style="left: 343px; top: 741px"></i><i class="dot" style="left: 364px; top: 741px"></i><i class="dot" style="left: 385px; top: 741px"></i><i class="dot" style="left: 406px; top: 741px"></i><i class="dot" style="left: 427px; top: 741px"></i><i class="dot" style="left: 448px; top: 741px"></i><i class="dot" style="left: 469px; top: 741px"></i><i class="dot" style="left: 490px; top: 741px"></i><i class="dot" style="left: 511px; top: 741px"></i><i class="dot" style="left: 532px; top: 741px"></i><i class="dot" style="left: 553px; top: 741px"></i><i class="dot" style="left: 574px; top: 741px"></i><i class="dot" style="left: 595px; top: 741px"></i><i class="dot" style="left: 616px; top: 741px"></i><i class="dot" style="left: 637px; top: 741px"></i><i class="dot" style="left: 658px; top: 741px"></i><i class="dot" style="left: 679px; top: 741px"></i><i class="dot" style="left: 700px; top: 741px"></i><i class="dot" style="left: 721px; top: 741px"></i><i class="dot" style="left: 742px; top: 741px"></i><i class="dot" style="left: 763px; top: 741px"></i><i class="dot" style="left: 784px; top: 741px"></i><i class="dot" style="left: 280px; top: 762px"></i><i class="dot" style="left: 301px; top: 762px"></i><i class="dot" style="left: 322px; top: 762px"></i><i class="dot" style="left: 343px; top: 762px"></i><i class="dot" style="left: 364px; top: 762px"></i><i class="dot" style="left: 385px; top: 762px"></i><i class="dot" style="left: 406px; top: 762px"></i><i class="dot" style="left: 427px; top: 762px"></i><i class="dot" style="left: 448px; top: 762px"></i><i class="dot" style="left: 469px; top: 762px"></i><i class="dot" style="left: 490px; top: 762px"></i><i class="dot" style="left: 511px; top: 762px"></i><i class="dot" style="left: 532px; top: 762px"></i><i class="dot" style="left: 553px; top: 762px"></i><i class="dot" style="left: 574px; top: 762px"></i><i class="dot" style="left: 595px; top: 762px"></i><i class="dot" style="left: 616px; top: 762px"></i><i class="dot" style="left: 637px; top: 762px"></i><i class="dot" style="left: 658px; top: 762px"></i><i class="dot" style="left: 679px; top: 762px"></i><i class="dot" style="left: 700px; top: 762px"></i><i class="dot" style="left: 721px; top: 762px"></i><i class="dot" style="left: 742px; top: 762px"></i><i class="dot" style="left: 763px; top: 762px"></i><i class="dot" style="left: 784px; top: 762px"></i><i class="dot" style="left: 280px; top: 783px"></i><i class="dot" style="left: 301px; top: 783px"></i><i class="dot" style="left: 322px; top: 783px"></i><i class="dot" style="left: 343px; top: 783px"></i><i class="dot" style="left: 364px; top: 783px"></i><i class="dot" style="left: 385px; top: 783px"></i><i class="dot" style="left: 406px; top: 783px"></i><i class="dot" style="left: 427px; top: 783px"></i><i class="dot" style="left: 448px; top: 783px"></i><i class="dot" style="left: 469px; top: 783px"></i><i class="dot" style="left: 490px; top: 783px"></i><i class="dot" style="left: 511px; top: 783px"></i><i class="dot" style="left: 532px; top: 783px"></i><i class="dot" style="left: 553px; top: 783px"></i><i class="dot" style="left: 574px; top: 783px"></i><i class="dot" style="left: 595px; top: 783px"></i><i class="dot" style="left: 616px; top: 783px"></i><i class="dot" style="left: 637px; top: 783px"></i><i class="dot" style="left: 658px; top: 783px"></i><i class="dot" style="left: 679px; top: 783px"></i><i class="dot" style="left: 700px; top: 783px"></i><i class="dot" style="left: 721px; top: 783px"></i><i class="dot" style="left: 742px; top: 783px"></i><i class="dot" style="left: 763px; top: 783px"></i><i class="dot" style="left: 784px; top: 783px"></i><i class="dot" style="left: 280px; top: 804px"></i><i class="dot" style="left: 301px; top: 804px"></i><i class="dot" style="left: 322px; top: 804px"></i><i class="dot" style="left: 343px; top: 804px"></i><i class="dot" style="left: 364px; top: 804px"></i><i class="dot" style="left: 385px; top: 804px"></i><i class="dot" style="left: 406px; top: 804px"></i><i class="dot" style="left: 427px; top: 804px"></i><i class="dot" style="left: 448px; top: 804px"></i><i class="dot" style="left: 469px; top: 804px"></i><i class="dot" style="left: 490px; top: 804px"></i><i class="dot" style="left: 511px; top: 804px"></i><i class="dot" style="left: 532px; top: 804px"></i><i class="dot" style="left: 553px; top: 804px"></i><i class="dot" style="left: 574px; top: 804px"></i><i class="dot" style="left: 595px; top: 804px"></i><i class="dot" style="left: 616px; top: 804px"></i><i class="dot" style="left: 637px; top: 804px"></i><i class="dot" style="left: 658px; top: 804px"></i><i class="dot" style="left: 679px; top: 804px"></i><i class="dot" style="left: 700px; top: 804px"></i><i class="dot" style="left: 721px; top: 804px"></i><i class="dot" style="left: 742px; top: 804px"></i><i class="dot" style="left: 763px; top: 804px"></i><i class="dot" style="left: 784px; top: 804px"></i><i class="dot" style="left: 280px; top: 825px"></i><i class="dot" style="left: 301px; top: 825px"></i><i class="dot" style="left: 322px; top: 825px"></i><i class="dot" style="left: 343px; top: 825px"></i><i class="dot" style="left: 364px; top: 825px"></i><i class="dot" style="left: 385px; top: 825px"></i><i class="dot" style="left: 406px; top: 825px"></i><i class="dot" style="left: 427px; top: 825px"></i><i class="dot" style="left: 448px; top: 825px"></i><i class="dot" style="left: 469px; top: 825px"></i><i class="dot" style="left: 490px; top: 825px"></i><i class="dot" style="left: 511px; top: 825px"></i><i class="dot" style="left: 532px; top: 825px"></i><i class="dot" style="left: 553px; top: 825px"></i><i class="dot" style="left: 574px; top: 825px"></i><i class="dot" style="left: 595px; top: 825px"></i><i class="dot" style="left: 616px; top: 825px"></i><i class="dot" style="left: 637px; top: 825px"></i><i class="dot" style="left: 658px; top: 825px"></i><i class="dot" style="left: 679px; top: 825px"></i><i class="dot" style="left: 700px; top: 825px"></i><i class="dot" style="left: 721px; top: 825px"></i><i class="dot" style="left: 742px; top: 825px"></i><i class="dot" style="left: 763px; top: 825px"></i><i class="dot" style="left: 784px; top: 825px"></i><i class="dot" style="left: 280px; top: 846px"></i><i class="dot" style="left: 301px; top: 846px"></i><i class="dot" style="left: 322px; top: 846px"></i><i class="dot" style="left: 343px; top: 846px"></i><i class="dot" style="left: 364px; top: 846px"></i><i class="dot" style="left: 385px; top: 846px"></i><i class="dot" style="left: 406px; top: 846px"></i><i class="dot" style="left: 427px; top: 846px"></i><i class="dot" style="left: 448px; top: 846px"></i><i class="dot" style="left: 469px; top: 846px"></i><i class="dot" style="left: 490px; top: 846px"></i><i class="dot" style="left: 511px; top: 846px"></i><i class="dot" style="left: 532px; top: 846px"></i><i class="dot" style="left: 553px; top: 846px"></i><i class="dot" style="left: 574px; top: 846px"></i><i class="dot" style="left: 595px; top: 846px"></i><i class="dot" style="left: 616px; top: 846px"></i><i class="dot" style="left: 637px; top: 846px"></i><i class="dot" style="left: 658px; top: 846px"></i><i class="dot" style="left: 679px; top: 846px"></i><i class="dot" style="left: 700px; top: 846px"></i><i class="dot" style="left: 721px; top: 846px"></i><i class="dot" style="left: 742px; top: 846px"></i><i class="dot" style="left: 763px; top: 846px"></i><i class="dot" style="left: 784px; top: 846px"></i><i class="dot" style="left: 280px; top: 867px"></i><i class="dot" style="left: 301px; top: 867px"></i><i class="dot" style="left: 322px; top: 867px"></i><i class="dot" style="left: 343px; top: 867px"></i><i class="dot" style="left: 364px; top: 867px"></i><i class="dot" style="left: 385px; top: 867px"></i><i class="dot" style="left: 406px; top: 867px"></i><i class="dot" style="left: 427px; top: 867px"></i><i class="dot" style="left: 448px; top: 867px"></i><i class="dot" style="left: 469px; top: 867px"></i><i class="dot" style="left: 490px; top: 867px"></i><i class="dot" style="left: 511px; top: 867px"></i><i class="dot" style="left: 532px; top: 867px"></i><i class="dot" style="left: 553px; top: 867px"></i><i class="dot" style="left: 574px; top: 867px"></i><i class="dot" style="left: 595px; top: 867px"></i><i class="dot" style="left: 616px; top: 867px"></i><i class="dot" style="left: 637px; top: 867px"></i><i class="dot" style="left: 658px; top: 867px"></i><i class="dot" style="left: 679px; top: 867px"></i><i class="dot" style="left: 700px; top: 867px"></i><i class="dot" style="left: 721px; top: 867px"></i><i class="dot" style="left: 742px; top: 867px"></i><i class="dot" style="left: 763px; top: 867px"></i><i class="dot" style="left: 784px; top: 867px"></i><i class="dot" style="left: 280px; top: 888px"></i><i class="dot" style="left: 301px; top: 888px"></i><i class="dot" style="left: 322px; top: 888px"></i><i class="dot" style="left: 343px; top: 888px"></i><i class="dot" style="left: 364px; top: 888px"></i><i class="dot" style="left: 385px; top: 888px"></i><i class="dot" style="left: 406px; top: 888px"></i><i class="dot" style="left: 427px; top: 888px"></i><i class="dot" style="left: 448px; top: 888px"></i><i class="dot" style="left: 469px; top: 888px"></i><i class="dot" style="left: 490px; top: 888px"></i><i class="dot" style="left: 511px; top: 888px"></i><i class="dot" style="left: 532px; top: 888px"></i><i class="dot" style="left: 553px; top: 888px"></i><i class="dot" style="left: 574px; top: 888px"></i><i class="dot" style="left: 595px; top: 888px"></i><i class="dot" style="left: 616px; top: 888px"></i><i class="dot" style="left: 637px; top: 888px"></i><i class="dot" style="left: 658px; top: 888px"></i><i class="dot" style="left: 679px; top: 888px"></i><i class="dot" style="left: 700px; top: 888px"></i><i class="dot" style="left: 721px; top: 888px"></i><i class="dot" style="left: 742px; top: 888px"></i><i class="dot" style="left: 763px; top: 888px"></i><i class="dot" style="left: 784px; top: 888px"></i><i class="dot" style="left: 280px; top: 909px"></i><i class="dot" style="left: 301px; top: 909px"></i><i class="dot" style="left: 322px; top: 909px"></i><i class="dot" style="left: 343px; top: 909px"></i><i class="dot" style="left: 364px; top: 909px"></i><i class="dot" style="left: 385px; top: 909px"></i><i class="dot" style="left: 406px; top: 909px"></i><i class="dot" style="left: 427px; top: 909px"></i><i class="dot" style="left: 448px; top: 909px"></i><i class="dot" style="left: 469px; top: 909px"></i><i class="dot" style="left: 490px; top: 909px"></i><i class="dot" style="left: 511px; top: 909px"></i><i class="dot" style="left: 532px; top: 909px"></i><i class="dot" style="left: 553px; top: 909px"></i><i class="dot" style="left: 574px; top: 909px"></i><i class="dot" style="left: 595px; top: 909px"></i><i class="dot" style="left: 616px; top: 909px"></i><i class="dot" style="left: 637px; top: 909px"></i><i class="dot" style="left: 658px; top: 909px"></i><i class="dot" style="left: 679px; top: 909px"></i><i class="dot" style="left: 700px; top: 909px"></i><i class="dot" style="left: 721px; top: 909px"></i><i class="dot" style="left: 742px; top: 909px"></i><i class="dot" style="left: 763px; top: 909px"></i><i class="dot" style="left: 784px; top: 909px"></i><i class="dot" style="left: 280px; top: 930px"></i><i class="dot" style="left: 301px; top: 930px"></i><i class="dot" style="left: 322px; top: 930px"></i><i class="dot" style="left: 343px; top: 930px"></i><i class="dot" style="left: 364px; top: 930px"></i><i class="dot" style="left: 385px; top: 930px"></i><i class="dot" style="left: 406px; top: 930px"></i><i class="dot" style="left: 427px; top: 930px"></i><i class="dot" style="left: 448px; top: 930px"></i><i class="dot" style="left: 469px; top: 930px"></i><i class="dot" style="left: 490px; top: 930px"></i><i class="dot" style="left: 511px; top: 930px"></i><i class="dot" style="left: 532px; top: 930px"></i><i class="dot" style="left: 553px; top: 930px"></i><i class="dot" style="left: 574px; top: 930px"></i><i class="dot" style="left: 595px; top: 930px"></i><i class="dot" style="left: 616px; top: 930px"></i><i class="dot" style="left: 637px; top: 930px"></i><i class="dot" style="left: 658px; top: 930px"></i><i class="dot" style="left: 679px; top: 930px"></i><i class="dot" style="left: 700px; top: 930px"></i><i class="dot" style="left: 721px; top: 930px"></i><i class="dot" style="left: 742px; top: 930px"></i><i class="dot" style="left: 763px; top: 930px"></i><i class="dot" style="left: 784px; top: 930px"></i><i class="dot" style="left: 280px; top: 951px"></i><i class="dot" style="left: 301px; top: 951px"></i><i class="dot" style="left: 322px; top: 951px"></i><i class="dot" style="left: 343px; top: 951px"></i><i class="dot" style="left: 364px; top: 951px"></i><i class="dot" style="left: 385px; top: 951px"></i><i class="dot" style="left: 406px; top: 951px"></i><i class="dot" style="left: 427px; top: 951px"></i><i class="dot" style="left: 448px; top: 951px"></i><i class="dot" style="left: 469px; top: 951px"></i><i class="dot" style="left: 490px; top: 951px"></i><i class="dot" style="left: 511px; top: 951px"></i><i class="dot" style="left: 532px; top: 951px"></i><i class="dot" style="left: 553px; top: 951px"></i><i class="dot" style="left: 574px; top: 951px"></i><i class="dot" style="left: 595px; top: 951px"></i><i class="dot" style="left: 616px; top: 951px"></i><i class="dot" style="left: 637px; top: 951px"></i><i class="dot" style="left: 658px; top: 951px"></i><i class="dot" style="left: 679px; top: 951px"></i><i class="dot" style="left: 700px; top: 951px"></i><i class="dot" style="left: 721px; top: 951px"></i><i class="dot" style="left: 742px; top: 951px"></i><i class="dot" style="left: 763px; top: 951px"></i><i class="dot" style="left: 784px; top: 951px"></i><i class="dot" style="left: 280px; top: 972px"></i><i class="dot" style="left: 301px; top: 972px"></i><i class="dot" style="left: 322px; top: 972px"></i><i class="dot" style="left: 343px; top: 972px"></i><i class="dot" style="left: 364px; top: 972px"></i><i class="dot" style="left: 385px; top: 972px"></i><i class="dot" style="left: 406px; top: 972px"></i><i class="dot" style="left: 427px; top: 972px"></i><i class="dot" style="left: 448px; top: 972px"></i><i class="dot" style="left: 469px; top: 972px"></i><i class="dot" style="left: 490px; top: 972px"></i><i class="dot" style="left: 511px; top: 972px"></i><i class="dot" style="left: 532px; top: 972px"></i><i class="dot" style="left: 553px; top: 972px"></i><i class="dot" style="left: 574px; top: 972px"></i><i class="dot" style="left: 595px; top: 972px"></i><i class="dot" style="left: 616px; top: 972px"></i><i class="dot" style="left: 637px; top: 972px"></i><i class="dot" style="left: 658px; top: 972px"></i><i class="dot" style="left: 679px; top: 972px"></i><i class="dot" style="left: 700px; top: 972px"></i><i class="dot" style="left: 721px; top: 972px"></i><i class="dot" style="left: 742px; top: 972px"></i><i class="dot" style="left: 763px; top: 972px"></i><i class="dot" style="left: 784px; top: 972px"></i><i class="dot" style="left: 280px; top: 993px"></i><i class="dot" style="left: 301px; top: 993px"></i><i class="dot" style="left: 322px; top: 993px"></i><i class="dot" style="left: 343px; top: 993px"></i><i class="dot" style="left: 364px; top: 993px"></i><i class="dot" style="left: 385px; top: 993px"></i><i class="dot" style="left: 406px; top: 993px"></i><i class="dot" style="left: 427px; top: 993px"></i><i class="dot" style="left: 448px; top: 993px"></i><i class="dot" style="left: 469px; top: 993px"></i><i class="dot" style="left: 490px; top: 993px"></i><i class="dot" style="left: 511px; top: 993px"></i><i class="dot" style="left: 532px; top: 993px"></i><i class="dot" style="left: 553px; top: 993px"></i><i class="dot" style="left: 574px; top: 993px"></i><i class="dot" style="left: 595px; top: 993px"></i><i class="dot" style="left: 616px; top: 993px"></i><i class="dot" style="left: 637px; top: 993px"></i><i class="dot" style="left: 658px; top: 993px"></i><i class="dot" style="left: 679px; top: 993px"></i><i class="dot" style="left: 700px; top: 993px"></i><i class="dot" style="left: 721px; top: 993px"></i><i class="dot" style="left: 742px; top: 993px"></i><i class="dot" style="left: 763px; top: 993px"></i><i class="dot" style="left: 784px; top: 993px"></i><i class="dot" style="left: 280px; top: 1014px"></i><i class="dot" style="left: 301px; top: 1014px"></i><i class="dot" style="left: 322px; top: 1014px"></i><i class="dot" style="left: 343px; top: 1014px"></i><i class="dot" style="left: 364px; top: 1014px"></i><i class="dot" style="left: 385px; top: 1014px"></i><i class="dot" style="left: 406px; top: 1014px"></i><i class="dot" style="left: 427px; top: 1014px"></i><i class="dot" style="left: 448px; top: 1014px"></i><i class="dot" style="left: 469px; top: 1014px"></i><i class="dot" style="left: 490px; top: 1014px"></i><i class="dot" style="left: 511px; top: 1014px"></i><i class="dot" style="left: 532px; top: 1014px"></i><i class="dot" style="left: 553px; top: 1014px"></i><i class="dot" style="left: 574px; top: 1014px"></i><i class="dot" style="left: 595px; top: 1014px"></i><i class="dot" style="left: 616px; top: 1014px"></i><i class="dot" style="left: 637px; top: 1014px"></i><i class="dot" style="left: 658px; top: 1014px"></i><i class="dot" style="left: 679px; top: 1014px"></i><i class="dot" style="left: 700px; top: 1014px"></i><i class="dot" style="left: 721px; top: 1014px"></i><i class="dot" style="left: 742px; top: 1014px"></i><i class="dot" style="left: 763px; top: 1014px"></i><i class="dot" style="left: 784px; top: 1014px"></i><i class="dot" style="left: 280px; top: 1035px"></i><i class="dot" style="left: 301px; top: 1035px"></i><i class="dot" style="left: 322px; top: 1035px"></i><i class="dot" style="left: 343px; top: 1035px"></i><i class="dot" style="left: 364px; top: 1035px"></i><i class="dot" style="left: 385px; top: 1035px"></i><i class="dot" style="left: 406px; top: 1035px"></i><i class="dot" style="left: 427px; top: 1035px"></i><i class="dot" style="left: 448px; top: 1035px"></i><i class="dot" style="left: 469px; top: 1035px"></i><i class="dot" style="left: 490px; top: 1035px"></i><i class="dot" style="left: 511px; top: 1035px"></i><i class="dot" style="left: 532px; top: 1035px"></i><i class="dot" style="left: 553px; top: 1035px"></i><i class="dot" style="left: 574px; top: 1035px"></i><i class="dot" style="left: 595px; top: 1035px"></i><i class="dot" style="left: 616px; top: 1035px"></i><i class="dot" style="left: 637px; top: 1035px"></i><i class="dot" style="left: 658px; top: 1035px"></i><i class="dot" style="left: 679px; top: 1035px"></i><i class="dot" style="left: 700px; top: 1035px"></i><i class="dot" style="left: 721px; top: 1035px"></i><i class="dot" style="left: 742px; top: 1035px"></i><i class="dot" style="left: 763px; top: 1035px"></i><i class="dot" style="left: 784px; top: 1035px"></i><i class="dot" style="left: 280px; top: 1056px"></i><i class="dot" style="left: 301px; top: 1056px"></i><i class="dot" style="left: 322px; top: 1056px"></i><i class="dot" style="left: 343px; top: 1056px"></i><i class="dot" style="left: 364px; top: 1056px"></i><i class="dot" style="left: 385px; top: 1056px"></i><i class="dot" style="left: 406px; top: 1056px"></i><i class="dot" style="left: 427px; top: 1056px"></i><i class="dot" style="left: 448px; top: 1056px"></i><i class="dot" style="left: 469px; top: 1056px"></i><i class="dot" style="left: 490px; top: 1056px"></i><i class="dot" style="left: 511px; top: 1056px"></i><i class="dot" style="left: 532px; top: 1056px"></i><i class="dot" style="left: 553px; top: 1056px"></i><i class="dot" style="left: 574px; top: 1056px"></i><i class="dot" style="left: 595px; top: 1056px"></i><i class="dot" style="left: 616px; top: 1056px"></i><i class="dot" style="left: 637px; top: 1056px"></i><i class="dot" style="left: 658px; top: 1056px"></i><i class="dot" style="left: 679px; top: 1056px"></i><i class="dot" style="left: 700px; top: 1056px"></i><i class="dot" style="left: 721px; top: 1056px"></i><i class="dot" style="left: 742px; top: 1056px"></i><i class="dot" style="left: 763px; top: 1056px"></i><i class="dot" style="left: 784px; top: 1056px"></i><i class="dot" style="left: 280px; top: 1077px"></i><i class="dot" style="left: 301px; top: 1077px"></i><i class="dot" style="left: 322px; top: 1077px"></i><i class="dot" style="left: 343px; top: 1077px"></i><i class="dot" style="left: 364px; top: 1077px"></i><i class="dot" style="left: 385px; top: 1077px"></i><i class="dot" style="left: 406px; top: 1077px"></i><i class="dot" style="left: 427px; top: 1077px"></i><i class="dot" style="left: 448px; top: 1077px"></i><i class="dot" style="left: 469px; top: 1077px"></i><i class="dot" style="left: 490px; top: 1077px"></i><i class="dot" style="left: 511px; top: 1077px"></i><i class="dot" style="left: 532px; top: 1077px"></i><i class="dot" style="left: 553px; top: 1077px"></i><i class="dot" style="left: 574px; top: 1077px"></i><i class="dot" style="left: 595px; top: 1077px"></i><i class="dot" style="left: 616px; top: 1077px"></i><i class="dot" style="left: 637px; top: 1077px"></i><i class="dot" style="left: 658px; top: 1077px"></i><i class="dot" style="left: 679px; top: 1077px"></i><i class="dot" style="left: 700px; top: 1077px"></i><i class="dot" style="left: 721px; top: 1077px"></i><i class="dot" style="left: 742px; top: 1077px"></i><i class="dot" style="left: 763px; top: 1077px"></i><i class="dot" style="left: 784px; top: 1077px"></i><i class="dot" style="left: 280px; top: 1098px"></i><i class="dot" style="left: 301px; top: 1098px"></i><i class="dot" style="left: 322px; top: 1098px"></i><i class="dot" style="left: 343px; top: 1098px"></i><i class="dot" style="left: 364px; top: 1098px"></i><i class="dot" style="left: 385px; top: 1098px"></i><i class="dot" style="left: 406px; top: 1098px"></i><i class="dot" style="left: 427px; top: 1098px"></i><i class="dot" style="left: 448px; top: 1098px"></i><i class="dot" style="left: 469px; top: 1098px"></i><i class="dot" style="left: 490px; top: 1098px"></i><i class="dot" style="left: 511px; top: 1098px"></i><i class="dot" style="left: 532px; top: 1098px"></i><i class="dot" style="left: 553px; top: 1098px"></i><i class="dot" style="left: 574px; top: 1098px"></i><i class="dot" style="left: 595px; top: 1098px"></i><i class="dot" style="left: 616px; top: 1098px"></i><i class="dot" style="left: 637px; top: 1098px"></i><i class="dot" style="left: 658px; top: 1098px"></i><i class="dot" style="left: 679px; top: 1098px"></i><i class="dot" style="left: 700px; top: 1098px"></i><i class="dot" style="left: 721px; top: 1098px"></i><i class="dot" style="left: 742px; top: 1098px"></i><i class="dot" style="left: 763px; top: 1098px"></i><i class="dot" style="left: 784px; top: 1098px"></i><i class="dot" style="left: 280px; top: 1119px"></i><i class="dot" style="left: 301px; top: 1119px"></i><i class="dot" style="left: 322px; top: 1119px"></i><i class="dot" style="left: 343px; top: 1119px"></i><i class="dot" style="left: 364px; top: 1119px"></i><i class="dot" style="left: 385px; top: 1119px"></i><i class="dot" style="left: 406px; top: 1119px"></i><i class="dot" style="left: 427px; top: 1119px"></i><i class="dot" style="left: 448px; top: 1119px"></i><i class="dot" style="left: 469px; top: 1119px"></i><i class="dot" style="left: 490px; top: 1119px"></i><i class="dot" style="left: 511px; top: 1119px"></i><i class="dot" style="left: 532px; top: 1119px"></i><i class="dot" style="left: 553px; top: 1119px"></i><i class="dot" style="left: 574px; top: 1119px"></i><i class="dot" style="left: 595px; top: 1119px"></i><i class="dot" style="left: 616px; top: 1119px"></i><i class="dot" style="left: 637px; top: 1119px"></i><i class="dot" style="left: 658px; top: 1119px"></i><i class="dot" style="left: 679px; top: 1119px"></i><i class="dot" style="left: 700px; top: 1119px"></i><i class="dot" style="left: 721px; top: 1119px"></i><i class="dot" style="left: 742px; top: 1119px"></i><i class="dot" style="left: 763px; top: 1119px"></i><i class="dot" style="left: 784px; top: 1119px"></i><i class="dot" style="left: 280px; top: 1140px"></i><i class="dot" style="left: 301px; top: 1140px"></i><i class="dot" style="left: 322px; top: 1140px"></i><i class="dot" style="left: 343px; top: 1140px"></i><i class="dot" style="left: 364px; top: 1140px"></i><i class="dot" style="left: 385px; top: 1140px"></i><i class="dot" style="left: 406px; top: 1140px"></i><i class="dot" style="left: 427px; top: 1140px"></i><i class="dot" style="left: 448px; top: 1140px"></i><i class="dot" style="left: 469px; top: 1140px"></i><i class="dot" style="left: 490px; top: 1140px"></i><i class="dot" style="left: 511px; top: 1140px"></i><i class="dot" style="left: 532px; top: 1140px"></i><i class="dot" style="left: 553px; top: 1140px"></i><i class="dot" style="left: 574px; top: 1140px"></i><i class="dot" style="left: 595px; top: 1140px"></i><i class="dot" style="left: 616px; top: 1140px"></i><i class="dot" style="left: 637px; top: 1140px"></i><i class="dot" style="left: 658px; top: 1140px"></i><i class="dot" style="left: 679px; top: 1140px"></i><i class="dot" style="left: 700px; top: 1140px"></i><i class="dot" style="left: 721px; top: 1140px"></i><i class="dot" style="left: 742px; top: 1140px"></i><i class="dot" style="left: 763px; top: 1140px"></i><i class="dot" style="left: 784px; top: 1140px"></i><i class="dot" style="left: 280px; top: 1161px"></i><i class="dot" style="left: 301px; top: 1161px"></i><i class="dot" style="left: 322px; top: 1161px"></i><i class="dot" style="left: 343px; top: 1161px"></i><i class="dot" style="left: 364px; top: 1161px"></i><i class="dot" style="left: 385px; top: 1161px"></i><i class="dot" style="left: 406px; top: 1161px"></i><i class="dot" style="left: 427px; top: 1161px"></i><i class="dot" style="left: 448px; top: 1161px"></i><i class="dot" style="left: 469px; top: 1161px"></i><i class="dot" style="left: 490px; top: 1161px"></i><i class="dot" style="left: 511px; top: 1161px"></i><i class="dot" style="left: 532px; top: 1161px"></i><i class="dot" style="left: 553px; top: 1161px"></i><i class="dot" style="left: 574px; top: 1161px"></i><i class="dot" style="left: 595px; top: 1161px"></i><i class="dot" style="left: 616px; top: 1161px"></i><i class="dot" style="left: 637px; top: 1161px"></i><i class="dot" style="left: 658px; top: 1161px"></i><i class="dot" style="left: 679px; top: 1161px"></i><i class="dot" style="left: 700px; top: 1161px"></i><i class="dot" style="left: 721px; top: 1161px"></i><i class="dot" style="left: 742px; top: 1161px"></i><i class="dot" style="left: 763px; top: 1161px"></i><i class="dot" style="left: 784px; top: 1161px"></i><i class="dot" style="left: 280px; top: 1182px"></i><i class="dot" style="left: 301px; top: 1182px"></i><i class="dot" style="left: 322px; top: 1182px"></i><i class="dot" style="left: 343px; top: 1182px"></i><i class="dot" style="left: 364px; top: 1182px"></i><i class="dot" style="left: 385px; top: 1182px"></i><i class="dot" style="left: 406px; top: 1182px"></i><i class="dot" style="left: 427px; top: 1182px"></i><i class="dot" style="left: 448px; top: 1182px"></i><i class="dot" style="left: 469px; top: 1182px"></i><i class="dot" style="left: 490px; top: 1182px"></i><i class="dot" style="left: 511px; top: 1182px"></i><i class="dot" style="left: 532px; top: 1182px"></i><i class="dot" style="left: 553px; top: 1182px"></i><i class="dot" style="left: 574px; top: 1182px"></i><i class="dot" style="left: 595px; top: 1182px"></i><i class="dot" style="left: 616px; top: 1182px"></i><i class="dot" style="left: 637px; top: 1182px"></i><i class="dot" style="left: 658px; top: 1182px"></i><i class="dot" style="left: 679px; top: 1182px"></i><i class="dot" style="left: 700px; top: 1182px"></i><i class="dot" style="left: 721px; top: 1182px"></i><i class="dot" style="left: 742px; top: 1182px"></i><i class="dot" style="left: 763px; top: 1182px"></i><i class="dot" style="left: 784px; top: 1182px"></i><i class="dot" style="left: 280px; top: 1203px"></i><i class="dot" style="left: 301px; top: 1203px"></i><i class="dot" style="left: 322px; top: 1203px"></i><i class="dot" style="left: 343px; top: 1203px"></i><i class="dot" style="left: 364px; top: 1203px"></i><i class="dot" style="left: 385px; top: 1203px"></i><i class="dot" style="left: 406px; top: 1203px"></i><i class="dot" style="left: 427px; top: 1203px"></i><i class="dot" style="left: 448px; top: 1203px"></i><i class="dot" style="left: 469px; top: 1203px"></i><i class="dot" style="left: 490px; top: 1203px"></i><i class="dot" style="left: 511px; top: 1203px"></i><i class="dot" style="left: 532px; top: 1203px"></i><i class="dot" style="left: 553px; top: 1203px"></i><i class="dot" style="left: 574px; top: 1203px"></i><i class="dot" style="left: 595px; top: 1203px"></i><i class="dot" style="left: 616px; top: 1203px"></i><i class="dot" style="left: 637px; top: 1203px"></i><i class="dot" style="left: 658px; top: 1203px"></i><i class="dot" style="left: 679px; top: 1203px"></i><i class="dot" style="left: 700px; top: 1203px"></i><i class="dot" style="left: 721px; top: 1203px"></i><i class="dot" style="left: 742px; top: 1203px"></i><i class="dot" style="left: 763px; top: 1203px"></i><i class="dot" style="left: 784px; top: 1203px"></i><i class="dot" style="left: 280px; top: 1224px"></i><i class="dot" style="left: 301px; top: 1224px"></i><i class="dot" style="left: 322px; top: 1224px"></i><i class="dot" style="left: 343px; top: 1224px"></i><i class="dot" style="left: 364px; top: 1224px"></i><i class="dot" style="left: 385px; top: 1224px"></i><i class="dot" style="left: 406px; top: 1224px"></i><i class="dot" style="left: 427px; top: 1224px"></i><i class="dot" style="left: 448px; top: 1224px"></i><i class="dot" style="left: 469px; top: 1224px"></i><i class="dot" style="left: 490px; top: 1224px"></i><i class="dot" style="left: 511px; top: 1224px"></i><i class="dot" style="left: 532px; top: 1224px"></i><i class="dot" style="left: 553px; top: 1224px"></i><i class="dot" style="left: 574px; top: 1224px"></i><i class="dot" style="left: 595px; top: 1224px"></i><i class="dot" style="left: 616px; top: 1224px"></i><i class="dot" style="left: 637px; top: 1224px"></i><i class="dot" style="left: 658px; top: 1224px"></i><i class="dot" style="left: 679px; top: 1224px"></i><i class="dot" style="left: 700px; top: 1224px"></i><i class="dot" style="left: 721px; top: 1224px"></i><i class="dot" style="left: 742px; top: 1224px"></i><i class="dot" style="left: 763px; top: 1224px"></i><i class="dot" style="left: 784px; top: 1224px"></i><i class="dot" style="left: 280px; top: 1245px"></i><i class="dot" style="left: 301px; top: 1245px"></i><i class="dot" style="left: 322px; top: 1245px"></i><i class="dot" style="left: 343px; top: 1245px"></i><i class="dot" style="left: 364px; top: 1245px"></i><i class="dot" style="left: 385px; top: 1245px"></i><i class="dot" style="left: 406px; top: 1245px"></i><i class="dot" style="left: 427px; top: 1245px"></i><i class="dot" style="left: 448px; top: 1245px"></i><i class="dot" style="left: 469px; top: 1245px"></i><i class="dot" style="left: 490px; top: 1245px"></i><i class="dot" style="left: 511px; top: 1245px"></i><i class="dot" style="left: 532px; top: 1245px"></i><i class="dot" style="left: 553px; top: 1245px"></i><i class="dot" style="left: 574px; top: 1245px"></i><i class="dot" style="left: 595px; top: 1245px"></i><i class="dot" style="left: 616px; top: 1245px"></i><i class="dot" style="left: 637px; top: 1245px"></i><i class="dot" style="left: 658px; top: 1245px"></i><i class="dot" style="left: 679px; top: 1245px"></i><i class="dot" style="left: 700px; top: 1245px"></i><i class="dot" style="left: 721px; top: 1245px"></i><i class="dot" style="left: 742px; top: 1245px"></i><i class="dot" style="left: 763px; top: 1245px"></i><i class="dot" style="left: 784px; top: 1245px"></i><i class="dot" style="left: 280px; top: 1266px"></i><i class="dot" style="left: 301px; top: 1266px"></i><i class="dot" style="left: 322px; top: 1266px"></i><i class="dot" style="left: 343px; top: 1266px"></i><i class="dot" style="left: 364px; top: 1266px"></i><i class="dot" style="left: 385px; top: 1266px"></i><i class="dot" style="left: 406px; top: 1266px"></i><i class="dot" style="left: 427px; top: 1266px"></i><i class="dot" style="left: 448px; top: 1266px"></i><i class="dot" style="left: 469px; top: 1266px"></i><i class="dot" style="left: 490px; top: 1266px"></i><i class="dot" style="left: 511px; top: 1266px"></i><i class="dot" style="left: 532px; top: 1266px"></i><i class="dot" style="left: 553px; top: 1266px"></i><i class="dot" style="left: 574px; top: 1266px"></i><i class="dot" style="left: 595px; top: 1266px"></i><i class="dot" style="left: 616px; top: 1266px"></i><i class="dot" style="left: 637px; top: 1266px"></i><i class="dot" style="left: 658px; top: 1266px"></i><i class="dot" style="left: 679px; top: 1266px"></i><i class="dot" style="left: 700px; top: 1266px"></i><i class="dot" style="left: 721px; top: 1266px"></i><i class="dot" style="left: 742px; top: 1266px"></i><i class="dot" style="left: 763px; top: 1266px"></i><i class="dot" style="left: 784px; top: 1266px"></i><i class="dot" style="left: 280px; top: 1287px"></i><i class="dot" style="left: 301px; top: 1287px"></i><i class="dot" style="left: 322px; top: 1287px"></i><i class="dot" style="left: 343px; top: 1287px"></i><i class="dot" style="left: 364px; top: 1287px"></i><i class="dot" style="left: 385px; top: 1287px"></i><i class="dot" style="left: 406px; top: 1287px"></i><i class="dot" style="left: 427px; top: 1287px"></i><i class="dot" style="left: 448px; top: 1287px"></i><i class="dot" style="left: 469px; top: 1287px"></i><i class="dot" style="left: 490px; top: 1287px"></i><i class="dot" style="left: 511px; top: 1287px"></i><i class="dot" style="left: 532px; top: 1287px"></i><i class="dot" style="left: 553px; top: 1287px"></i><i class="dot" style="left: 574px; top: 1287px"></i><i class="dot" style="left: 595px; top: 1287px"></i><i class="dot" style="left: 616px; top: 1287px"></i><i class="dot" style="left: 637px; top: 1287px"></i><i class="dot" style="left: 658px; top: 1287px"></i><i class="dot" style="left: 679px; top: 1287px"></i><i class="dot" style="left: 700px; top: 1287px"></i><i class="dot" style="left: 721px; top: 1287px"></i><i class="dot" style="left: 742px; top: 1287px"></i><i class="dot" style="left: 763px; top: 1287px"></i><i class="dot" style="left: 784px; top: 1287px"></i><i class="dot" style="left: 280px; top: 1308px"></i><i class="dot" style="left: 301px; top: 1308px"></i><i class="dot" style="left: 322px; top: 1308px"></i><i class="dot" style="left: 343px; top: 1308px"></i><i class="dot" style="left: 364px; top: 1308px"></i><i class="dot" style="left: 385px; top: 1308px"></i><i class="dot" style="left: 406px; top: 1308px"></i><i class="dot" style="left: 427px; top: 1308px"></i><i class="dot" style="left: 448px; top: 1308px"></i><i class="dot" style="left: 469px; top: 1308px"></i><i class="dot" style="left: 490px; top: 1308px"></i><i class="dot" style="left: 511px; top: 1308px"></i><i class="dot" style="left: 532px; top: 1308px"></i><i class="dot" style="left: 553px; top: 1308px"></i><i class="dot" style="left: 574px; top: 1308px"></i><i class="dot" style="left: 595px; top: 1308px"></i><i class="dot" style="left: 616px; top: 1308px"></i><i class="dot" style="left: 637px; top: 1308px"></i><i class="dot" style="left: 658px; top: 1308px"></i><i class="dot" style="left: 679px; top: 1308px"></i><i class="dot" style="left: 700px; top: 1308px"></i><i class="dot" style="left: 721px; top: 1308px"></i><i class="dot" style="left: 742px; top: 1308px"></i><i class="dot" style="left: 763px; top: 1308px"></i><i class="dot" style="left: 784px; top: 1308px"></i><i class="dot" style="left: 280px; top: 1329px"></i><i class="dot" style="left: 301px; top: 1329px"></i><i class="dot" style="left: 322px; top: 1329px"></i><i class="dot" style="left: 343px; top: 1329px"></i><i class="dot" style="left: 364px; top: 1329px"></i><i class="dot" style="left: 385px; top: 1329px"></i><i class="dot" style="left: 406px; top: 1329px"></i><i class="dot" style="left: 427px; top: 1329px"></i><i class="dot" style="left: 448px; top: 1329px"></i><i class="dot" style="left: 469px; top: 1329px"></i><i class="dot" style="left: 490px; top: 1329px"></i><i class="dot" style="left: 511px; top: 1329px"></i><i class="dot" style="left: 532px; top: 1329px"></i><i class="dot" style="left: 553px; top: 1329px"></i><i class="dot" style="left: 574px; top: 1329px"></i><i class="dot" style="left: 595px; top: 1329px"></i><i class="dot" style="left: 616px; top: 1329px"></i><i class="dot" style="left: 637px; top: 1329px"></i><i class="dot" style="left: 658px; top: 1329px"></i><i class="dot" style="left: 679px; top: 1329px"></i><i class="dot" style="left: 700px; top: 1329px"></i><i class="dot" style="left: 721px; top: 1329px"></i><i class="dot" style="left: 742px; top: 1329px"></i><i class="dot" style="left: 763px; top: 1329px"></i><i class="dot" style="left: 784px; top: 1329px"></i><i class="dot" style="left: 280px; top: 1350px"></i><i class="dot" style="left: 301px; top: 1350px"></i><i class="dot" style="left: 322px; top: 1350px"></i><i class="dot" style="left: 343px; top: 1350px"></i><i class="dot" style="left: 364px; top: 1350px"></i><i class="dot" style="left: 385px; top: 1350px"></i><i class="dot" style="left: 406px; top: 1350px"></i><i class="dot" style="left: 427px; top: 1350px"></i><i class="dot" style="left: 448px; top: 1350px"></i><i class="dot" style="left: 469px; top: 1350px"></i><i class="dot" style="left: 490px; top: 1350px"></i><i class="dot" style="left: 511px; top: 1350px"></i><i class="dot" style="left: 532px; top: 1350px"></i><i class="dot" style="left: 553px; top: 1350px"></i><i class="dot" style="left: 574px; top: 1350px"></i><i class="dot" style="left: 595px; top: 1350px"></i><i class="dot" style="left: 616px; top: 1350px"></i><i class="dot" style="left: 637px; top: 1350px"></i><i class="dot" style="left: 658px; top: 1350px"></i><i class="dot" style="left: 679px; top: 1350px"></i><i class="dot" style="left: 700px; top: 1350px"></i><i class="dot" style="left: 721px; top: 1350px"></i><i class="dot" style="left: 742px; top: 1350px"></i><i class="dot" style="left: 763px; top: 1350px"></i><i class="dot" style="left: 784px; top: 1350px"></i><i class="dot" style="left: 280px; top: 1371px"></i><i class="dot" style="left: 301px; top: 1371px"></i><i class="dot" style="left: 322px; top: 1371px"></i><i class="dot" style="left: 343px; top: 1371px"></i><i class="dot" style="left: 364px; top: 1371px"></i><i class="dot" style="left: 385px; top: 1371px"></i><i class="dot" style="left: 406px; top: 1371px"></i><i class="dot" style="left: 427px; top: 1371px"></i><i class="dot" style="left: 448px; top: 1371px"></i><i class="dot" style="left: 469px; top: 1371px"></i><i class="dot" style="left: 490px; top: 1371px"></i><i class="dot" style="left: 511px; top: 1371px"></i><i class="dot" style="left: 532px; top: 1371px"></i><i class="dot" style="left: 553px; top: 1371px"></i><i class="dot" style="left: 574px; top: 1371px"></i><i class="dot" style="left: 595px; top: 1371px"></i><i class="dot" style="left: 616px; top: 1371px"></i><i class="dot" style="left: 637px; top: 1371px"></i><i class="dot" style="left: 658px; top: 1371px"></i><i class="dot" style="left: 679px; top: 1371px"></i><i class="dot" style="left: 700px; top: 1371px"></i><i class="dot" style="left: 721px; top: 1371px"></i><i class="dot" style="left: 742px; top: 1371px"></i><i class="dot" style="left: 763px; top: 1371px"></i><i class="dot" style="left: 784px; top: 1371px"></i><i class="dot" style="left: 280px; top: 1392px"></i><i class="dot" style="left: 301px; top: 1392px"></i><i class="dot" style="left: 322px; top: 1392px"></i><i class="dot" style="left: 343px; top: 1392px"></i><i class="dot" style="left: 364px; top: 1392px"></i><i class="dot" style="left: 385px; top: 1392px"></i><i class="dot" style="left: 406px; top: 1392px"></i><i class="dot" style="left: 427px; top: 1392px"></i><i class="dot" style="left: 448px; top: 1392px"></i><i class="dot" style="left: 469px; top: 1392px"></i><i class="dot" style="left: 490px; top: 1392px"></i><i class="dot" style="left: 511px; top: 1392px"></i><i class="dot" style="left: 532px; top: 1392px"></i><i class="dot" style="left: 553px; top: 1392px"></i><i class="dot" style="left: 574px; top: 1392px"></i><i class="dot" style="left: 595px; top: 1392px"></i><i class="dot" style="left: 616px; top: 1392px"></i><i class="dot" style="left: 637px; top: 1392px"></i><i class="dot" style="left: 658px; top: 1392px"></i><i class="dot" style="left: 679px; top: 1392px"></i><i class="dot" style="left: 700px; top: 1392px"></i><i class="dot" style="left: 721px; top: 1392px"></i><i class="dot" style="left: 742px; top: 1392px"></i><i class="dot" style="left: 763px; top: 1392px"></i><i class="dot" style="left: 784px; top: 1392px"></i><i class="dot" style="left: 280px; top: 1413px"></i><i class="dot" style="left: 301px; top: 1413px"></i><i class="dot" style="left: 322px; top: 1413px"></i><i class="dot" style="left: 343px; top: 1413px"></i><i class="dot" style="left: 364px; top: 1413px"></i><i class="dot" style="left: 385px; top: 1413px"></i><i class="dot" style="left: 406px; top: 1413px"></i><i class="dot" style="left: 427px; top: 1413px"></i><i class="dot" style="left: 448px; top: 1413px"></i><i class="dot" style="left: 469px; top: 1413px"></i><i class="dot" style="left: 490px; top: 1413px"></i><i class="dot" style="left: 511px; top: 1413px"></i><i class="dot" style="left: 532px; top: 1413px"></i><i class="dot" style="left: 553px; top: 1413px"></i><i class="dot" style="left: 574px; top: 1413px"></i><i class="dot" style="left: 595px; top: 1413px"></i><i class="dot" style="left: 616px; top: 1413px"></i><i class="dot" style="left: 637px; top: 1413px"></i><i class="dot" style="left: 658px; top: 1413px"></i><i class="dot" style="left: 679px; top: 1413px"></i><i class="dot" style="left: 700px; top: 1413px"></i><i class="dot" style="left: 721px; top: 1413px"></i><i class="dot" style="left: 742px; top: 1413px"></i><i class="dot" style="left: 763px; top: 1413px"></i><i class="dot" style="left: 784px; top: 1413px"></i><i class="dot" style="left: 280px; top: 1434px"></i><i class="dot" style="left: 301px; top: 1434px"></i><i class="dot" style="left: 322px; top: 1434px"></i><i class="dot" style="left: 343px; top: 1434px"></i><i class="dot" style="left: 364px; top: 1434px"></i><i class="dot" style="left: 385px; top: 1434px"></i><i class="dot" style="left: 406px; top: 1434px"></i><i class="dot" style="left: 427px; top: 1434px"></i><i class="dot" style="left: 448px; top: 1434px"></i><i class="dot" style="left: 469px; top: 1434px"></i><i class="dot" style="left: 490px; top: 1434px"></i><i class="dot" style="left: 511px; top: 1434px"></i><i class="dot" style="left: 532px; top: 1434px"></i><i class="dot" style="left: 553px; top: 1434px"></i><i class="dot" style="left: 574px; top: 1434px"></i><i class="dot" style="left: 595px; top: 1434px"></i><i class="dot" style="left: 616px; top: 1434px"></i><i class="dot" style="left: 637px; top: 1434px"></i><i class="dot" style="left: 658px; top: 1434px"></i><i class="dot" style="left: 679px; top: 1434px"></i><i class="dot" style="left: 700px; top: 1434px"></i><i class="dot" style="left: 721px; top: 1434px"></i><i class="dot" style="left: 742px; top: 1434px"></i><i class="dot" style="left: 763px; top: 1434px"></i><i class="dot" style="left: 784px; top: 1434px"></i><i class="dot" style="left: 280px; top: 1455px"></i><i class="dot" style="left: 301px; top: 1455px"></i><i class="dot" style="left: 322px; top: 1455px"></i><i class="dot" style="left: 343px; top: 1455px"></i><i class="dot" style="left: 364px; top: 1455px"></i><i class="dot" style="left: 385px; top: 1455px"></i><i class="dot" style="left: 406px; top: 1455px"></i><i class="dot" style="left: 427px; top: 1455px"></i><i class="dot" style="left: 448px; top: 1455px"></i><i class="dot" style="left: 469px; top: 1455px"></i><i class="dot" style="left: 490px; top: 1455px"></i><i class="dot" style="left: 511px; top: 1455px"></i><i class="dot" style="left: 532px; top: 1455px"></i><i class="dot" style="left: 553px; top: 1455px"></i><i class="dot" style="left: 574px; top: 1455px"></i><i class="dot" style="left: 595px; top: 1455px"></i><i class="dot" style="left: 616px; top: 1455px"></i><i class="dot" style="left: 637px; top: 1455px"></i><i class="dot" style="left: 658px; top: 1455px"></i><i class="dot" style="left: 679px; top: 1455px"></i><i class="dot" style="left: 700px; top: 1455px"></i><i class="dot" style="left: 721px; top: 1455px"></i><i class="dot" style="left: 742px; top: 1455px"></i><i class="dot" style="left: 763px; top: 1455px"></i><i class="dot" style="left: 784px; top: 1455px"></i><i class="dot" style="left: 280px; top: 1476px"></i><i class="dot" style="left: 301px; top: 1476px"></i><i class="dot" style="left: 322px; top: 1476px"></i><i class="dot" style="left: 343px; top: 1476px"></i><i class="dot" style="left: 364px; top: 1476px"></i><i class="dot" style="left: 385px; top: 1476px"></i><i class="dot" style="left: 406px; top: 1476px"></i><i class="dot" style="left: 427px; top: 1476px"></i><i class="dot" style="left: 448px; top: 1476px"></i><i class="dot" style="left: 469px; top: 1476px"></i><i class="dot" style="left: 490px; top: 1476px"></i><i class="dot" style="left: 511px; top: 1476px"></i><i class="dot" style="left: 532px; top: 1476px"></i><i class="dot" style="left: 553px; top: 1476px"></i><i class="dot" style="left: 574px; top: 1476px"></i><i class="dot" style="left: 595px; top: 1476px"></i><i class="dot" style="left: 616px; top: 1476px"></i><i class="dot" style="left: 637px; top: 1476px"></i><i class="dot" style="left: 658px; top: 1476px"></i><i class="dot" style="left: 679px; top: 1476px"></i><i class="dot" style="left: 700px; top: 1476px"></i><i class="dot" style="left: 721px; top: 1476px"></i><i class="dot" style="left: 742px; top: 1476px"></i><i class="dot" style="left: 763px; top: 1476px"></i><i class="dot" style="left: 784px; top: 1476px"></i><i class="dot" style="left: 280px; top: 1497px"></i><i class="dot" style="left: 301px; top: 1497px"></i><i class="dot" style="left: 322px; top: 1497px"></i><i class="dot" style="left: 343px; top: 1497px"></i><i class="dot" style="left: 364px; top: 1497px"></i><i class="dot" style="left: 385px; top: 1497px"></i><i class="dot" style="left: 406px; top: 1497px"></i><i class="dot" style="left: 427px; top: 1497px"></i><i class="dot" style="left: 448px; top: 1497px"></i><i class="dot" style="left: 469px; top: 1497px"></i><i class="dot" style="left: 490px; top: 1497px"></i><i class="dot" style="left: 511px; top: 1497px"></i><i class="dot" style="left: 532px; top: 1497px"></i><i class="dot" style="left: 553px; top: 1497px"></i><i class="dot" style="left: 574px; top: 1497px"></i><i class="dot" style="left: 595px; top: 1497px"></i><i class="dot" style="left: 616px; top: 1497px"></i><i class="dot" style="left: 637px; top: 1497px"></i><i class="dot" style="left: 658px; top: 1497px"></i><i class="dot" style="left: 679px; top: 1497px"></i><i class="dot" style="left: 700px; top: 1497px"></i><i class="dot" style="left: 721px; top: 1497px"></i><i class="dot" style="left: 742px; top: 1497px"></i><i class="dot" style="left: 763px; top: 1497px"></i><i class="dot" style="left: 784px; top: 1497px"></i><i class="dot" style="left: 280px; top: 1518px"></i><i class="dot" style="left: 301px; top: 1518px"></i><i class="dot" style="left: 322px; top: 1518px"></i><i class="dot" style="left: 343px; top: 1518px"></i><i class="dot" style="left: 364px; top: 1518px"></i><i class="dot" style="left: 385px; top: 1518px"></i><i class="dot" style="left: 406px; top: 1518px"></i><i class="dot" style="left: 427px; top: 1518px"></i><i class="dot" style="left: 448px; top: 1518px"></i><i class="dot" style="left: 469px; top: 1518px"></i><i class="dot" style="left: 490px; top: 1518px"></i><i class="dot" style="left: 511px; top: 1518px"></i><i class="dot" style="left: 532px; top: 1518px"></i><i class="dot" style="left: 553px; top: 1518px"></i><i class="dot" style="left: 574px; top: 1518px"></i><i class="dot" style="left: 595px; top: 1518px"></i><i class="dot" style="left: 616px; top: 1518px"></i><i class="dot" style="left: 637px; top: 1518px"></i><i class="dot" style="left: 658px; top: 1518px"></i><i class="dot" style="left: 679px; top: 1518px"></i><i class="dot" style="left: 700px; top: 1518px"></i><i class="dot" style="left: 721px; top: 1518px"></i><i class="dot" style="left: 742px; top: 1518px"></i><i class="dot" style="left: 763px; top: 1518px"></i><i class="dot" style="left: 784px; top: 1518px"></i><i class="dot" style="left: 280px; top: 1539px"></i><i class="dot" style="left: 301px; top: 1539px"></i><i class="dot" style="left: 322px; top: 1539px"></i><i class="dot" style="left: 343px; top: 1539px"></i><i class="dot" style="left: 364px; top: 1539px"></i><i class="dot" style="left: 385px; top: 1539px"></i><i class="dot" style="left: 406px; top: 1539px"></i><i class="dot" style="left: 427px; top: 1539px"></i><i class="dot" style="left: 448px; top: 1539px"></i><i class="dot" style="left: 469px; top: 1539px"></i><i class="dot" style="left: 490px; top: 1539px"></i><i class="dot" style="left: 511px; top: 1539px"></i><i class="dot" style="left: 532px; top: 1539px"></i><i class="dot" style="left: 553px; top: 1539px"></i><i class="dot" style="left: 574px; top: 1539px"></i><i class="dot" style="left: 595px; top: 1539px"></i><i class="dot" style="left: 616px; top: 1539px"></i><i class="dot" style="left: 637px; top: 1539px"></i><i class="dot" style="left: 658px; top: 1539px"></i><i class="dot" style="left: 679px; top: 1539px"></i><i class="dot" style="left: 700px; top: 1539px"></i><i class="dot" style="left: 721px; top: 1539px"></i><i class="dot" style="left: 742px; top: 1539px"></i><i class="dot" style="left: 763px; top: 1539px"></i><i class="dot" style="left: 784px; top: 1539px"></i></div>
+          <div id="g-code" class="mono"><span class="k">import</span> sheet <span class="k">from</span> <span class="s">'./<span id="gf0">theme</span><span id="gf1" style="display: none">tailwind</span><span id="gf2" style="display: none">uno</span><span id="gf3" style="display: none">theme</span>.css?css-sheet'</span><span class="p">;</span></div>
+          <div id="g-chips"><div class="chip" id="ch0">Tailwind v4</div><div class="chip" id="ch1">UnoCSS</div><div class="chip" id="ch2">plain CSS</div></div>
+          <div id="g-count" class="mono"><b>1,000</b> shadow roots<i></i>0 re-renders</div>
+        </div>
+      </div>
+      <div class="shot clip" id="s4" data-start="9.6" data-duration="1.92" data-track-index="1">
+        <div class="sin" id="s4in">
+          <svg id="r-rails" viewBox="0 0 1080 1920"><path id="rail0" d="M150 695 H110 V943 H150" fill="none" stroke="#20c997" stroke-width="5" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><circle id="rn0_0" cx="150" cy="695" r="8" fill="#20c997" opacity="0"/><circle id="rn0_1" cx="150" cy="819" r="8" fill="#20c997" opacity="0"/><circle id="rn0_2" cx="150" cy="943" r="8" fill="#20c997" opacity="0"/><path id="rail1" d="M180 1067 H140 V1191 H180" fill="none" stroke="#e64980" stroke-width="5" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><circle id="rn1_0" cx="180" cy="1067" r="8" fill="#e64980" opacity="0"/><circle id="rn1_1" cx="180" cy="1191" r="8" fill="#e64980" opacity="0"/><path id="rail2" d="M120 1191 H80 V1315 H120" fill="none" stroke="#fd7e14" stroke-width="5" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1"/><circle id="rn2_0" cx="120" cy="1191" r="8" fill="#fd7e14" opacity="0"/><circle id="rn2_1" cx="120" cy="1315" r="8" fill="#fd7e14" opacity="0"/></svg>
+          <div class="row mono" id="row0" style="top: 660px"><i style="background: #a451af"></i>click<span>(385, 540)</span></div><div class="row mono" id="row1" style="top: 784px"><i style="background: #325cff"></i>performUpdate<span>hmr-task</span></div><div class="row mono" id="row2" style="top: 908px"><i style="background: #4d63ff"></i>task<span>302.8ms</span></div><div class="row mono" id="row3" style="top: 1032px"><i style="background: #6b7bff"></i>edit factor 2 → 4<span></span></div><div class="row mono" id="row4" style="top: 1156px"><i style="background: #325cff"></i>performUpdate<span>hmr-properties</span></div><div class="row mono" id="row5" style="top: 1280px"><i style="background: #325cff"></i>performUpdate<span><b class="warn">2×</b> echoed</span></div>
+        </div>
+      </div>
+
+      <div class="head clip" id="h1" data-start="0.0" data-duration="1.92" data-track-index="2">
+        <div class="ln" id="h1l0" style="top: 0px">Lit,</div>
+        <div class="ln shine" id="h1l1" style="top: 118px">with the</div>
+        <div class="ln shine" id="h1l2" style="top: 236px">lights on.</div>
+      </div>
+      <div class="head clip" id="h2" data-start="1.92" data-duration="3.84" data-track-index="2">
+        <div class="ln" id="h2l0" style="top: 0px">Edit.</div>
+        <div class="ln" id="h2l1" style="top: 118px">Save.</div>
+        <div class="ln" id="h2l2" style="top: 236px">Keep the <span class="sh">page.</span></div>
+      </div>
+      <div class="head clip" id="h3" data-start="5.76" data-duration="3.84" data-track-index="2">
+        <div class="ln" id="h3l0" style="top: 0px">One sheet.</div>
+        <div class="ln" id="h3l1" style="top: 118px">A thousand</div>
+        <div class="ln shine" id="h3l2" style="top: 236px">shadow roots.</div>
+      </div>
+      <div class="head clip" id="h4" data-start="9.6" data-duration="1.92" data-track-index="2">
+        <div class="ln" id="h4l0" style="top: 0px">See why it</div>
+        <div class="ln shine" id="h4l1" style="top: 118px">re-rendered.</div>
+      </div>
+
+
+      <div id="lock" class="clip" data-start="11.52" data-duration="3.84" data-track-index="4">
+        <div id="l-glow"></div>
+        <img id="l-flame" src="assets/flame.svg" alt="" />
+        <div class="l-line" id="l-title"><span class="shine" id="l-lit">Lit</span>&nbsp;DevTools</div>
+        <div class="l-line" id="l-chip">
+          <div><span style="color: #b2ccd6">plugins</span>: [<span style="color: #82aaff">litPlugin</span>()]</div>
+        </div>
+        <div class="l-line" id="l-npm">npm i -D @oddsquad/lit-devtools</div>
+        <div class="l-line" id="l-url">lit-devtools.oddsquad.dev</div>
+        <div class="l-line" id="l-logos" style="opacity: 1"><img class="lg" src="assets/logos/vite.svg" alt="Vite" /><img class="lg" src="assets/logos/astro-on-dark.svg" alt="Astro" /><img class="lg" src="assets/logos/vscode.svg" alt="VS Code" /><img class="lg" src="assets/logos/zed.svg" alt="Zed" /><img class="lg" src="assets/logos/chrome.svg" alt="Chrome" /><img class="lg" src="assets/logos/firefox.svg" alt="Firefox" /><img class="lg" src="assets/logos/inspector-icon.svg" alt="Lit Inspector" /><img class="lg" src="assets/logos/mcp.svg" alt="MCP" style="filter: invert(0.8)" /></div>
+        <div class="l-line" id="l-cap">Vite · Astro · VS Code · Zed · Chrome · Firefox · Lit Inspector · MCP</div>
+      </div>
+
+      <audio
+        id="bgm"
+        src="assets/bgm/bounce-energique.m4a"
+        data-start="0"
+        data-duration="15.36"
+        data-media-start="15.41"
+        data-volume="0.9"
+        data-fade-out="0.8"
+        data-track-index="11"
+      ></audio>
+    </div>
+    <script>
+      (function () {
+        var tl = gsap.timeline({paused: true});
+        // background drift, the whole film
+        tl.fromTo('#b1', {x: 0, y: 0}, {x: 520, y: 700, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b1', {x: 120, y: 1200, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b2', {x: 0, y: 0}, {x: -620, y: -420, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b2', {x: -200, y: -900, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b3', {x: 0, y: 0, scale: 1}, {x: 560, y: -500, scale: 1.25, duration: 7.68, ease: 'sine.inOut'}, 0);
+        tl.to('#b3', {x: 200, y: -1100, scale: 1, duration: 7.68, ease: 'sine.inOut'}, 7.68);
+        tl.fromTo('#b4', {x: 0, y: 0}, {x: -700, y: 500, duration: 15.36, ease: 'sine.inOut'}, 0);
+        // a light sweep across on every cut
+        [0, 1.92, 5.76, 9.6, 11.52].forEach(function (t) {
+          tl.fromTo(
+            '#sweep',
+            {x: 0, rotation: 18},
+            {x: 2700, rotation: 18, duration: 0.9, ease: 'power2.inOut', immediateRender: t === 0},
+            t
+          );
+        });
+        // the drop: bloom and the blobs swell
+        tl.fromTo('#bloom', {opacity: 0.9, scale: 0.7}, {opacity: 0, scale: 1.2, duration: 0.9, ease: 'power2.out', immediateRender: false}, 6.24);
+        tl.fromTo(['#b1', '#b2'], {scale: 1.35}, {scale: 1, duration: 1.2, ease: 'power3.out', immediateRender: false}, 6.24);
+        tl.fromTo('#fl1', {x: 90, y: 120, opacity: 0, rotation: 12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.00);
+        tl.fromTo('#fl2', {x: 120, y: -90, opacity: 0, rotation: -12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.03);
+        tl.fromTo('#fl3', {x: -120, y: 90, opacity: 0, rotation: 12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.06);
+        tl.fromTo('#fl4', {x: -90, y: -150, opacity: 0, rotation: -12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.09);
+        tl.fromTo('#fl5', {x: 150, y: 30, opacity: 0, rotation: 12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.12);
+        tl.fromTo('#fl6', {x: -150, y: -30, opacity: 0, rotation: -12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.15);
+        tl.fromTo('#fl7', {x: -30, y: 150, opacity: 0, rotation: 12}, {x: 0, y: 0, opacity: 1, rotation: 0, duration: 0.34, ease: 'power3.out'}, 0.18);
+        tl.set('#fl1', {fill: '#00e8ff', stroke: '#00e8ff'}, 0.48);
+        tl.set('#fl2', {fill: '#283198', stroke: '#283198'}, 0.48);
+        tl.set('#fl3', {fill: '#283198', stroke: '#283198'}, 0.48);
+        tl.set('#fl4', {fill: '#324fff', stroke: '#324fff'}, 0.48);
+        tl.set('#fl5', {fill: '#324fff', stroke: '#324fff'}, 0.48);
+        tl.set('#fl6', {fill: '#324fff', stroke: '#324fff'}, 0.48);
+        tl.set('#fl7', {fill: '#00ffff', stroke: '#00ffff'}, 0.48);
+        tl.set(['#f-glow', '#f-floor'], {opacity: 0.7}, 0.48);
+        tl.set('#fl1', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl2', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl3', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl4', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl5', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl6', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set('#fl7', {fill: '#111326', stroke: '#2b2e52'}, 0.54);
+        tl.set(['#f-glow', '#f-floor'], {opacity: 0}, 0.54);
+        tl.set('#fl1', {fill: '#00e8ff', stroke: '#00e8ff'}, 0.6);
+        tl.set('#fl2', {fill: '#283198', stroke: '#283198'}, 0.6);
+        tl.set('#fl3', {fill: '#283198', stroke: '#283198'}, 0.6);
+        tl.set('#fl4', {fill: '#324fff', stroke: '#324fff'}, 0.6);
+        tl.set('#fl5', {fill: '#324fff', stroke: '#324fff'}, 0.6);
+        tl.set('#fl6', {fill: '#324fff', stroke: '#324fff'}, 0.6);
+        tl.set('#fl7', {fill: '#00ffff', stroke: '#00ffff'}, 0.6);
+        tl.set(['#f-glow', '#f-floor'], {opacity: 0.7}, 0.6);
+        tl.fromTo(['#f-glow', '#f-floor'], {scale: 0.8}, {scale: 1.1, opacity: 1, duration: 1.1, ease: 'sine.out', immediateRender: false}, 0.6);
+        tl.fromTo('#f-flame', {y: 0, scale: 1}, {y: -24, scale: 1.04, duration: 1.3, ease: 'sine.inOut'}, 0.5);
+        tl.to('#fl1', {x: 270, y: 360, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl2', {x: 360, y: -270, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl3', {x: -360, y: 270, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl4', {x: -270, y: -450, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl5', {x: 450, y: 90, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl6', {x: -450, y: -90, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to('#fl7', {x: -90, y: 450, opacity: 0, duration: 0.16, ease: 'power2.in'}, 1.76);
+        tl.to(['#f-glow', '#f-floor'], {opacity: 0, duration: 0.16}, 1.76);
+        tl.fromTo('#h-code', {opacity: 0, x: -40}, {opacity: 1, x: 0, duration: 0.35, ease: 'power3.out'}, 1.92);
+        tl.fromTo('#h-title', {opacity: 0, x: -40}, {opacity: 1, x: 0, duration: 0.35, ease: 'power3.out'}, 2.0);
+        tl.fromTo('#h-btn', {opacity: 0, y: 60, scale: 0.92}, {opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.6)'}, 2.1);
+        tl.set('#tc0', {display: 'inline'}, 2.400);
+        tl.set('#tc1', {display: 'inline'}, 2.445);
+        tl.set('#tc2', {display: 'inline'}, 2.490);
+        tl.set('#tc3', {display: 'inline'}, 2.535);
+        tl.set('#tc4', {display: 'inline'}, 2.580);
+        tl.set('#tc5', {display: 'inline'}, 2.625);
+        tl.set('#tc6', {display: 'inline'}, 2.670);
+        tl.set('#tc7', {display: 'inline'}, 2.715);
+        tl.set('#tc8', {display: 'inline'}, 2.760);
+        tl.set('#tc9', {display: 'inline'}, 2.805);
+        tl.set('#tc10', {display: 'inline'}, 2.850);
+        tl.set('#tc11', {display: 'inline'}, 2.895);
+        tl.set('#tc12', {display: 'inline'}, 2.940);
+        tl.fromTo('#h-caret', {opacity: 1}, {opacity: 0, duration: 0.1}, 3.2);
+        tl.fromTo('#h-code', {scale: 1.05}, {scale: 1, duration: 0.4, ease: 'power3.out', immediateRender: false}, 3.36);
+        tl.set('#h-title1', {opacity: 0}, 3.36);
+        tl.fromTo('#h-title2', {opacity: 0, y: 24}, {opacity: 1, y: 0, duration: 0.3, ease: 'power3.out'}, 3.36);
+        tl.fromTo('#h-glowline', {opacity: 1}, {opacity: 0, duration: 0.7, ease: 'power2.out', immediateRender: false}, 3.36);
+        tl.set(['#fl40', '#fl41', '#fl42', '#fl42b'], {rotationX: 90}, 0);
+        tl.to('#fl39', {rotationX: -90, duration: 0.09, ease: 'power2.in'}, 2.4);
+        tl.to('#fl40', {rotationX: 0, duration: 0.14, ease: 'back.out(2.5)'}, 2.49);
+        tl.to('#fl40', {rotationX: -90, duration: 0.09, ease: 'power2.in'}, 2.64);
+        tl.to('#fl41', {rotationX: 0, duration: 0.14, ease: 'back.out(2.5)'}, 2.73);
+        tl.to('#fl41', {rotationX: -90, duration: 0.09, ease: 'power2.in'}, 2.88);
+        tl.to('#fl42', {rotationX: 0, duration: 0.14, ease: 'back.out(2.5)'}, 2.97);
+        tl.to('#fl42', {rotationX: -90, duration: 0.09, ease: 'power2.in'}, 3.6);
+        tl.to('#fl42b', {rotationX: 0, duration: 0.14, ease: 'back.out(2.5)'}, 3.69);
+        tl.fromTo('#fl42b', {boxShadow: '0 0 0px rgba(0,232,255,0)'}, {boxShadow: '0 0 40px rgba(0,232,255,0.8)', duration: 0.2, yoyo: true, repeat: 1, immediateRender: false}, 3.7);
+        tl.fromTo('#h-chip', {opacity: 0, x: -30}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 3.36);
+        tl.fromTo('#h-renders', {opacity: 0, x: -30}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 3.6);
+        tl.set('#h-r1', {display: 'none'}, 3.6);
+        tl.set('#h-r2', {display: 'inline'}, 3.6);
+        tl.to('#h-btn', {y: -16, duration: 1.8, ease: 'sine.inOut'}, 3.8);
+        tl.to('#s2in', {opacity: 0, y: -60, duration: 0.15, ease: 'power2.in'}, 5.61);
+        var dots = gsap.utils.toArray('#g-grid .dot');
+        tl.fromTo(dots, {scale: 0, opacity: 0}, {scale: 1, opacity: 0.75, duration: 0.2, ease: 'back.out(2)', stagger: {each: 0.00028, grid: [40, 25], from: 'center'}}, 5.76);
+        tl.set(dots, {backgroundColor: '#ffffff', opacity: 1, scale: 1.25}, 6.24);
+        tl.to(dots, {backgroundColor: '#00e8ff', scale: 1, duration: 0.3, ease: 'power2.out'}, 6.3);
+        tl.fromTo('#g-grid', {scale: 1.04}, {scale: 1, duration: 0.6, ease: 'power3.out', transformOrigin: '540px 1200px', immediateRender: false}, 6.24);
+        tl.fromTo('#g-count', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.35, ease: 'power3.out'}, 6.48);
+        tl.fromTo('#g-code', {opacity: 0, x: -40}, {opacity: 1, x: 0, duration: 0.35, ease: 'power3.out'}, 5.82);
+        tl.fromTo('#g-code', {scale: 1.06}, {scale: 1, duration: 0.4, ease: 'power3.out', immediateRender: false}, 6.24);
+        tl.set(dots, {backgroundColor: '#ffffff'}, 7.2);
+        tl.set('#gf0', {display: 'none'}, 7.2);
+        tl.set('#gf1', {display: 'inline'}, 7.2);
+        tl.fromTo('#g-code', {scale: 1.05}, {scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false}, 7.2);
+        tl.fromTo('#ch0', {opacity: 0, y: 30, scale: 0.8}, {opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 7.2);
+        tl.set('#ch0', {borderColor: '#38bdf8', color: '#ffffff', boxShadow: '0 0 24px #38bdf8'}, 7.2);
+        tl.to(dots, {backgroundColor: '#38bdf8', duration: 0.24, ease: 'power2.out'}, 7.24);
+        tl.set(dots, {backgroundColor: '#ffffff'}, 7.68);
+        tl.set('#gf1', {display: 'none'}, 7.68);
+        tl.set('#gf2', {display: 'inline'}, 7.68);
+        tl.fromTo('#g-code', {scale: 1.05}, {scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false}, 7.68);
+        tl.fromTo('#ch1', {opacity: 0, y: 30, scale: 0.8}, {opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 7.68);
+        tl.set('#ch1', {borderColor: '#a78bfa', color: '#ffffff', boxShadow: '0 0 24px #a78bfa'}, 7.68);
+        tl.set('#ch0', {borderColor: '#2f3a8c', color: '#c7c7c7', boxShadow: 'none'}, 7.68);
+        tl.to(dots, {backgroundColor: '#a78bfa', duration: 0.24, ease: 'power2.out'}, 7.72);
+        tl.set(dots, {backgroundColor: '#ffffff'}, 8.16);
+        tl.set('#gf2', {display: 'none'}, 8.16);
+        tl.set('#gf3', {display: 'inline'}, 8.16);
+        tl.fromTo('#g-code', {scale: 1.05}, {scale: 1, duration: 0.3, ease: 'power3.out', immediateRender: false}, 8.16);
+        tl.fromTo('#ch2', {opacity: 0, y: 30, scale: 0.8}, {opacity: 1, y: 0, scale: 1, duration: 0.3, ease: 'back.out(2)'}, 8.16);
+        tl.set('#ch2', {borderColor: '#4d63ff', color: '#ffffff', boxShadow: '0 0 24px #4d63ff'}, 8.16);
+        tl.set('#ch1', {borderColor: '#2f3a8c', color: '#c7c7c7', boxShadow: 'none'}, 8.16);
+        tl.to(dots, {backgroundColor: '#4d63ff', duration: 0.24, ease: 'power2.out'}, 8.20);
+        tl.to('#s3in', {opacity: 0, scale: 0.94, duration: 0.15, ease: 'power2.in', transformOrigin: '540px 1150px'}, 9.45);
+        tl.fromTo('#row0', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.60);
+        tl.fromTo('#row1', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.65);
+        tl.fromTo('#row2', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.70);
+        tl.fromTo('#row3', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.75);
+        tl.fromTo('#row4', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.80);
+        tl.fromTo('#row5', {opacity: 0, x: 60}, {opacity: 1, x: 0, duration: 0.3, ease: 'power3.out'}, 9.85);
+        tl.to('#rail0', {attr: {'stroke-dashoffset': 0}, duration: 0.3, ease: 'power2.inOut'}, 9.84);
+        tl.to('#rn0_0', {attr: {opacity: 1}, duration: 0.1}, 9.84);
+        tl.to('#rn0_1', {attr: {opacity: 1}, duration: 0.1}, 9.94);
+        tl.to('#rn0_2', {attr: {opacity: 1}, duration: 0.1}, 10.04);
+        tl.to('#rail1', {attr: {'stroke-dashoffset': 0}, duration: 0.3, ease: 'power2.inOut'}, 10.08);
+        tl.to('#rn1_0', {attr: {opacity: 1}, duration: 0.1}, 10.08);
+        tl.to('#rn1_1', {attr: {opacity: 1}, duration: 0.1}, 10.18);
+        tl.to('#rail2', {attr: {'stroke-dashoffset': 0}, duration: 0.3, ease: 'power2.inOut'}, 10.32);
+        tl.to('#rn2_0', {attr: {opacity: 1}, duration: 0.1}, 10.32);
+        tl.to('#rn2_1', {attr: {opacity: 1}, duration: 0.1}, 10.42);
+        tl.to('#row5', {x: 14, duration: 0.06, yoyo: true, repeat: 3, ease: 'power1.inOut'}, 10.56);
+        tl.to('#s4in', {opacity: 0, y: -60, duration: 0.15, ease: 'power2.in'}, 11.37);
+        tl.fromTo('#h1l0', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 0.0);
+        tl.fromTo('#h1l1', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 0.24);
+        tl.fromTo('#h1l1', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 1.68, ease: 'none'}, 0.24);
+        tl.fromTo('#h1l2', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 0.48);
+        tl.fromTo('#h1l2', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 1.44, ease: 'none'}, 0.48);
+        tl.to('#h1 .ln', {opacity: 0, y: -40, duration: 0.15, ease: 'power2.in'}, 1.77);
+        tl.fromTo('#h2l0', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 1.92);
+        tl.fromTo('#h2l1', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 2.88);
+        tl.fromTo('#h2l2', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 3.36);
+        tl.fromTo('#h2l2 .sh', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 2.40, ease: 'none'}, 3.36);
+        tl.to('#h2 .ln', {opacity: 0, y: -40, duration: 0.15, ease: 'power2.in'}, 5.61);
+        tl.fromTo('#h3l0', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 5.76);
+        tl.fromTo('#h3l1', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 6.24);
+        tl.fromTo('#h3l2', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 6.36);
+        tl.fromTo('#h3l2', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 3.24, ease: 'none'}, 6.36);
+        tl.to('#h3 .ln', {opacity: 0, y: -40, duration: 0.15, ease: 'power2.in'}, 9.45);
+        tl.fromTo('#h4l0', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 9.6);
+        tl.fromTo('#h4l1', {y: 90, opacity: 0, rotation: 3}, {y: 0, opacity: 1, rotation: 0, duration: 0.42, ease: 'back.out(1.6)'}, 9.84);
+        tl.fromTo('#h4l1', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 1.68, ease: 'none'}, 9.84);
+        tl.to('#h4 .ln', {opacity: 0, y: -40, duration: 0.15, ease: 'power2.in'}, 11.37);
+
+        // lockup
+        tl.fromTo('#l-glow', {opacity: 0, scale: 0.6}, {opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out'}, 11.52);
+        tl.fromTo('#l-flame', {opacity: 0, scale: 0.5, rotation: -8}, {opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: 'back.out(1.6)'}, 11.52);
+        tl.fromTo('#l-title', {opacity: 0, y: 60}, {opacity: 1, y: 0, duration: 0.45, ease: 'power3.out'}, 12.0);
+        tl.fromTo('#l-lit', {backgroundPosition: '0% 50%'}, {backgroundPosition: '100% 50%', duration: 3.36, ease: 'none'}, 12.0);
+        tl.fromTo('#l-chip', {opacity: 0, y: 40}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 12.48);
+        tl.fromTo('#l-npm', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 12.96);
+        tl.fromTo('#l-url', {opacity: 0, y: 30}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 13.2);
+        tl.fromTo('#l-logos .lg', {opacity: 0, y: 30, scale: 0.6}, {opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'back.out(2)', stagger: 0.08}, 13.44);
+        tl.fromTo('#l-cap', {opacity: 0, y: 20}, {opacity: 1, y: 0, duration: 0.4, ease: 'power3.out'}, 13.92);
+        tl.to('#l-glow', {scale: 1.12, duration: 2.4, ease: 'sine.inOut'}, 12.32);
+        window.__timelines['main'] = tl;
+      })();
+    </script>
+  </body>
+</html>
