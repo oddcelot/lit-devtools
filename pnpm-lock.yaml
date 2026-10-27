@@ -265,9 +265,6 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.42.5
         version: 0.42.5(astro@7.3.5(@azure/identity@4.14.0(supports-color@10.2.2))(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(supports-color@10.2.2)(typescript@7.0.2)
-      '@fontsource-variable/lexend':
-        specifier: ^5.3.0
-        version: 5.3.0
       '@fontsource-variable/lilex':
         specifier: ^5.3.0
         version: 5.3.0
@@ -1466,9 +1463,6 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
-
-  '@fontsource-variable/lexend@5.3.0':
-    resolution: {integrity: sha512-3SXtiZ8rFbT0oaPzEboCG5RM3jtyhpNxandh1jWNLqvrJRfV/eP3R+GGw+o5e3hS1uqmAGutKxSvaWG5oyrimA==}
 
   '@fontsource-variable/lilex@5.3.0':
     resolution: {integrity: sha512-jbRNwWELe/QiTulFS30gk22dM0IY5WxSuyJKomqcI5KMfeFdZu4BVzTaQubSAdls7b7NshKDqty6ekzEtp7t7A==}
@@ -7419,8 +7413,6 @@ snapshots:
       '@floating-ui/utils': 0.2.12
 
   '@floating-ui/utils@0.2.12': {}
-
-  '@fontsource-variable/lexend@5.3.0': {}
 
   '@fontsource-variable/lilex@5.3.0': {}
 

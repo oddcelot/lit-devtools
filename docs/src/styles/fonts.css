@@ -1,13 +1,12 @@
-/* The docs' two downloaded fonts, from Fontsource's npm packages: Lexend
-   for headings and Lilex for code. Vite bundles and fingerprints the woff2
-   files, so nothing is fetched from a CDN at runtime, and each subset is
-   only downloaded when a page uses one of its characters. Running text is
-   the system sans and loads nothing. Head.astro preloads the latin files. */
+/* Lilex, the docs' code font, from Fontsource's npm package, the way the
+   panel loads it. Vite bundles and fingerprints the woff2 files, so nothing
+   is fetched from a CDN at runtime, and each subset is only downloaded when
+   a page uses one of its characters. Running text is the system sans and
+   loads nothing. Lexend, for headings, comes from Astro's font pipeline
+   (the `fonts` entry in astro.config.mjs), which defines `--font-lexend`. */
 
-@import '@fontsource-variable/lexend';
 @import '@fontsource-variable/lilex';
 
 :root {
-  --font-lexend: 'Lexend Variable', var(--font-sans);
   --font-lilex: 'Lilex Variable', ui-monospace, 'SF Mono', Menlo, monospace;
 }

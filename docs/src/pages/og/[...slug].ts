@@ -6,9 +6,11 @@
  * and the site name, the page's section, its title and its description, on a
  * deep Lit-blue gradient with a cyan rule along the bottom edge.
  *
- * The text is set in the site's own Manrope, read through Astro's font data
- * (the `--font-manrope-og` entry in astro.config.mjs, which exists because
- * satori reads neither the site's woff2 files nor variable fonts).
+ * The text is set in Lexend, the site's heading face, read through Astro's
+ * font data (the `--font-lexend-og` entry in astro.config.mjs, which exists
+ * because satori reads neither the site's woff2 files nor variable fonts).
+ * The weights and tracking follow the site's headings: semibold, a little
+ * tight.
  */
 import {readFile} from 'node:fs/promises';
 import type {APIRoute, GetStaticPaths} from 'astro';
@@ -110,22 +112,22 @@ const flame = `data:image/svg+xml;base64,${(
 
 let fonts: Promise<Parameters<typeof satori>[1]['fonts']> | undefined;
 
-/** The two static Manrope weights, fetched once per build. */
+/** The two static Lexend weights, fetched once per build. */
 function loadFonts(base: URL) {
   fonts ??= Promise.all(
-    ([500, 800] as const).map(async (weight) => {
-      const url = fontData['--font-manrope-og']?.find(
+    ([400, 600] as const).map(async (weight) => {
+      const url = fontData['--font-lexend-og']?.find(
         (face) => face.weight === String(weight)
       )?.src[0]?.url;
       if (url === undefined) {
         throw new Error(
-          `No Manrope ${weight} in the --font-manrope-og font data.`
+          `No Lexend ${weight} in the --font-lexend-og font data.`
         );
       }
       const data = await fetch(experimental_getFontFileURL(url, base)).then(
         (res) => res.arrayBuffer()
       );
-      return {name: 'Manrope', data, weight, style: 'normal' as const};
+      return {name: 'Lexend', data, weight, style: 'normal' as const};
     })
   );
   return fonts;
@@ -181,14 +183,14 @@ export const GET: APIRoute<{card: Card}> = async ({
       padding: '64px 72px 72px',
       backgroundImage: 'linear-gradient(135deg, #161c5c 0%, #080a22 100%)',
       borderBottom: '10px solid #00e8ff',
-      fontFamily: 'Manrope',
+      fontFamily: 'Lexend',
       color: '#ffffff',
     },
     h(
       'div',
       {display: 'flex', alignItems: 'center', gap: 20},
       {type: 'img', props: {src: flame, width: 52, height: 64}},
-      h('div', {fontSize: 34, fontWeight: 800}, 'Lit DevTools')
+      h('div', {fontSize: 34, fontWeight: 600}, 'Lit DevTools')
     ),
     h(
       'div',
@@ -198,7 +200,7 @@ export const GET: APIRoute<{card: Card}> = async ({
             'div',
             {
               fontSize: 24,
-              fontWeight: 800,
+              fontWeight: 600,
               color: '#00e8ff',
               textTransform: 'uppercase',
               letterSpacing: 2,
@@ -206,13 +208,17 @@ export const GET: APIRoute<{card: Card}> = async ({
             section
           )
         : null,
-      h('div', {fontSize: 68, fontWeight: 800, lineHeight: 1.12}, title),
+      h(
+        'div',
+        {fontSize: 68, fontWeight: 600, lineHeight: 1.12, letterSpacing: -1.4},
+        title
+      ),
       description
         ? h(
             'div',
             {
               fontSize: 32,
-              fontWeight: 500,
+              fontWeight: 400,
               lineHeight: 1.4,
               color: '#c4ccff',
               lineClamp: 3,
