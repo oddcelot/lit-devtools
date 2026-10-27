@@ -788,7 +788,7 @@ export class TimelineView extends LitElement {
                 type="text"
                 label="Filter events by regex"
                 spellcheck="false"
-                placeholder="filter regex…"
+                placeholder="Filter events (regex)"
                 data-tip="Case-insensitive regex matched against element tag, title and subtitle"
                 .value=${filter.regex}
                 @input=${this._onRegexInput}

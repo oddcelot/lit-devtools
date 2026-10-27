@@ -104,7 +104,7 @@ import {
 
 /** localStorage key remembering the details pane's width in pixels. */
 const DETAILS_WIDTH_LS_KEY = 'lit-devtools-components-details-width';
-const DETAILS_WIDTH_DEFAULT = 340;
+const DETAILS_WIDTH_DEFAULT = 400;
 const DETAILS_WIDTH_MIN = 220;
 
 /** localStorage key remembering that Anatomy was left on. */
