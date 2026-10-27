@@ -21,5 +21,9 @@ runtime that sends no `pageId` (an older plugin) is never filtered. Owned by
   and details, and the HMR history are forgotten, and the panel hears
   `page-changed`. It is a **reload** when the new page runs in the same tab.
 
+- **Announce**: a page sending its `ready`, as it does on boot. The panel
+  can ask one page to announce again (the `announce` command), which makes
+  it the followed page; that is how it follows an earlier page again.
+
 _Avoid_: active page (the code's older name, still on `activePageId`),
 current page.

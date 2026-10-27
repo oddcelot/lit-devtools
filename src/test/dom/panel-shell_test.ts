@@ -236,12 +236,74 @@ test('says so when the followed page changes, until dismissed', async () => {
   push('page-changed', pageChanged);
   await flush(el);
   expect(root.querySelector('.page-changed')?.textContent).toContain(
-    'Another page connected'
+    'Now following another page'
   );
   expect(getTimelineEvents()).toEqual([]);
   root.querySelector<HTMLElement>('.page-changed lit-icon-button')!.click();
   await flush(el);
   expect(root.querySelector('.page-changed')).toBeNull();
+});
+
+const announced = (location: {path: string; title: string}) =>
+  push('inspector-message', {type: 'ready', location});
+
+test('the header names the followed page and follows its route changes', async () => {
+  const {el, root} = await mount();
+  const followed = () =>
+    root.querySelector('.followed')?.textContent?.replace(/\s+/g, ' ').trim();
+  expect(followed()).toBeUndefined();
+  announced({path: '/inbox', title: 'Inbox'});
+  await flush(el);
+  expect(followed()).toBe('Following /inbox');
+  expect(root.querySelector('.followed')!.getAttribute('data-tip')).toBe(
+    'Inbox — /inbox'
+  );
+  push('inspector-message', {type: 'location', path: '/settings', title: ''});
+  await flush(el);
+  expect(followed()).toBe('Following /settings');
+});
+
+test('the notice names both pages and follows the earlier one on request', async () => {
+  const {el, root} = await mount();
+  announced({path: '/settings', title: ''});
+  await flush(el);
+  push('page-changed', pageChanged);
+  announced({path: '/inbox', title: ''});
+  await flush(el);
+  const notice = () =>
+    root.querySelector('.page-changed')?.textContent?.replace(/\s+/g, ' ');
+  expect(notice()).toContain('Now following /inbox');
+  expect(notice()).toContain('Follow /settings again');
+  calls.length = 0;
+  root.querySelector<HTMLElement>('.follow-earlier')!.click();
+  await flush(el);
+  expect(
+    calls.filter((c) => c.name === 'inspect').map((c) => c.args[0])
+  ).toEqual([{type: 'announce', pageId: 'a'}]);
+  // The page asked for takes over: no second notice about it.
+  push('page-changed', {...pageChanged, previousPageId: 'b', pageId: 'a'});
+  await flush(el);
+  expect(root.querySelector('.page-changed')).toBeNull();
+});
+
+test('the notice says so when the earlier page no longer answers', async () => {
+  const {el, root} = await mount();
+  announced({path: '/settings', title: ''});
+  await flush(el);
+  push('page-changed', pageChanged);
+  await flush(el);
+  vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+  try {
+    root.querySelector<HTMLElement>('.follow-earlier')!.click();
+    vi.advanceTimersByTime(2000);
+  } finally {
+    vi.useRealTimers();
+  }
+  await flush(el);
+  expect(
+    root.querySelector('.page-changed')?.textContent?.replace(/\s+/g, ' ')
+  ).toContain('/settings is no longer open');
+  expect(root.querySelector('.follow-earlier')).toBeNull();
 });
 
 test('a reload clears the timeline without a banner', async () => {
@@ -306,7 +368,13 @@ test('a page change drops the Components tree and HMR history, and asks the new 
   expect(components.hmrIncompatibilityCount).toBe(0);
   expect(
     calls.filter((c) => c.name === 'inspect').map((c) => c.args[0])
-  ).toEqual([{type: 'tree'}, {type: 'overrides'}]);
+  ).toEqual([
+    {type: 'tree'},
+    {type: 'overrides'},
+    // So the header can name it: its first announcement may have been
+    // dropped before it was followed.
+    {type: 'announce', pageId: 'b'},
+  ]);
 });
 
 test('a page change asks the new page for the selection, not the old details', async () => {
@@ -325,6 +393,7 @@ test('a page change asks the new page for the selection, not the old details', a
     {type: 'overrides'},
     {type: 'details', id: 7},
     {type: 'watch', id: 7},
+    {type: 'announce', pageId: 'b'},
   ]);
 });
 

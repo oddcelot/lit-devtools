@@ -13,6 +13,7 @@
 import {registerIcons} from '../../packages/lit-components/src/icons.js';
 import arrowsClockwise from '@phosphor-icons/core/assets/regular/arrows-clockwise.svg?raw';
 import arrowCounterClockwise from '@phosphor-icons/core/assets/regular/arrow-counter-clockwise.svg?raw';
+import arrowUUpLeft from '@phosphor-icons/core/assets/regular/arrow-u-up-left.svg?raw';
 import arrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import arrowSquareOut from '@phosphor-icons/core/assets/regular/arrow-square-out.svg?raw';
 import boundingBox from '@phosphor-icons/core/assets/regular/bounding-box.svg?raw';
@@ -52,6 +53,7 @@ import x from '@phosphor-icons/core/assets/regular/x.svg?raw';
 const ICONS = {
   'arrow-counter-clockwise': arrowCounterClockwise,
   'arrow-right': arrowRight,
+  'arrow-u-up-left': arrowUUpLeft,
   'arrows-clockwise': arrowsClockwise,
   'arrow-square-out': arrowSquareOut,
   'bounding-box': boundingBox,

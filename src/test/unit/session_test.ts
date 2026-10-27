@@ -450,6 +450,23 @@ describe('inspector caches and capture', () => {
     expect(s.runtime().chromeTracks).toBe(false);
   });
 
+  test('the runtime info keeps where the page is, through route changes', () => {
+    const s = createRecordingSession();
+    s.applyInspector({
+      type: 'ready',
+      location: {path: '/inbox', title: 'Inbox'},
+    });
+    expect(s.runtime().location).toEqual({path: '/inbox', title: 'Inbox'});
+    s.applyInspector({type: 'location', path: '/settings', title: 'Settings'});
+    expect(s.runtime().location).toEqual({
+      path: '/settings',
+      title: 'Settings',
+    });
+    // An older runtime's bare ready knows nowhere.
+    s.applyInspector({type: 'ready'});
+    expect(s.runtime().location).toBeUndefined();
+  });
+
   test('capture freezes the buffers and replay round-trips it', () => {
     const s = createRecordingSession({epoch: 'e'});
     s.push([ev(1)]);

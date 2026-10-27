@@ -213,6 +213,14 @@ export class ComponentsSession {
       case 'ready':
         this.#receiveReady(message);
         break;
+      case 'location':
+        // A route change: only the header's page name moves.
+        if (this.#runtime === null) return;
+        this.#runtime = {
+          ...this.#runtime,
+          location: {path: message.path, title: message.title},
+        };
+        break;
       case 'tree':
         // Rows moving under the pointer would make it click the wrong one.
         // An empty tree has nothing to aim at, so it fills in straight away.
@@ -452,6 +460,7 @@ export class ComponentsSession {
       topFrame: message.topFrame ?? true,
       chromeTracks: message.chromeTracks ?? true,
       runtimes: message.runtimes ?? [],
+      ...(message.location ? {location: message.location} : {}),
     };
     this.#send({type: 'tree'});
     this.#send({type: 'overrides'});
