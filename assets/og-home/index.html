@@ -3,8 +3,9 @@
   The landing page's Open Graph card, 1200×630. Render it with
   `node assets/og-home/render.mjs`, which writes docs/public/og/index.png.
   Drawn in the promo video's look: near-black, white type, the cyan-to-blue
-  accent, a source edit on the left of the frame and the live component on
-  the right, still holding its state.
+  accent. The right side stacks the three parts the lede names: the page
+  keeping its count through a patch, the panel's Updates tab, and the editor
+  flagging a binding that can't fit.
 -->
 <html lang="en">
   <head>
@@ -100,7 +101,7 @@
       }
       h1 {
         margin-top: auto;
-        font-size: 74px;
+        font-size: 80px;
         font-weight: 800;
         line-height: 1.02;
         letter-spacing: -0.035em;
@@ -141,17 +142,20 @@
         margin-right: 10px;
       }
 
-      /* Right column: the edit and the page it lands on. */
+      /* Right column: the three parts, stacked: the page HMR keeps, the
+         panel's Updates tab, and the editor catching a bad binding. */
       .stage {
         position: absolute;
-        left: 660px;
-        top: 92px;
-        width: 488px;
+        left: 652px;
+        top: 52px;
+        width: 500px;
+        height: 526px;
       }
       .panel {
+        position: absolute;
         border: 1px solid #262b40;
         border-radius: 14px;
-        background: rgb(10 11 18 / 0.94);
+        background: rgb(10 11 18 / 0.95);
         box-shadow:
           0 30px 60px rgb(0 0 0 / 0.55),
           0 0 0 1px rgb(255 255 255 / 0.02) inset;
@@ -161,125 +165,78 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        height: 38px;
+        height: 36px;
         padding: 0 14px;
         border-bottom: 1px solid #1e2234;
         font-family: 'Lilex', monospace;
-        font-size: 14px;
+        font-size: 13.5px;
         color: #8a91ad;
       }
-      .bar .saved {
-        margin-left: auto;
-        color: #00e8ff;
-      }
-      .code {
-        font-family: 'Lilex', monospace;
-        font-size: 16.5px;
-        line-height: 1.75;
-        padding: 10px 0 12px;
-        color: #cfd5ee;
-      }
-      .ln {
-        display: block;
-        padding: 0 16px 0 14px;
-        white-space: nowrap;
-      }
-      .ln i {
-        display: inline-block;
-        width: 34px;
-        font-style: normal;
-        color: #4b5170;
-      }
-      .del {
-        background: rgb(255 80 110 / 0.12);
-        color: #ff8aa0;
-      }
-      .add {
-        background: rgb(0 232 255 / 0.12);
-        color: #9ff4ff;
-        box-shadow: inset 3px 0 #00e8ff;
-      }
-      .k {
-        color: #a48bff;
-      }
-      .s {
-        color: #c5f07a;
-      }
-      .add .s,
-      .del .s {
-        color: inherit;
-      }
-
-      .page {
-        position: absolute;
-        top: 226px;
-        left: 88px;
-        width: 400px;
-      }
-      .page .bar .dotset {
+      .bar .dotset {
         display: flex;
         gap: 7px;
       }
-      .page .bar .dotset span {
-        width: 11px;
-        height: 11px;
+      .bar .dotset span {
+        width: 10px;
+        height: 10px;
         border-radius: 50%;
         background: #2a2f45;
       }
-      .page .bar .url {
-        margin-left: 8px;
+      .bar .end {
+        margin-left: auto;
+        color: #00e8ff;
+      }
+
+      /* The page: the counter, still at 42 after the patch. */
+      .page {
+        top: 0;
+        left: 92px;
+        width: 408px;
       }
       .counter {
-        padding: 22px 24px 24px;
-      }
-      .counter .tag {
-        font-family: 'Lilex', monospace;
-        font-size: 14px;
-        color: #6f7697;
-      }
-      .counter .row {
-        margin-top: 10px;
         display: flex;
         align-items: center;
         gap: 18px;
+        padding: 18px 22px 20px;
       }
       .counter .label {
-        font-size: 24px;
+        font-size: 23px;
         font-weight: 700;
         color: #00e8ff;
       }
       .counter .n {
         margin-left: auto;
         font-family: 'Lilex', monospace;
-        font-size: 44px;
+        font-size: 40px;
         font-weight: 700;
         letter-spacing: -0.02em;
       }
       .counter .btn {
-        width: 46px;
-        height: 46px;
-        border-radius: 12px;
+        width: 42px;
+        height: 42px;
+        border-radius: 11px;
         background: #324fff;
         display: grid;
         place-items: center;
-        font-size: 28px;
+        font-size: 26px;
         font-weight: 800;
       }
       .toast {
         position: absolute;
-        top: 404px;
-        left: 0;
+        top: 118px;
+        left: 150px;
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 11px 16px;
+        padding: 9px 15px;
         border-radius: 999px;
         background: #0b1d24;
         border: 1px solid rgb(0 232 255 / 0.45);
         font-family: 'Lilex', monospace;
-        font-size: 15.5px;
+        font-size: 14.5px;
         color: #c9f8ff;
         box-shadow: 0 0 34px rgb(0 232 255 / 0.22);
+        z-index: 2;
       }
       .toast .dot {
         width: 9px;
@@ -291,6 +248,113 @@
       .toast .muted {
         color: #6fa6b3;
       }
+
+      /* The panel: Updates, a render count per element. */
+      .devtools {
+        top: 172px;
+        left: 0;
+        width: 440px;
+      }
+      .tabs {
+        display: flex;
+        gap: 22px;
+        height: 36px;
+        padding: 0 16px;
+        align-items: stretch;
+        border-bottom: 1px solid #1e2234;
+        font-size: 14.5px;
+        font-weight: 600;
+        color: #6f7697;
+      }
+      .tabs span {
+        display: flex;
+        align-items: center;
+      }
+      .tabs .on {
+        color: #fff;
+        box-shadow: inset 0 -2px #00e8ff;
+      }
+      .rows {
+        padding: 8px 0 10px;
+        font-family: 'Lilex', monospace;
+        font-size: 15px;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 32px;
+        padding: 0 16px;
+        color: #cfd5ee;
+      }
+      .row .t {
+        width: 132px;
+      }
+      .row .meter {
+        flex: 1;
+        height: 8px;
+        border-radius: 4px;
+        background: #171b2b;
+        overflow: hidden;
+      }
+      .row .meter b {
+        display: block;
+        height: 100%;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #324fff, #00e8ff);
+      }
+      .row .c {
+        width: 58px;
+        text-align: right;
+        color: #8a91ad;
+      }
+      .row.hot {
+        background: rgb(0 232 255 / 0.08);
+      }
+      .row.hot .c {
+        color: #9ff4ff;
+      }
+
+      /* The editor: a binding that can't fit, flagged as you type. */
+      .editor {
+        top: 372px;
+        left: 52px;
+        width: 448px;
+      }
+      .code {
+        font-family: 'Lilex', monospace;
+        font-size: 16px;
+        line-height: 1.7;
+        padding: 12px 16px 6px;
+        color: #cfd5ee;
+        white-space: nowrap;
+      }
+      .k {
+        color: #a48bff;
+      }
+      .s {
+        color: #c5f07a;
+      }
+      .bad {
+        text-decoration: underline wavy #ff5a7a;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 5px;
+      }
+      .diag {
+        margin: 6px 12px 12px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        background: rgb(255 90 122 / 0.1);
+        border: 1px solid rgb(255 90 122 / 0.3);
+        font-size: 14px;
+        line-height: 1.4;
+        color: #ffc2cd;
+      }
+      .diag code {
+        font-family: 'Lilex', monospace;
+        font-size: 13.5px;
+        color: #fff;
+      }
     </style>
   </head>
   <body>
@@ -300,12 +364,12 @@
     <div class="copy">
       <div class="brand"><img src="lit-flame.svg" alt="" />Lit DevTools</div>
       <h1>
-        Edit a Lit component.
-        <span class="accent">Keep the page.</span>
+        Lit,
+        <span class="accent">with the<br />lights on.</span>
       </h1>
       <p class="lede">
-        <b>True HMR for Lit in Vite.</b> Every save patches the live page, and
-        its state stays put.
+        <b>HMR that keeps state.</b> A panel for every render. An editor that
+        knows your tags.
       </p>
       <div class="install">
         <span class="p">$</span>npm i -D @oddsquad/lit-devtools
@@ -313,46 +377,55 @@
     </div>
 
     <div class="stage">
-      <div class="panel editor">
-        <div class="bar">my-counter.ts<span class="saved">● saved</span></div>
-        <div class="code">
-          <span class="ln"><i>12</i><span class="k">render</span>() {</span>
-          <span class="ln"
-            ><i>13</i>&nbsp;&nbsp;<span class="k">return</span> html`</span
-          >
-          <span class="ln del"
-            ><i>14</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;b&gt;Clicks&lt;/b&gt;</span
-          >
-          <span class="ln add"
-            ><i>14</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;b&gt;Hot
-            clicks&lt;/b&gt;</span
-          >
-          <span class="ln"
-            ><i>15</i>&nbsp;&nbsp;&nbsp;&nbsp;&lt;output&gt;${<span class="k"
-              >this</span
-            >.count}&lt;/output&gt;`;</span
-          >
-        </div>
-      </div>
-
       <div class="panel page">
         <div class="bar">
           <span class="dotset"><span></span><span></span><span></span></span>
-          <span class="url">localhost:5173</span>
+          localhost:5173
         </div>
         <div class="counter">
-          <div class="tag">&lt;my-counter&gt;</div>
+          <span class="label">Hot clicks</span>
+          <span class="n">42</span>
+          <span class="btn">+</span>
+        </div>
+      </div>
+      <div class="toast">
+        <span class="dot"></span>patched in 9&nbsp;ms
+        <span class="muted">· count kept</span>
+      </div>
+
+      <div class="panel devtools">
+        <div class="tabs">
+          <span>Components</span><span class="on">Updates</span
+          ><span>Timeline</span>
+        </div>
+        <div class="rows">
+          <div class="row hot">
+            <span class="t">&lt;my-counter&gt;</span
+            ><span class="meter"><b style="width: 86%"></b></span
+            ><span class="c">42×</span>
+          </div>
           <div class="row">
-            <span class="label">Hot clicks</span>
-            <span class="n">42</span>
-            <span class="btn">+</span>
+            <span class="t">&lt;todo-list&gt;</span
+            ><span class="meter"><b style="width: 34%"></b></span
+            ><span class="c">17×</span>
+          </div>
+          <div class="row">
+            <span class="t">&lt;app-shell&gt;</span
+            ><span class="meter"><b style="width: 4%"></b></span
+            ><span class="c">1×</span>
           </div>
         </div>
       </div>
 
-      <div class="toast">
-        <span class="dot"></span>patched in 9&nbsp;ms
-        <span class="muted">· count kept: 42</span>
+      <div class="panel editor">
+        <div class="bar">my-app.ts</div>
+        <div class="code">
+          &lt;my-card
+          <span class="bad">.size=${<span class="s">'huge'</span>}</span>&gt;
+        </div>
+        <div class="diag">
+          <code>'huge'</code> isn't a size: <code>'small' | 'large'</code>
+        </div>
       </div>
     </div>
 
