@@ -276,6 +276,12 @@ const propertyBuilds = {
   lib: build({sheet: PROPERTY_SHEET, lib: true}),
 };
 
+/** Unminified, so each module keeps a `//#region` comment naming it. */
+const unminifiedPropertyBuilds = {
+  app: build({sheet: PROPERTY_SHEET, unminified: true}),
+  lib: build({sheet: PROPERTY_SHEET, unminified: true, lib: true}),
+};
+
 const appBuilds = Object.fromEntries(
   Object.entries(APP).map(([name, v]) => [name, build(v)])
 );
@@ -324,6 +330,23 @@ test.each(['app', 'lib'] as const)(
     const plain = kind === 'app' ? appBuilds : libBuilds;
     expect(hoists(await plain['default']!)).toBe(false);
     expect(hoists(await propertyBuilds[kind])).toBe(true);
+  }
+);
+
+/** The id of every module a build bundled, from its region comments. */
+const regions = (files: Record<string, string>) =>
+  Object.values(comparable(files)).flatMap((code) =>
+    [...code.matchAll(/^\/\/#region (.*)$/gm)].map((m) => m[1]!)
+  );
+
+// A ?css-sheet compiles to code written into its own module, so a library's
+// dist has nothing of ours for its consumers to bundle a second time.
+test.each(['app', 'lib'] as const)(
+  '%s build: bundles no module of the plugin',
+  async (kind) => {
+    const ids = regions(await unminifiedPropertyBuilds[kind]);
+    expect(ids.some((id) => id.includes('sheet.css'))).toBe(true);
+    expect(ids.filter((id) => id.includes('lib/runtime/'))).toEqual([]);
   }
 );
 

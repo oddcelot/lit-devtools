@@ -83,9 +83,9 @@ describe('litCssQueries load', () => {
   };
 
   test('a server build inlines the css, whatever cssSheetBuild says', async () => {
-    expect(await buildSheet(false)).toContain('fetchedSheet');
+    expect(await buildSheet(false)).toContain('fetch(url)');
     const server = await buildSheet(true);
-    expect(server).toContain('inlinedSheet');
+    expect(server).not.toContain('fetch(');
     expect(server).toContain('/app/src/x.css?inline');
   });
 });

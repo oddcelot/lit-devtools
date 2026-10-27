@@ -51,7 +51,7 @@
   // css-queries.ts), and
   // src/standalone/vite.config.ts builds runtime/standalone.ts by path.
   "dynamicallyLoaded": [
-    "src/lib/runtime/{css,css-build,indicator,intern,patch,source-overlay,standalone}.ts",
+    "src/lib/runtime/{css,indicator,intern,patch,source-overlay,standalone}.ts",
     "src/lib/runtime/timeline/{install,public-api,warnings-boot}.ts",
     "src/lib/runtime/inspector/{install,persist}.ts",
     // src/astro.ts hands Astro this file's path as a dev toolbar app, and

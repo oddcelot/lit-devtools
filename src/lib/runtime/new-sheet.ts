@@ -7,7 +7,8 @@
  * `cssText`, which is what Lit's server renderer writes into a component's
  * declarative shadow root, so the styles arrive with the server's HTML.
  *
- * Shared by `css.ts` and `css-build.ts`; dependency-free like them.
+ * Used by `css.ts`, and dependency-free like it. A build writes its own
+ * stand-in into each sheet module (`plugins/css-queries.ts`).
  *
  * @module
  */
