@@ -1,7 +1,14 @@
 import {afterEach, beforeAll, describe, expect, test, vi} from 'vite-plus/test';
 import type {TimelineEvent} from '../../types/timeline.js';
 import {resetStore, setEvents} from './fakes/timeline-store.js';
-import {answers, calls, meta, resetClient} from './fakes/client.js';
+import {
+  answers,
+  calls,
+  meta,
+  resetClient,
+  updateSharedState,
+} from './fakes/client.js';
+import {DEFAULT_LAYERS_STATE} from '../../types/timeline.js';
 import {resetHostInfo} from '../../panel/host.js';
 import {useSourceOpener} from '../../panel/source-opener.js';
 
@@ -69,6 +76,44 @@ test('says what to do while nothing has been recorded', async () => {
   expect(root.querySelector('.empty')?.textContent).toContain(
     'No component updates recorded.'
   );
+});
+
+/** The shared session the empty state reads; see `fakes/client.ts`. */
+const session = (layers: Partial<typeof DEFAULT_LAYERS_STATE>) =>
+  updateSharedState('session', {
+    layers: {...DEFAULT_LAYERS_STATE, ...layers},
+    customLayers: [],
+  });
+
+/** Lets the view's async connect, and the render it causes, finish. */
+const connected = async (
+  el: HTMLElement & {updateComplete: Promise<unknown>}
+) => {
+  for (let i = 0; i < 5; i++) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await el.updateComplete;
+  }
+};
+
+test('the empty state starts a recording with Lit Lifecycle on', async () => {
+  session({recordingState: false, litLifecycleEnabled: false});
+  const {el, root} = await mount();
+  await connected(el);
+  const record = root.querySelector<HTMLElement>('.empty lit-button.record')!;
+  expect(record.textContent).toContain('Record updates');
+  record.click();
+  await connected(el);
+  expect(calls.map((c) => [c.name, c.args[0]])).toEqual(
+    expect.arrayContaining([
+      ['toggle-layer', {layerId: 'lit-lifecycle', enabled: true}],
+      ['set-recording', {recording: true}],
+    ])
+  );
+  // Once it runs, the view says it is listening instead.
+  session({recordingState: true, litLifecycleEnabled: true});
+  await connected(el);
+  expect(root.querySelector('.empty')?.textContent).toContain('Recording.');
+  expect(root.querySelector('.empty lit-button')).toBeNull();
 });
 
 test('lists one row per component, with its instance count', async () => {
