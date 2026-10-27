@@ -120,6 +120,9 @@ export class TimelineView extends LitElement {
       }
       .toolbar {
         display: flex;
+        /* In a narrow dock the actions drop to a second row instead of
+           running off the edge. */
+        flex-wrap: wrap;
         align-items: center;
         gap: var(--lit-devtools-space-4);
         padding: var(--lit-devtools-space-3) var(--lit-devtools-space-5);
