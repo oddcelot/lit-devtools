@@ -242,6 +242,11 @@ JS only, so the `.css` asset never reaches their build and the runtime fetch
 would 404 into a silently empty sheet. Under `build.lib` the plugin therefore
 embeds the css text in the JS chunk and emits no `.css` asset.
 
+The built module imports nothing from the plugin either: the code that makes
+and fills the sheet is written into it. The plugin stays a dev dependency of
+your library, and an app that bundles your library alongside its own
+`?css-sheet` imports gets no second copy of anything.
+
 Both inline flavours keep what the fetch-backed form gives you: one sheet
 object per css file, shared by every importer, and no flash of unstyled
 content, because there is no fetch to wait on. They construct the sheet at
