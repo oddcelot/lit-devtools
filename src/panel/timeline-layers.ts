@@ -86,9 +86,9 @@ export const renderEmptyState = (onRecord?: () => void): TemplateResult =>
  * and normal text over a faint fill; off is a hollow swatch, muted text and no
  * fill. Each chip is a button with `aria-pressed`.
  *
- * Used twice by `timeline-view`: once for the capture toggles, and in Tracks
- * mode once more, `compact`, for which lanes to draw. `caption` labels the
- * strip so the two are not mistaken for each other.
+ * `timeline-view` shows it as `menu`, in its Layers popover: a row per
+ * layer, with a second toggle in Tracks mode for whether the layer gets a
+ * track, so one control holds both choices.
  */
 @customElement('timeline-layers')
 export class TimelineLayers extends LitElement {
@@ -104,17 +104,6 @@ export class TimelineLayers extends LitElement {
         background: var(--lit-devtools-surface-low);
         flex-shrink: 0;
         flex-wrap: wrap;
-      }
-      /* The secondary strip sits inside the filter bar, not in a bar of its own. */
-      :host([compact]) {
-        padding: 0;
-        border-bottom: 0;
-        background: none;
-      }
-      .caption {
-        color: var(--lit-devtools-text-muted);
-        font-size: var(--lit-devtools-text-2xs);
-        margin-right: var(--lit-devtools-space-2);
       }
       .chip {
         --layer: #888;
@@ -144,12 +133,6 @@ export class TimelineLayers extends LitElement {
         background: transparent;
         color: var(--lit-devtools-text-muted);
       }
-      :host([compact]) .chip {
-        height: var(--lit-devtools-row-height);
-        padding: 0 var(--lit-devtools-space-3);
-        background: transparent;
-        font-size: var(--lit-devtools-text-2xs);
-      }
       .dot {
         width: 8px;
         height: 8px;
@@ -161,14 +144,121 @@ export class TimelineLayers extends LitElement {
       .chip[aria-pressed='false'] .dot {
         background: transparent;
       }
+      /* In the Layers popover: one row per layer, square like a menu, with
+         the track toggle beside it in Tracks mode. */
+      :host([menu]) {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0;
+        min-width: 15rem;
+        padding: 0;
+        border: 0;
+        background: none;
+      }
+      .heading {
+        padding: var(--lit-devtools-space-2) var(--lit-devtools-space-4);
+        color: var(--lit-devtools-text-muted);
+        font-size: var(--lit-devtools-text-2xs);
+      }
+      .heading.end {
+        text-align: end;
+      }
+      :host([menu]) .chip {
+        justify-content: flex-start;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+      :host([menu]) .chip:hover,
+      .track:hover {
+        background: var(--lit-devtools-surface-hover);
+      }
+      :host([menu]) .chip:focus-visible,
+      .track:focus-visible {
+        outline: 2px solid var(--lit-devtools-focus-ring);
+        outline-offset: -2px;
+      }
+      .track {
+        box-sizing: border-box;
+        height: var(--lit-devtools-control-height, 28px);
+        padding: 0 var(--lit-devtools-space-4);
+        border: 0;
+        background: transparent;
+        color: var(--lit-devtools-text-muted);
+        font: inherit;
+        font-size: var(--lit-devtools-text-2xs);
+        cursor: pointer;
+      }
+      .track[aria-pressed='true'] {
+        color: var(--lit-devtools-text);
+      }
+      .track:disabled {
+        visibility: hidden;
+      }
     `,
   ];
 
   @property({type: Array}) layers: LayerState[] = [];
-  /** Optional leading label, e.g. "Show as tracks". */
-  @property() caption = '';
-  /** The smaller, outline-only variant for a secondary strip. */
-  @property({type: Boolean, reflect: true}) compact = false;
+  /** One row per layer, for the Layers popover. */
+  @property({type: Boolean, reflect: true}) menu = false;
+  /**
+   * In `menu` mode, a track toggle per row: the layers that can have a
+   * track, and those hidden from the tracks. Null leaves the toggles out
+   * (the List view has no tracks).
+   */
+  @property({attribute: false}) tracks: {
+    trackable: ReadonlySet<string>;
+    hidden: ReadonlySet<string>;
+  } | null = null;
+
+  private _toggleTrack(id: string) {
+    this.dispatchEvent(
+      new CustomEvent<{id: string}>('track-toggle', {
+        detail: {id},
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  /** The chip a layer gets, in a strip or a menu row. */
+  private _chip(l: LayerState) {
+    return html`<button
+      type="button"
+      class="chip ${l.enabled ? 'on' : ''}"
+      aria-pressed=${l.enabled ? 'true' : 'false'}
+      data-tip=${l.enabled ? `Hide ${l.label}` : `Show ${l.label}`}
+      @click=${() => this._toggle(l.id)}
+    >
+      <span class="dot" style=${'--layer:' + hexColor(l.color)}></span>
+      ${l.label}
+    </button>`;
+  }
+
+  private _renderMenu() {
+    const tracks = this.tracks;
+    return html`<span class="heading">Record</span
+      ><span class="heading end">${tracks ? 'Track' : nothing}</span>
+      ${this.layers.map((l) => {
+        const trackable =
+          tracks !== null && l.enabled && tracks.trackable.has(l.id);
+        const shown = trackable && !tracks.hidden.has(l.id);
+        return html`${this._chip(l)}${
+          tracks === null
+            ? html`<span></span>`
+            : html`<button
+                type="button"
+                class="track"
+                aria-pressed=${shown ? 'true' : 'false'}
+                aria-label="${l.label} as a track"
+                ?disabled=${!trackable}
+                @click=${() => this._toggleTrack(l.id)}
+              >
+                ${shown ? 'shown' : 'hidden'}
+              </button>`
+        }`;
+      })}`;
+  }
 
   private _toggle(id: string) {
     this.dispatchEvent(
@@ -181,24 +271,8 @@ export class TimelineLayers extends LitElement {
   }
 
   override render() {
-    return html`${
-      this.caption
-        ? html`<span class="caption">${this.caption}</span>`
-        : nothing
-    }${this.layers.map(
-      (l) => html`
-        <button
-          type="button"
-          class="chip ${l.enabled ? 'on' : ''}"
-          aria-pressed=${l.enabled ? 'true' : 'false'}
-          data-tip=${l.enabled ? `Hide ${l.label}` : `Show ${l.label}`}
-          @click=${() => this._toggle(l.id)}
-        >
-          <span class="dot" style=${'--layer:' + hexColor(l.color)}></span>
-          ${l.label}
-        </button>
-      `
-    )}`;
+    if (this.menu) return this._renderMenu();
+    return html`${this.layers.map((l) => this._chip(l))}`;
   }
 }
 

@@ -39,8 +39,9 @@ panel you recorded in keeps up to 5000 events until you reload it.
 
 ## Choose layers
 
-A strip of coloured pills under the toolbar turns each layer on or off. A layer
-is one category of recorded timeline events, with its own colour and toggle.
+Open **Layers** in the toolbar to turn each layer on or off; the button counts
+how many are on. A layer is one category of recorded timeline events, with its
+own colour and toggle.
 
 | Layer                | What it captures                                                                                                                                                                                                                           | Default |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
@@ -91,7 +92,7 @@ all of them show up.
 
 ## Read a row
 
-Switch **List | Tracks** at the left of the toolbar to **List** to read the
+Switch **List | Tracks** beside **Record** to **List** to read the
 recording row by row. Rows are collapsed spans, not raw events: the capture
 layers emit a start and an end per phase, so each phase is one row with its
 duration, and a lifecycle row also lists the reactive properties that changed.
@@ -204,9 +205,10 @@ Click a mark to select it. The same detail pane opens under the tracks, and
 the selection carries over: switch back to **List** and it scrolls to that
 row.
 
-The **Tracks** strip picks which lanes to draw. It is a view filter only.
-Hiding a track does not stop that layer being recorded, and the list is
-unaffected. Only layers you capture get a track, custom layers included.
+In Tracks mode, the **Layers** menu gains a **Track** column that picks which
+lanes to draw. It is a view filter only. Hiding a track does not stop that
+layer being recorded, and the list is unaffected. Only layers you capture get
+a track, custom layers included.
 
 The **Element** picker and the regex box above the list filter the tracks too,
 so a search you typed in one view still applies when you switch to the other.

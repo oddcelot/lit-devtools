@@ -168,6 +168,8 @@ const record = async (app, panel) => {
   const button = panel.locator('timeline-view lit-button.record');
   await button.waitFor();
   // Off by default; the cause rails start from the click and the cart event.
+  // The layer toggles live in the toolbar's Layers popover.
+  await panel.locator('timeline-view .layers-trigger').click();
   const chips = panel.locator('timeline-layers .chip');
   for (const name of ['Mouse', 'Custom events']) {
     const chip = chips.filter({hasText: name});
@@ -175,6 +177,7 @@ const record = async (app, panel) => {
       await chip.click();
     }
   }
+  await panel.keyboard.press('Escape');
   await button.click();
   await sleep(300);
   await exercise(app);

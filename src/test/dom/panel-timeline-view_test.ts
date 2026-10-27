@@ -124,9 +124,10 @@ test('joining a recording already under way keeps its events', async () => {
 
 test('a layer toggle goes to the server, except for custom layers', async () => {
   const {root} = await mount();
+  // The capture toggles; in Tracks mode a track toggle sits beside each.
   const pills = root
     .querySelector('timeline-layers')!
-    .shadowRoot!.querySelectorAll('button');
+    .shadowRoot!.querySelectorAll<HTMLButtonElement>('button.chip');
   pills[1]!.click(); // mouse, off by default
   pills[2]!.click(); // custom: always on, nothing to toggle
   expect(calls.filter((c) => c.name === 'toggle-layer')).toEqual([
