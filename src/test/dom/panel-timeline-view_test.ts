@@ -107,6 +107,14 @@ test('Record asks the server to start recording', async () => {
   });
 });
 
+test('Tracks with nothing recorded shows how to start, not empty lanes', async () => {
+  const {tracks} = await mount();
+  const root = tracks().shadowRoot!;
+  expect(root.querySelector('.stage')).toBeNull();
+  expect(root.querySelector('.empty')?.textContent).toContain('No events yet');
+  expect(root.querySelector('.empty lit-button')).not.toBeNull();
+});
+
 test('a recording start the panel watched clears the old events', async () => {
   const {el} = await mount(false);
   setEvents(events);

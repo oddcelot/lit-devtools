@@ -27,6 +27,11 @@ import {
   sourceTip,
 } from './source-text.js';
 import '../../packages/lit-components/src/icon.js';
+import {litRpc} from './client.js';
+import type {LitClient} from './client.js';
+import {hostInfo} from './host.js';
+import {SESSION_STATE_KEY} from '../lib/devframe/protocol.js';
+import type {SessionState} from '../lib/devframe/protocol.js';
 
 /**
  * The Updates view: which components re-rendered, how often, how long for, and
@@ -69,6 +74,12 @@ export class UpdatesView extends LitElement {
         flex: 1;
         min-height: 0;
         border-top: 1px solid var(--lit-devtools-border);
+      }
+      .pane.cycles.idle {
+        flex: 0 0 auto;
+      }
+      .pane.cycles.idle .empty {
+        height: auto;
       }
       .head {
         display: flex;
@@ -297,6 +308,14 @@ export class UpdatesView extends LitElement {
   @state() private _canOpen = false;
 
   private _storeOff: (() => void) | null = null;
+  /** Whether a recording runs, and with the layer this view reads; from the
+   *  shared session, so the empty state can start one itself. */
+  @state() private _recording = false;
+  @state() private _lifecycleOn = true;
+  /** A frozen session: nothing to record. */
+  @state() private _snapshot = false;
+  private _rpc: LitClient | null = null;
+  private _sessionOff: (() => void) | null = null;
   /** Derivation is memoised on the event array's identity: the store replaces
    *  the array rather than mutating it, and re-deriving the whole buffer on
    *  every unrelated state change would be wasteful. */
@@ -320,12 +339,100 @@ export class UpdatesView extends LitElement {
     void canOpenInEditor().then((can) => {
       this._canOpen = can;
     });
+    void this._connect();
   }
 
   override disconnectedCallback() {
     super.disconnectedCallback();
     this._storeOff?.();
     this._storeOff = null;
+    this._sessionOff?.();
+    this._sessionOff = null;
+  }
+
+  /** Follows the shared recording state; without it the empty state just
+   *  says what to do. */
+  private async _connect(): Promise<void> {
+    try {
+      const [rpc, host] = await Promise.all([litRpc(), hostInfo()]);
+      if (!this.isConnected) return;
+      this._snapshot = host.snapshot;
+      if (host.snapshot) return;
+      this._rpc = rpc;
+      const session =
+        await rpc.rpc.sharedState<SessionState>(SESSION_STATE_KEY);
+      if (!this.isConnected) return;
+      const apply = (state: {
+        layers: Pick<
+          SessionState['layers'],
+          'recordingState' | 'litLifecycleEnabled'
+        >;
+      }) => {
+        this._recording = state.layers.recordingState;
+        this._lifecycleOn = state.layers.litLifecycleEnabled;
+      };
+      apply(session.value());
+      this._sessionOff = session.on('updated', apply);
+    } catch {
+      // No client: the empty state still says how to record.
+    }
+  }
+
+  /** Record from here: Lit Lifecycle on, which this view reads, then go. */
+  private _record(): void {
+    const rpc = this._rpc?.rpc;
+    if (rpc === undefined) return;
+    const warn = (err: unknown) =>
+      console.warn('[lit-devtools] starting a recording failed', err);
+    const start = () => {
+      if (!this._recording) {
+        rpc.call('set-recording', {recording: true}).catch(warn);
+      }
+    };
+    if (this._lifecycleOn) {
+      start();
+      return;
+    }
+    rpc
+      .call('toggle-layer', {layerId: 'lit-lifecycle', enabled: true})
+      .then(start, warn);
+  }
+
+  private _renderEmpty() {
+    if (this._snapshot) {
+      return html`<div class="empty">
+        <span>No component updates in this session.</span>
+      </div>`;
+    }
+    if (this._recording && this._lifecycleOn) {
+      return html`<div class="empty">
+        <span>Recording.</span>
+        <span class="hint">
+          Interact with the page; each component that updates lands here.
+        </span>
+      </div>`;
+    }
+    const label = this._recording ? 'Turn on Lit Lifecycle' : 'Record updates';
+    return html`<div class="empty">
+      <span>No component updates recorded.</span>
+      <span class="hint">
+        This view reads the Lit Lifecycle layer of a Timeline recording.
+      </span>
+      ${
+        this._rpc === null
+          ? nothing
+          : html`<lit-button
+              class="record"
+              variant="neutral"
+              appearance="outlined"
+              size="s"
+              @click=${this._record}
+            >
+              <lit-icon slot="start" name="record"></lit-icon>
+              ${label}
+            </lit-button>`
+      }
+    </div>`;
   }
 
   private _readStore(): void {
@@ -388,17 +495,7 @@ export class UpdatesView extends LitElement {
     if (this._error !== null) {
       return html`<div class="error">${this._error}</div>`;
     }
-    if (this._components.length === 0) {
-      return html`
-        <div class="empty">
-          <span>No component updates recorded.</span>
-          <span class="hint">
-            Press Record in the Timeline tab, with the Lit Lifecycle layer on,
-            then interact with the page.
-          </span>
-        </div>
-      `;
-    }
+    if (this._components.length === 0) return this._renderEmpty();
     const maxTotal = Math.max(...this._components.map((c) => c.totalMs));
     return html`
       <div class="pane components">
@@ -507,8 +604,9 @@ export class UpdatesView extends LitElement {
 
   private _renderCycles() {
     if (this._selectedTag === null) {
+      // One line until a component is picked, not half the view.
       return html`
-        <div class="pane cycles">
+        <div class="pane cycles idle">
           <div class="empty">
             <span class="hint">
               Pick a component to see each of its updates and what changed.

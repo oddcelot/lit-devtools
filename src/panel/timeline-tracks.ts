@@ -680,7 +680,8 @@ export class TimelineTracks extends LitElement {
           @range-zoom=${this.zoomToRange}
           @range-clear=${() => this._emitRange(null)}
         ></timeline-range-summary>`;
-    if (this._tracks.length === 0) {
+    // Lanes with nothing on them read as broken; say what to do instead.
+    if (this._tracks.length === 0 || this._visibleSpans.length === 0) {
       return html`${
         this.visibleTracks.length === 0
           ? html`<div class="empty">
