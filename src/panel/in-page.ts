@@ -14,6 +14,7 @@
 import {connectPanelChannel} from 'devframe/in-page-channel';
 import type {PanelChannel} from 'devframe/in-page-channel';
 import {LIT_IN_PAGE_CHANNEL, type LitInPageProtocol} from '../types/in-page.js';
+import {hasLocalClient} from './client.js';
 
 let channel: PanelChannel<LitInPageProtocol> | undefined;
 
@@ -22,8 +23,16 @@ let channel: PanelChannel<LitInPageProtocol> | undefined;
  * not framed and was not opened by another window, as in a tab of its own
  * or the Firefox extension's DevTools panel. devframe looks no further, so
  * a channel would only buffer, and warn that it does.
+ *
+ * A panel with a local client counts as alone too. Its page is the one at
+ * the other end of its own port, which is already direct, and the windows
+ * around it are someone else's: the docs' live panel sits in a docs page
+ * that runs a runtime of its own in dev, or Lit Inspector's on a site it is
+ * enabled for. That runtime answered the handshake, and every highlight and
+ * anatomy command went to a page without the selected element.
  */
 const alone = (): boolean => {
+  if (hasLocalClient()) return true;
   try {
     return window.parent === window && window.opener == null;
   } catch {

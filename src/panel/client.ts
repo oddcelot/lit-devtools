@@ -35,6 +35,7 @@ export type LitClient = DevframeScopedClientContext<
 >;
 
 let connecting: Promise<LitClient> | undefined;
+let local = false;
 
 /**
  * Supply the client instead of connecting: for a host page that runs the
@@ -55,7 +56,15 @@ export const useLocalClient = (
     );
   }
   connecting = Promise.resolve(client.scope(LIT_DEVFRAME_ID));
+  local = true;
 };
+
+/**
+ * Whether the panel was handed a client with {@link useLocalClient}: it
+ * reaches its page over a port of its own, as Lit Inspector's tab and the
+ * docs' live panel do, rather than through a dev server.
+ */
+export const hasLocalClient = (): boolean => local;
 
 /**
  * Run with no host at all: for a page that shows panel views over recorded

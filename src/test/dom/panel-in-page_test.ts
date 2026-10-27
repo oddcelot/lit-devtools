@@ -26,3 +26,12 @@ test('a panel opened by the page connects to it', async () => {
   expect(inPageConnected()).toBe(true);
   expect(connect).toHaveBeenCalledOnce();
 });
+
+test('a panel with a local client never opens the channel, even when framed', async () => {
+  vi.stubGlobal('opener', {});
+  const {useLocalClient} = await import('../../panel/client.js');
+  useLocalClient({scope: () => ({}) as never});
+  const {inPageConnected} = await load();
+  expect(inPageConnected()).toBe(false);
+  expect(connect).not.toHaveBeenCalled();
+});
