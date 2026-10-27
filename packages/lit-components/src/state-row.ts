@@ -39,7 +39,7 @@ export class LitStateRow extends LitElement {
       cursor: pointer;
     }
     button:focus-visible {
-      outline: 2px solid var(--accent-ring);
+      outline: 2px solid var(--focus-ring);
       border-radius: var(--radius-xs);
     }
     .spacer {

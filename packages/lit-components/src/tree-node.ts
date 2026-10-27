@@ -36,7 +36,7 @@ export class LitTreeNode extends LitElement {
       box-shadow: inset 2px 0 0 var(--accent);
     }
     .row:focus-visible {
-      outline: 2px solid var(--accent-ring);
+      outline: 2px solid var(--focus-ring);
       outline-offset: -2px;
     }
     button {

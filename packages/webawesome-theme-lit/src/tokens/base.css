@@ -119,7 +119,7 @@
   --shadow-xl: 0 24px 64px hsl(0 0% 0% / 0.55);
   --shadow-window:
     0 24px 80px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(0 0% 100% / 0.06);
-  --ring: 0 0 0 2px var(--accent-ring);
+  --ring: 0 0 0 2px var(--focus-ring);
 
   /* ---- Motion ---- */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);

@@ -265,7 +265,7 @@ export class TimelineTracks extends LitElement {
         z-index: 1;
       }
       .mark:focus-visible {
-        outline: 2px solid var(--lit-devtools-accent-ring);
+        outline: 2px solid var(--lit-devtools-focus-ring);
         z-index: 1;
       }
     `,

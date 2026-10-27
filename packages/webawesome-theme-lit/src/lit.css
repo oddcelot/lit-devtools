@@ -35,6 +35,8 @@
     --wa-color-surface-raised: var(--surface-elevated);
     --wa-color-surface-lowered: var(--surface-low);
     --wa-color-surface-border: var(--border);
+    /* Input, select and outlined-button outlines (see --border-control). */
+    --wa-color-neutral-border-loud: var(--border-control);
     --wa-color-text-normal: var(--text);
     --wa-color-text-quiet: var(--text-secondary);
     --wa-color-text-link: var(--text-link);
@@ -91,12 +93,12 @@
   /* Dark-scheme contrast. WA's loud borders sit at step 40, 2.2–2.7:1 on
      the dark surfaces, under the 3:1 a control's outline needs (an
      unchecked switch, an input, an outlined button); step 50 clears it.
+     The neutral one comes from --border-control, above, in both schemes.
      WA's loud neutral fill is near-white (step 90), which made a neutral
      accent the brightest thing on a dark page; step 70 keeps it the loudest
      neutral with dark text at 8:1. */
   .wa-dark {
     --wa-color-brand-border-loud: var(--wa-color-brand-50);
-    --wa-color-neutral-border-loud: var(--wa-color-neutral-50);
     --wa-color-success-border-loud: var(--wa-color-success-50);
     --wa-color-warning-border-loud: var(--wa-color-warning-50);
     --wa-color-danger-border-loud: var(--wa-color-danger-50);

@@ -24,6 +24,7 @@ colors:
   light-surface-container-high: '#e8e8e8'
   light-border: '#e2e2e2'
   light-border-strong: '#c6c6c6'
+  light-border-control: '#8a8a8a'
   light-text-muted: '#6f6f6f'
   light-text-secondary: '#595959'
   light-text: '#242424'
@@ -31,7 +32,7 @@ colors:
   dark-success: 'hsl(158 74% 53%)'
   dark-warning: '#f4bf4f'
   dark-error: '#ff6b6b'
-  light-success: '#00865b'
+  light-success: '#007a52'
   light-warning: '#b26a00'
   light-error: '#ba1a1a'
 typography:
@@ -195,9 +196,15 @@ ramps.
 It is not decoration, not a heading colour and not a background for areas.
 
 **The Earned Contrast Rule.** Every text token clears 4.5:1 on the surfaces it
-sits on. Where the upstream design system's value fell short, the token was
+sits on, and everything that marks a control (its outline, the focus ring)
+clears 3:1. Where the upstream design system's value fell short, the token was
 lightened or darkened and the source comment says so. Keep doing that rather
 than reverting to the upstream value.
+
+**The Opaque Focus Rule.** Keyboard focus is drawn in `--lit-devtools-focus-ring`,
+an opaque accent (the accent in light, the accent's hover step in dark), never
+in the translucent `--lit-devtools-accent-ring`, which measured under 2:1. The
+translucent ring is for tinted fills such as a timeline range.
 
 **The Two Schemes Rule.** Every colour exists in both schemes. A change that
 only defines or checks one scheme is unfinished.
@@ -315,7 +322,9 @@ do not hand-roll a control the set already has.
 
 - **Style:** 1px border, transparent fill, square, 28px; filter fields lead
   with a search icon and use sentence-case placeholders ("Filter tags").
-- **Focus:** a 2px ring in the accent ring colour.
+- **Focus:** a 2px ring in the focus-ring colour.
+- **Outline:** `--lit-devtools-border-control`, the one border that must read
+  as a control (3:1); hairline `--lit-devtools-border` is for regions only.
 - **Disabled:** a muted fill, a dashed outline and the not-allowed cursor on
   top of Web Awesome's half opacity, so a disabled field never looks like an
   empty one.
