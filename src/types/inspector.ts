@@ -598,6 +598,14 @@ export const PAGE_RUNTIME_NAMES: Record<PageRuntimeKind, string> = {
 export const sentenceStart = (text: string): string =>
   text.charAt(0).toUpperCase() + text.slice(1);
 
+/** Where a page is, as the panel's header names it. */
+export interface PageLocation {
+  /** `location.pathname` with its search and hash. */
+  path: string;
+  /** `document.title`; empty when the page has none. */
+  title: string;
+}
+
 export type InspectorMessage =
   /**
    * The runtime came online; the panel should (re)request the tree. Carries
@@ -612,7 +620,11 @@ export type InspectorMessage =
       chromeTracks?: boolean;
       /** The DevTools runtimes on the page; more than one get in each other's way. */
       runtimes?: PageRuntimeKind[];
+      /** Where the page is, so the panel can say which page it follows. */
+      location?: PageLocation;
     }
+  /** The page moved without reloading: a client-side route change. */
+  | ({type: 'location'} & PageLocation)
   | {type: 'tree'; roots: InspectorTreeNode[]}
   | {type: 'details'; details: InspectorDetails}
   /**
@@ -659,6 +671,11 @@ export type InspectorMessage =
 /** Panel → app runtime commands, sent over the devframe `inspect` RPC. */
 export type InspectorCommand =
   | {type: 'tree'}
+  /**
+   * The page with this id announces itself again, as it does on boot, and
+   * so becomes the page the node side follows. Every other page ignores it.
+   */
+  | {type: 'announce'; pageId: string}
   | {type: 'details'; id: number}
   /** The define-call frames behind these `defineId`s, answered in one message. */
   | {type: 'define-frames'; ids: number[]}

@@ -791,3 +791,26 @@ test('store-global keeps a reachable value as the next free tempN', async () => 
     for (const name of ['temp1', 'temp2', 'temp3']) delete g[name];
   }
 });
+
+test('only the page an announce names announces itself again', async () => {
+  const {carrier} = await load();
+  const {PAGE_ID, TAB_ID} = await import('../../lib/runtime/page-id.js');
+  const {CHANNEL_RUNTIME_READY} = await import('../../types/timeline.js');
+  const before = readies(carrier);
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'announce', pageId: 'other'});
+  expect(readies(carrier)).toBe(before);
+  carrier.sent.length = 0;
+  carrier.deliver(INSPECT_CMD_CHANNEL, {type: 'announce', pageId: PAGE_ID});
+  // The timeline runtime's announcement is the one the node side follows.
+  expect(carrier.sent).toContainEqual([
+    CHANNEL_RUNTIME_READY,
+    {pageId: PAGE_ID, tabId: TAB_ID},
+  ]);
+  const ready = carrier.sent.find(
+    ([ch, m]) =>
+      ch === INSPECT_DATA_CHANNEL && (m as {type: string}).type === 'ready'
+  )?.[1] as {location?: {path: string}};
+  expect(ready.location?.path).toBe(
+    location.pathname + location.search + location.hash
+  );
+});

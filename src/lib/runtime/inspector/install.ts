@@ -14,7 +14,7 @@ import {elementById, idOf} from '../timeline/identity.js';
 import {withDevtoolsCause} from '../timeline/cause-context.js';
 import {findByKey, keyOf} from './element-key.js';
 import {pageChannel} from '../page-channel.js';
-import {PAGE_ID} from '../page-id.js';
+import {PAGE_ID, TAB_ID} from '../page-id.js';
 import {
   onRuntimeJoined,
   runtimesOnPage,
@@ -76,9 +76,13 @@ import {
   type InspectorMessage,
   type InspectorTreeNode,
   type LitPackageVersions,
+  type PageLocation,
   type ValueSegment,
 } from '../../../types/inspector.js';
-import {CHANNEL_RECORDING_CHANGED} from '../../../types/timeline.js';
+import {
+  CHANNEL_RECORDING_CHANGED,
+  CHANNEL_RUNTIME_READY,
+} from '../../../types/timeline.js';
 
 /** Lit packages and the global each pushes its version onto when loaded. */
 const LIT_VERSION_GLOBALS = [
@@ -240,6 +244,16 @@ if (installs) {
    * the version sentinels each Lit package pushes once per loaded copy, so
    * more than one entry means duplicate copies. Never throws.
    */
+  /** Where the page is now, for the panel's header. Never throws. */
+  const pageLocation = (): PageLocation => {
+    try {
+      const {pathname, search, hash} = location;
+      return {path: pathname + search + hash, title: document.title};
+    } catch {
+      return {path: '', title: ''};
+    }
+  };
+
   const readyMessage = (): InspectorMessage => {
     const g = globalThis as Record<string, unknown>;
     const litPackages: LitPackageVersions = {};
@@ -262,6 +276,7 @@ if (installs) {
       topFrame,
       chromeTracks: chromeTracksSupported(),
       runtimes: [...runtimesOnPage()],
+      location: pageLocation(),
     };
   };
 
@@ -855,6 +870,13 @@ if (installs) {
 
   const commandHandlers: CommandHandlers = {
     tree: replyTree,
+    announce: (cmd) => {
+      if (cmd.pageId !== PAGE_ID) return;
+      // The timeline runtime's announcement is the one the node side
+      // follows; this page sends it on boot, and again now.
+      pageChannel.send(CHANNEL_RUNTIME_READY, {pageId: PAGE_ID, tabId: TAB_ID});
+      send(readyMessage());
+    },
     details: (cmd) => replyDetails(cmd.id),
     'define-frames': (cmd) => replyDefineFrames(cmd.ids),
     'fetch-text': (cmd) => void fetchText(cmd.url).then(send),
@@ -927,4 +949,16 @@ if (installs) {
   pageChannel.onAttach(() => send(readyMessage()));
   // Another runtime arriving is news for the panel: they collide.
   onRuntimeJoined(() => send(readyMessage()));
+  // A client-side route change moves the page without a new `ready`, and the
+  // panel's header names where it is. The Navigation API sees pushState too;
+  // without it, back, forward and hash changes still report.
+  const reportLocation = (): void =>
+    send({type: 'location', ...pageLocation()});
+  const nav = (globalThis as {navigation?: EventTarget}).navigation;
+  if (nav !== undefined) {
+    nav.addEventListener('navigatesuccess', reportLocation);
+  } else {
+    addEventListener('popstate', reportLocation);
+    addEventListener('hashchange', reportLocation);
+  }
 }

@@ -22,6 +22,7 @@ import type {
   InspectorMessage,
   InspectorTreeNode,
   LitPackageVersions,
+  PageLocation,
   PageRuntimeKind,
 } from '../../types/inspector.js';
 import type {ComponentDocs} from '../../types/component-docs.js';
@@ -291,6 +292,8 @@ export interface LitRuntimeInfo {
    * until a runtime says, and for one too old to.
    */
   runtimes: PageRuntimeKind[];
+  /** Where the followed page is; absent from an older runtime. */
+  location?: PageLocation;
 }
 
 /**

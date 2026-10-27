@@ -316,6 +316,12 @@ export function createRecordingSession(
           topFrame: message.topFrame ?? true,
           chromeTracks: message.chromeTracks ?? true,
           runtimes: [...(message.runtimes ?? [])],
+          ...(message.location ? {location: {...message.location}} : {}),
+        };
+      } else if (message.type === 'location') {
+        runtime = {
+          ...runtime,
+          location: {path: message.path, title: message.title},
         };
       }
     },
