@@ -9,6 +9,88 @@ release is organised by part. The VS Code extension also keeps a changelog of
 its own versions. Versions before 0.3.0 predate this file; see the git
 history for those.
 
+## 0.26.0 — 2026-10-27
+
+The panel finds its place in whatever dock you give it: tabs, toolbars and
+Settings fit a narrow one, Settings reads as a form on a wide one and works
+from the keyboard and a screen reader, and the panel takes Lit's own type and
+colours. It names the page it follows, and the empty Updates and Tracks views
+start a recording themselves. The language server and the Astro integration
+are no longer experimental, and `examples/checks` shows every check in your
+editor. Nothing needs action to upgrade.
+
+### Vite & Astro plugin
+
+- **Changed** — **A build carries nothing of the plugin's for `?css-sheet`.**
+  Each sheet's module now makes and fills the sheet itself, so a library's
+  dist no longer bundles a copy of the plugin's sheet helper next to the
+  app's, and the plugin can stay a dev dependency.
+- **Changed** — **The Astro integration is no longer experimental.** Its guide
+  drops the Experimental badge.
+
+### DevTools panel
+
+- **Added** — **The panel names the page it follows.** Its path sits in the
+  header, and when another tab takes over, the notice names both pages and
+  offers to follow the earlier one again, instead of just saying that another
+  page connected.
+- **Changed** — **Updates and Tracks can start a recording themselves.** An
+  empty Updates tab offers Record updates, with the layer it needs turned on,
+  and an empty Tracks view shows how to start instead of blank lanes.
+- **Changed** — **The Timeline's layer toggles live in one Layers menu.**
+  Record leads the toolbar, and a Layers button holds what to record and, in
+  Tracks mode, which layers get a track, instead of two rows of chips above
+  the events.
+- **Changed** — **The Components details pane opens wider.** Descriptions and
+  source paths wrap less on first open; a width you set by dragging still
+  wins.
+- **Changed** — **The panel looks like Lit's.** The wordmark and section
+  headings are set in Lexend, as in the docs, and the active tab is underlined
+  in the Lit flame's blue and cyan.
+- **Fixed** — **The panel fits a narrow dock.** The tabs drop to icons, with
+  their names as tooltips, instead of Settings disappearing off the edge of
+  the header; the Components details pane moves under the tree instead of
+  squeezing it; toolbar buttons wrap, and Settings labels wrap with their
+  selects staying inside their cards.
+- **Fixed** — **Settings work with a keyboard and a screen reader.** Each
+  switch and select is announced with its setting's name, Tab goes straight
+  from control to control and shows the setting's description, and the
+  "default:" and "enabled" labels are readable in the light theme.
+- **Fixed** — **Settings read as a form on a wide panel.** Cards stop at a
+  form width instead of stretching across the panel, and the note at the end
+  of About lines up with the rows above it.
+- **Fixed** — **Keyboard focus and form fields are easy to see.** The focus
+  ring is solid instead of a faint glow, and in the light theme inputs and
+  buttons have outlines you can make out.
+- **Fixed** — **Small toggles are easier to hit.** The List/Tracks toggle and
+  the Settings switches respond across a full 24px instead of a thin strip.
+
+### Editors & language server
+
+- **Changed** — **The language server is no longer experimental.** Its docs,
+  the VS Code extension's README and the `languageServer` option drop the
+  Experimental label.
+- **Fixed** — **Settings apply to a project opened through a symlink.** A
+  folder reached through a link, such as one under /tmp on macOS, ran with the
+  default settings, ignoring `manifests`, `entries`, the rules it turned on
+  and the check on save.
+
+### Docs & examples
+
+- **Added** — **An example with every check to open in your editor.**
+  `examples/checks` has one of each mistake the language server reports, next
+  to a documented component set to try completion, hover and the manifest on;
+  `npm run lint` and `npm run check` show the same problems in a terminal.
+- **Changed** — **The docs are easier to scan.** Sections open behind a rule,
+  running text keeps a readable line length, and reference tables keep each
+  option, type and environment variable on one readable line.
+- **Changed** — **The landing page reads more calmly.** The other features are
+  a list you can scan instead of a grid of cards, and section headings stand
+  without labels over them.
+- **Fixed** — **Anatomy and hover outlines show in the docs' live demos.**
+  Embedded in a docs page that runs Lit DevTools itself, the panel sent them
+  to that page instead of the demo, so turning on Anatomy drew nothing.
+
 ## 0.25.0 — 2026-10-26
 
 The language server now checks your templates the way lit-analyzer does, and

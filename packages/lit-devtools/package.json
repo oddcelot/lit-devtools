@@ -1,6 +1,6 @@
 {
   "name": "@oddsquad/lit-devtools",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "description": "Lit DevTools in one install: the Vite and Astro plugin with true HMR and a DevTools panel, the language server's settings, and Oxlint rules for Lit templates.",
   "keywords": [
     "lit",
