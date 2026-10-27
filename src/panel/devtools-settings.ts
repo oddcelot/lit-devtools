@@ -135,6 +135,8 @@ export class DevtoolsSettings extends LitElement {
       /* Section status: a soft tint, not a solid fill, so it never outshouts
          the controls below it. */
       .pill {
+        /* Its own size, not 0.8 of the 11px header it sits in. */
+        font-size: var(--lit-devtools-text-2xs);
         text-transform: none;
         letter-spacing: 0;
         border: 0;
@@ -173,9 +175,9 @@ export class DevtoolsSettings extends LitElement {
         cursor: help;
         text-underline-offset: 3px;
       }
-      /* The tooltip affordance shows on demand; always-on it reads as a link. */
-      .key[data-tip]:hover,
-      .key[data-tip]:focus-visible {
+      /* The tooltip affordance shows on demand; always-on it reads as a link.
+         Keyboard users get the same tip on the row's control. */
+      .key[data-tip]:hover {
         text-decoration: underline dotted;
       }
       .opt-src {
@@ -205,6 +207,28 @@ export class DevtoolsSettings extends LitElement {
         text-transform: none;
         letter-spacing: 0;
       }
+      /* The value an override replaced: unfilled like the origin tags, in
+         the link blue, which holds 4.5:1 as text where a filled brand chip
+         did not. */
+      lit-badge.env.ovr {
+        border: 0;
+        background: none;
+        color: var(--lit-devtools-text-link);
+        font-size: var(--lit-devtools-text-2xs);
+        font-weight: var(--lit-devtools-weight-regular);
+        text-transform: none;
+        letter-spacing: 0;
+      }
+      /* A control's name, for assistive tech; its row's label cell says it
+         on screen. */
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
       .src {
         margin-left: var(--lit-devtools-space-3);
         vertical-align: middle;
@@ -230,6 +254,16 @@ export class DevtoolsSettings extends LitElement {
         display: inline-block;
         min-width: 9em;
         font-family: var(--lit-devtools-font-mono);
+      }
+      /* The label names the select for assistive tech; the key cell beside
+         it already says it on screen. */
+      td lit-select::part(form-control-label) {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
       }
       lit-select::part(combobox) {
         min-height: var(--lit-devtools-control-height);
@@ -547,15 +581,18 @@ export class DevtoolsSettings extends LitElement {
       case 'switch':
         return html`<lit-switch
           size="s"
+          data-tip=${row.tip}
           .checked=${row.value === true}
           ?disabled=${row.disabled}
           @change=${(e: Event) => set((e.target as LitSwitch).checked)}
         >
-          ${row.text}
+          <span class="sr-only">${row.label}:</span> ${row.text}
         </lit-switch>`;
       case 'select':
         return html`<lit-select
           size="s"
+          label=${row.label}
+          data-tip=${row.tip}
           .value=${String(row.value)}
           ?disabled=${row.disabled}
           @change=${(e: Event) => set((e.target as LitSelect).value)}
@@ -585,7 +622,7 @@ export class DevtoolsSettings extends LitElement {
     const row = this._rowOf(key);
     return html`
       <tr class=${row.disabled ? 'row-disabled' : ''}>
-        <td class="key" tabindex="0" data-tip=${row.tip}>${row.label}</td>
+        <td class="key" data-tip=${row.tip}>${row.label}</td>
         <td class="val">${this._control(row)} ${this._badge(row)} ${after}</td>
       </tr>
     `;
@@ -607,6 +644,7 @@ export class DevtoolsSettings extends LitElement {
               <td class="val">
                 <lit-select
                   size="s"
+                  label="color scheme"
                   .value=${this._colorScheme}
                   @change=${(e: Event) =>
                     this._setColorScheme(
@@ -663,9 +701,9 @@ export class DevtoolsSettings extends LitElement {
     const row = this._rowOf('sourceOverlayEditor');
     return html`
       <tr>
-        <td class="key" tabindex="0" data-tip=${row.tip}>${row.label}</td>
+        <td class="key" data-tip=${row.tip}>${row.label}</td>
         <td class="val">
-          <lit-select size="s" disabled .value=${'custom'}>
+          <lit-select size="s" label=${row.label} disabled .value=${'custom'}>
             <wa-option value="custom" disabled>Custom</wa-option>
           </lit-select>
           ${this._badge(row)}
