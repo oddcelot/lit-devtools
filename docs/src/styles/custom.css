@@ -50,6 +50,188 @@
   font-weight: 500;
 }
 
+/* Starlight's heading steps sit close together (h3 is 29px under a 35px
+   h2), so a page's sections and their subsections read as one level. These
+   steps are wider apart and smaller at the bottom, where subsections are many
+   and short. */
+:root {
+  --sl-text-h1: 2rem;
+  --sl-text-h2: 1.5rem;
+  --sl-text-h3: 1.1875rem;
+  --sl-text-h4: 1.0625rem;
+}
+
+@media (min-width: 50em) {
+  :root {
+    --sl-text-h1: 2.5rem;
+    --sl-text-h2: 1.75rem;
+    --sl-text-h3: 1.25rem;
+  }
+}
+
+/* ------------------------------------------------------- Reading pages ---- */
+
+/* The column is wide enough for tables, code and figures, but running text
+   stops at a readable line length. Starlight's 45rem column ran prose at about
+   100 characters a line. */
+:root {
+  --sl-content-width: 48rem;
+}
+
+.sl-markdown-content
+  :is(p, ul, ol, dl, blockquote):not(:where(.not-content *)) {
+  max-inline-size: 68ch;
+}
+
+/* Each h2 opens a section behind a hairline, so a long page breaks into parts
+   you can find by scrolling past them. The first one follows the opener,
+   which already sits under the title's rule, so it needs no rule of its own. */
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content .sl-heading-wrapper.level-h2:nth-child(1 of .level-h2) {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 2.25rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper + * {
+  margin-top: 0.75rem;
+}
+
+/* Links in running text: the underline sits clear of descenders and fades
+   until hovered, so a paragraph with five links still reads as text. */
+.sl-markdown-content a:not(:where(.not-content *)) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition: text-decoration-color var(--dur-fast) var(--ease-out);
+}
+
+.sl-markdown-content a:not(:where(.not-content *)):hover {
+  text-decoration-color: currentColor;
+}
+
+/* Inline code: a tighter chip in the square corners of the design system.
+   Starlight's padding spaces a run of identifiers out into separate blocks. */
+.sl-markdown-content :not(pre, a) > code:not(:where(.not-content *)) {
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+  font-size: 0.85em;
+}
+
+/* --------------------------------------------------------------- Tables ---- */
+
+/* Reference pages are mostly tables. A smaller size fits a four-column table
+   in the column without scrolling, the header reads as labels rather than as
+   a row of content, and the first column (an option, a variable, a layer)
+   never breaks across lines, so the eye can run down it. */
+.sl-markdown-content table:not(:where(.not-content *)) {
+  font-size: var(--sl-text-sm);
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  padding: 0.625rem 1.25rem 0.625rem 0;
+  vertical-align: top;
+}
+
+.sl-markdown-content th:not(:where(.not-content *)) {
+  font-family: var(--font-lexend);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  color: var(--sl-color-gray-2);
+  border-bottom-color: var(--sl-color-gray-5);
+}
+
+.sl-markdown-content td:first-child code:not(:where(.not-content *)) {
+  white-space: nowrap;
+}
+
+/* In a cell the code face already marks code, and a chip that wraps (a
+   union type, a signature) breaks into pieces that read as separate values. */
+.sl-markdown-content td code:not(:where(.not-content *)) {
+  padding: 0;
+  background: none;
+  font-size: 0.9em;
+}
+
+/* -------------------------------------------------------------- Asides ---- */
+
+/* An aside is a hairline box with a faint wash of its colour. Starlight's
+   4px side stripe and full-strength fill pulled the eye off the text around
+   it; the icon and the title carry the colour now. */
+.starlight-aside {
+  border: 1px solid
+    color-mix(in srgb, var(--sl-color-asides-border) 40%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(
+    in srgb,
+    var(--sl-color-asides-border) 7%,
+    var(--sl-color-bg)
+  );
+  padding: 1rem 1.25rem;
+}
+
+.starlight-aside__title {
+  font-family: var(--font-lexend);
+  font-size: var(--sl-text-base);
+}
+
+/* ---------------------------------------------------------- Navigation ---- */
+
+/* The sidebar's top-level groups are section labels, set small in caps the
+   way the DevTools panel labels its own sections. Nested groups
+   (Stylesheets, DevTools) drop to the size of the links under them, so the
+   two levels stop competing. */
+#starlight__sidebar .top-level > li > details > summary .large {
+  font-family: var(--font-lexend);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+#starlight__sidebar .top-level ul .large {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+}
+
+#starlight__sidebar .top-level > li + li {
+  margin-top: 0.5rem;
+}
+
+/* The table of contents follows the same pattern: a caps label, then the
+   headings on a hairline rail, with the section in view marked on it. */
+starlight-toc h2,
+mobile-starlight-toc h2 {
+  font-family: var(--font-lexend);
+  font-size: var(--sl-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3);
+}
+
+starlight-toc nav > ul {
+  border-inline-start: 1px solid var(--sl-color-gray-5);
+}
+
+/* Square for the same reason as the sidebar's active row. */
+starlight-toc a[aria-current='true'] {
+  border-radius: 0;
+  box-shadow: inset 2px 0 0 var(--sl-color-accent);
+  color: var(--sl-color-white);
+}
+
 /* ------------------------------------------------- Dark · DevTools theme ---- */
 
 :root {
