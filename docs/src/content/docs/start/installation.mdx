@@ -70,11 +70,10 @@ options and the CSS plugins.
 
 What those CSS plugins emit carries no dev code either: under `vite build`, a
 `?css-sheet` compiles to a sheet that is filled once, with no hot-swap
-callback, and a `?hmr-url` to the plain asset URL. That sheet is the one
-piece of ours a build ships: a helper of a few hundred bytes that makes the
-`CSSStyleSheet` (or, in a server render, a stand-in that keeps its text) and
-fills it, inlined or fetched. Without `?css-sheet` the build carries nothing
-of ours.
+callback, and a `?hmr-url` to the plain asset URL. The sheet's code is
+written into the sheet's own module, a few lines of `new CSSStyleSheet()` and
+`replaceSync()` (plus a `fetch()` for an app build), so a build bundles no
+module of ours and imports nothing from the plugin.
 
 If you want the build to depend on less than that, use `litCss()` from the
 `/build` entry for builds. It carries only what a build uses: the CSS queries,

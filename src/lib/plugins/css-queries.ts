@@ -122,10 +122,42 @@ const devSheetCode = (file: string): string => {
 };
 
 /**
- * `?css-sheet` in a build: the sheet is built once, with none of the dev
- * helpers. Either way it is constructed once per virtual module, so adopters
+ * Copies the `@property` rules of `sheet` into a sheet the document adopts.
+ * Browsers ignore `@property` inside a shadow root, so a property the sheet
+ * registers there keeps no initial value (Tailwind v4's shadow, ring and
+ * transform utilities read properties registered that way); a registration
+ * in the document applies in every shadow root. Runs once, after the sheet
+ * is filled.
+ */
+const HOIST_PROPERTY_RULES =
+  `if (typeof document != "undefined" && typeof CSSPropertyRule != "undefined") {\n` +
+  `  const propertyRules = (rules) => [...rules].flatMap((rule) =>\n` +
+  `    rule instanceof CSSPropertyRule ? [rule.cssText]\n` +
+  `      : "cssRules" in rule ? propertyRules(rule.cssRules) : []);\n` +
+  `  const found = propertyRules(sheet.cssRules);\n` +
+  `  if (found.length > 0) {\n` +
+  `    const hoisted = new CSSStyleSheet();\n` +
+  `    hoisted.replaceSync(found.join("\\n"));\n` +
+  `    document.adoptedStyleSheets = [...document.adoptedStyleSheets, hoisted];\n` +
+  `  }\n` +
+  `}\n`;
+
+/** A function body that fills `sheet` from `css`, then hoists if asked. */
+const fillCode = (hoist: boolean): string =>
+  `sheet.replaceSync(css);\n` + (hoist ? HOIST_PROPERTY_RULES : '');
+
+/**
+ * `?css-sheet` in a build: the sheet is built once, in code written into the
+ * module itself, so a build carries no module of the plugin's. A library's
+ * dist then has nothing of ours for its consumers to bundle twice or to
+ * resolve. Either way it is constructed once per virtual module, so adopters
  * share it. The `@property` hoisting only comes along for a sheet that needs
  * it; the url form checks the same css compiled inline.
+ *
+ * On a server there is no `CSSStyleSheet`, so the sheet is a stand-in that
+ * carries its text as `cssText`, which Lit's server renderer writes into a
+ * component's declarative shadow root. A fetch-backed one stays empty there:
+ * there is no page to fetch the asset relative to.
  */
 const buildSheetCode = async (
   ctx: ModuleLoader,
@@ -137,18 +169,32 @@ const buildSheetCode = async (
   const inlineQuery = mode === 'inline-raw' ? '?raw' : '?inline';
   const css = `${file}${fetched ? '?inline' : inlineQuery}`;
   const hoist = await hasPropertyRule(ctx, css);
-  const helper = fetched ? 'fetchedSheet' : 'inlinedSheet';
-  const imports =
-    `import {${helper}} from ${JSON.stringify(resolveRuntimeModule('css-build'))};\n` +
-    (hoist
-      ? `import {hoistPropertyRules} from ` +
-        `${JSON.stringify(resolveRuntimeModule('property-rules'))};\n`
-      : '');
-  const source = fetched
-    ? `import url from ${JSON.stringify(`${file}?url`)};\n`
-    : `import css from ${JSON.stringify(css)};\n`;
-  const args = `${fetched ? 'url' : 'css'}${hoist ? ', hoistPropertyRules' : ''}`;
-  return `${source}${imports}export default ${helper}(${args});\n`;
+  const hasSheets = `typeof CSSStyleSheet != "undefined"`;
+  if (!fetched) {
+    return (
+      `import css from ${JSON.stringify(css)};\n` +
+      `let sheet = {cssText: css};\n` +
+      `if (${hasSheets}) {\n` +
+      `sheet = new CSSStyleSheet();\n` +
+      fillCode(hoist) +
+      `}\n` +
+      `export default sheet;\n`
+    );
+  }
+  return (
+    `import url from ${JSON.stringify(`${file}?url`)};\n` +
+    `let sheet = {cssText: ""};\n` +
+    `if (${hasSheets}) {\n` +
+    `sheet = new CSSStyleSheet();\n` +
+    `fetch(url)\n` +
+    // A 404 still has a body (the server's fallback page); don't adopt it as css.
+    `  .then((r) => r.ok ? r.text() : Promise.reject(new Error("HTTP " + r.status)))\n` +
+    `  .then((css) => {\n${fillCode(hoist)}}, (err) => {\n` +
+    `    console.warn("[lit-plugin] ?css-sheet: failed to load " + url + ":", err);\n` +
+    `  });\n` +
+    `}\n` +
+    `export default sheet;\n`
+  );
 };
 
 /**

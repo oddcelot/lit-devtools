@@ -1,6 +1,7 @@
 /**
- * `@property` hoisting for constructed sheets, shared by the dev helpers in
- * `css.ts` and the build-only ones in `css-build.ts`.
+ * `@property` hoisting for the dev helpers' constructed sheets in `css.ts`.
+ * A build writes the same hoisting into each sheet module that needs it
+ * (`plugins/css-queries.ts`), so it never imports this file.
  *
  * @module
  */
