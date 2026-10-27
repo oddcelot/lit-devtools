@@ -92,7 +92,6 @@ The extension knows which event it is for:
 - **Alongside TypeScript and HTML support.** The extension adds to VS Code's
   own TypeScript and HTML features rather than replacing them; in an HTML
   file, standard elements stay with VS Code's HTML support.
-- **Experimental.** The server is young; please report what it gets wrong.
 
 ## Settings
 
