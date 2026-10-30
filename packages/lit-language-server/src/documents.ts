@@ -24,6 +24,7 @@ import {unknownNameProblems} from '../../../src/lib/editor/unknown-names.js';
 import {templateSyntaxProblems} from '../../../src/lib/editor/template-syntax.js';
 import {directiveBindingProblems} from '../../../src/lib/editor/directive-bindings.js';
 import {missingImportProblems} from '../../../src/lib/editor/missing-imports.js';
+import {isScriptPage} from '../../../src/lib/editor/page-scripts.js';
 import {suppressionsOf} from '../../../src/lib/editor/suppressions.js';
 import {
   type Problem,
@@ -85,6 +86,9 @@ const importSourceFor = (workspace: Workspace): ImportSource => ({
     workspace.resolveImport(specifier, importer),
   async definitionOf(file, tag) {
     const declared = workspace.declarationsOf(tag)[0];
+    // A page that defines a component can't be imported; it defines it
+    // wherever it's rendered.
+    if (declared && isScriptPage(declared.file)) return undefined;
     if (declared) return {file: declared.file};
     const docs = await workspace.get(file, tag);
     return docs?.origin.package ? {package: docs.origin.package} : undefined;

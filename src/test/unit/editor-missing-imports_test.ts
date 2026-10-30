@@ -135,3 +135,22 @@ test('reads a module again once it changes on disk', async () => {
     await workspace.close();
   }
 });
+
+test('leaves a component an Astro page defines, which no script can import', async () => {
+  const workspace = (await createWorkspace(root, {viteResolution: false}))!;
+  try {
+    await workspace.update(
+      join(root, 'src/Embed.astro'),
+      "<x-page></x-page>\n<script>\n  class XPage extends HTMLElement {}\n  customElements.define('x-page', XPage);\n</script>\n"
+    );
+    const code = "import {html} from 'lit';\nhtml`<x-page></x-page>`;\n";
+    const problems = await missingImportProblems(
+      docsSourceFor(workspace, 'script'),
+      {file: join(root, 'src/app.ts'), code, kind: 'script'}
+    );
+    expect(workspace.sourceTags()).toContain('x-page');
+    expect(problems).toEqual([]);
+  } finally {
+    await workspace.close();
+  }
+});

@@ -8,8 +8,12 @@
 import {parseSync} from 'oxc-parser';
 import type {Node} from './ast.js';
 
-/** The parser's language for a file, from its extension. */
+/**
+ * The parser's language for a file, from its extension. An Astro file's
+ * scripts are TypeScript.
+ */
 export const langOf = (file: string): 'ts' | 'tsx' | 'js' | 'jsx' => {
+  if (file.endsWith('.astro')) return 'ts';
   const ext = /\.([cm]?[jt]sx?)$/.exec(file)?.[1] ?? 'js';
   if (ext.endsWith('tsx')) return 'tsx';
   if (ext.endsWith('ts')) return 'ts';

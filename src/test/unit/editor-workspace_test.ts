@@ -235,3 +235,84 @@ describe('settings', () => {
     expect((await without?.get(app, 'x-app'))?.properties).toEqual([]);
   });
 });
+
+describe('pages', () => {
+  let site: string;
+
+  /** An Astro component that defines the element it renders. */
+  const embed = (tag: string, name: string) => `---
+const {src} = Astro.props;
+---
+<${tag} src={src}></${tag}>
+<script>
+  /** Runs a demo. */
+  class ${name} extends HTMLElement {
+    declare src: string;
+  }
+  customElements.define('${tag}', ${name});
+</script>
+`;
+
+  beforeAll(async () => {
+    site = await realpath(await mkdtemp(join(tmpdir(), 'lit-ws-pages-')));
+    const tree: Record<string, string> = {
+      'package.json': '{"name": "site"}',
+      'src/components/Embed.astro': embed('live-demo', 'LiveDemo'),
+      // Runs as written, so it defines its element all the same.
+      'src/components/Inline.astro':
+        "<script is:inline>\n  class InlineDemo extends HTMLElement {}\n  customElements.define('inline-demo', InlineDemo);\n</script>\n",
+      // Loads a file, or holds data: nothing to read.
+      'src/components/Skipped.astro':
+        '<script src="/x.js">class Ignored extends HTMLElement {}\ncustomElements.define(\'src-demo\', Ignored);</script>\n<script type="application/json">{"class": 1}</script>\n',
+      'index.html':
+        '<!doctype html>\n<page-demo></page-demo>\n<script type="module">\n  class PageDemo extends HTMLElement {}\n  customElements.define(\'page-demo\', PageDemo);\n</script>\n',
+    };
+    for (const [file, code] of Object.entries(tree)) {
+      await mkdir(dirname(join(site, file)), {recursive: true});
+      await writeFile(join(site, file), code);
+    }
+  });
+
+  afterAll(() => rm(site, {recursive: true, force: true}));
+
+  test('reads the components HTML and Astro pages define in their scripts', async () => {
+    const workspace = await createWorkspace(site);
+    expect(workspace?.sourceTags()).toEqual([
+      'inline-demo',
+      'live-demo',
+      'page-demo',
+    ]);
+    const file = join(site, 'src/components/Embed.astro');
+    expect(workspace?.declarationsOf('live-demo')).toEqual([
+      {file, name: 'LiveDemo'},
+    ]);
+    const docs = await workspace?.get(join(site, 'src/x.ts'), 'live-demo');
+    expect(docs?.description).toBe('Runs a demo.');
+    expect(docs?.origin.module).toBe('src/components/Embed.astro');
+    // A page that defines a component is listed once.
+    const files = (await workspace?.markupFiles()) ?? [];
+    expect(files.filter((f) => f === file)).toHaveLength(1);
+    await workspace?.close();
+  });
+
+  test("follows a page's unsaved edits and deletes", async () => {
+    const workspace = await createWorkspace(site);
+    const file = join(site, 'src/components/Chip.astro');
+    await workspace?.update(file, embed('x-chip', 'XChip'));
+    expect(workspace?.declarationsOf('x-chip')).toEqual([
+      {file, name: 'XChip'},
+    ]);
+    await workspace?.update(file, '<x-chip></x-chip>\n');
+    expect(workspace?.sourceTags()).not.toContain('x-chip');
+    await workspace?.update(file, embed('x-chip', 'XChip'));
+    workspace?.remove(file);
+    expect(workspace?.sourceTags()).not.toContain('x-chip');
+    // An HTML page outside the read folders and the package's root isn't read.
+    await workspace?.update(
+      join(site, 'public/demo.html'),
+      "<script>class FarDemo extends HTMLElement {}\ncustomElements.define('far-demo', FarDemo);</script>"
+    );
+    expect(workspace?.sourceTags()).not.toContain('far-demo');
+    await workspace?.close();
+  });
+});

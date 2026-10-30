@@ -151,6 +151,41 @@ describe('JSX, Astro and MDX', () => {
     expect([open.file, textOf(open)]).toEqual(['/p/src/base.ts', 'open']);
   });
 
+  test("goes to a component an Astro file's script defines, in that file", async () => {
+    const embed = `---
+const {src} = Astro.props;
+---
+<live-demo src={src}></live-demo>
+<script>
+  class LiveDemo extends HTMLElement {
+    static observedAttributes = ['src'];
+  }
+  customElements.define('live-demo', LiveDemo);
+</script>
+`;
+    const file = '/p/src/Embed.astro';
+    const inPage: NavigationSource = {
+      ...source,
+      declarationsOf: (tag) =>
+        tag === 'live-demo' ? [{file, name: 'LiveDemo'}] : [],
+      readText: async (read) => (read === file ? embed : undefined),
+    };
+    const [cls] = await implementationAt(
+      inPage,
+      at('/p/src/b.astro', '<live-d‸emo />')
+    );
+    expect([cls.file, embed.slice(cls.start, cls.end)]).toEqual([
+      file,
+      'LiveDemo',
+    ]);
+    const [src] = await implementationAt(
+      inPage,
+      at('/p/src/b.astro', '<live-demo s‸rc="x" />')
+    );
+    expect(embed.slice(src.start, src.end)).toBe('src');
+    expect(embed.slice(0, src.start).split('\n')).toHaveLength(7);
+  });
+
   test('finds a prop in TSX, Astro and MDX files alike', async () => {
     const spans = await referencesAt(
       source,
