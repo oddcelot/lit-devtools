@@ -1,14 +1,19 @@
 ---
 /**
- * One button per store Lit Inspector is listed in. A store without a `url` in
- * src/lib/stores.ts renders as a dimmed "Coming soon" badge that is not a link.
- * Links carry UTM parameters naming the page they are on (`home` for the
- * landing page), so the store's analytics show which page sent a visit.
+ * One button per store Lit Inspector, or with `for="editor"` the editor
+ * extension, is listed in. A store without a `url` in src/lib/stores.ts
+ * renders as a dimmed "Coming soon" badge that is not a link. Links carry UTM
+ * parameters naming the page they are on (`home` for the landing page), so
+ * the store's analytics show which page sent a visit.
  */
 import Logo from './Logo.astro';
-import {stores, trackedUrl, type Store} from '../lib/stores';
+import {storeGroups, stores, trackedUrl} from '../lib/stores';
 
-const order: Store[] = ['chrome', 'firefox'];
+interface Props {
+  for?: keyof typeof storeGroups;
+}
+
+const order = storeGroups[Astro.props.for ?? 'inspector'];
 const page =
   Astro.url.pathname
     .replace(import.meta.env.BASE_URL, '')
