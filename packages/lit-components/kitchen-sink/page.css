@@ -5,6 +5,7 @@
  */
 @import '@oddsquad/webawesome-theme-lit/lit.css';
 @import '@fontsource-variable/lilex/wght.css';
+@import '@fontsource-variable/lexend/wght.css';
 
 * {
   box-sizing: border-box;
