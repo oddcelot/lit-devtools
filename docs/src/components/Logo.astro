@@ -8,8 +8,11 @@
  * create-vite template favicon, the browsers' from alrra/browser-logos,
  * Vite DevTools' from vitejs/devtools (docs/public/logo.svg), Astro's from
  * its press kit (withastro/astro.build, public/assets/press/) and MCP's from
- * modelcontextprotocol/modelcontextprotocol (docs/favicon.svg). The
- * full-colour ones render as `<img>` rather than inline SVG, because the
+ * modelcontextprotocol/modelcontextprotocol (docs/favicon.svg), VS Code's
+ * from microsoft/vscode (src/vs/sessions/browser/media/vscode-icon.svg),
+ * Zed's from zed-industries/zed (assets/images/zed_logo.svg) and Open VSX's
+ * from eclipse/openvsx (webui/src/default/openvsx-registry-logo.tsx, the
+ * mark without the wordmark, on a square viewBox). The full-colour ones render as `<img>` rather than inline SVG, because the
  * Firefox and Safari files define gradient ids that would collide when a
  * table repeats them on one page.
  *
@@ -20,7 +23,8 @@
  * site's theme.
  *
  * MCP's is a one-colour mark on a black tile upstream; here it is the bare
- * shape, drawn as a mask in the text colour, so it follows the theme.
+ * shape, drawn as a mask in the text colour, so it follows the theme. Zed's
+ * is one colour too, black upstream, and drawn the same way.
  */
 import chrome from '../assets/logos/chrome.svg';
 import firefox from '../assets/logos/firefox.svg';
@@ -30,9 +34,20 @@ import viteDevtools from '../assets/logos/vite-devtools.svg';
 import astroOnDark from '../assets/logos/astro-on-dark.svg';
 import astroOnLight from '../assets/logos/astro-on-light.svg';
 import mcp from '../assets/logos/mcp.svg';
+import vscode from '../assets/logos/vscode.svg';
+import zed from '../assets/logos/zed.svg';
+import openVsx from '../assets/logos/open-vsx.svg';
 
-const logos = {chrome, firefox, safari, vite, 'vite-devtools': viteDevtools};
-const marks = {mcp};
+const logos = {
+  chrome,
+  firefox,
+  safari,
+  vite,
+  'vite-devtools': viteDevtools,
+  vscode,
+  'open-vsx': openVsx,
+};
+const marks = {mcp, zed};
 /** Marks with one file per theme: for a dark page, then for a light one. */
 const themed = {astro: [astroOnDark, astroOnLight]};
 

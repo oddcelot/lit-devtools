@@ -180,6 +180,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
           <li><Logo name="vite-devtools" size="1.1em" />Vite DevTools</li>
           <li><Logo name="chrome" size="1.1em" /><Logo name="firefox" size="1.1em" />Chrome and Firefox</li>
           <li><Logo name="mcp" size="1.1em" />MCP</li>
+          <li><Logo name="vscode" size="1.1em" /><Logo name="zed" size="1.1em" />VS Code and Zed</li>
         </ul>
       </section>
 
@@ -279,6 +280,27 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             themed
             caption="Live: select a node in the Elements tree, or hover one to find it on the page. The Lit tab shows the Lit element at or around it, docs included."
           />
+        </div>
+      </section>
+
+      <section class="section" id="editor">
+        <div class="wrap center reveal">
+          <h2>Your editor knows them too.</h2>
+          <p class="sub">
+            The Lit language server reads the same components the panel
+            does, from your sources and your dependencies' manifests. Their
+            tags, attributes, properties and events complete with their docs
+            in <code>html</code> templates, JSX, Astro and MDX, and a value a
+            binding can't take is underlined as you type.
+          </p>
+          <pre class="snippet center-snippet editor-snippet"><code><span class="k">html</span>`&lt;x-button <span class="squiggle">.size=${'{'}<span class="s">'huge'</span>{'}'}</span>&gt;Buy&lt;/x-button&gt;`;
+<span class="diagnostic">.size takes 'small' | 'large', but 'huge' isn't one of 'small', 'large'.</span></code></pre>
+          <div class="stores editor-stores"><StoreButtons for="editor" /></div>
+          <p class="more-row">
+            <a class="more" href="/guides/language-server/"
+              >Set it up in VS Code or Zed <Fragment set:html={phosphor('arrow-right')} /></a
+            >
+          </p>
         </div>
       </section>
 
@@ -738,6 +760,16 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
   .c {
     color: var(--code-comment);
   }
+  /* A problem the language server reports, drawn as the editor draws it:
+     the binding underlined, its message on the line below. */
+  .squiggle {
+    text-decoration: underline wavy var(--error);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0.25em;
+  }
+  .diagnostic {
+    color: var(--error);
+  }
   mark {
     padding: 0.05em 0.2em;
     border-radius: var(--radius-xs);
@@ -793,6 +825,13 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     display: flex;
     justify-content: center;
     margin: 1.5rem 0 2.5rem;
+  }
+  /* The buttons sit close under the snippet, the guide link below them. */
+  .editor-snippet {
+    margin-bottom: 1.25rem;
+  }
+  .editor-stores {
+    margin: 0;
   }
   .agent {
     max-width: 44rem;

@@ -6,6 +6,7 @@ sidebar:
 ---
 
 import {Aside, CardGrid, LinkCard, Steps} from '@astrojs/starlight/components';
+import StoreButtons from '../../../components/StoreButtons.astro';
 
 The Lit language server makes your editor understand your components: it
 completes their tags, attributes, properties and events in `html` templates,
@@ -20,12 +21,16 @@ it works in a project without Vite.
 The [checks example](/start/demos/#checks) has one of each mistake it
 reports, to open in your editor.
 
+<StoreButtons for="editor" />
+
 ## Set it up in VS Code
 
 <Steps>
 
 1. Install [Lit DevTools][marketplace] from the Visual Studio Marketplace, or
    run **Extensions: Install Extensions** and search for `Lit DevTools`.
+   Cursor, VSCodium and other editors that install from Open VSX find it
+   there, as [Lit DevTools on Open VSX][open-vsx].
 
 2. Install the package in your project, so the server's version matches it:
 
@@ -38,6 +43,7 @@ reports, to open in your editor.
 </Steps>
 
 [marketplace]: https://marketplace.visualstudio.com/items?itemName=oddsquad.lit-devtools
+[open-vsx]: https://open-vsx.org/extension/oddsquad/lit-devtools
 
 The extension runs the project's own `@oddsquad/lit-language-server` when the
 project installs it, directly or through `@oddsquad/lit-devtools`, and the
@@ -46,18 +52,16 @@ copy bundled with it otherwise. To run a different build, point the
 Server** picks the server again, and the **Lit Language Server** output
 channel says which one started.
 
-Editors that install from Open VSX, such as Cursor and VSCodium, don't list
-it yet. Until they do, build a `.vsix` in a checkout of the repository with
-`pnpm install`, then `pnpm run build && pnpm run package` in
-`packages/vscode`, and run **Extensions: Install from VSIX…** on it.
-
 The type hints on event handlers are inlay hints, which VS Code shows unless
 `editor.inlayHints.enabled` is off.
 
 ## Set it up in Zed
 
-The Zed extension isn't in Zed's extension list yet. Install it from a
-checkout of the repository; the server it runs comes from npm.
+The Zed extension is [waiting for review][zed-pr] to join Zed's extension
+list. Until it does, install it from a checkout of the repository; the
+server it runs comes from npm.
+
+[zed-pr]: https://github.com/zed-industries/extensions/pull/8130
 
 <Steps>
 
