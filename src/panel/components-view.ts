@@ -4020,6 +4020,18 @@ export class ComponentsView extends LitElement {
             : html`<dt>root</dt>
                 <dd class="root">${rootLabel}</dd>`
         }
+        ${
+          // The live class says so; a runtime too old to tell defers to the docs.
+          (d.flags.formAssociated ?? docs.docs?.formAssociated === true)
+            ? html`<dt>form</dt>
+                <dd
+                  class="form"
+                  data-tip="static formAssociated = true: it takes part in forms through ElementInternals"
+                >
+                  associated
+                </dd>`
+            : nothing
+        }
         ${this._renderBreakOn(d)}
       </dl>
       ${noStateNote(d)}

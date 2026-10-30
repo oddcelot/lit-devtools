@@ -93,6 +93,8 @@ a status beside it only while one applies: `pending` while an update is queued,
 dev build has warned about the component. Under the tag, three short
 lines say where the class is **defined**, where this instance is **rendered**,
 and its **root**: `shadow` with its mode and `delegatesFocus`, or `light DOM`.
+A class that sets `static formAssociated = true`, itself or through a base
+class, adds a fourth: **form** `associated`.
 
 A location reads as short as it can and keeps the full path in its tooltip.
 A file in your project reads relative to the project, such as

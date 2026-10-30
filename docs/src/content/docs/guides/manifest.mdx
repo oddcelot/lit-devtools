@@ -90,6 +90,11 @@ text you wrote. A field with none takes the type of a literal it starts as,
 so `label = ''` is a `string` and `count = 0` a `number`, as TypeScript reads
 them; nothing else is inferred, and the type checker isn't run.
 
+A form-associated class, one that sets `static formAssociated = true` or
+inherits it, lists that static field among its members. The schema has no
+field of its own for it; tools such as Web Awesome's manifest say it the same
+way, and the panel reads it back from a dependency's manifest.
+
 ## Keep a copy in your package
 
 Add `write` to keep the file in your project as well. The dev server rewrites

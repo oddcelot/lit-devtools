@@ -106,3 +106,8 @@ describe('summarizeFormValue', () => {
     expect(v).toHaveProperty('more', 5);
   });
 });
+
+test('details flag a form-associated class, and only that', () => {
+  expect(collectDetails(new InternalsHost()).flags.formAssociated).toBe(true);
+  expect(collectDetails(new PlainHost()).flags.formAssociated).toBe(false);
+});

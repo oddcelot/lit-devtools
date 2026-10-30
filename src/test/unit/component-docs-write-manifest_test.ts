@@ -377,3 +377,74 @@ test('a module that re-exports no class or mixin is left out', () => {
   p.add('/app/src/util.ts', `export {html} from 'lit';\n`);
   expect(p.manifest().modules).toEqual([]);
 });
+
+test('form association: from the code or a base class, written as the static field, read back', () => {
+  const {docs, add, manifest} = index();
+  add(
+    '/app/src/form-base.ts',
+    `export class FormBase extends LitElement {
+      static formAssociated = true;
+    }`
+  );
+  add(
+    '/app/src/x-field.ts',
+    `import {FormBase} from './form-base.js';
+    @customElement('x-field')
+    export class XField extends FormBase {}`,
+    {'./form-base.js': '/app/src/form-base.ts'}
+  );
+  add(
+    '/app/src/x-getter.ts',
+    `@customElement('x-getter')
+    export class XGetter extends LitElement {
+      static get formAssociated() { return true; }
+    }`
+  );
+  // An instance field of that name, or a static that isn't true, is not it.
+  add(
+    '/app/src/x-plain.ts',
+    `@customElement('x-plain')
+    export class XPlain extends LitElement {
+      formAssociated = true;
+      static ready = true;
+    }`
+  );
+  expect(docs.get('x-field')?.formAssociated).toBe(true);
+  expect(docs.get('x-getter')?.formAssociated).toBe(true);
+  expect(docs.get('x-plain')?.formAssociated).toBeUndefined();
+
+  const written = manifest();
+  const formMember = (tag: string) =>
+    written.modules
+      .flatMap((m) => (m.declarations ?? []) as Record<string, unknown>[])
+      .find((d) => d.tagName === tag)?.members as
+      | Record<string, unknown>[]
+      | undefined;
+  const statics = (tag: string) =>
+    (formMember(tag) ?? []).filter((m) => m.static === true);
+  expect(statics('x-getter')).toEqual([
+    {
+      kind: 'field',
+      name: 'formAssociated',
+      static: true,
+      type: {text: 'boolean'},
+      default: 'true',
+    },
+  ]);
+  expect(statics('x-field')).toEqual([
+    expect.objectContaining({
+      name: 'formAssociated',
+      static: true,
+      default: 'true',
+      inheritedFrom: expect.objectContaining({name: 'FormBase'}),
+    }),
+  ]);
+  expect(statics('x-plain')).toEqual([]);
+
+  const read = docsFromManifest(written, {manifest: 'custom-elements.json'});
+  const formAssociated = (tag: string) =>
+    read.find((d) => d.tagName === tag)?.formAssociated;
+  expect(formAssociated('x-field')).toBe(true);
+  expect(formAssociated('x-getter')).toBe(true);
+  expect(formAssociated('x-plain')).toBeUndefined();
+});

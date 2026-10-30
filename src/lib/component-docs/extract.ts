@@ -216,6 +216,29 @@ const completedBy = (entries: DocEntry[], tagged: DocEntry[]): DocEntry[] => {
   return result;
 };
 
+/** Whether `node` is the literal `true`. */
+const isTrue = (node: Node | undefined): boolean =>
+  node?.type === 'Literal' && node.value === true;
+
+/**
+ * `static formAssociated = true`, or a static getter that returns `true`:
+ * the opt-in to form association, which only the code says.
+ */
+const isFormAssociated = (cls: Node): true | undefined =>
+  nodes(child(cls, 'body')?.body).some((member) => {
+    if (member.static !== true) return false;
+    if (nameOf(child(member, 'key')) !== 'formAssociated') return false;
+    const value = child(member, 'value');
+    if (member.kind !== 'get') return isTrue(value);
+    const body = nodes(child(value, 'body')?.body);
+    return isTrue(
+      child(
+        body.find((s) => s.type === 'ReturnStatement'),
+        'argument'
+      )
+    );
+  }) || undefined;
+
 /** The array a `static observedAttributes` field holds or its getter returns. */
 const observedArray = (member: Node): Node | undefined => {
   if (member.static !== true) return undefined;
@@ -268,6 +291,7 @@ const bodyOf = (code: string, cls: Node, doc: JsDoc | undefined) => {
   put(docs, 'summary', tagText(doc, 'summary'));
   put(docs, 'description', doc?.description);
   put(docs, 'deprecated', deprecationOf(doc));
+  put(docs, 'formAssociated', isFormAssociated(cls));
   const examples = examplesOf(doc);
   if (examples.length > 0) docs.examples = examples;
   const methods = methodsOf(code, cls);

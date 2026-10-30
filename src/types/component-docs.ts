@@ -81,5 +81,12 @@ export interface ComponentDocs {
   cssParts: DocEntry[];
   cssProperties: DocEntry[];
   cssStates: DocEntry[];
+  /**
+   * The class sets `static formAssociated = true`, or inherits it: the
+   * element takes part in forms through `ElementInternals`. Custom Elements
+   * Manifests have no field for it, so one says it with that static field
+   * as a member.
+   */
+  formAssociated?: true;
   origin: DocsOrigin;
 }

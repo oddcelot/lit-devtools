@@ -114,6 +114,18 @@ const isPublicInstanceField = (member: unknown): member is Json =>
   member.privacy !== 'private' &&
   member.privacy !== 'protected';
 
+/**
+ * The member that says a class is form-associated, as Web Awesome's manifest
+ * writes it: `{kind: 'field', name: 'formAssociated', static: true, default:
+ * 'true'}`. A hand-written manifest may give the default as a bare `true`.
+ */
+const isFormAssociatedMember = (member: unknown): boolean =>
+  isRecord(member) &&
+  member.kind === 'field' &&
+  member.name === 'formAssociated' &&
+  member.static === true &&
+  sourceText(member.default) === 'true';
+
 const declarationDocs = (
   declaration: Json,
   tagName: string,
@@ -153,6 +165,8 @@ const declarationDocs = (
   put(docs, 'summary', text(declaration.summary));
   put(docs, 'description', text(declaration.description));
   put(docs, 'deprecated', deprecation(declaration.deprecated));
+  if (asArray(declaration.members).some(isFormAssociatedMember))
+    docs.formAssociated = true;
   return docs;
 };
 
