@@ -8,18 +8,34 @@
  *
  * The colours are the two editors' default themes, following the site's:
  * VS Code's Dark Modern and Light Modern, Zed's One Dark and One Light.
+ * The window controls follow the visitor's OS: traffic lights on macOS (and
+ * before the script runs), the menu bar and flat controls at the right on
+ * Windows, and on Linux VS Code's flat controls or Zed's round ones.
  */
+import vscodeLogo from '../assets/logos/vscode.svg';
 ---
 
 <figure
   class="editor not-content"
   data-editor="vscode"
+  data-os="mac"
   aria-label="An editor where the Lit language server underlines a binding: .size takes 'small' | 'large', but 'huge' isn't one of 'small', 'large'."
 >
   <div class="titlebar" aria-hidden="true">
-    <span class="lights"><i></i><i></i><i></i></span>
+    <span class="lead">
+      <span class="lights mac-only"><i></i><i></i><i></i></span>
+      <span class="app-menu vscode-only not-mac">
+        <img src={vscodeLogo.src} alt="" width="14" height="14" />
+        <span>File</span><span>Edit</span><span>Selection</span><span>View</span>
+      </span>
+    </span>
     <span class="title vscode-only">cart-summary.ts — shop</span>
     <span class="title zed-only">shop <span class="branch">main</span></span>
+    <span class="controls not-mac">
+      <span><svg viewBox="0 0 10 10"><path d="M0 5.5h10"></path></svg></span>
+      <span><svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9"></rect></svg></span>
+      <span><svg viewBox="0 0 10 10"><path d="M0.5 0.5l9 9M9.5 0.5l-9 9"></path></svg></span>
+    </span>
   </div>
   <div class="tabs" aria-hidden="true">
     <span class="tab">
@@ -56,6 +72,21 @@
     'open-vsx': 'vscode',
     zed: 'zed',
   };
+  // Which window controls to draw. User-Agent Client Hints where the browser
+  // has them, the older navigator.platform elsewhere; anything unmatched
+  // keeps the macOS default.
+  const platform =
+    (navigator as Navigator & {userAgentData?: {platform: string}}).userAgentData
+      ?.platform || navigator.platform;
+  const os = /^win/i.test(platform)
+    ? 'windows'
+    : /linux|x11|cros|chrome os/i.test(platform)
+      ? 'linux'
+      : 'mac';
+  for (const editor of document.querySelectorAll<HTMLElement>('.editor[data-os]')) {
+    editor.dataset.os = os;
+  }
+
   for (const host of document.querySelectorAll<HTMLElement>('[data-editor-showcase]')) {
     const editor = host.querySelector<HTMLElement>('.editor');
     if (!editor) continue;
@@ -184,7 +215,9 @@
   }
 
   .editor[data-editor='vscode'] .zed-only,
-  .editor[data-editor='zed'] .vscode-only {
+  .editor[data-editor='zed'] .vscode-only,
+  .editor[data-os='mac'] .not-mac,
+  .editor:not([data-os='mac']) .mac-only {
     display: none;
   }
 
@@ -198,6 +231,13 @@
     border-bottom: 1px solid var(--ed-border);
     font: 0.75rem/1 var(--sl-font, system-ui, sans-serif);
     color: var(--ed-muted);
+  }
+  .editor:not([data-os='mac']) .titlebar {
+    padding-right: 0;
+  }
+  .lead {
+    display: inline-flex;
+    align-items: center;
   }
   .titlebar .title {
     text-align: center;
@@ -227,6 +267,61 @@
   }
   .lights i:nth-child(3) {
     background: #28c840;
+  }
+
+  /* VS Code's custom title bar on Windows and Linux: its icon and menu at
+     the left. */
+  .app-menu {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.85rem;
+    color: var(--ed-text);
+  }
+  .app-menu img {
+    display: block;
+    margin-right: 0.15rem;
+  }
+  @media (max-width: 40rem) {
+    .app-menu span {
+      display: none;
+    }
+  }
+
+  /* Minimise, maximise and close: flat cells as tall as the bar on
+     Windows, and in VS Code on Linux. */
+  .controls {
+    display: flex;
+    align-self: stretch;
+  }
+  .controls span {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+  }
+  .controls svg {
+    width: 0.62rem;
+    height: 0.62rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+  }
+  /* Zed on Linux draws its own round buttons. */
+  .editor[data-os='linux'][data-editor='zed'] .controls {
+    align-self: center;
+    gap: 0.55rem;
+    padding-right: 0.7rem;
+  }
+  .editor[data-os='linux'][data-editor='zed'] .controls span {
+    width: 1.3rem;
+    height: 1.3rem;
+    border-radius: 50%;
+    background: var(--ed-tabbar, var(--ed-hover-bg));
+    color: var(--ed-text);
+  }
+  .editor[data-os='linux'][data-editor='zed'] .controls svg {
+    width: 0.5rem;
+    height: 0.5rem;
+    stroke-width: 1.4;
   }
 
   .tabs {
