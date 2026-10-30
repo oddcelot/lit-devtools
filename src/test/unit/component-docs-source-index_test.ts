@@ -141,11 +141,24 @@ test('delete forgets a module, and set replaces it', () => {
   expect(docs.get('x-e')).toBeUndefined();
 });
 
-test('the returned docs are a copy', () => {
+test('the returned docs are shared and frozen', () => {
   const {docs, add} = index();
   add('/app/src/x-f.ts', `@customElement('x-f') class XF { a = 1 }`);
-  docs.get('x-f')!.properties.push({name: 'b'});
-  expect(docs.get('x-f')!.properties).toHaveLength(1);
+  const first = docs.get('x-f')!;
+  expect(docs.get('x-f')).toBe(first);
+  expect(() => first.properties.push({name: 'b'})).toThrow(TypeError);
+  expect(Object.isFrozen(first.properties[0])).toBe(true);
+});
+
+test('a module change rebuilds the docs it shared', () => {
+  const {docs, add} = index();
+  add('/app/src/x-f.ts', `@customElement('x-f') class XF { a = 1 }`);
+  const first = docs.get('x-f')!;
+  add('/app/src/x-f.ts', `@customElement('x-f') class XF { a = 1; b = 2 }`);
+  expect(docs.get('x-f')).not.toBe(first);
+  expect(docs.get('x-f')!.properties.map((p) => p.name)).toEqual(['a', 'b']);
+  add('/app/src/x-g.ts', `@customElement('x-g') class XG {}`);
+  expect(docs.get('x-g')).toBeDefined();
 });
 
 test('merges mixin members between the class and its base', () => {
