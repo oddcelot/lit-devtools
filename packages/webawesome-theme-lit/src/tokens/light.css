@@ -11,11 +11,13 @@
   /* Keyboard focus: opaque, 4.6:1 or more on every light surface, where
      the translucent ring above measured 1.85:1. */
   --focus-ring: var(--accent);
-  /* The Lit flame's blue into its cyan, the cyan deepened from #00e8ff
-     (1.35:1 on the light header) to #0097b2, which holds 3:1. */
-  --flame: linear-gradient(90deg, var(--lit-blue), #0097b2);
+  /* The Lit flame's cyan, deepened from #00e8ff (1.35:1 on the light
+     header) to #0097b2, which holds 3:1: bright cyan on white reads as a
+     glare, not a colour. */
+  --accent-cyan: #0097b2;
+  /* The Lit flame's blue into its cyan. */
+  --flame: linear-gradient(90deg, var(--lit-blue), var(--accent-cyan));
   --on-accent: #ffffff;
-  --accent-cyan: var(--lit-dark-cyan);
 
   --bg: #f4f4f4;
   --surface: #ffffff;
