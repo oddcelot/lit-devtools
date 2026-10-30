@@ -1175,7 +1175,7 @@ export class ComponentsView extends LitElement {
       .section::details-content {
         display: contents;
       }
-      .section:not([open]) > :not(summary, .origin) {
+      .section:not([open], .none-section) > :not(summary, .origin) {
         display: none;
       }
       .section > summary {
@@ -1204,7 +1204,21 @@ export class ComponentsView extends LitElement {
       .section:not([open]) > summary {
         margin-bottom: 0;
       }
-      summary .label {
+      /* An empty section: its heading, lined up with a fold's, and "none". */
+      .none-section > .heading {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: var(--lit-devtools-space-2);
+        font-size: var(--lit-devtools-text-2xs);
+        color: var(--lit-devtools-text-muted);
+      }
+      /* As wide as the fold's caret, so the labels line up. */
+      .none-section .caret-space {
+        width: 14px;
+      }
+      summary .label,
+      .none-section .label {
         font-family: var(--lit-devtools-font-display);
         font-size: var(--lit-devtools-text-xs);
         font-weight: var(--lit-devtools-weight-medium);
@@ -2833,7 +2847,9 @@ export class ComponentsView extends LitElement {
       'Events',
       view.events.length,
       view.docs?.events.length ?? 0,
-      this._renderDocTable(view.events, 'event')
+      this._renderDocTable(view.events, 'event'),
+      // Without docs the panel can't know there are none.
+      {none: view.docs !== null}
     )}${this._renderSection(
       'CSS properties',
       view.cssProperties.length,
@@ -3469,7 +3485,8 @@ export class ComponentsView extends LitElement {
                 : nothing
             }
           </div>
-        `
+        `,
+        {none: true}
       )}
       ${this._renderSection(
         'Parts',
@@ -3513,7 +3530,8 @@ export class ComponentsView extends LitElement {
                   </div>`
             )}
           </div>
-        `
+        `,
+        {none: true}
       )}
     `;
   }
@@ -3660,11 +3678,21 @@ export class ComponentsView extends LitElement {
      * `count: false` leaves the count out, for a section that is one block
      * rather than rows. `aside` sits at the heading's far end but outside
      * the `<summary>`, so it can take focus of its own without nesting a
-     * control in the fold's toggle.
+     * control in the fold's toggle. `none` keeps an empty section as its
+     * heading and "none", for what a reader looks for and would otherwise
+     * take for missing: a component with no slots says so.
      */
-    opts: {count?: boolean; aside?: TemplateResult} = {}
+    opts: {count?: boolean; aside?: TemplateResult; none?: boolean} = {}
   ): TemplateResult | typeof nothing {
     const filtering = this._filtering;
+    if (total === 0 && opts.none && !filtering)
+      return html`<div class="section none-section" data-section=${label}>
+        <div class="heading">
+          <span class="caret-space"></span>
+          <span class="label">${label}</span>
+          <span class="none">none</span>
+        </div>
+      </div>`;
     if (total === 0 || (filtering && shown === 0)) return nothing;
     const open = filtering || !this._collapsed.has(label);
     return html`<details
