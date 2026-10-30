@@ -128,7 +128,13 @@ const cssProperty = (entry: DocEntry): Json => {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples' | 'methods' | 'assigned'
+  | 'summary'
+  | 'description'
+  | 'deprecated'
+  | 'examples'
+  | 'methods'
+  | 'assigned'
+  | 'formAssociated'
 >;
 
 /** Each list of a body, its manifest key and how an entry is written. */
@@ -197,6 +203,20 @@ const lists = (docs: ClassDocsBody, ancestors: Inherited[]): Json => {
     (out.members as Json[] | undefined) ?? [],
     docs.assigned
   );
+  // The schema has no place for form association; Web Awesome's manifest
+  // says it with the static field, and tools read it there.
+  const formFrom = docs.formAssociated
+    ? undefined
+    : ancestors.find((a) => a.docs.formAssociated)?.from;
+  if (docs.formAssociated || formFrom !== undefined)
+    fields.push({
+      kind: 'field',
+      name: 'formAssociated',
+      static: true,
+      type: {text: 'boolean'},
+      default: 'true',
+      ...(formFrom === undefined ? {} : {inheritedFrom: formFrom}),
+    });
   if (fields.length > 0) out.members = fields;
   // Methods share `members` with the fields, after them.
   const methods = merged(

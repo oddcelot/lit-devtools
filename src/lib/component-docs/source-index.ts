@@ -94,7 +94,13 @@ interface LocatedMixin {
 
 type ListKey = Exclude<
   keyof ClassDocsBody,
-  'summary' | 'description' | 'deprecated' | 'examples' | 'methods' | 'assigned'
+  | 'summary'
+  | 'description'
+  | 'deprecated'
+  | 'examples'
+  | 'methods'
+  | 'assigned'
+  | 'formAssociated'
 >;
 
 const LISTS: ListKey[] = [
@@ -256,9 +262,12 @@ export const createSourceDocsIndex = (
       className: start.cls.name,
       origin: {manifest: '', module: relative(start.id), source: true},
     };
-    for (const ancestor of ancestorsOf(start))
+    for (const ancestor of ancestorsOf(start)) {
       for (const list of LISTS)
         docs[list] = mergeList(docs[list], ancestor.docs[list], ancestor.name);
+      // A static is inherited, the opt-in to forms with it.
+      if (ancestor.docs.formAssociated) docs.formAssociated = true;
+    }
     docs.properties = applyAssigned(docs.properties, assigned);
     return docs;
   };
