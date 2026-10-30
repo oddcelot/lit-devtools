@@ -10,6 +10,7 @@ import {
   child,
   decoratorCall,
   docOf,
+  literalType,
   nameOf,
   nodes,
   put,
@@ -155,20 +156,27 @@ const attributeOf = (
 export const isHidden = (doc: JsDoc | undefined): boolean =>
   doc?.tags.some((t) => HIDDEN_TAGS.has(t.tag)) ?? false;
 
-/** The annotation's text, else a JS `@type`, else the `type:` option's. */
+/** A field's initializer as source text; an accessor's `value` is its function. */
+const initializerOf = (code: string, member: Node): string | undefined =>
+  member.type === 'MethodDefinition'
+    ? undefined
+    : sliceOf(code, child(member, 'value'));
+
+/**
+ * The annotation's text, else a JS `@type`, else the `type:` option's, else
+ * the type of a literal it starts as: `label = ''` is a `string`, as
+ * TypeScript and the CEM analyzer infer it.
+ */
 const memberType = (
   code: string,
   member: Node,
   doc: JsDoc | undefined,
   reactive: Reactive | undefined
 ): string | undefined =>
-  sliceOf(code, annotationOf(member)) ?? jsDocType(doc) ?? reactive?.type;
-
-/** A field's initializer as source text; an accessor's `value` is its function. */
-const initializerOf = (code: string, member: Node): string | undefined =>
-  member.type === 'MethodDefinition'
-    ? undefined
-    : sliceOf(code, child(member, 'value'));
+  sliceOf(code, annotationOf(member)) ??
+  jsDocType(doc) ??
+  reactive?.type ??
+  literalType(initializerOf(code, member));
 
 /** One member's entry, or `undefined` when it isn't public API. */
 const memberEntry = (
@@ -246,9 +254,12 @@ const thisAssignment = (
     expression?.type === 'AssignmentExpression' && expression.operator === '=';
   const name = isAssignment ? thisMember(child(expression, 'left')) : undefined;
   const value = sliceOf(code, child(expression, 'right'));
-  return name === undefined || value === undefined
-    ? undefined
-    : {name, default: value};
+  if (name === undefined || value === undefined) return undefined;
+  // The type only counts for a field this adds; a property it re-defaults
+  // keeps its declared one (see `applyAssigned`).
+  const entry: DocEntry = {name, default: value};
+  put(entry, 'type', literalType(value));
+  return entry;
 };
 
 /**

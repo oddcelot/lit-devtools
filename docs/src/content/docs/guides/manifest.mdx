@@ -86,7 +86,9 @@ so they stay out.
 
 A class lists the members it inherits from your own base classes and mixins,
 each marked `inheritedFrom`, so tools need no inheritance walk. Types are the
-text you wrote; nothing is inferred from the checker.
+text you wrote. A field with none takes the type of a literal it starts as,
+so `label = ''` is a `string` and `count = 0` a `number`, as TypeScript reads
+them; nothing else is inferred, and the type checker isn't run.
 
 ## Keep a copy in your package
 

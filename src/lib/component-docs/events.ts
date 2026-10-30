@@ -10,7 +10,15 @@
  */
 
 import type {DocEntry} from '../../types/component-docs.js';
-import {type Node, child, nameOf, nodes, stringLiteral, walk} from './ast.js';
+import {
+  type Node,
+  child,
+  literalType,
+  nameOf,
+  nodes,
+  stringLiteral,
+  walk,
+} from './ast.js';
 
 /** Whether `node` is a `this.dispatchEvent(…)` call. */
 const isThisDispatch = (node: Node): boolean => {
@@ -21,15 +29,6 @@ const isThisDispatch = (node: Node): boolean => {
     child(callee, 'object')?.type === 'ThisExpression' &&
     nameOf(child(callee, 'property')) === 'dispatchEvent'
   );
-};
-
-/** The type a literal's source text has, or undefined for anything else. */
-const literalType = (text: string | undefined): string | undefined => {
-  if (text === undefined) return undefined;
-  if (/^['"`]/.test(text)) return 'string';
-  if (/^-?\d/.test(text)) return 'number';
-  if (text === 'true' || text === 'false') return 'boolean';
-  return undefined;
 };
 
 /** A field's type: its annotation, else its initializer's literal type. */

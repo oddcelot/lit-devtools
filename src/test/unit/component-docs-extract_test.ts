@@ -210,6 +210,38 @@ describe('class JSDoc', () => {
 });
 
 describe('members', () => {
+  test('an unannotated field takes the type of a literal it starts as', () => {
+    const cls = only(`
+      @customElement('x-literals')
+      export class XLiterals extends LitElement {
+        quoted = "say \\"hi\\"";
+        templated = \`a\${1}b\`;
+        count = -1.5e3;
+        mask = 0xff;
+        big = 10n;
+        on = true;
+        nothing = null;
+        sum = 1 + offset;
+        length = 'abc'.length;
+        joined = 'a' + 'b';
+      }
+    `);
+    expect(
+      Object.fromEntries(cls.docs.properties.map((p) => [p.name, p.type]))
+    ).toEqual({
+      quoted: 'string',
+      templated: 'string',
+      count: 'number',
+      mask: 'number',
+      big: 'bigint',
+      on: 'boolean',
+      nothing: undefined,
+      sum: undefined,
+      length: undefined,
+      joined: undefined,
+    });
+  });
+
   const docs = only(`
     @customElement('x-m')
     export class XM extends LitElement {
@@ -274,6 +306,7 @@ describe('members', () => {
     expect(label).toEqual({
       name: 'label',
       description: 'Plain field.',
+      type: 'string',
       default: "'x'",
     });
     expect(value).toEqual({
@@ -396,6 +429,7 @@ describe('@attr, @prop, @default and @tag', () => {
       {
         name: 'size',
         description: 'Own description.',
+        type: 'string',
         default: "'m'",
         counterpart: 'size',
       },
@@ -409,7 +443,7 @@ describe('@attr, @prop, @default and @tag', () => {
       cls.docs.attributes.map((a) => [a.name, a.description, a.type])
     ).toEqual([
       ['label', 'Fills the missing description.', 'string'],
-      ['size', 'Own description.', undefined],
+      ['size', 'Own description.', 'string'],
       ['mode', 'Set by attributeChangedCallback.', "'on' | 'off'"],
     ]);
   });
@@ -478,6 +512,7 @@ describe('observedAttributes', () => {
       {
         name: 'label',
         description: 'The label.',
+        type: 'string',
         default: "''",
         counterpart: 'label',
       },
@@ -599,8 +634,8 @@ describe('constructor assignments', () => {
       }
     `);
     expect(cls.docs.assigned).toEqual([
-      {name: 'variant', default: "'brand'"},
-      {name: 'appearance', default: "'outlined'"},
+      {name: 'variant', type: 'string', default: "'brand'"},
+      {name: 'appearance', type: 'string', default: "'outlined'"},
     ]);
     // Not merged into the class's own properties until ancestry is known.
     expect(cls.docs.properties.map((p) => p.name)).toEqual(['size']);

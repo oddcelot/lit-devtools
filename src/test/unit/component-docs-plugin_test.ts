@@ -66,6 +66,7 @@ test('stores transformed modules and resolves imported superclasses', async () =
     {
       name: 'value',
       description: 'From the base.',
+      type: 'string',
       default: "''",
       inheritedFrom: 'Base',
     },
@@ -103,6 +104,7 @@ test('keeps a module of mixins only, and resolves mixin imports', async () => {
     {
       name: 'size',
       description: 'From the mixin.',
+      type: 'string',
       default: "'m'",
       inheritedFrom: 'Sized',
     },
