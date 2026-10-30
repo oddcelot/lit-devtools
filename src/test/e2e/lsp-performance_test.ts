@@ -21,8 +21,16 @@ import {at, createClient, linkRepoDeps, writeFiles} from '../lsp-client.js';
 
 const PACKAGES = 10;
 const PER_PACKAGE = 200;
-const COLD_BUDGET_MS = 2000;
-const WARM_BUDGET_MS = 50;
+/**
+ * A GitHub runner measures about twice what an M-series Mac does (cold
+ * 2.1 s against 0.9 s, a warm tag completion 45 ms against 30 ms), so CI
+ * gets twice the budget. That still fails a regression of the kind the
+ * budget is for: tag completion growing with components squared measured
+ * 110 ms here.
+ */
+const SCALE = process.env.CI ? 2 : 1;
+const COLD_BUDGET_MS = 2000 * SCALE;
+const WARM_BUDGET_MS = 50 * SCALE;
 const COLD_SAMPLES = 3;
 const WARM_UP = 5;
 const SAMPLES = 21;
