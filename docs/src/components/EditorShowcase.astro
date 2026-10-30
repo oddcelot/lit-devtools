@@ -6,9 +6,8 @@
  * anywhere in the same `[data-editor-showcase]` element switches it to that
  * store's editor, and it stays there until another one is picked.
  *
- * The colours are VS Code's Dark Modern and Zed's One Dark, the two
- * editors' default dark themes. The window stays dark in the site's light
- * theme, as an editor screenshot would.
+ * The colours are the two editors' default themes, following the site's:
+ * VS Code's Dark Modern and Light Modern, Zed's One Dark and One Light.
  */
 ---
 
@@ -102,7 +101,7 @@
     background: var(--ed-bg);
     color: var(--ed-text);
     text-align: left;
-    box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.55);
+    box-shadow: 0 1.5rem 3rem -1.5rem var(--ed-shadow, rgb(0 0 0 / 0.55));
   }
   .editor[data-editor='zed'] {
     /* Zed, One Dark. */
@@ -117,6 +116,7 @@
     --ed-status-text: #a9afbc;
     --ed-hover-bg: #2f343e;
     --ed-hover-border: #464b57;
+    --ed-tabbar: #2f343e;
     --ed-kw: #b477cf;
     --ed-str: #a1c181;
     --ed-fn: #73ade9;
@@ -124,6 +124,50 @@
     --ed-tag: #74ade8;
     --ed-attr: #dfc184;
     --ed-error: #d07277;
+  }
+  /* The site's light theme gets each editor's default light theme: VS Code's
+     Light Modern and Zed's One Light. */
+  :global(:root[data-theme='light']) .editor {
+    --ed-bg: #ffffff;
+    --ed-chrome: #f8f8f8;
+    --ed-border: #e5e5e5;
+    --ed-text: #3b3b3b;
+    --ed-muted: #6e6e6e;
+    --ed-gutter: #6e7681;
+    --ed-tab-accent: #005fb8;
+    --ed-status-bg: #007acc;
+    --ed-status-text: #ffffff;
+    --ed-hover-bg: #f8f8f8;
+    --ed-hover-border: #c8c8c8;
+    --ed-kw: #0000ff;
+    --ed-str: #a31515;
+    --ed-fn: #795e26;
+    --ed-cls: #267f99;
+    --ed-tag: #800000;
+    --ed-attr: #e50000;
+    --ed-error: #e51400;
+    --ed-shadow: rgb(0 0 0 / 0.18);
+  }
+  :global(:root[data-theme='light']) .editor[data-editor='zed'] {
+    --ed-bg: #fafafa;
+    --ed-chrome: #dcdcdd;
+    --ed-tabbar: #ebebec;
+    --ed-border: #c9c9ca;
+    --ed-text: #242529;
+    --ed-muted: #58585a;
+    --ed-gutter: #a0a0a2;
+    --ed-tab-accent: transparent;
+    --ed-status-bg: #dcdcdd;
+    --ed-status-text: #58585a;
+    --ed-hover-bg: #ebebec;
+    --ed-hover-border: #c9c9ca;
+    --ed-kw: #a449ab;
+    --ed-str: #649f57;
+    --ed-fn: #5b79e3;
+    --ed-cls: #3882b7;
+    --ed-tag: #5c79e2;
+    --ed-attr: #ad6e25;
+    --ed-error: #d36151;
   }
   .editor,
   .editor * {
@@ -187,7 +231,7 @@
 
   .tabs {
     display: flex;
-    background: var(--ed-chrome);
+    background: var(--ed-tabbar, var(--ed-chrome));
     border-bottom: 1px solid var(--ed-border);
     font: 0.78rem/1 var(--sl-font, system-ui, sans-serif);
   }
@@ -263,7 +307,7 @@
     border: 1px solid var(--ed-hover-border);
     border-radius: 4px;
     background: var(--ed-hover-bg);
-    box-shadow: 0 0.4rem 1rem rgb(0 0 0 / 0.35);
+    box-shadow: 0 0.4rem 1rem var(--ed-shadow, rgb(0 0 0 / 0.35));
     font-size: 0.78rem;
     line-height: 1.5;
     white-space: normal;
