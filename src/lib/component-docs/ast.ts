@@ -114,3 +114,23 @@ export const docOf = (
   const last = decorators[decorators.length - 1];
   return last === undefined ? undefined : jsDocAfter(code, last.end);
 };
+
+const STRING = /^(?:'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`[^]*`)$/;
+const NUMBER =
+  /^-?(?:0[box][\da-f_]+|(?:\d[\d_]*\.?[\d_]*|\.\d[\d_]*)(?:e[+-]?\d+)?)$/i;
+const BIGINT = /^-?(?:0[box][\da-f_]+|\d[\d_]*)n$/i;
+
+/**
+ * The primitive type of a literal's source text: `'a'` is a `string`, `-1.5`
+ * a `number`, `10n` a `bigint`, `true` a `boolean`. Anything else, an
+ * expression like `'a'.length` or `1 + x` included, is undefined.
+ */
+export const literalType = (text: string | undefined): string | undefined => {
+  if (text === undefined) return undefined;
+  const value = text.trim();
+  if (STRING.test(value)) return 'string';
+  if (NUMBER.test(value)) return 'number';
+  if (BIGINT.test(value)) return 'bigint';
+  if (value === 'true' || value === 'false') return 'boolean';
+  return undefined;
+};

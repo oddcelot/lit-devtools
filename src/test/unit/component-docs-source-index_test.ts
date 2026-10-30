@@ -59,12 +59,14 @@ test('walks the superclass chain across modules', () => {
     {
       name: 'size',
       description: 'Own size.',
+      type: 'string',
       default: "'l'",
       counterpart: 'size',
     },
     {
       name: 'value',
       description: 'The base value.',
+      type: 'string',
       default: "''",
       counterpart: 'value',
       inheritedFrom: 'Base',
@@ -256,6 +258,7 @@ test('a constructor assignment re-defaults an inherited property or adds one', (
       inheritedFrom: 'Base',
       name: 'value',
       description: 'The base value.',
+      type: 'string',
       default: "'set'",
       counterpart: 'value',
     },
@@ -263,9 +266,10 @@ test('a constructor assignment re-defaults an inherited property or adds one', (
       inheritedFrom: 'Base',
       name: 'size',
       description: 'Overridden below.',
+      type: 'string',
       default: "'m'",
       counterpart: 'size',
     },
-    {name: 'tone', default: "'warm'"},
+    {name: 'tone', type: 'string', default: "'warm'"},
   ]);
 });
