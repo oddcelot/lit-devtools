@@ -441,6 +441,8 @@ export const collectDetails = (el: Element): InspectorDetails => {
       hasUpdated: re.hasUpdated === true,
       isUpdatePending: re.isUpdatePending === true,
       hasShadowRoot: shadowOf(el) !== null,
+      formAssociated:
+        (el.constructor as {formAssociated?: unknown}).formAssociated === true,
     },
     ...insightsOf(el),
   };

@@ -543,6 +543,11 @@ export interface InspectorDetails {
     hasUpdated: boolean;
     isUpdatePending: boolean;
     hasShadowRoot: boolean;
+    /**
+     * The element's class sets `static formAssociated = true`. Absent from
+     * a page runtime older than the panel.
+     */
+    formAssociated?: boolean;
   };
   /** Render root, slots and parts. Absent for an element with no render root. */
   anatomy?: InspectorAnatomy;

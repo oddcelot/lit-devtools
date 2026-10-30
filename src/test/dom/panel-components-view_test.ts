@@ -1336,6 +1336,24 @@ test('a queued or first update shows as a status next to the tag', async () => {
   expect(statuses(root)).toEqual(['pending', 'not rendered']);
 });
 
+test('a form-associated class says so under the locations', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  const show = async (formAssociated: boolean) => {
+    push('inspector-message', {
+      type: 'details',
+      details: {
+        ...detailsFor(),
+        flags: {...detailsFor().flags, formAssociated},
+      },
+    });
+    await flush(el);
+    return metaRows(root).filter((row) => row.startsWith('form'));
+  };
+  expect(await show(true)).toEqual(['form associated']);
+  expect(await show(false)).toEqual([]);
+});
+
 test('the render root reads as one line under the locations', async () => {
   const {el, root} = await mount(true);
   push('inspector-message', {type: 'pick', id: 2});
