@@ -1,6 +1,6 @@
-[![Lit DevTools: Lit, with the lights on. HMR that keeps state, a panel for every render, an editor that knows your tags.](https://lit-devtools.oddsquad.dev/og/index.png)](https://lit-devtools.oddsquad.dev/)
 
-# @oddsquad/vite-plugin-lit
+
+# @oddsquad/lit-devtools
 
 [![CI](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml?query=branch%3Amain)
 [![npm](https://img.shields.io/npm/v/@oddsquad/vite-plugin-lit)](https://www.npmjs.com/package/@oddsquad/vite-plugin-lit)
@@ -14,7 +14,9 @@
 A Vite plugin for Lit projects with true HMR, CSS delivery helpers for shadow
 roots, and a DevTools timeline.
 
-https://github.com/user-attachments/assets/d396d3a8-ab26-46de-8c3f-71558db1a392
+[![Lit DevTools: Lit, with the lights on. HMR that keeps state, a panel for every render, an editor that knows your tags.](https://lit-devtools.oddsquad.dev/og/index.png)](https://lit-devtools.oddsquad.dev/)
+
+[https://github.com/user-attachments/assets/d396d3a8-ab26-46de-8c3f-71558db1a392](https://github.com/user-attachments/assets/3d71c799-04d4-4915-a2bb-9724ecab6d56)
 
 **[Documentation →](https://lit-devtools.oddsquad.dev/)**
 
