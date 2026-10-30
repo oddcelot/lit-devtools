@@ -61,8 +61,12 @@
 
   @supports (animation-timeline: scroll()) {
     @media (prefers-reduced-motion: no-preference) {
+      /* Longhands, not the animation shorthand: the minifier folds the
+         shorthand and animation-timeline into one shorthand that drops the
+         timeline, and the light stops following the scroll. */
       .blob {
-        animation: linear both;
+        animation-timing-function: linear;
+        animation-fill-mode: both;
         animation-timeline: scroll(root);
       }
       .blue {
