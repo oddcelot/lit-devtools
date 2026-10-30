@@ -446,7 +446,7 @@ export const startServer = (streams?: ServerStreams): Connection => {
       if (!watches) return;
       void connection.client.register(DidChangeWatchedFilesNotification.type, {
         watchers: [
-          {globPattern: '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}'},
+          {globPattern: '**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,html,astro}'},
           {
             globPattern:
               '**/{lit-devtools.config.*,vite.config.*,package.json,pnpm-workspace.yaml}',

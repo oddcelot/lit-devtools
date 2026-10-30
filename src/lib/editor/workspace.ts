@@ -3,12 +3,15 @@
  * components, read from source and kept current from the editor's buffers,
  * with each package's dependency manifests behind them.
  *
+ * Components come from scripts, and from the scripts of HTML and Astro pages,
+ * which often define the element they render.
+ *
  * Sources come first, so a component is documented as it is written now, not
  * as a manifest last described it. Every package's sources share one index,
  * so a component inherits from a base class in another workspace package.
  */
 
-import {readdir} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {relative} from 'node:path';
 import type {ComponentDocs} from '../../types/component-docs.js';
 import {
@@ -34,6 +37,7 @@ import {
   type SourceDocsIndex,
   createSourceDocsIndex,
 } from '../component-docs/source-index.js';
+import {isScriptPage, scriptView} from './page-scripts.js';
 import {
   type WorkspacePackage,
   findWorkspace,
@@ -88,7 +92,8 @@ export interface Workspace {
   ): Promise<{file: string} | {external: string} | undefined>;
   /**
    * Reads `file` again from `code`, an editor buffer or the file on disk.
-   * Ignored unless the file is a script in a package's read folders.
+   * Ignored unless the file is a script in a package's read folders, or a
+   * page whose scripts the workspace reads, as `markupFiles` lists them.
    */
   update(file: string, code: string): Promise<void>;
   /** Forgets a deleted file. */
@@ -181,6 +186,7 @@ export const createWorkspace = async (
       state.pkg.dir,
       state.config.scan
     );
+    files += await indexPages(state, sources);
   }
   return createWorkspaceView({
     root,
@@ -216,14 +222,45 @@ const pagesIn = async (state: PackageState): Promise<string[]> => {
     .filter((name) => name.endsWith('.html'))
     .map((name) => `${state.pkg.dir}/${name}`);
   const nested = await Promise.all(
-    state.config.scan.map(async (folder) => {
-      const dir = `${state.pkg.dir}/${folder}`;
-      return (await list(dir, true))
+    state.folders.map(async (folder) =>
+      (await list(folder, true))
         .filter((name) => PAGE_RE.test(name) && !name.includes('node_modules'))
-        .map((name) => `${dir}/${name}`);
-    })
+        .map((name) => normalizePath(`${folder}${name}`))
+    )
   );
   return [...new Set([...top, ...nested.flat()])];
+};
+
+/**
+ * Reads the components a package's HTML and Astro pages define in their own
+ * scripts. Returns how many pages it read.
+ */
+const indexPages = async (
+  state: PackageState,
+  sources: SourceDocsIndex
+): Promise<number> => {
+  let files = 0;
+  for (const page of await pagesIn(state)) {
+    if (!isScriptPage(page)) continue;
+    const code = await readFile(page, 'utf8').catch(() => undefined);
+    if (code === undefined) continue;
+    files++;
+    await indexModule(state.resolver, sources, scriptView(code, page), page);
+  }
+  return files;
+};
+
+/**
+ * Whether a package reads `id`: a script in a read folder, or a page whose
+ * scripts can define components there or, for HTML, at the package's root,
+ * as `pagesIn` lists them.
+ */
+const reads = (state: PackageState, id: string, inFolders: boolean) => {
+  if (id.includes('/node_modules/')) return false;
+  if (isScannedScript(id)) return inFolders;
+  if (!isScriptPage(id)) return false;
+  const atRoot = id.slice(0, id.lastIndexOf('/')) === state.pkg.dir;
+  return inFolders || (atRoot && id.endsWith('.html'));
 };
 
 const createWorkspaceView = (parts: {
@@ -270,12 +307,7 @@ const createWorkspaceView = (parts: {
     const inFolders = states.some((s) =>
       s.folders.some((folder) => id.startsWith(folder))
     );
-    return state &&
-      inFolders &&
-      isScannedScript(id) &&
-      !id.includes('/node_modules/')
-      ? {id, state}
-      : undefined;
+    return state && reads(state, id, inFolders) ? {id, state} : undefined;
   };
   const sourceTags = (): string[] =>
     sources
@@ -308,7 +340,9 @@ const createWorkspaceView = (parts: {
     declarationsOf,
     async markupFiles() {
       const pages = await Promise.all(states.map(pagesIn));
-      return [...sources.modules().map(({id}) => id), ...pages.flat()];
+      return [
+        ...new Set([...sources.modules().map(({id}) => id), ...pages.flat()]),
+      ];
     },
     async tags(file) {
       const pkg = packageOf(packages, real(file));
@@ -318,7 +352,8 @@ const createWorkspaceView = (parts: {
     async update(file, code) {
       const target = read(file);
       if (target) {
-        await indexModule(target.state.resolver, sources, code, target.id);
+        const module = scriptView(code, target.id);
+        await indexModule(target.state.resolver, sources, module, target.id);
       }
     },
     remove(file) {

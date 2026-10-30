@@ -31,6 +31,7 @@ import {
   scanMarkup,
 } from './markup.js';
 import type {FeatureRequest} from './features.js';
+import {scriptView} from './page-scripts.js';
 
 /** A stretch of a file. */
 export interface Span {
@@ -257,7 +258,8 @@ const declarationOf = async (
     if (code === undefined) continue;
     let program: Node;
     try {
-      program = parseModule(code, location.file);
+      // A page's scripts at their own offsets, so the span is in the page.
+      program = parseModule(scriptView(code, location.file), location.file);
     } catch {
       continue;
     }

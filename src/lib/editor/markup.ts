@@ -324,6 +324,27 @@ export const markupRegions = (
   return [page, ...inlineScripts(code, page, tags)];
 };
 
+/**
+ * The `<script>` elements of an HTML file, or of an Astro file's body: not
+ * its frontmatter, which runs on the server.
+ */
+export const pageScripts = (
+  code: string,
+  kind: 'html' | 'astro'
+): MarkupElement[] => {
+  const page =
+    kind === 'html'
+      ? {start: 0, end: code.length, holes: []}
+      : findDocumentRegions(code, 'astro').find(
+          (region) => region.end === code.length
+        );
+  return page
+    ? scanMarkup(code, page).filter(
+        (element) => element.tag.toLowerCase() === 'script'
+      )
+    : [];
+};
+
 /** The templates in a page's inline `<script>` elements. */
 const inlineScripts = (
   code: string,

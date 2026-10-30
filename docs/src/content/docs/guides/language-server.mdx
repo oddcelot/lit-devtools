@@ -16,7 +16,8 @@ defines, a binding Lit reads differently than written, a directive where
 Lit can't apply it, a value a binding can't take. When you save, it
 type-checks the file's bindings with your own TypeScript. It reads your
 sources as you type, so a component's docs are current before you save, and
-it works in a project without Vite.
+it works in a project without Vite. A component an Astro component or an HTML
+page defines in its own `<script>` counts too.
 [Language server](/reference/language-server/) lists everything it does.
 The [checks example](/start/demos/#checks) has one of each mistake it
 reports, to open in your editor.

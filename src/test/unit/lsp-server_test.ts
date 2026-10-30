@@ -708,4 +708,54 @@ describe('the language server', () => {
     );
     expect(cleared.params.diagnostics).toEqual([]);
   });
+
+  test("knows a component an Astro file's script defines, there and elsewhere", async () => {
+    const embedUri = pathToFileURL(join(root, 'src/Embed.astro')).href;
+    const embed = `---
+const {src} = Astro.props;
+---
+<live-demo src={src}></live-demo>
+<script>
+  /** Runs a demo. */
+  class LiveDemo extends HTMLElement {
+    static observedAttributes = ['src'];
+  }
+  customElements.define('live-demo', LiveDemo);
+</script>
+`;
+    client.notify('textDocument/didOpen', {
+      textDocument: {
+        uri: embedUri,
+        languageId: 'astro',
+        version: 1,
+        text: embed,
+      },
+    });
+    const implementation = await client.request('textDocument/implementation', {
+      textDocument: {uri: embedUri},
+      position: rangeOf(embed, 'live-demo').start,
+    });
+    expect(implementation).toEqual([
+      {uri: embedUri, range: rangeOf(embed, 'LiveDemo')},
+    ]);
+    const useUri = pathToFileURL(join(root, 'src/use.astro')).href;
+    const use = '<live-demo src="a"></live-demo>\n<nope-demo></nope-demo>\n';
+    client.notify('textDocument/didOpen', {
+      textDocument: {uri: useUri, languageId: 'astro', version: 1, text: use},
+    });
+    const hover = await client.request('textDocument/hover', {
+      textDocument: {uri: useUri},
+      position: rangeOf(use, 'live-demo').start,
+    });
+    expect(hover.contents.value).toContain('Runs a demo.');
+    expect(hover.contents.value).toContain('_`src/Embed.astro`_');
+    const published = await client.waitFor(
+      (n) =>
+        n.method === 'textDocument/publishDiagnostics' &&
+        n.params.uri === useUri
+    );
+    expect(
+      published.params.diagnostics.map((d: {message: string}) => d.message)
+    ).toEqual([expect.stringContaining('nope-demo')]);
+  });
 });
