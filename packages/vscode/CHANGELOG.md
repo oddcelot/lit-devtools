@@ -4,6 +4,35 @@ All notable changes to Lit DevTools for VS Code, including the language
 server it bundles. The rest of Lit DevTools is in the repository's
 [changelog](https://github.com/oddcelot/lit-devtools/blob/main/CHANGELOG.md).
 
+## 0.3.0 — 2026-10-30
+
+JSX event handlers get the typing Lit's `@event` bindings have, components a
+page defines in its own `<script>` are known, and hovers show a field's type
+when its code only gives it a starting value. Tag completion stays quick in a
+workspace with thousands of components.
+
+### Added
+
+- **Event handlers in JSX get typed too.** In React 19, Preact and Solid
+  files, an untyped `onadd={(ev) => …}` or `on:add` handler shows the custom
+  event's type as an inlay hint, offers "Add event type", completes
+  `ev.detail.`, and is reported when its parameter type doesn't fit the
+  event, as Lit's `@event` bindings already were.
+- **Components an Astro or HTML page defines in its own script are known.**
+  A class that a `<script>` in an `.astro` file, or an inline module script
+  in an HTML page, registers with `customElements.define` now completes,
+  hovers and goes to its definition, instead of being reported as an unknown
+  element.
+- **Hovers show the type of a field that starts as a literal.** `label = ''`
+  reads as a `string` and `count = 0` as a `number`, where the hover showed
+  no type.
+
+### Fixed
+
+- **Tag completion stays quick in a large workspace.** With thousands of
+  components, completing a tag name took over 100 ms and grew with every
+  component added; it now takes about a third of that.
+
 ## 0.2.0 — 2026-10-30
 
 VS Code now checks what your templates do with your components, not just
