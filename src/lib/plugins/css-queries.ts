@@ -142,6 +142,53 @@ const HOIST_PROPERTY_RULES =
   `  }\n` +
   `}\n`;
 
+/**
+ * The specifiers of the `/css` helpers (`urlSheet`, `inlineSheet`,
+ * `devCacheBust`), the plugin's own and the umbrella package's.
+ */
+const CSS_HELPERS_SPECIFIERS = new Set([
+  '@oddsquad/vite-plugin-lit/css.js',
+  '@oddsquad/lit-devtools/css',
+]);
+const CSS_HELPERS_BUILD_ID = '\0lit-plugin:css-helpers.js';
+
+/**
+ * The `/css` helpers in a build: what `runtime/css.ts` does once a page has
+ * loaded, written into a module of the app's own, so a build carries none
+ * of ours, as with `?css-sheet`. Their HMR half is gone: `onHotUpdate` does
+ * nothing, `devCacheBust` returns the URL it is given, and `urlSheet`
+ * fetches the asset once, as it is, with no dev query and no guard against
+ * a later fetch landing first. The `@property` hoisting stays, since the
+ * css isn't known here; on a server the sheet is a stand-in carrying its
+ * text, as `new-sheet.ts` makes.
+ */
+const CSS_HELPERS_BUILD_CODE =
+  `const newSheet = () => typeof CSSStyleSheet != "undefined"\n` +
+  `  ? new CSSStyleSheet() : {cssText: "", cssRules: [], replaceSync(css) { this.cssText = css; }};\n` +
+  `const fill = (sheet, css) => {\n` +
+  `  sheet.replaceSync(css);\n` +
+  HOIST_PROPERTY_RULES.replace(/^/gm, '  ').replace(/ +$/, '') +
+  `};\n` +
+  `const ignore = () => {};\n` +
+  `export const devCacheBust = (url) => url;\n` +
+  `export const inlineSheet = (css) => {\n` +
+  `  const sheet = newSheet();\n` +
+  `  fill(sheet, css);\n` +
+  `  return {sheet, onHotUpdate: ignore};\n` +
+  `};\n` +
+  `export const urlSheet = (url) => {\n` +
+  `  const sheet = newSheet();\n` +
+  `  if (typeof CSSStyleSheet != "undefined") {\n` +
+  `    fetch(url)\n` +
+  // A 404 still has a body (the server's fallback page); don't adopt it as css.
+  `      .then((r) => r.ok ? r.text() : Promise.reject(new Error("HTTP " + r.status)))\n` +
+  `      .then((css) => fill(sheet, css), (err) => {\n` +
+  `        console.warn("[lit-plugin] urlSheet: failed to load " + url + ":", err);\n` +
+  `      });\n` +
+  `  }\n` +
+  `  return {sheet, onHotUpdate: ignore};\n` +
+  `};\n`;
+
 /** A function body that fills `sheet` from `css`, then hoists if asked. */
 const fillCode = (hoist: boolean): string =>
   `sheet.replaceSync(css);\n` + (hoist ? HOIST_PROPERTY_RULES : '');
@@ -226,6 +273,9 @@ export const litCssQueries = (
       isLib = config.build.lib !== false && config.build.lib !== undefined;
     },
     async resolveId(id, importer) {
+      if (isBuild && CSS_HELPERS_SPECIFIERS.has(id)) {
+        return CSS_HELPERS_BUILD_ID;
+      }
       const prefix = CSS_URL_QUERY_RE.test(id)
         ? CSS_URL_VIRTUAL_PREFIX
         : CSS_SHEET_QUERY_RE.test(id)
@@ -251,6 +301,9 @@ export const litCssQueries = (
       return prefix + toIdPath(resolved.id, root) + CSS_VIRTUAL_SUFFIX;
     },
     async load(id, options) {
+      if (id === CSS_HELPERS_BUILD_ID) {
+        return {code: CSS_HELPERS_BUILD_CODE, moduleType: 'js'};
+      }
       const prefix = [CSS_URL_VIRTUAL_PREFIX, CSS_SHEET_VIRTUAL_PREFIX].find(
         (p) => id.startsWith(p)
       );
