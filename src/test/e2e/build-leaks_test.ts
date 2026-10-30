@@ -105,7 +105,19 @@ interface Variant {
   unminified?: boolean;
   /** Replaces `sheet.css`. */
   sheet?: string;
+  /** The entry also uses the `/css` helpers, from `helpers.js`. */
+  helpers?: boolean;
 }
+
+/** `urlSheet`, `inlineSheet` and `devCacheBust`, as an app imports them. */
+const HELPERS =
+  `import {devCacheBust, inlineSheet, urlSheet} from '@oddsquad/vite-plugin-lit/css.js';\n` +
+  `import url from './utils.css?url';\n` +
+  `const {sheet, onHotUpdate} = urlSheet(url);\n` +
+  `import.meta.hot?.accept('./utils.css?url', onHotUpdate);\n` +
+  `export const inline = inlineSheet('.x { color: red; }').sheet;\n` +
+  `export const href = devCacheBust(url);\n` +
+  `export default sheet;\n`;
 
 /**
  * Runs in the child, so the build sees `NODE_ENV` and `process.env` the way a
@@ -166,6 +178,14 @@ const setUp = async (variant: Variant): Promise<string> => {
   if (variant.sheet) {
     await fsp.writeFile(joinPath(root, 'sheet.css'), variant.sheet);
   }
+  if (variant.helpers) {
+    await fsp.writeFile(joinPath(root, 'helpers.js'), HELPERS);
+    await fsp.writeFile(joinPath(root, 'utils.css'), '.u { margin: 0; }\n');
+    await fsp.writeFile(
+      joinPath(root, 'entry.js'),
+      `export * from './helpers.js';\n` + SOURCES['entry.js']
+    );
+  }
   await fsp.writeFile(joinPath(root, 'run.mjs'), RUN_SCRIPT);
   return root;
 };
@@ -217,7 +237,10 @@ const build = async (variant: Variant): Promise<Record<string, string>> => {
 /** Smuggles the fixture's root out with its files; never a real path. */
 const ROOT_KEY = '\0root';
 
-const leaksIn = (files: Record<string, string>): string[] => {
+const leaksIn = (
+  files: Record<string, string>,
+  markers: readonly string[] = DEV_MARKERS
+): string[] => {
   const root = files[ROOT_KEY]!;
   const leaks: string[] = [];
   for (const [file, code] of Object.entries(files)) {
@@ -225,7 +248,7 @@ const leaksIn = (files: Record<string, string>): string[] => {
     // Region comments name each module by id, ours included; they hold no
     // code, so only the developer's own path counts there.
     const body = code.replace(/^\/\/#(?:end)?region.*$/gm, '');
-    for (const marker of DEV_MARKERS) {
+    for (const marker of markers) {
       if (body.includes(marker)) leaks.push(`${file}: ${marker}`);
     }
     if (code.includes(root)) leaks.push(`${file}: ${root}`);
@@ -347,6 +370,32 @@ test.each(['app', 'lib'] as const)(
     const ids = regions(await unminifiedPropertyBuilds[kind]);
     expect(ids.some((id) => id.includes('sheet.css'))).toBe(true);
     expect(ids.filter((id) => id.includes('lib/runtime/'))).toEqual([]);
+  }
+);
+
+const helperBuilds = {
+  app: build({helpers: true, unminified: true}),
+  lib: build({helpers: true, unminified: true, lib: true}),
+};
+
+// The /css helpers compile down like a ?css-sheet: a module of the app's
+// own, without their HMR half. `onHotUpdate` stays as the name the app reads
+// off the result, which is the app's code, not dev code.
+test.each(['app', 'lib'] as const)(
+  '%s build with the /css helpers: no dev-only code, no module of ours',
+  async (kind) => {
+    const files = await helperBuilds[kind];
+    expect(
+      leaksIn(
+        files,
+        DEV_MARKERS.filter((m) => m !== 'onHotUpdate')
+      )
+    ).toEqual([]);
+    expect(regions(files).filter((id) => id.includes('lib/runtime/'))).toEqual(
+      []
+    );
+    const code = Object.values(comparable(files)).join('\n');
+    expect(code).toContain('replaceSync');
   }
 );
 

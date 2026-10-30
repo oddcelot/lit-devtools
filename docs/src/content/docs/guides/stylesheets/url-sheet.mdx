@@ -38,6 +38,12 @@ a reload.
   mark={[34, 36, 38, 39, 40]}
 />
 
+Under `vite build` the plugin replaces the helpers with their build half, a
+few lines in your own bundle: `urlSheet()` fetches the emitted `.css` asset
+once, `onHotUpdate` does nothing and `devCacheBust()` returns the URL as it
+is. A build that doesn't run the plugin bundles the helpers as published,
+which works the same, with their dev half switched off.
+
 The sheet is empty until the first fetch resolves, so expect FOUC: a brief
 flash of unstyled content while the stylesheet is still loading. A
 `<link rel="preload" as="style">` in the document head removes most of it.

@@ -75,6 +75,10 @@ written into the sheet's own module, a few lines of `new CSSStyleSheet()` and
 `replaceSync()` (plus a `fetch()` for an app build), so a build bundles no
 module of ours and imports nothing from the plugin.
 
+The `/css` helpers you wire by hand, `urlSheet()`, `inlineSheet()` and
+`devCacheBust()`, compile down the same way: the build swaps their import for
+a few lines of its own that fill the sheet once, without the hot-swap half.
+
 If you want the build to depend on less than that, use `litCss()` from the
 `/build` entry for builds. It carries only what a build uses: the CSS queries,
 Lightning CSS for `css` literals, and the no-op timeline stub.
