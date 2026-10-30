@@ -209,11 +209,13 @@ export const designLightCSS = `
   /* Keyboard focus: opaque, 4.6:1 or more on every light surface, where
      the translucent ring above measured 1.85:1. */
   --lit-devtools-focus-ring: var(--lit-devtools-accent);
-  /* The Lit flame's blue into its cyan, the cyan deepened from #00e8ff
-     (1.35:1 on the light header) to #0097b2, which holds 3:1. */
-  --lit-devtools-flame: linear-gradient(90deg, var(--lit-devtools-lit-blue), #0097b2);
+  /* The Lit flame's cyan, deepened from #00e8ff (1.35:1 on the light
+     header) to #0097b2, which holds 3:1: bright cyan on white reads as a
+     glare, not a colour. */
+  --lit-devtools-accent-cyan: #0097b2;
+  /* The Lit flame's blue into its cyan. */
+  --lit-devtools-flame: linear-gradient(90deg, var(--lit-devtools-lit-blue), var(--lit-devtools-accent-cyan));
   --lit-devtools-on-accent: #ffffff;
-  --lit-devtools-accent-cyan: var(--lit-devtools-lit-dark-cyan);
 
   --lit-devtools-bg: #f4f4f4;
   --lit-devtools-surface: #ffffff;

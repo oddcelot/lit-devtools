@@ -281,6 +281,10 @@ starlight-toc a[aria-current='true'] {
   --sl-color-red-low: hsl(0 45% 22%);
   --sl-color-red: var(--error);
   --sl-color-red-high: hsl(0 100% 87%);
+
+  /* The flame's cyan where the page glows: the headline's shine, the hero's
+     wash and the demo frames' edge. Full cyan on the dark page. */
+  --glow-cyan: var(--lit-cyan);
 }
 
 /* ------------------------------------------------ Light · lit.dev theme ---- */
@@ -323,6 +327,9 @@ starlight-toc a[aria-current='true'] {
   --sl-color-red-high: hsl(0 75% 35%);
   --sl-color-red: var(--error);
   --sl-color-red-low: hsl(0 75% 92%);
+
+  /* On the light page full cyan glares; the theme's deepened cyan glows. */
+  --glow-cyan: var(--accent-cyan);
 }
 
 /* ------------------------------------------------------------ Controls ---- */
