@@ -63,8 +63,9 @@ Your components complete, hover and lead to their source in `.jsx` and
 
 ### Typed event handlers
 
-TypeScript gives an inline handler's parameter no type inside a template.
-The extension knows which event it is for:
+TypeScript gives an inline handler's parameter no type inside a template,
+or in JSX for a component's custom event. The extension knows which event
+it is for:
 
 - an **inlay hint** shows the event's type after an untyped parameter,
 - the **Add event type** quick fix writes it in, so TypeScript takes over,
