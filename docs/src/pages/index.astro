@@ -13,6 +13,7 @@ import '@oddsquad/webawesome-theme-lit/lit.css';
 import '../styles/fonts.css';
 import '../styles/custom.css';
 import Nav from '../components/landing/Nav.astro';
+import ScrollGlow from '../components/landing/ScrollGlow.astro';
 import InstallCommand from '../components/landing/InstallCommand.astro';
 import DemoFrame from '../components/landing/DemoFrame.astro';
 import DevtoolsShowcase from '../components/landing/DevtoolsShowcase.astro';
@@ -137,6 +138,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     <WebMcpTools />
   </head>
   <body>
+    <ScrollGlow />
     <Nav />
 
     <main>

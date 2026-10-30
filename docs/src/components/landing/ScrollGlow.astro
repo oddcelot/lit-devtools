@@ -1,0 +1,115 @@
+---
+/**
+ * The landing page's light: a fixed layer of the flame's blue and cyan behind
+ * every section, bent by an SVG filter into soft, uneven glows. The page's
+ * scroll position drives it, so the light drifts across the page as the
+ * reader moves down it and gathers at the bottom behind the closing call. It
+ * stands still where the browser has no scroll timelines or the reader asks
+ * for less motion.
+ */
+---
+
+<svg class="scroll-glow" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs>
+    <filter
+      id="scroll-glow-filter"
+      x="-50%"
+      y="-50%"
+      width="200%"
+      height="200%"
+      color-interpolation-filters="sRGB"
+    >
+      <feTurbulence type="fractalNoise" baseFrequency="0.006" numOctaves="2" seed="7" />
+      <feDisplacementMap in="SourceGraphic" scale="180" xChannelSelector="R" yChannelSelector="G" />
+      <feGaussianBlur stdDeviation="60" />
+    </filter>
+  </defs>
+  <g filter="url(#scroll-glow-filter)">
+    <ellipse class="blob blue" cx="220" cy="120" rx="260" ry="170" />
+    <ellipse class="blob cyan" cx="820" cy="260" rx="210" ry="150" />
+    <ellipse class="blob deep" cx="500" cy="1050" rx="320" ry="140" />
+  </g>
+</svg>
+
+<style>
+  .scroll-glow {
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.4;
+  }
+  :global([data-theme='light']) .scroll-glow {
+    opacity: 0.24;
+  }
+  .blob {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .blue {
+    fill: var(--lit-blue-bright);
+  }
+  .cyan {
+    fill: var(--glow-cyan);
+    opacity: 0.55;
+  }
+  .deep {
+    fill: var(--lit-blue-bright);
+  }
+
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .blob {
+        animation: linear both;
+        animation-timeline: scroll(root);
+      }
+      .blue {
+        animation-name: glow-blue;
+      }
+      .cyan {
+        animation-name: glow-cyan;
+      }
+      .deep {
+        animation-name: glow-deep;
+      }
+    }
+  }
+
+  /* The blue crosses the page and settles low; the cyan swings the other way. */
+  @keyframes glow-blue {
+    35% {
+      transform: translate(420px, 260px) rotate(25deg) scale(1.15);
+    }
+    70% {
+      transform: translate(80px, 520px) rotate(-10deg) scale(0.9);
+    }
+    100% {
+      transform: translate(260px, 640px) scale(1.2);
+    }
+  }
+  @keyframes glow-cyan {
+    40% {
+      transform: translate(-560px, 300px) rotate(-30deg) scale(1.25);
+    }
+    75% {
+      transform: translate(-160px, 120px) rotate(15deg) scale(0.85);
+    }
+    100% {
+      transform: translate(-260px, 520px) scale(1.1);
+    }
+  }
+  /* The closing glow rises from below the fold only near the end. */
+  @keyframes glow-deep {
+    0%,
+    60% {
+      transform: translateY(260px) scale(0.6);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(-180px) scale(1.3);
+      opacity: 0.9;
+    }
+  }
+</style>
