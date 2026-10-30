@@ -1,0 +1,313 @@
+---
+/**
+ * An editor window showing what the language server reports: a binding Lit
+ * can't apply, underlined, with its message in a hover. It is drawn as
+ * VS Code or as Zed. Hovering or focusing a store button with `data-store`
+ * anywhere in the same `[data-editor-showcase]` element switches it to that
+ * store's editor, and it stays there until another one is picked.
+ *
+ * The colours are VS Code's Dark Modern and Zed's One Dark, the two
+ * editors' default dark themes. The window stays dark in the site's light
+ * theme, as an editor screenshot would.
+ */
+---
+
+<figure
+  class="editor not-content"
+  data-editor="vscode"
+  aria-label="An editor where the Lit language server underlines a binding: .size takes 'small' | 'large', but 'huge' isn't one of 'small', 'large'."
+>
+  <div class="titlebar" aria-hidden="true">
+    <span class="lights"><i></i><i></i><i></i></span>
+    <span class="title vscode-only">cart-summary.ts — shop</span>
+    <span class="title zed-only">shop <span class="branch">main</span></span>
+  </div>
+  <div class="tabs" aria-hidden="true">
+    <span class="tab">
+      <span class="file-icon">TS</span>cart-summary.ts
+    </span>
+  </div>
+  <div class="code" aria-hidden="true">
+    <div class="line"><span class="kw">import</span> {'{'}<span class="cls">LitElement</span>, html{'}'} <span class="kw">from</span> <span class="str">'lit'</span>;</div>
+    <div class="line"><span class="kw">import</span> <span class="str">'./x-button.js'</span>;</div>
+    <div class="line"></div>
+    <div class="line"><span class="kw">class</span> <span class="cls">CartSummary</span> <span class="kw">extends</span> <span class="cls">LitElement</span> {'{'}</div>
+    <div class="line">  <span class="fn">render</span>() {'{'}</div>
+    <div class="line">    <span class="kw">return</span> <span class="fn">html</span>`&lt;<span class="tag">x-button</span> <span class="squiggle"><span class="attr">.size</span>=${'{'}<span class="str">'huge'</span>{'}'}</span>&gt;Buy&lt;/<span class="tag">x-button</span>&gt;`;</div>
+    <div class="hover">
+      <p>.size takes 'small' | 'large', but 'huge' isn't one of 'small', 'large'.</p>
+      <p class="source">lit(binding-type)</p>
+    </div>
+    <div class="line">  {'}'}</div>
+    <div class="line">{'}'}</div>
+  </div>
+  <div class="statusbar" aria-hidden="true">
+    <span class="vscode-only">⑂ main</span>
+    <span class="vscode-only">⊗ 1 ⚠ 0</span>
+    <span class="problems zed-only"><span class="dot"></span>1</span>
+    <span class="spacer"></span>
+    <span>Lit</span>
+    <span class="vscode-only">TypeScript</span>
+  </div>
+</figure>
+
+<script>
+  const editorOf: Record<string, string> = {
+    vscode: 'vscode',
+    'open-vsx': 'vscode',
+    zed: 'zed',
+  };
+  for (const host of document.querySelectorAll<HTMLElement>('[data-editor-showcase]')) {
+    const editor = host.querySelector<HTMLElement>('.editor');
+    if (!editor) continue;
+    const pick = (event: Event) => {
+      const store = (event.target as Element).closest<HTMLElement>('[data-store]');
+      const next = store && editorOf[store.dataset.store ?? ''];
+      if (next) editor.dataset.editor = next;
+    };
+    host.addEventListener('pointerover', pick);
+    host.addEventListener('focusin', pick);
+  }
+</script>
+
+<style>
+  .editor {
+    /* VS Code, Dark Modern. */
+    --ed-bg: #1f1f1f;
+    --ed-chrome: #181818;
+    --ed-border: #2b2b2b;
+    --ed-text: #cccccc;
+    --ed-muted: #9d9d9d;
+    --ed-gutter: #6e7681;
+    --ed-tab-accent: #0078d4;
+    --ed-status-bg: #007acc;
+    --ed-status-text: #ffffff;
+    --ed-hover-bg: #202020;
+    --ed-hover-border: #454545;
+    --ed-kw: #569cd6;
+    --ed-str: #ce9178;
+    --ed-fn: #dcdcaa;
+    --ed-cls: #4ec9b0;
+    --ed-tag: #569cd6;
+    --ed-attr: #9cdcfe;
+    --ed-error: #f14c4c;
+    --ed-radius: 10px;
+
+    position: relative;
+    max-width: 44rem;
+    margin: 1.75rem auto 1.5rem;
+    border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius);
+    overflow: hidden;
+    background: var(--ed-bg);
+    color: var(--ed-text);
+    text-align: left;
+    box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 0 0 / 0.55);
+  }
+  .editor[data-editor='zed'] {
+    /* Zed, One Dark. */
+    --ed-bg: #282c34;
+    --ed-chrome: #3b414d;
+    --ed-border: #464b57;
+    --ed-text: #dce0e5;
+    --ed-muted: #a9afbc;
+    --ed-gutter: #4e5a5f;
+    --ed-tab-accent: transparent;
+    --ed-status-bg: #3b414d;
+    --ed-status-text: #a9afbc;
+    --ed-hover-bg: #2f343e;
+    --ed-hover-border: #464b57;
+    --ed-kw: #b477cf;
+    --ed-str: #a1c181;
+    --ed-fn: #73ade9;
+    --ed-cls: #6eb4bf;
+    --ed-tag: #74ade8;
+    --ed-attr: #dfc184;
+    --ed-error: #d07277;
+  }
+  .editor,
+  .editor * {
+    transition:
+      background-color var(--dur-base, 250ms) var(--ease-out, ease-out),
+      border-color var(--dur-base, 250ms) var(--ease-out, ease-out),
+      color var(--dur-base, 250ms) var(--ease-out, ease-out);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .editor,
+    .editor * {
+      transition: none;
+    }
+  }
+
+  .editor[data-editor='vscode'] .zed-only,
+  .editor[data-editor='zed'] .vscode-only {
+    display: none;
+  }
+
+  .titlebar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    height: 2.1rem;
+    padding-inline: 0.8rem;
+    background: var(--ed-chrome);
+    border-bottom: 1px solid var(--ed-border);
+    font: 0.75rem/1 var(--sl-font, system-ui, sans-serif);
+    color: var(--ed-muted);
+  }
+  .titlebar .title {
+    text-align: center;
+  }
+  /* Zed names the project at the left, beside the window controls. */
+  .editor[data-editor='zed'] .titlebar .title {
+    text-align: left;
+    padding-left: 0.9rem;
+    color: var(--ed-text);
+  }
+  .branch {
+    margin-left: 0.5rem;
+    color: var(--ed-muted);
+  }
+  .lights {
+    display: inline-flex;
+    gap: 0.45rem;
+  }
+  .lights i {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: #ff5f57;
+  }
+  .lights i:nth-child(2) {
+    background: #febc2e;
+  }
+  .lights i:nth-child(3) {
+    background: #28c840;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--ed-chrome);
+    border-bottom: 1px solid var(--ed-border);
+    font: 0.78rem/1 var(--sl-font, system-ui, sans-serif);
+  }
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 0.9rem;
+    background: var(--ed-bg);
+    border-right: 1px solid var(--ed-border);
+    box-shadow: inset 0 1px 0 var(--ed-tab-accent);
+    margin-bottom: -1px;
+    color: var(--ed-text);
+  }
+  .file-icon {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #3178c6;
+  }
+
+  .code {
+    counter-reset: line;
+    padding: 0.9rem 0 1.1rem;
+    font: 0.82rem/1.7 var(--font-lilex, ui-monospace, monospace);
+    overflow-x: auto;
+  }
+  .line {
+    counter-increment: line;
+    white-space: pre;
+    padding-right: 1.2rem;
+  }
+  .line::before {
+    content: counter(line);
+    display: inline-block;
+    width: 2.2rem;
+    margin-right: 1.2rem;
+    text-align: right;
+    color: var(--ed-gutter);
+  }
+  .kw {
+    color: var(--ed-kw);
+  }
+  .str {
+    color: var(--ed-str);
+  }
+  .fn {
+    color: var(--ed-fn);
+  }
+  .cls {
+    color: var(--ed-cls);
+  }
+  .tag {
+    color: var(--ed-tag);
+  }
+  .attr {
+    color: var(--ed-attr);
+  }
+  .squiggle {
+    text-decoration: underline wavy var(--ed-error);
+    text-decoration-skip-ink: none;
+    text-underline-offset: 0.3em;
+  }
+
+  /* The hover the editor opens on the squiggle, in the flow under its line
+     so it never covers the code or runs off a narrow screen. */
+  .hover {
+    width: fit-content;
+    --hover-start: calc(3.4rem + 22ch);
+    box-sizing: border-box;
+    max-width: min(30rem, calc(100% - var(--hover-start) - 1rem));
+    margin: 0.3rem 0 0.4rem var(--hover-start);
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--ed-hover-border);
+    border-radius: 4px;
+    background: var(--ed-hover-bg);
+    box-shadow: 0 0.4rem 1rem rgb(0 0 0 / 0.35);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    white-space: normal;
+  }
+  .editor[data-editor='zed'] .hover {
+    border-radius: 6px;
+  }
+  .hover p {
+    margin: 0;
+    color: var(--ed-text);
+  }
+  .hover .source {
+    margin-top: 0.25rem;
+    color: var(--ed-muted);
+  }
+  @media (max-width: 40rem) {
+    .hover {
+      --hover-start: 3.4rem;
+    }
+  }
+
+  .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    height: 1.6rem;
+    padding-inline: 0.7rem;
+    background: var(--ed-status-bg);
+    border-top: 1px solid var(--ed-border);
+    font: 0.72rem/1 var(--sl-font, system-ui, sans-serif);
+    color: var(--ed-status-text);
+  }
+  .spacer {
+    flex: 1;
+  }
+  .problems {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .problems .dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--ed-error);
+  }
+</style>

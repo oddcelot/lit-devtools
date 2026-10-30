@@ -35,11 +35,11 @@ const page =
         </>
       );
       return url ? (
-        <a class="store-button" href={trackedUrl(url, page)} rel="noopener">
+        <a class="store-button" data-store={id} href={trackedUrl(url, page)} rel="noopener">
           {body}
         </a>
       ) : (
-        <span class="store-button pending">{body}</span>
+        <span class="store-button pending" data-store={id}>{body}</span>
       );
     })
   }

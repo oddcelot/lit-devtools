@@ -20,6 +20,7 @@ import DocsSources from '../components/landing/DocsSources.astro';
 import StoreButtons from '../components/StoreButtons.astro';
 import AgentPrompt from '../components/AgentPrompt.astro';
 import DemoVideo from '../components/DemoVideo.astro';
+import EditorShowcase from '../components/EditorShowcase.astro';
 import Logo from '../components/Logo.astro';
 import WebMcpTools from '../components/WebMcpTools.astro';
 import SiteIcons from '../components/SiteIcons.astro';
@@ -283,7 +284,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
         </div>
       </section>
 
-      <section class="section" id="editor">
+      <section class="section" id="editor" data-editor-showcase>
         <div class="wrap center reveal">
           <h2>Your editor knows them too.</h2>
           <p class="sub">
@@ -293,8 +294,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             in <code>html</code> templates, JSX, Astro and MDX, and a value a
             binding can't take is underlined as you type.
           </p>
-          <pre class="snippet center-snippet editor-snippet"><code><span class="k">html</span>`&lt;x-button <span class="squiggle">.size=${'{'}<span class="s">'huge'</span>{'}'}</span>&gt;Buy&lt;/x-button&gt;`;
-<span class="diagnostic">.size takes 'small' | 'large', but 'huge' isn't one of 'small', 'large'.</span></code></pre>
+          <EditorShowcase />
           <div class="stores editor-stores"><StoreButtons for="editor" /></div>
           <p class="more-row">
             <a class="more" href="/guides/language-server/"
@@ -760,16 +760,6 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
   .c {
     color: var(--code-comment);
   }
-  /* A problem the language server reports, drawn as the editor draws it:
-     the binding underlined, its message on the line below. */
-  .squiggle {
-    text-decoration: underline wavy var(--error);
-    text-decoration-skip-ink: none;
-    text-underline-offset: 0.25em;
-  }
-  .diagnostic {
-    color: var(--error);
-  }
   mark {
     padding: 0.05em 0.2em;
     border-radius: var(--radius-xs);
@@ -826,10 +816,7 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     justify-content: center;
     margin: 1.5rem 0 2.5rem;
   }
-  /* The buttons sit close under the snippet, the guide link below them. */
-  .editor-snippet {
-    margin-bottom: 1.25rem;
-  }
+  /* The buttons sit close under the editor, the guide link below them. */
   .editor-stores {
     margin: 0;
   }
