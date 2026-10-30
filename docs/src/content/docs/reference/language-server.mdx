@@ -10,6 +10,15 @@ your dependencies' Custom Elements Manifests, and answers in `html` and `svg`
 templates, in HTML files, in JSX, Astro and MDX, and in `css` templates.
 [Use the language server](/guides/language-server/) sets it up.
 
+It reads components from the scripts in the folders it reads (`scan`, `src`
+by default), and from the `<script>` elements of the HTML and Astro files
+there and of the HTML files at each package's root, so an Astro component
+that defines the element it renders is known wherever it's used. A script
+with a `src` is skipped, as the browser ignores its body; the file it loads
+is read on its own when it's in those folders. A `type` other than a
+JavaScript one, such as JSON or an import map, is skipped too. Astro's
+`is:inline` scripts count, since they run as written.
+
 It reads the same JSDoc the [manifest](/guides/manifest/) does, so this
 component is the example below:
 
@@ -316,7 +325,8 @@ html`<x-button></x-button>`;
 
 - A component from source counts as imported when its module is in the
   file's imports; one from a package's manifest when the file imports that
-  package.
+  package. One an HTML or Astro page defines in its own `<script>` is left
+  alone, since no script can import a page.
 - An app whose entry imports every component lists it in `entries`, and
   what the entries import counts too.
 - The quick fix imports the defining module, written like the file's other
