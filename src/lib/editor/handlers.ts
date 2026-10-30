@@ -1,7 +1,8 @@
 /**
- * Event handlers written inline in `@event` bindings, `@go=${(ev) => …}`:
- * the parameter that receives the event, and the members of the event's
- * type that `ev.` and `ev.detail.` reach.
+ * Event handlers written inline in `@event` bindings, `@go=${(ev) => …}`,
+ * and in JSX's, React 19's and Preact's `ongo={(ev) => …}` and Solid's
+ * `on:go={(ev) => …}`: the parameter that receives the event, and the
+ * members of the event's type that `ev.` and `ev.detail.` reach.
  *
  * Read with patterns rather than the parser, since the expression rarely
  * parses while it's typed (`ev.detail.` ends in a dot). Types are the text
@@ -29,13 +30,17 @@ export interface HandlerParam {
   parenthesized: boolean;
 }
 
-export interface EventHandler {
+/** A binding that listens for an event, whose value is one expression. */
+export interface EventBinding {
   element: MarkupElement;
   attribute: MarkupAttribute;
-  param: HandlerParam;
-  /** The expression inside `${…}`. */
+  /** The expression inside `${…}`, or JSX's `{…}`. */
   start: number;
   end: number;
+}
+
+export interface EventHandler extends EventBinding {
+  param: HandlerParam;
 }
 
 const IDENT = '[A-Za-z_$][\\w$]*';
@@ -68,20 +73,45 @@ const paramOf = (text: string, base: number): HandlerParam | undefined => {
   return undefined;
 };
 
-/** The inline handler of an `@` attribute whose value is one `${…}`. */
-const handlerOf = (
+/**
+ * Whether an attribute listens for an event: Lit's `@go` or Solid's `on:go`,
+ * which both read as `@`, or a plain `ongo` prop in JSX.
+ */
+const listens = (element: MarkupElement, attribute: MarkupAttribute): boolean =>
+  attribute.binding === '@' ||
+  (element.dialect === 'jsx' &&
+    attribute.binding === '' &&
+    /^on[^:]/.test(attribute.name));
+
+/** The binding of a listening attribute whose value is one `${…}` or `{…}`. */
+const bindingOf = (
   code: string,
   element: MarkupElement,
   attribute: MarkupAttribute
-): EventHandler | undefined => {
+): EventBinding | undefined => {
   const value = attribute.value;
-  if (attribute.binding !== '@' || !value?.expression) return undefined;
-  if (!code.startsWith('${', value.start)) return undefined;
-  const start = value.start + 2;
+  if (!value?.expression || !listens(element, attribute)) return undefined;
+  const open = element.dialect === 'jsx' ? '{' : '${';
+  if (!code.startsWith(open, value.start)) return undefined;
+  const start = value.start + open.length;
   const end = code[value.end - 1] === '}' ? value.end - 1 : value.end;
-  const param = paramOf(code.slice(start, end), start);
-  return param && {element, attribute, param, start, end};
+  return {element, attribute, start, end};
 };
+
+/** Every binding in the document's markup that listens for an event. */
+export const eventBindings = (
+  code: string,
+  kind: DocumentKind,
+  options: MarkupOptions = {}
+): EventBinding[] =>
+  markupRegions(code, kind, options).flatMap((region) =>
+    scanMarkup(code, region).flatMap((element) =>
+      element.attributes.flatMap((attribute) => {
+        const binding = bindingOf(code, element, attribute);
+        return binding ? [binding] : [];
+      })
+    )
+  );
 
 /** Every inline event handler in the document's markup. */
 export const eventHandlers = (
@@ -89,14 +119,11 @@ export const eventHandlers = (
   kind: DocumentKind,
   options: MarkupOptions = {}
 ): EventHandler[] =>
-  markupRegions(code, kind, options).flatMap((region) =>
-    scanMarkup(code, region).flatMap((element) =>
-      element.attributes.flatMap((attribute) => {
-        const handler = handlerOf(code, element, attribute);
-        return handler ? [handler] : [];
-      })
-    )
-  );
+  eventBindings(code, kind, options).flatMap((binding) => {
+    const {start, end} = binding;
+    const param = paramOf(code.slice(start, end), start);
+    return param ? [{...binding, param}] : [];
+  });
 
 export interface MemberAccess {
   handler: EventHandler;

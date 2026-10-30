@@ -93,3 +93,25 @@ test('nothing for handlers that fit, are untyped, or that it cannot read', async
   `;
   expect(await problemsIn(code)).toEqual([]);
 });
+
+test("JSX's on<event> and Solid's on: handlers", async () => {
+  const code = `
+    const a = (
+      <main>
+        <x-card onadd={(e: CustomEvent<{id: number}>) => go(e)} />
+        <x-card on:add={(e: CustomEvent<{price: string}>) => go(e)} />
+        <x-card onAdd={(e: CustomEvent<{id: number}>) => go(e)} />
+        <x-card onclick={(e: KeyboardEvent) => go(e)} />
+      </main>
+    );
+  `;
+  const problems = await eventTypeProblems(source, {
+    file: '/app/src/app.tsx',
+    code,
+    kind: 'jsx',
+  });
+  expect(problems.map((p) => p.message)).toEqual([
+    'The handler takes `CustomEvent<{id: number}>`, but `add` sends `CustomEvent<{id: string; price: number}>`: `detail.id` is `string`, not `number`.',
+    'The handler takes `CustomEvent<{price: string}>`, but `add` sends `CustomEvent<{id: string; price: number}>`: `detail.price` is `number`, not `string`.',
+  ]);
+});

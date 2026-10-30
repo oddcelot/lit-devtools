@@ -96,8 +96,11 @@ HTML elements are left to the editor's own support for the language. In Astro, t
 templates in the frontmatter and in `<script>` elements are Lit templates.
 In MDX, fenced and inline code and `import`/`export` blocks are skipped.
 
-The typed event handler features and the `event-type` check read Lit's
-`@event=${…}` bindings only.
+The typed event handler features and the `event-type` check read
+`onsubmit-start={…}` and `on:submit-start={…}` handlers too, for your
+components' custom events. The DOM's events, `onclick` and `on:click`, are
+left to the framework's JSX types, since React hands those handlers its own
+events.
 
 ## Go to implementation and find references
 

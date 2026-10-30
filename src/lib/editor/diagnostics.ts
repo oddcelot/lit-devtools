@@ -3,15 +3,21 @@
  * values are `binding-literals.ts`'s `binding-type`): an `@event` handler
  * whose parameter type doesn't fit the event, whether
  * written inline, `@go=${(e: CustomEvent<{id: string}>) => …}`, or as a
- * method of the same file's class, `@go=${this.#onGo}`.
+ * method of the same file's class, `@go=${this.#onGo}`. JSX's `ongo={…}`
+ * and Solid's `on:go={…}` are read too, for the events `handlerEventType`
+ * types there.
  *
  * The comparison is the type text's (`type-text.ts`), so only plain
  * conflicts are reported and anything it can't read stays silent.
  */
 
 import type {DiagnosticRule} from './config.js';
-import {type DocsSource, type FeatureRequest, eventTypeOf} from './features.js';
-import {templateBindings} from './bindings.js';
+import {
+  type DocsSource,
+  type FeatureRequest,
+  handlerEventType,
+} from './features.js';
+import {eventBindings} from './handlers.js';
 import {
   type Node,
   child,
@@ -98,27 +104,31 @@ export const eventTypeProblems = async (
   source: DocsSource,
   request: Omit<FeatureRequest, 'offset'>
 ): Promise<Problem[]> => {
-  const {file, code} = request;
-  const bindings = templateBindings(request, '@');
+  const {file, code, kind, templateTags} = request;
+  const bindings = eventBindings(code, kind, {templateTags});
   if (bindings.length === 0) return [];
   let methods: Map<string, string> | undefined;
   const problems: Problem[] = [];
-  for (const {element, attribute, start, end} of bindings) {
+  for (const binding of bindings) {
+    const {attribute, start, end} = binding;
     const expression = code.slice(start, end);
     const method = METHOD_RE.exec(expression)?.[1];
     const expected = method
       ? (methods ??= methodParamTypes(code, file)).get(method)
       : inlineParamType(expression);
     if (!expected) continue;
-    const actual = await eventTypeOf(source, file, element.tag, attribute.name);
+    const actual = await handlerEventType(source, file, binding);
     const reason = actual && typeMismatch(actual, expected);
     if (!reason) continue;
     const who = method ? `\`${method}\` takes` : 'The handler takes';
+    // JSX's `ongo` listens for `go`.
+    const event =
+      attribute.binding === '@' ? attribute.name : attribute.name.slice(2);
     problems.push({
       rule: 'event-type',
       start,
       end,
-      message: `${who} \`${expected}\`, but \`${attribute.name}\` sends \`${actual}\`: ${reason}.`,
+      message: `${who} \`${expected}\`, but \`${event}\` sends \`${actual}\`: ${reason}.`,
     });
   }
   return problems;

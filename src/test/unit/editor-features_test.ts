@@ -391,6 +391,32 @@ describe('inline event handlers', () => {
       {type: 'MouseEvent', replaces: 'e', newText: '(e: MouseEvent)'},
     ]);
   });
+
+  test("completes the detail's keys in JSX's on<event> and on:", async () => {
+    for (const prop of ['onadd-to-cart', 'on:add-to-cart']) {
+      const items = await completionsAt(
+        handlerSource,
+        doc('jsx', `const a = <x-card ${prop}={(ev) => ev.detail.‸} />;`)
+      );
+      expect(items.map((item) => item.label)).toEqual(['id', 'price']);
+    }
+  });
+
+  test("types JSX handlers for custom events, leaving the DOM's to the framework", async () => {
+    const text =
+      'const a = <x-card onadd-to-cart={(ev) => go(ev)} on:add-to-cart={e => f(e)} onclick={(c) => c} on:click={(c) => c} onAdd-to-cart={(x) => x} />;';
+    const found = await handlerTypes(handlerSource, {
+      file: '/app/src/a.tsx',
+      code: text,
+      kind: 'jsx',
+    });
+    expect(
+      found.map(({edit}) => [text.slice(edit.start, edit.end), edit.newText])
+    ).toEqual([
+      ['ev', 'ev: CustomEvent<{id: string; price: number}>'],
+      ['e', '(e: CustomEvent<{id: string; price: number}>)'],
+    ]);
+  });
 });
 
 /** A request at `‸` in a document of `kind`. */

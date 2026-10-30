@@ -40,6 +40,29 @@ describe('eventHandlers', () => {
   ])('finds no inline handler in %s', (_, inner) => {
     expect(params(inner)).toEqual([]);
   });
+
+  const jsxParams = (inner: string) => {
+    const code = `const a = <x-a ${inner} />;`;
+    return eventHandlers(code, 'jsx').map(({param}) =>
+      code.slice(param.start, param.end)
+    );
+  };
+
+  test.each([
+    ['an on<event> prop', 'ongo={(ev) => f(ev)}'],
+    ["Solid's on: namespace", 'on:go={ev => f(ev)}'],
+    ['a camel-cased prop', 'onGo={function (ev) { f(ev); }}'],
+  ])('reads the parameter of %s in JSX', (_, inner) => {
+    expect(jsxParams(inner)).toEqual(['ev']);
+  });
+
+  test.each([
+    ['a prop that is only on', 'on={(ev) => ev}'],
+    ['a quoted value', 'ongo="(ev) => ev"'],
+    ["Solid's prop: namespace", 'prop:ongo={(ev) => ev}'],
+  ])('finds no handler in JSX in %s', (_, inner) => {
+    expect(jsxParams(inner)).toEqual([]);
+  });
 });
 
 describe('memberAccessAt', () => {
@@ -79,6 +102,16 @@ describe('memberAccessAt', () => {
     expect(access('@go=${(ev) => other.‸}')).toBeUndefined();
     expect(access('@go=${(ev: Event) => ev.‸}')).toBeUndefined();
     expect(access('.data=${ev.‸}')).toBeUndefined();
+  });
+
+  test("the detail in JSX's handlers", () => {
+    const jsx = (inner: string) => {
+      const text = `const a = <x-a ${inner} />;`;
+      return memberAccessAt(text.replace('‸', ''), 'jsx', text.indexOf('‸'))
+        ?.path;
+    };
+    expect(jsx('ongo={(ev) => ev.detail.‸}')).toEqual(['detail']);
+    expect(jsx('on:go={ev => ev.‸}')).toEqual([]);
   });
 });
 
