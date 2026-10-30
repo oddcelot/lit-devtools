@@ -7,7 +7,9 @@
 
 import type {DiagnosticRule} from './config.js';
 import type {ComponentDocs, DocEntry} from '../../types/component-docs.js';
+import {DOM_EVENT_TYPES} from './dom-events.js';
 import {
+  type EventBinding,
   type EventHandler,
   memberAccessAt,
   membersOf,
@@ -526,12 +528,31 @@ export const eventTypeOf = (
 ): Promise<string | undefined> =>
   bindingTypeOf(source, file, tagName, '@', eventName);
 
-const handlerType = (
+/**
+ * The type of the event a binding listens for. In JSX only custom events
+ * are read, a component's own or one that bubbles from another: the
+ * framework's JSX types own the DOM's, and React hands its handlers its
+ * own synthetic events. An `ongo` prop is the component's own `go`, as
+ * React 19 and Preact add a custom element's listeners.
+ */
+export const handlerEventType = async (
   source: DocsSource,
   file: string,
-  {element, attribute}: EventHandler
-): Promise<string | undefined> =>
-  eventTypeOf(source, file, element.tag, attribute.name);
+  {element, attribute}: Pick<EventBinding, 'element' | 'attribute'>
+): Promise<string | undefined> => {
+  const {tag} = element;
+  const {name} = attribute;
+  if (element.dialect !== 'jsx') return eventTypeOf(source, file, tag, name);
+  const own = (await source.get(file, tag))?.events ?? [];
+  if (attribute.binding !== '@') {
+    return own.find((entry) => `on${entry.name}` === name)?.type;
+  }
+  const found = own.find((entry) => entry.name === name);
+  if (found) return found.type;
+  return name in DOM_EVENT_TYPES
+    ? undefined
+    : eventTypeOf(source, file, tag, name);
+};
 
 /** `ev.` and `ev.detail.` in an inline handler, from the event's type. */
 const memberCompletions = async (
@@ -541,7 +562,7 @@ const memberCompletions = async (
   const {file, code: text, kind, offset, templateTags} = request;
   const access = memberAccessAt(text, kind, offset, {templateTags});
   if (!access) return [];
-  const type = await handlerType(source, file, access.handler);
+  const type = await handlerEventType(source, file, access.handler);
   if (!type) return [];
   return membersOf(type, access.path).map((member, i) => ({
     label: member.name,
@@ -575,7 +596,7 @@ export const handlerTypes = async (
   );
   const typed = await Promise.all(
     untyped.map(async (handler) => {
-      const type = await handlerType(source, file, handler);
+      const type = await handlerEventType(source, file, handler);
       if (!type) return [];
       const {name, start, end, parenthesized} = handler.param;
       const newText = parenthesized ? `${name}: ${type}` : `(${name}: ${type})`;
