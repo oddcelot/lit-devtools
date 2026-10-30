@@ -1,18 +1,21 @@
-
-
 # @oddsquad/lit-devtools
 
 [![CI](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/oddcelot/lit-devtools/actions/workflows/ci.yaml?query=branch%3Amain)
-[![npm](https://img.shields.io/npm/v/@oddsquad/vite-plugin-lit)](https://www.npmjs.com/package/@oddsquad/vite-plugin-lit)
+[![npm](https://img.shields.io/npm/v/@oddsquad/lit-devtools)](https://www.npmjs.com/package/@oddsquad/lit-devtools)
 [![JSR](https://jsr.io/badges/@oddsquad/vite-plugin-lit)](https://jsr.io/@oddsquad/vite-plugin-lit)
 [![JSR score](https://jsr.io/badges/@oddsquad/vite-plugin-lit/score)](https://jsr.io/@oddsquad/vite-plugin-lit/score)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/faojnglflincboehhgkjgehnapjgiieh?label=Chrome%20Web%20Store&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/lit-inspector/faojnglflincboehhgkjgehnapjgiieh)
 [![Firefox Add-ons](https://img.shields.io/amo/v/lit-inspector?label=Firefox%20Add-ons&logo=firefoxbrowser&logoColor=white)](https://addons.mozilla.org/firefox/addon/lit-inspector/)
+[![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-0078d4)](https://marketplace.visualstudio.com/items?itemName=oddsquad.lit-devtools)
+[![Open VSX](https://img.shields.io/open-vsx/v/oddsquad/lit-devtools?label=Open%20VSX&logo=eclipseide&logoColor=white)](https://open-vsx.org/extension/oddsquad/lit-devtools)
+[![Zed](https://img.shields.io/badge/Zed-extension-084ccf?logo=zedindustries&logoColor=white)](https://zed.dev/extensions?query=lit-lsp)
 [![Mentioned in Awesome Lit](https://awesome.re/mentioned-badge.svg)](https://github.com/web-padawan/awesome-lit)
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz_small.svg)](https://stackblitz.com/github/oddcelot/lit-devtools/tree/main/playground?startScript=stackblitz)
 
-A Vite plugin for Lit projects with true HMR, CSS delivery helpers for shadow
-roots, and a DevTools timeline.
+Lit DevTools is a toolkit for Lit projects: a Vite plugin with true HMR and
+shared shadow-root stylesheets, a DevTools panel for every render, the Lit
+Inspector browser extension, and a language server and Oxlint rules that
+know your components in VS Code, Zed and CI.
 
 [![Lit DevTools: Lit, with the lights on. HMR that keeps state, a panel for every render, an editor that knows your tags.](https://lit-devtools.oddsquad.dev/og/index.png)](https://lit-devtools.oddsquad.dev/)
 
@@ -50,7 +53,7 @@ lit-html decides "is this the same template?" by **object identity** of the
 so a one-character edit rebuilds the component's entire subtree and takes
 focus, scroll, input state, and child `@state` with it.
 
-This plugin fixes that with two cooperating mechanisms:
+The Vite plugin fixes that with two cooperating mechanisms:
 
 1. **Template-strings interning** — the `html`/`svg`/`mathml`/`css` tags are
    wrapped in dev so strings arrays are canonicalized by content, and only the
@@ -63,9 +66,9 @@ This plugin fixes that with two cooperating mechanisms:
 
 ## Usage
 
-Install `@oddsquad/lit-devtools`, which brings this plugin together with the
-Lit language server and its Oxlint rules, or this package on its own and
-import from `@oddsquad/vite-plugin-lit` instead of
+Install `@oddsquad/lit-devtools`, which brings the Vite plugin together with
+the Lit language server and its Oxlint rules. To install the plugin on its
+own, add `@oddsquad/vite-plugin-lit` and import from it instead of
 `@oddsquad/lit-devtools/vite`:
 
 ```sh
@@ -110,6 +113,15 @@ export default defineConfig(({command}) => ({
   — a layered event recorder and live component inspector inside Vite DevTools.
 - **[Source overlay](https://lit-devtools.oddsquad.dev/guides/source-overlay/)**
   — click any element in the page to open its source in your editor.
+- **[Lit Inspector](https://lit-devtools.oddsquad.dev/guides/devtools/browser-extension/)**
+  — a Lit tab in Chrome's and Firefox's DevTools that inspects the components
+  on any page, production builds included.
+- **[Language server](https://lit-devtools.oddsquad.dev/guides/language-server/)**
+  — completion, hover and type-checked bindings for your tags in VS Code and
+  Zed, and the same checks as Oxlint rules in CI.
+- **[Astro](https://lit-devtools.oddsquad.dev/guides/astro/)** — one
+  integration that renders, hydrates and hot-patches Lit components, with the
+  panel in the Astro dev toolbar.
 - **[Agent access](#coding-agents-mcp)** — the same component tree and timeline
   as MCP tools, for coding agents.
 - **[Ecosystem support](https://lit-devtools.oddsquad.dev/guides/ecosystem/)**
@@ -165,7 +177,7 @@ The equivalent `claude_desktop_config.json` / `mcp.json` entry:
 
 The two differ in how the server is found, not in what it can do:
 
-- **`... vite-plugin-lit mcp`** runs devframe's connector over stdio. The
+- **`... lit-devtools mcp`** runs devframe's connector over stdio. The
   plugin publishes each running dev server to devframe's instance registry,
   and the connector lists them through two gateway tools
   (`devframe_connect_list-instances`, `devframe_connect_call-tool`) — so one
