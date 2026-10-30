@@ -640,13 +640,21 @@ export class TimelineEventList extends LitElement {
                         variant="neutral"
                         class="expand-all"
                         size="s"
-                        appearance="plain"
+                        appearance="outlined"
                         @click=${() => this._toggleAll()}
                       >
                         ${
                           ticks.every((row) => row.tick!.expanded)
-                            ? 'Collapse all'
-                            : 'Expand all'
+                            ? html`<lit-icon
+                                  slot="start"
+                                  name="arrows-in-line-vertical"
+                                ></lit-icon
+                                >Collapse all`
+                            : html`<lit-icon
+                                  slot="start"
+                                  name="arrows-out-line-vertical"
+                                ></lit-icon
+                                >Expand all`
                         }
                       </lit-button>`
                     : nothing

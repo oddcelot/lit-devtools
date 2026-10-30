@@ -805,6 +805,35 @@ test('filtering slots keeps each row on its own colour', async () => {
   expect(swatch.getAttribute('style')).toContain(ANATOMY_COLORS[1]);
 });
 
+test('a shadow root with no slots or parts says none, until a filter', async () => {
+  const {el, root} = await mount(true);
+  push('inspector-message', {type: 'pick', id: 2});
+  push('inspector-message', {
+    type: 'details',
+    details: {
+      ...detailsFor(),
+      properties: [{name: 'label', value: 'Buy', kind: 'property'}],
+      anatomy: {
+        renderRoot: 'shadow',
+        mode: 'open',
+        slots: [],
+        orphans: [],
+        orphanText: 0,
+        parts: [],
+      },
+    },
+  });
+  await flush(el);
+  const none = () =>
+    [...root.querySelectorAll('.details .none-section')].map(
+      (s) =>
+        `${s.querySelector('.label')!.textContent} ${s.querySelector('.none')!.textContent}`
+    );
+  expect(none()).toEqual(['Slots none', 'Parts none']);
+  await typeFilter(el, root, 'label');
+  expect(none()).toEqual([]);
+});
+
 const regionDetails = (extra = {}) => ({
   ...detailsFor(),
   ...extra,

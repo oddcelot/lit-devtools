@@ -12,6 +12,8 @@
  */
 import {registerIcons} from '../../packages/lit-components/src/icons.js';
 import arrowsClockwise from '@phosphor-icons/core/assets/regular/arrows-clockwise.svg?raw';
+import arrowsInLineVertical from '@phosphor-icons/core/assets/regular/arrows-in-line-vertical.svg?raw';
+import arrowsOutLineVertical from '@phosphor-icons/core/assets/regular/arrows-out-line-vertical.svg?raw';
 import arrowCounterClockwise from '@phosphor-icons/core/assets/regular/arrow-counter-clockwise.svg?raw';
 import arrowUUpLeft from '@phosphor-icons/core/assets/regular/arrow-u-up-left.svg?raw';
 import arrowRight from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
@@ -56,6 +58,8 @@ const ICONS = {
   'arrow-right': arrowRight,
   'arrow-u-up-left': arrowUUpLeft,
   'arrows-clockwise': arrowsClockwise,
+  'arrows-in-line-vertical': arrowsInLineVertical,
+  'arrows-out-line-vertical': arrowsOutLineVertical,
   'arrow-square-out': arrowSquareOut,
   'bounding-box': boundingBox,
   'caret-down': caretDown,
