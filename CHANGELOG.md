@@ -9,6 +9,66 @@ release is organised by part. The VS Code extension also keeps a changelog of
 its own versions. Versions before 0.3.0 predate this file; see the git
 history for those.
 
+## 0.27.0 — 2026-10-30
+
+The manifest reads more of what your code already says: a field's type from
+the literal it starts as, and a form-associated class from its `static
+formAssociated = true`, which the panel shows on the live element too. In
+the editor, JSX event handlers are typed like Lit's `@event`, components an
+Astro or HTML page defines in its own `<script>` are known, and tag
+completion stays quick in a large workspace. A build that uses the `/css`
+helpers carries none of their dev code. Nothing needs action to upgrade.
+
+### Vite & Astro plugin
+
+- **Added** — **A field with no annotation gets its literal's type in the
+  manifest.** `label = ''` is a `string` and `count = 0` a `number` in
+  `custom-elements.json`, the panel's docs and editor hovers, instead of
+  having no type.
+- **Added** — **The manifest says when a component is form-associated.** A
+  class with `static formAssociated = true`, or a base class with it, lists
+  that static field among its members in `custom-elements.json`, and a
+  dependency's manifest that does the same is read back.
+- **Fixed** — **A build with `urlSheet()`, `inlineSheet()` or `devCacheBust()`
+  carries no dev code.** Under `vite build` they compile to a few lines in
+  your own bundle, as `?css-sheet` does, instead of the published module with
+  its hot-swap half.
+
+### DevTools panel
+
+- **Added** — **The details pane shows a form-associated element.** A
+  **form** `associated` line under the root says the class sets `static
+formAssociated = true`, read off the live element.
+- **Fixed** — **The details pane says when a component has no slots or
+  parts.** Slots and Parts show "none" instead of disappearing, and so does
+  Events when the component's docs list none.
+- **Fixed** — **Expand all in the Timeline looks like a button.** It has an
+  outline and an icon, like the toolbar's buttons, instead of reading as a
+  label beside the event count.
+
+### Editors & language server
+
+- **Added** — **Event handlers in JSX get typed too.** In React 19, Preact
+  and Solid files, an untyped `onadd={(ev) => …}` or `on:add` handler shows
+  the custom event's type as an inlay hint, offers "Add event type",
+  completes `ev.detail.`, and is reported when its parameter type doesn't fit
+  the event, as Lit's `@event` bindings already were.
+- **Added** — **Components an Astro or HTML page defines in its own script
+  are known.** A class that a `<script>` in an `.astro` file, or an inline
+  module script in an HTML page, registers with `customElements.define` now
+  completes, hovers and goes to its definition, in that file and wherever
+  else it's used, instead of being reported as an unknown element.
+- **Fixed** — **Tag completion stays quick in a large workspace.** With
+  thousands of components, completing a tag name took over 100 ms and grew
+  with every component added; it now takes about a third of that.
+
+### Docs & examples
+
+- **Added** — **The docs link the editor extensions.** The start page shows
+  what the language server catches and links the VS Code Marketplace and Open
+  VSX, and the language server guide installs from Open VSX instead of
+  building a `.vsix`.
+
 ## 0.26.0 — 2026-10-27
 
 The panel finds its place in whatever dock you give it: tabs, toolbars and
