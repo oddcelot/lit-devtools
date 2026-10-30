@@ -4,6 +4,82 @@ All notable changes to Lit DevTools for VS Code, including the language
 server it bundles. The rest of Lit DevTools is in the repository's
 [changelog](https://github.com/oddcelot/lit-devtools/blob/main/CHANGELOG.md).
 
+## 0.2.0 — 2026-10-30
+
+VS Code now checks what your templates do with your components, not just
+what they name: unknown tags and props, values that don't fit a binding,
+directives in the wrong place and templates Lit reads differently than
+written, in Lit templates and in JSX, Astro, MDX and HTML. On save, your
+project's TypeScript checks every binding against what the element takes.
+
+### Added
+
+- **Unknown elements, attributes, properties and slots are warnings.** A tag,
+  attribute, `.property` or `slot="…"` nothing defines is reported with the
+  name you probably meant, and so is a value outside an attribute's type, in
+  `html` and `svg` templates and in JSX, Astro, MDX and HTML files.
+  `ignoreTags` and `ignoreAttributes` silence them.
+- **Binding type errors show when you save.** Your project's TypeScript
+  checks every `.prop=${…}`, `attr=${…}`, `?bool=${…}` and `@event=${…}`
+  against what the element takes, seeing through `live` and `ifDefined`, so
+  `.size=${this.name}` is underlined when `name` is a `string` and `size` is
+  `'small' | 'large'`. A literal that can't fit, such as `?hidden=${'no'}`, is
+  reported as you type. Set `checkOnSave: false` to turn the check off, or the
+  `binding-type` rule to `warning` or `off`.
+- **Templates Lit reads differently than written are reported.** A component
+  closed with `/>` or never closed, a `.`, `?` or `@` binding without `${…}`,
+  a stray quote next to an expression and Polymer's `name$=` are flagged as
+  you type.
+- **A Lit directive where Lit can't apply it is an error.** `classMap`
+  outside `class`, `styleMap` outside `style`, `ifDefined` on a property,
+  `live` on a listener, `ref` in an attribute, and `repeat` or `unsafeHTML`
+  anywhere but between tags.
+- **Component declarations are checked.** A tag `customElements.define` would
+  refuse, an `attribute:` name HTML lowercases away, a property whose `type`
+  option doesn't fit its type, and a field that replaces an element's own
+  method or breaks Lit's updates (`shadowed-member`) are reported in the
+  component's file. `property-visibility`, off by default, flags
+  `@property()` on private fields and `@state()` on public ones.
+- **A component missing from `HTMLElementTagNameMap` is a warning, with a
+  fix.** The quick fix writes the `declare global` block, so TypeScript knows
+  what `document.createElement('x-button')` returns.
+- **`missing-import` reports components a file never imports.** Turn it on to
+  catch a tag used where nothing imports its definition, with a quick fix that
+  adds the import. `entries` names an app entry whose imports count for every
+  file.
+- **The `manifests` setting is read.** List a manifest, by path or URL, for
+  components whose package ships none, and they complete, hover and are
+  checked like any other.
+- **Silence a problem with a `lit-ignore` comment.** `<!-- lit-ignore -->`
+  before an element, `// lit-ignore-next-line` above a line, or
+  `// lit-ignore-file` for the file, each optionally naming the rules.
+- **`lit-devtools check` runs the same checks in CI.** It type-checks every
+  binding, lists the elements it couldn't check, follows the `binding-type`
+  severity and, run at a monorepo's root, checks every package with its own
+  settings and tsconfig.
+
+### Changed
+
+- **The extension is no longer experimental.** Its README and the language
+  server's docs drop the Experimental label.
+
+### Fixed
+
+- **Settings apply to a project opened through a symlink.** A folder reached
+  through a link, such as one under /tmp on macOS, ran with the default
+  settings, ignoring `manifests`, `entries`, the rules it turned on and the
+  check on save.
+- **Completion and hover see what you just typed in another file.** A
+  component added in one editor was sometimes missing from completion in the
+  next for a moment.
+- **No false CSS problems around expressions in a `css` template.** A
+  selector or a whole block body written as `${…}` made the rules around it
+  report errors.
+- **Hovers name a component's file relative to your project.** A tag's hover
+  shows `src/x-button.ts` instead of the file's full path on disk.
+- **Code in an indented MDX fence stays code.** A fenced block under a list
+  item was read as markup.
+
 ## 0.1.0 — 2026-10-25
 
 The first release: VS Code learns your Lit components, read from your
