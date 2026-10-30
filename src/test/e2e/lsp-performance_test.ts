@@ -210,12 +210,9 @@ describe('the language server in a 2,000-file monorepo', () => {
     expect(ms.hover).toBeLessThan(WARM_BUDGET_MS);
   });
 
-  // Over budget: about 120 ms on an M-series Mac. Completing a tag name
-  // reads the docs of every tag, and SourceDocsIndex.get (locate in
-  // src/lib/component-docs/source-index.ts) finds each by scanning every
-  // module, so the list costs components squared. Drop `.fails` once a
-  // tag-to-module map makes it linear.
-  test.fails('completes a tag name within 50 ms once warm', async () => {
+  // Completing a tag name reads the docs of every tag, so it leans on the
+  // source index finding a tag without a scan and keeping what it built.
+  test('completes a tag name within 50 ms once warm', async () => {
     edit(tagCompletion.text, 3);
     const completion = () =>
       client.request<{label: string}[]>('textDocument/completion', {

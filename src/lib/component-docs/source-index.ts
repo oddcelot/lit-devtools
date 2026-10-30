@@ -37,6 +37,11 @@ export interface SourceDocsIndex {
     superclassIds: ReadonlyMap<string, string>
   ): void;
   delete(id: string): void;
+  /**
+   * The tag's docs with what it inherits merged in. Built once and shared
+   * until a module changes, and frozen, so a caller that wants to change
+   * them copies first.
+   */
   get(tagName: string): ComponentDocs | undefined;
   /** Every stored module, for writing the index out as a manifest. */
   modules(): IndexedModule[];
@@ -114,6 +119,15 @@ const LISTS: ListKey[] = [
 ];
 
 const stripQuery = (id: string): string => id.split('?', 1)[0];
+
+/** `value` with every object and array in it frozen. */
+const deepFreeze = <T>(value: T): T => {
+  if (typeof value === 'object' && value !== null && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const child of Object.values(value)) deepFreeze(child);
+  }
+  return value;
+};
 
 const findClass = (
   entry: Entry | undefined,
@@ -245,12 +259,26 @@ export const createSourceDocsIndex = (
     return ancestors;
   };
 
+  /**
+   * Each tag's class, the first module to define it winning, as a scan in
+   * module order would. Built on the first lookup after a change: tag
+   * completion looks up every tag, which a scan per tag made quadratic.
+   */
+  let byTag: Map<string, Located> | undefined;
+  /**
+   * Each tag's docs as `get` last built them, until a module changes.
+   * Frozen, since every caller shares the one copy.
+   */
+  const built = new Map<string, ComponentDocs>();
   const locate = (tagName: string): Located | undefined => {
-    for (const [id, entry] of modules) {
-      const cls = entry.module.classes.find((c) => c.tagName === tagName);
-      if (cls !== undefined) return {id, cls};
+    if (byTag === undefined) {
+      byTag = new Map();
+      for (const [id, entry] of modules)
+        for (const cls of entry.module.classes)
+          if (cls.tagName !== undefined && !byTag.has(cls.tagName))
+            byTag.set(cls.tagName, {id, cls});
     }
-    return undefined;
+    return byTag.get(tagName);
   };
 
   const docsFor = (tagName: string, start: Located): ComponentDocs => {
@@ -275,14 +303,24 @@ export const createSourceDocsIndex = (
   return {
     set(id, module, superclassIds) {
       modules.set(stripQuery(id), {module, superclassIds});
+      byTag = undefined;
+      built.clear();
       changed();
     },
     delete(id) {
-      if (modules.delete(stripQuery(id))) changed();
+      if (!modules.delete(stripQuery(id))) return;
+      byTag = undefined;
+      built.clear();
+      changed();
     },
     get(tagName) {
+      const cached = built.get(tagName);
+      if (cached !== undefined) return cached;
       const start = locate(tagName);
-      return start === undefined ? undefined : docsFor(tagName, start);
+      if (start === undefined) return undefined;
+      const docs = deepFreeze(docsFor(tagName, start));
+      built.set(tagName, docs);
+      return docs;
     },
     modules() {
       return [...modules].map(([id, entry]) => ({
