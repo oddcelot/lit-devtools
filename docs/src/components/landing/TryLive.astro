@@ -1,0 +1,187 @@
+---
+/**
+ * The hero's "Try it live": its button (the slot) opens the flame example
+ * full screen in a runbun.dev embed, a real Vite dev server with the plugin
+ * running in the visitor's browser (src/lib/try-live.ts). Nothing loads
+ * from runbun.dev before that click.
+ *
+ * Vite needs SharedArrayBuffer, so the page must be cross-origin isolated,
+ * which GitHub Pages can't make it. The first click registers
+ * public/try-live-sw.js and reloads the page once as `/?try`, which that
+ * worker isolates; the embed then opens by itself. A later click opens it
+ * at once.
+ *
+ * The embed itself stays out of the page: it is only ever seen in its
+ * modal, which `expand()` opens in the full playground. Closing the modal
+ * keeps the dev server running, so the button reopens it as it was.
+ *
+ * `-watch` keeps runbun from restarting the program on each save, as it
+ * does by default: Vite's HMR takes the edit, and a restart would throw
+ * away the patched page and its state, the thing the demo shows.
+ *
+ * Its files are added by the script, not written into the page: the
+ * example's index.html has a `</body>` of its own, which the plugin's dev
+ * server would take for the page's and inject its tags into.
+ */
+import {entry} from '../../lib/try-live';
+
+const origin = 'https://runbun.dev';
+---
+
+<try-live data-origin={origin}>
+  <slot />
+  <bun-playground
+    mode="preview"
+    expand="full"
+    features="-watch"
+    load="click"
+    file={entry}
+    src={origin}
+    fonts="https://cdn.jsdelivr.net/npm/@fontsource-variable/lilex/index.css"
+    title="The Lit flame example with Lit DevTools, running on runbun.dev"
+    inert></bun-playground>
+</try-live>
+
+<script>
+  import {files} from '../../lib/try-live';
+
+  /** Set before the reload that isolates the page; the embed opens after it. */
+  const PENDING = 'try-live:pending';
+
+  /** The embed's chrome in the page's colours, for the scheme in effect. */
+  const vars = () => {
+    const style = getComputedStyle(document.documentElement);
+    const token = (name: string) => style.getPropertyValue(name).trim();
+    return JSON.stringify({
+      base: {
+        '--bg': token('--surface'),
+        '--canvas': token('--bg'),
+        '--panel': token('--surface-low'),
+        '--fg': token('--text'),
+        '--muted': token('--text-muted'),
+        '--border': token('--border'),
+        '--accent': token('--accent'),
+        '--error': token('--error'),
+        '--warn': token('--warning'),
+        '--ok': token('--success'),
+        '--info': token('--info'),
+        '--radius': token('--radius-md'),
+        '--font-ui': token('--font-sans'),
+        '--font-mono': `'Lilex Variable', ui-monospace, 'SF Mono', Menlo, monospace`,
+      },
+    });
+  };
+
+  class TryLive extends HTMLElement {
+    connectedCallback() {
+      const button = this.querySelector('button');
+      const embed = this.querySelector<HTMLElement>('bun-playground');
+      if (button === null || embed === null) return;
+
+      const theme = () => {
+        embed.setAttribute(
+          'theme',
+          document.documentElement.dataset.theme === 'light' ? 'light' : 'dark'
+        );
+        embed.setAttribute('vars', vars());
+      };
+      theme();
+      new MutationObserver(theme).observe(document.documentElement, {
+        attributeFilter: ['data-theme'],
+      });
+      // Out of the tab order while it waits in the page; the modal is the
+      // only place it shows.
+      embed.addEventListener('bun-playground:expand', (e) => {
+        embed.inert = !(e as CustomEvent<{open: boolean}>).detail.open;
+      });
+
+      const open = async () => {
+        if (embed.childElementCount === 0) {
+          for (const [path, code] of Object.entries(files)) {
+            const file = document.createElement('script');
+            file.type = 'text/plain';
+            file.dataset.file = path;
+            file.textContent = code;
+            embed.append(file);
+          }
+        }
+        if (!customElements.get('bun-playground')) {
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.src = `${this.dataset.origin}/embed.js`;
+          document.head.append(script);
+        }
+        await customElements.whenDefined('bun-playground');
+        embed.inert = false;
+        await (embed as HTMLElement & {expand(): Promise<void>}).expand();
+      };
+
+      button.addEventListener('click', async () => {
+        if (crossOriginIsolated || !('serviceWorker' in navigator)) {
+          void open();
+          return;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+        await navigator.serviceWorker.register(`${base}/try-live-sw.js`, {
+          scope: `${base}/`,
+        });
+        await navigator.serviceWorker.ready;
+        sessionStorage.setItem(PENDING, '1');
+        location.replace(`${base}/?try`);
+      });
+
+      if (sessionStorage.getItem(PENDING) !== null) {
+        sessionStorage.removeItem(PENDING);
+        void open();
+      }
+    }
+  }
+  customElements.define('try-live', TryLive);
+</script>
+
+<style>
+  try-live {
+    display: contents;
+  }
+  /* In the page only as the modal's anchor: a pixel, clipped. The modal sits
+     in the top layer, which neither the clip nor the size reaches. */
+  bun-playground {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  /* The landing page's frame (Glow.astro) on the modal: a hairline that
+     catches the flame's blue and cyan at two corners, and their light
+     inside the edge. The overlay is click-through, above the playground. */
+  bun-playground::part(overlay) {
+    border-radius: 10px;
+    box-shadow: inset 0 0 80px -40px
+      color-mix(in srgb, var(--lit-blue-bright) 55%, transparent);
+  }
+  @supports (mask-composite: exclude) {
+    bun-playground::part(overlay)::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      padding: 1px;
+      border-radius: inherit;
+      background: linear-gradient(
+        140deg,
+        color-mix(in srgb, var(--lit-blue-bright) 70%, transparent),
+        var(--border) 35%,
+        var(--border) 65%,
+        color-mix(in srgb, var(--glow-cyan) 60%, transparent)
+      );
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+    }
+  }
+</style>
