@@ -46,6 +46,11 @@ export default defineConfig({
         },
       },
       {
+        // The test files run in Node, and some import built server code
+        // (the SSR example's entry-server), so lit takes its node builds
+        // here too. The pages under test get the browser builds from the
+        // dev servers' own config (src/test/e2e/utils.ts).
+        ...canarySettings({node: true}),
         test: {
           name: 'e2e',
           environment: 'node',

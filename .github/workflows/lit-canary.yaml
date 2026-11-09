@@ -39,6 +39,8 @@ jobs:
       # whole point of a canary.
       - run: git submodule update --init --checkout --remote --depth 1 lit
       - run: pnpm run build:lit-canary
+      # As in ci.yaml: some unit tests serve the built panel from dist/.
+      - run: pnpm run build
       - run: pnpm run test:unit
       # Still run e2e when unit fails, so one run reports both.
       - run: pnpm run test:e2e
