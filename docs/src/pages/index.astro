@@ -16,6 +16,7 @@ import Nav from '../components/landing/Nav.astro';
 import ScrollGlow from '../components/landing/ScrollGlow.astro';
 import InstallCommand from '../components/landing/InstallCommand.astro';
 import DemoFrame from '../components/landing/DemoFrame.astro';
+import TryLive from '../components/landing/TryLive.astro';
 import DevtoolsShowcase from '../components/landing/DevtoolsShowcase.astro';
 import DocsSources from '../components/landing/DocsSources.astro';
 import StoreButtons from '../components/StoreButtons.astro';
@@ -163,6 +164,16 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
             <a class="button" href="/start/first-component/"
               >Build your first component</a
             >
+            <TryLive>
+              <button
+                type="button"
+                class="button live"
+                title="Opens a Vite dev server with Lit DevTools in your browser, on runbun.dev"
+              >
+                <Fragment set:html={phosphor('play')} />
+                Try it live
+              </button>
+            </TryLive>
           </div>
           <InstallCommand />
         </div>
@@ -661,6 +672,45 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
   .button.primary:hover {
     background: var(--accent-hover);
   }
+  /* The runbun.dev playground: the headline's blue and cyan as its ring,
+     drifting the way the headline's shine does. */
+  .button.live {
+    position: relative;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--lit-blue-bright) 8%, transparent);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .button.live::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(
+      100deg,
+      var(--lit-blue-bright) 10%,
+      var(--glow-cyan) 55%,
+      var(--lit-blue-bright) 95%
+    );
+    background-size: 200% 100%;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: shine 8s ease-in-out infinite alternate;
+  }
+  .button.live:hover {
+    background: color-mix(in srgb, var(--glow-cyan) 14%, transparent);
+  }
+  .button.live :global(svg) {
+    color: var(--glow-cyan);
+  }
+  .button.live[aria-busy='true'] {
+    cursor: progress;
+    opacity: 0.7;
+  }
   .facts {
     display: flex;
     flex-wrap: wrap;
@@ -968,7 +1018,8 @@ const features: Array<{icon: IconName; title: string; text: string; href: string
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .shine {
+    .shine,
+    .button.live::before {
       animation: none;
     }
   }

@@ -19,6 +19,7 @@ import monitor from '@phosphor-icons/core/assets/regular/monitor.svg?raw';
 import moon from '@phosphor-icons/core/assets/regular/moon.svg?raw';
 import packageIcon from '@phosphor-icons/core/assets/regular/package.svg?raw';
 import paintBrush from '@phosphor-icons/core/assets/regular/paint-brush.svg?raw';
+import play from '@phosphor-icons/core/assets/regular/play.svg?raw';
 import plugsConnected from '@phosphor-icons/core/assets/regular/plugs-connected.svg?raw';
 import robot from '@phosphor-icons/core/assets/regular/robot.svg?raw';
 import shieldCheck from '@phosphor-icons/core/assets/regular/shield-check.svg?raw';
@@ -38,6 +39,7 @@ const icons = {
   moon,
   package: packageIcon,
   'paint-brush': paintBrush,
+  play,
   'plugs-connected': plugsConnected,
   robot,
   'shield-check': shieldCheck,
