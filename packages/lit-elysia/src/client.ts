@@ -3,6 +3,7 @@
 import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {pageFor, takeOver, type ClientRoutes} from './navigation.ts';
+import {decode} from './serialize.ts';
 import {DATA_ID, OUTLET_ID, type Payload} from './shared.ts';
 
 /**
@@ -16,7 +17,7 @@ export const boot = async (routes: ClientRoutes): Promise<void> => {
   const script = document.getElementById(DATA_ID);
   const outlet = document.getElementById(OUTLET_ID);
   if (!script || !outlet) return;
-  const {route, data} = JSON.parse(script.textContent!) as Payload;
+  const {route, data} = decode<Payload>(script.textContent!);
   const page = (await pageFor(routes, route)()).default;
   hydrate(page.render(data), outlet);
   takeOver(routes, outlet);

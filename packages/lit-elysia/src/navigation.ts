@@ -1,5 +1,6 @@
 import {render} from 'lit';
 import type {Page} from './page.ts';
+import {decode} from './serialize.ts';
 import {DATA_HEADER, type PageData} from './shared.ts';
 
 export type ClientRoutes = Record<
@@ -115,5 +116,5 @@ const fetchPage = async (
   }).catch(() => undefined);
   if (response?.headers.get(DATA_HEADER) !== 'data') return undefined;
   if (response.redirected) history.replaceState(null, '', response.url);
-  return (await response.json()) as PageData;
+  return decode<PageData>(await response.text());
 };

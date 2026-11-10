@@ -2,6 +2,7 @@ import {render} from '@lit-labs/ssr';
 import type {RenderResult} from '@lit-labs/ssr/lib/render-result.js';
 import {Elysia} from 'elysia';
 import type {Load, LoadContext, Page} from './page.ts';
+import {encode} from './serialize.ts';
 import {
   BODY,
   DATA_HEADER,
@@ -55,7 +56,13 @@ const VARY = {vary: DATA_HEADER};
 
 const dataResponse = (page: Page<unknown>, payload: Payload) => {
   const body: PageData = {...payload, title: page.title?.(payload.data)};
-  return Response.json(body, {headers: {...VARY, [DATA_HEADER]: 'data'}});
+  return new Response(encode(body), {
+    headers: {
+      ...VARY,
+      [DATA_HEADER]: 'data',
+      'content-type': 'application/json',
+    },
+  });
 };
 
 const documentResponse = (
@@ -110,7 +117,7 @@ export const renderDocument = ({
           send(chunk);
         }
         send(
-          `</div><script type="application/json" id="${DATA_ID}">${serialize(payload)}</script>${after}`
+          `</div><script type="application/json" id="${DATA_ID}">${encode(payload)}</script>${after}`
         );
         controller.close();
       } catch (error) {
@@ -141,7 +148,3 @@ async function* flatten(result: RenderResult): AsyncGenerator<string> {
 
 const escapeHtml = (text: string) =>
   text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
-
-/** JSON that is safe inside a `<script>` element. */
-const serialize = (payload: Payload) =>
-  JSON.stringify(payload).replaceAll('<', '\\u003c');

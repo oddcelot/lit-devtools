@@ -1,6 +1,7 @@
 import {html} from 'lit';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
+import {decode, encode} from '../src/serialize.ts';
 import {renderDocument} from '../src/server.ts';
 
 const DEMO_ROUTES = decodeURIComponent(
@@ -52,7 +53,30 @@ test('the document fills the shell and carries the data', async () => {
   expect(text).toContain('<title>&#60;&#60;/script&#62;&#62;</title>');
   expect(text).toMatch(/<div id="lit-elysia"><!--lit-part [^>]+--><p>/);
   // The data can't close its own script element.
-  expect(text).toContain(
-    '<script type="application/json" id="lit-elysia-data">{"route":"/","data":"\\u003c/script>"}</script><footer>'
-  );
+  const script =
+    /<script type="application\/json" id="lit-elysia-data">(.*?)<\/script><footer>/s.exec(
+      text
+    );
+  expect(script).not.toBeNull();
+  expect(decode(script![1]!)).toEqual({route: '/', data: '</script>'});
+});
+
+test('page data keeps the types JSON loses', () => {
+  const shared = {name: 'shared'};
+  const data = {
+    when: new Date('2026-11-10T12:00:00Z'),
+    tags: new Set(['a', 'b']),
+    counts: new Map([['a', 1n]]),
+    missing: undefined,
+    first: shared,
+    second: shared,
+  };
+  const back = decode<typeof data>(encode(data));
+  expect(back.when).toBeInstanceOf(Date);
+  expect(back.when.toISOString()).toBe('2026-11-10T12:00:00.000Z');
+  expect(back.tags).toEqual(new Set(['a', 'b']));
+  expect(back.counts.get('a')).toBe(1n);
+  expect('missing' in back).toBe(true);
+  expect(back.second).toBe(back.first);
+  expect(encode('</script><!--')).not.toContain('<');
 });

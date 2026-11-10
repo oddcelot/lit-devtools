@@ -16,7 +16,8 @@
   "dependencies": {
     "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
-    "@oddsquad/vite-plugin-lit": "workspace:^"
+    "@oddsquad/vite-plugin-lit": "workspace:^",
+    "seroval": "^1.8.0"
   },
   "peerDependencies": {
     "elysia": "^2.0.0-rc.4",

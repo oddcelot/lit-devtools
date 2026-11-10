@@ -12,6 +12,7 @@ import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {createBuilder, createServer, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {litElysia} from '../src/index.ts';
+import {decode} from '../src/serialize.ts';
 
 const DEMO_DIR = fileURLToPath(new URL('../demo', import.meta.url));
 
@@ -65,7 +66,8 @@ test('a page is rendered on the server with its data', async () => {
   const html = await response.text();
   expect(html).toContain('<title>Lit</title>');
   expect(html).toContain('<template shadowroot="open" shadowrootmode="open">');
-  expect(html).toContain('"route":"/notes/:id"');
+  const script = /id="lit-elysia-data">(.*?)<\/script>/s.exec(html)![1]!;
+  expect(decode(script)).toMatchObject({route: '/notes/:id', data: {id: 2}});
 });
 
 test("a load's Response is sent in place of the page", async () => {
@@ -92,7 +94,10 @@ test('the page hydrates, and an edit keeps the state', async () => {
       warnings.push(message.text());
     }
   });
+  // Hydrating with a string where the server had a Date would throw here.
+  page.on('pageerror', (error) => warnings.push(error.message));
   await page.goto(`${origin}/notes/1`);
+  expect(await page.locator('time').textContent()).toBe('2026-11-01');
   const button = page.locator('note-counter button');
   await button.click();
   await button.click();
@@ -112,11 +117,11 @@ test('the router asks a page for its data alone', async () => {
     headers: {'x-lit-elysia': 'data'},
   });
   expect(response.headers.get('vary')).toContain('x-lit-elysia');
-  expect(await response.json()).toMatchObject({
-    route: '/notes/:id',
-    title: 'Lit',
-    data: {id: 2},
-  });
+  const data = decode<{route: string; title: string; data: {createdAt: Date}}>(
+    await response.text()
+  );
+  expect(data).toMatchObject({route: '/notes/:id', title: 'Lit'});
+  expect(data.data.createdAt).toBeInstanceOf(Date);
 });
 
 /** Marks the document, to tell a rendered page from a loaded one. */
@@ -132,6 +137,8 @@ test('after hydrating, the router renders pages without loading them', async () 
 
   await page.getByRole('link', {name: 'Lit'}).click();
   await expect.poll(() => page.locator('h1').textContent()).toBe('Lit');
+  // A Date in the data, which plain JSON would have turned into a string.
+  expect(await page.locator('time').textContent()).toBe('2026-11-02');
   expect(page.url()).toBe(`${origin}/notes/2`);
   expect(await page.title()).toBe('Lit');
 
