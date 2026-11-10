@@ -74,6 +74,8 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
       {label: 'Eden client', href: href('/eden')},
       {label: 'Live feed over SSE', href: href('/live')},
       {label: 'Auth macro', href: href('/whoami')},
+      // Not a page: the docs @elysia/openapi serves from the API's schemas.
+      {label: 'API docs (OpenAPI)', href: '/api/docs', reload: true},
     ],
   },
   {

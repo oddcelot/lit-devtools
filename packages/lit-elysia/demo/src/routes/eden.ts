@@ -18,6 +18,11 @@ export default definePage('/eden', {
       there, and the component narrows <code>error</code> by its status to read
       each body.
     </p>
+    <p>
+      The same schemas make the API's
+      <a href="/api/docs" data-reload>OpenAPI docs</a>, through
+      <code>@elysia/openapi</code>.
+    </p>
     <api-notes></api-notes>
   `,
 });

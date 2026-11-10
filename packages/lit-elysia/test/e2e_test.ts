@@ -191,6 +191,16 @@ test("the user's Elysia app keeps its routes and validation", async () => {
   });
   expect(taken.status).toBe(409);
   expect(await taken.json()).toMatchObject({existing: 1});
+
+  // The same schemas document it, statuses and all.
+  const spec = (await (await fetch(`${origin}/api/docs/json`)).json()) as {
+    paths: Record<string, Record<string, {responses?: object}>>;
+  };
+  expect(
+    Object.keys(spec.paths['/api/notes/{id}']!['get']!.responses!)
+  ).toEqual(['200', '404']);
+  expect(spec.paths['/api/loads']).toBeUndefined();
+  expect((await fetch(`${origin}/api/docs`)).status).toBe(200);
 });
 
 test('the page hydrates, and an edit keeps the state', async () => {
