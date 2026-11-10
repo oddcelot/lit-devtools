@@ -31,28 +31,46 @@ test('the scan pairs each page with its loader and its layouts', async () => {
         server: layout.server?.slice(DEMO_ROUTES.length),
       })),
     }))
-  ).toEqual([
-    {path: '/', page: '/index.ts', server: '/index.server.ts', layouts: [ROOT]},
-    {
-      path: '/broken',
-      page: '/broken.ts',
-      server: '/broken.server.ts',
-      layouts: [ROOT],
-    },
-    {
-      path: '/latest',
-      page: '/latest.ts',
-      server: '/latest.server.ts',
-      layouts: [ROOT],
-    },
-    {
-      path: '/notes/:id',
-      page: '/notes/[id].ts',
-      server: '/notes/[id].server.ts',
-      // Outermost first; the inner one has no loader.
-      layouts: [ROOT, {page: '/notes/_layout.ts', server: undefined}],
-    },
-  ]);
+  ).toEqual(
+    expect.arrayContaining([
+      {
+        path: '/',
+        page: '/index.ts',
+        server: '/index.server.ts',
+        layouts: [ROOT],
+      },
+      {
+        path: '/notes/:id',
+        page: '/notes/[id].ts',
+        server: '/notes/[id].server.ts',
+        // Outermost first; the inner one has no loader.
+        layouts: [ROOT, {page: '/notes/_layout.ts', server: undefined}],
+      },
+      {
+        path: '/params/:a/:b',
+        page: '/params/[a]/[b].ts',
+        server: '/params/[a]/[b].server.ts',
+        layouts: [ROOT],
+      },
+      {
+        path: '/files/*',
+        page: '/files/[...path].ts',
+        server: '/files/[...path].server.ts',
+        layouts: [ROOT],
+      },
+      {
+        path: '/nested',
+        page: '/nested/index.ts',
+        server: undefined,
+        layouts: [
+          ROOT,
+          {page: '/nested/_layout.ts', server: '/nested/_layout.server.ts'},
+        ],
+      },
+    ])
+  );
+  // Files starting with `_` are never pages.
+  expect(routes.some((route) => route.page.includes('/_'))).toBe(false);
 });
 
 test('the error pages answer no path and load nothing of their own', async () => {

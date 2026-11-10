@@ -177,7 +177,10 @@ test('the router asks a page for its data alone', async () => {
   }>(await response.text());
   expect(data.route).toBe('/notes/:id');
   // Each layout's data, outermost first; the notes layout has no loader.
-  expect(data.layouts).toEqual([{count: expect.any(Number)}, undefined]);
+  expect(data.layouts).toEqual([
+    {count: expect.any(Number), path: '/notes/2'},
+    undefined,
+  ]);
   expect(data.data.createdAt).toBeInstanceOf(Date);
 });
 
@@ -395,6 +398,118 @@ test('the page is marked busy while the router waits on the server', async () =>
   expect(await page.evaluate(() => (window as {seen?: string[]}).seen)).toEqual(
     ['lit-elysia:navigating:true', 'lit-elysia:navigated:false']
   );
+});
+
+/** Follows a sidebar entry, as the router does after hydrating. */
+const follow = async (label: string) => {
+  await page
+    .locator('aside')
+    .getByRole('link', {name: label, exact: true})
+    .click();
+};
+
+const current = () =>
+  page.locator('aside a[aria-current="page"]').allTextContents();
+
+test('the sidebar marks the page on screen as the router moves', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  expect(await current()).toEqual(['All notes']);
+  await follow('Two params');
+  await expect.poll(current).toEqual(['Two params']);
+  await follow('A note');
+  // The full-load link to the same address isn't marked.
+  await expect.poll(current).toEqual(['A note']);
+  expect(await marked(page)).toBe(true);
+});
+
+test('params, a catch-all and a query string reach the page', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await follow('Two params');
+  await expect.poll(() => page.locator('#param-a').textContent()).toBe('red');
+  expect(await page.locator('#param-b').textContent()).toBe('round');
+  await page.getByRole('link', {name: 'swap them'}).click();
+  await expect.poll(() => page.locator('#param-a').textContent()).toBe('round');
+
+  await follow('Catch-all');
+  await expect
+    .poll(() => page.locator('#segments li').allTextContents())
+    .toEqual(['docs', 'guide', 'routing.md']);
+
+  await follow('Query string');
+  await expect.poll(() => page.title()).toBe('Search: the');
+  await mark(page);
+  // A GET form is a navigation like a link's.
+  await page.getByRole('searchbox').fill('elysia');
+  await page.getByRole('button', {name: 'Search'}).click();
+  await expect.poll(() => page.url()).toBe(`${origin}/search?q=elysia`);
+  await expect
+    .poll(() => page.locator('#result-count').textContent())
+    .toBe('1 notes match');
+  expect(await marked(page)).toBe(true);
+});
+
+test('a nested layout keeps its elements across its pages, and reloads its data', async () => {
+  await page.goto(`${origin}/nested`);
+  const counter = page.locator('note-counter button');
+  await counter.click();
+  await counter.click();
+  const firstLoad = await page.locator('#loaded-at').textContent();
+  await page
+    .getByRole('navigation', {name: 'Section tabs'})
+    .getByRole('link', {name: 'Second tab'})
+    .click();
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('Second tab');
+  expect(await counter.textContent()).toContain('2 times');
+  await expect
+    .poll(() => page.locator('#loaded-at').textContent())
+    .not.toBe(firstLoad);
+  // Leaving the section and coming back starts it over.
+  await follow('All notes');
+  await expect.poll(() => page.locator('main h1').textContent()).toBe('Notes');
+  await follow('Nested layout');
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('First tab');
+  expect(
+    await page.locator('article.section note-counter button').textContent()
+  ).toContain('0 times');
+});
+
+test('named actions run the one their form names', async () => {
+  await page.goto(`${origin}/actions`);
+  await page.locator('#server-count').waitFor();
+  const before = Number(await page.locator('#server-count').textContent());
+  await page.getByRole('button', {name: 'Add one'}).click();
+  await expect
+    .poll(() => page.locator('#action-result').textContent())
+    .toBe('Added one.');
+  expect(Number(await page.locator('#server-count').textContent())).toBe(
+    before + 1
+  );
+  expect(page.url()).toBe(`${origin}/actions`);
+  await page.getByRole('button', {name: 'Reset'}).click();
+  await expect
+    .poll(() => page.locator('#server-count').textContent())
+    .toBe('0');
+  await page.getByRole('button', {name: 'Reset'}).click();
+  await expect
+    .poll(() => page.locator('#action-result').textContent())
+    .toBe('Already at zero.');
+});
+
+test('a hash link lands on its heading, and other sites are left to the browser', async () => {
+  await page.goto(`${origin}/actions`);
+  await page.locator('#server-count').waitFor();
+  await follow('Add a note');
+  await expect.poll(() => page.url()).toBe(`${origin}/#add`);
+  await expect.poll(() => page.locator('#add').isVisible()).toBe(true);
+  const external = page.locator('aside a[rel="external"]');
+  expect(await external.getAttribute('href')).toBe('https://elysiajs.com');
 });
 
 test('a data-reload link is a full load', async () => {

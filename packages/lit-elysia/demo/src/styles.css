@@ -37,3 +37,65 @@ html[data-navigating]::before {
     width: 90%;
   }
 }
+
+/* The sidebar beside the page, above it on narrow screens. */
+.app {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--pico-spacing);
+}
+
+@media (min-width: 768px) {
+  .app {
+    grid-template-columns: 13rem 1fr;
+    align-items: start;
+  }
+
+  .app > aside {
+    position: sticky;
+    top: var(--pico-spacing);
+  }
+}
+
+/* Blades pulls a nav's first and last lists out to the edges; in the
+   sidebar every group lines up. */
+.app > aside ul {
+  margin-inline: 0;
+  padding: 0;
+}
+
+.app > aside li {
+  padding-block: calc(var(--pico-nav-element-spacing-vertical) / 2);
+}
+
+nav a[aria-current='page'] {
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.3em;
+}
+
+.app > aside small {
+  display: block;
+  padding-inline: var(--pico-nav-link-spacing-horizontal);
+  margin-top: var(--pico-spacing);
+  color: var(--pico-muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+article.section > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pico-spacing);
+}
+
+/* Forms side by side, one button each. */
+.actions {
+  display: flex;
+  gap: var(--pico-spacing);
+}
+
+.actions form {
+  margin: 0;
+}

@@ -15,7 +15,7 @@ const addNote = (form: Form | undefined) => {
   return html`
     <article>
       <form method="post">
-        <h2>Add a note</h2>
+        <h2 id="add">Add a note</h2>
         <label>
           Title
           <input
@@ -45,17 +45,6 @@ export default definePage<LoadedData<typeof load>, Form>({
       )}
     </ul>
     ${addNote(form)}
-    <section>
-      <h2>Try</h2>
-      <ul>
-        <li><a href="/latest">Newest note</a></li>
-        <li><a href="/notes/1?slow">A slow note</a></li>
-        <li><a href="/notes/99">A note that isn't there</a></li>
-        <li><a href="/notes/1" data-reload>First note, as a full load</a></li>
-        <li><a href="/broken">A page that fails</a></li>
-        <li><a href="/nowhere">A page that doesn't exist</a></li>
-      </ul>
-    </section>
     <note-counter></note-counter>
   `,
 });
