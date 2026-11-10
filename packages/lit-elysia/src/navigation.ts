@@ -1,12 +1,6 @@
-import {render} from 'lit';
-import type {Page} from './page.ts';
 import {decode} from './serialize.ts';
-import {DATA_HEADER, type PageData, type Payload} from './shared.ts';
-
-export type ClientRoutes = Record<
-  string,
-  () => Promise<{default: Page<unknown>}>
->;
+import {DATA_HEADER, type PageData} from './shared.ts';
+import {show, viewOf, type Site} from './site.ts';
 
 type History = 'push' | 'replace';
 
@@ -38,21 +32,6 @@ interface Fetched {
   page: PageData;
 }
 
-/** The page in the outlet and the data it rendered with, for HMR. */
-let shown: Payload | undefined;
-
-export const shownPage = (): Payload | undefined => shown;
-
-export const remember = (payload: Payload): void => {
-  shown = {route: payload.route, data: payload.data};
-};
-
-export const pageFor = (routes: ClientRoutes, route: string) => {
-  const load = routes[route];
-  if (!load) throw new Error(`[lit-elysia] no page for route ${route}`);
-  return load;
-};
-
 /**
  * From here on the page is the router's: a navigation to another page of
  * the site fetches that page's data and renders it into the outlet, without
@@ -62,7 +41,7 @@ export const pageFor = (routes: ClientRoutes, route: string) => {
  * Without the Navigation API, every navigation stays a full page load. A
  * link with `data-reload` always is one.
  */
-export const takeOver = (routes: ClientRoutes, outlet: HTMLElement): void => {
+export const takeOver = (site: Site, outlet: HTMLElement): void => {
   const navigation = (window as {navigation?: Navigation}).navigation;
   if (!navigation) return;
   let reload = false;
@@ -77,24 +56,24 @@ export const takeOver = (routes: ClientRoutes, outlet: HTMLElement): void => {
   );
   navigation.addEventListener('navigate', (event) => {
     if (reload || !routable(event) || letThrough(event.destination.url)) return;
-    dispatch(event, navigation, routes, outlet);
+    dispatch(event, navigation, site, outlet);
   });
 };
 
 const dispatch = (
   event: NavigateEvent,
   navigation: Navigation,
-  routes: ClientRoutes,
+  site: Site,
   outlet: HTMLElement
 ) => {
   const url = event.destination.url;
   const fetched = fetchedFor(event.info, url);
   if (fetched) {
     intercept(event, () =>
-      renderPage(routes, outlet, fetched.page, event.signal)
+      renderPage(site, outlet, fetched.page, event.signal)
     );
   } else if (event.navigationType === 'traverse') {
-    intercept(event, () => revisit(routes, outlet, url, event.signal));
+    intercept(event, () => revisit(site, outlet, url, event.signal));
   } else {
     // Not committed yet: the URL changes only once the data is here.
     event.preventDefault();
@@ -171,7 +150,7 @@ const loadDocument = (url: string, history: History) => {
  * answer.
  */
 const revisit = async (
-  routes: ClientRoutes,
+  site: Site,
   outlet: HTMLElement,
   url: string,
   signal: AbortSignal
@@ -179,20 +158,18 @@ const revisit = async (
   const fetched = await fetchPage(url, signal);
   if (signal.aborted) return;
   if (!fetched) return location.reload();
-  await renderPage(routes, outlet, fetched.page, signal);
+  await renderPage(site, outlet, fetched.page, signal);
 };
 
 const renderPage = async (
-  routes: ClientRoutes,
+  site: Site,
   outlet: HTMLElement,
   next: PageData,
   signal: AbortSignal
 ) => {
-  const page = (await pageFor(routes, next.route)()).default;
+  const view = await viewOf(site, next.route);
   if (signal.aborted) return;
-  render(page.render(next.data), outlet);
-  remember(next);
-  if (next.title !== undefined) document.title = next.title;
+  show(outlet, view, next);
 };
 
 /** The page's data, and where it is after any redirect. */

@@ -13,6 +13,8 @@ export interface Payload {
   /** The route's path, such as `/notes/:id`, which names its page module. */
   route: string;
   data: unknown;
+  /** What each layout's `load` returned, outermost first. */
+  layouts: unknown[];
 }
 
 /**
@@ -21,7 +23,5 @@ export interface Payload {
  */
 export const DATA_HEADER = 'x-lit-elysia';
 
-/** A page's data as the router fetches it: the payload, and its title. */
-export interface PageData extends Payload {
-  title?: string;
-}
+/** A page's data as the router fetches it. */
+export type PageData = Payload;

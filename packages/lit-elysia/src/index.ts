@@ -218,30 +218,53 @@ const watchRoutes = (server: ViteDevServer, dir: string) => {
 
 const json = (value: unknown) => JSON.stringify(value);
 
+const file = (name: string) => json(normalizePath(name));
+
 const clientModule = (routes: RouteFile[], dev: boolean) => {
-  const pages = routes.map((route) => json(normalizePath(route.page)));
+  const files = [
+    ...new Set(
+      routes.flatMap((route) => [
+        route.page,
+        ...route.layouts.map((layout) => layout.page),
+      ])
+    ),
+  ].map(file);
   return `
-import {boot, hotPage} from ${json(runtime('./client.ts'))};
-const routes = {
-${routes.map((route, i) => `  ${json(route.path)}: () => import(${pages[i]}),`).join('\n')}
+import {boot, hotModule} from ${json(runtime('./client.ts'))};
+const site = {
+  files: {
+${files.map((name) => `    ${name}: () => import(${name}),`).join('\n')}
+  },
+  routes: {
+${routes
+  .map(
+    (route) =>
+      `    ${json(route.path)}: {page: ${file(route.page)}, layouts: [${route.layouts.map((layout) => file(layout.page)).join(', ')}]},`
+  )
+  .join('\n')}
+  },
 };
-boot(routes);
-${dev ? hotAccept(routes, pages) : ''}`;
+boot(site);
+${dev ? hotAccept(files) : ''}`;
 };
 
 /**
- * The client entry is the HMR boundary for the pages: an edited page
- * renders again in place instead of reloading. Vite reads the list as
+ * The client entry is the HMR boundary for the pages and layouts: an edited
+ * one renders again in place instead of reloading. Vite reads the list as
  * written, so it is spelled out.
  */
-const hotAccept = (routes: RouteFile[], pages: string[]) => `
+const hotAccept = (files: string[]) => `
 if (import.meta.hot) {
-  const paths = ${json(routes.map((route) => route.path))};
-  import.meta.hot.accept([${pages.join(', ')}], (modules) => {
-    modules.forEach((module, i) => module && hotPage(routes, paths[i], module));
+  const files = [${files.join(', ')}];
+  import.meta.hot.accept([${files.join(', ')}], (modules) => {
+    modules.forEach((module, i) => module && hotModule(site, files[i], module));
   });
 }
 `;
+
+/** A module and its loader, as the server entry's routes list them. */
+const serverModuleOf = ({page, server}: {page: string; server?: string}) =>
+  `page: () => import(${file(page)})${server ? `, server: () => import(${file(server)})` : ''}`;
 
 const serverModule = (routes: RouteFile[], serverFile: string | undefined) => `
 import {Elysia} from 'elysia';
@@ -251,11 +274,9 @@ const routes = [
 ${routes
   .map(
     (route) =>
-      `  {path: ${json(route.path)}, page: () => import(${json(normalizePath(route.page))})${
-        route.server
-          ? `, server: () => import(${json(normalizePath(route.server))})`
-          : ''
-      }},`
+      `  {path: ${json(route.path)}, ${serverModuleOf(route)}, layouts: [${route.layouts
+        .map((layout) => `{${serverModuleOf(layout)}}`)
+        .join(', ')}]},`
   )
   .join('\n')}
 ];

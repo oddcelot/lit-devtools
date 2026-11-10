@@ -16,21 +16,34 @@ test('a page file names its Elysia path', () => {
   expect(routePath('files/[...rest].ts')).toBe('/files/*');
 });
 
-test('the scan pairs each page with its .server.ts', async () => {
+const ROOT = {page: '/_layout.ts', server: '/_layout.server.ts'};
+
+test('the scan pairs each page with its loader and its layouts', async () => {
   const routes = await scanRoutes(DEMO_ROUTES);
   expect(
     routes.map((route) => ({
       path: route.path,
       page: route.page.slice(DEMO_ROUTES.length),
       server: route.server?.slice(DEMO_ROUTES.length),
+      layouts: route.layouts.map((layout) => ({
+        page: layout.page.slice(DEMO_ROUTES.length),
+        server: layout.server?.slice(DEMO_ROUTES.length),
+      })),
     }))
   ).toEqual([
-    {path: '/', page: '/index.ts', server: '/index.server.ts'},
-    {path: '/latest', page: '/latest.ts', server: '/latest.server.ts'},
+    {path: '/', page: '/index.ts', server: '/index.server.ts', layouts: [ROOT]},
+    {
+      path: '/latest',
+      page: '/latest.ts',
+      server: '/latest.server.ts',
+      layouts: [ROOT],
+    },
     {
       path: '/notes/:id',
       page: '/notes/[id].ts',
       server: '/notes/[id].server.ts',
+      // Outermost first; the inner one has no loader.
+      layouts: [ROOT, {page: '/notes/_layout.ts', server: undefined}],
     },
   ]);
 });
@@ -43,11 +56,9 @@ test('the document fills the shell and carries the data', async () => {
   const stream = renderDocument({
     shell:
       '<html><head><!--lit-elysia:head--></head><body><!--lit-elysia:body--><footer></footer></body></html>',
-    page: {
-      title: (data) => `<${String(data)}>`,
-      render: (data) => html`<p>${String(data)}</p>`,
-    },
-    payload: {route: '/', data: '</script>'},
+    template: html`<p>${'</script>'}</p>`,
+    title: '<</script>>',
+    payload: {route: '/', data: '</script>', layouts: []},
   });
   const text = await new Response(stream).text();
   expect(text).toContain('<title>&#60;&#60;/script&#62;&#62;</title>');
@@ -58,7 +69,11 @@ test('the document fills the shell and carries the data', async () => {
       text
     );
   expect(script).not.toBeNull();
-  expect(decode(script![1]!)).toEqual({route: '/', data: '</script>'});
+  expect(decode(script![1]!)).toEqual({
+    route: '/',
+    data: '</script>',
+    layouts: [],
+  });
 });
 
 test('page data keeps the types JSON loses', () => {

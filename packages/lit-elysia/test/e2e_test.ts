@@ -144,10 +144,14 @@ test('the router asks a page for its data alone', async () => {
     headers: {'x-lit-elysia': 'data'},
   });
   expect(response.headers.get('vary')).toContain('x-lit-elysia');
-  const data = decode<{route: string; title: string; data: {createdAt: Date}}>(
-    await response.text()
-  );
-  expect(data).toMatchObject({route: '/notes/:id', title: 'Lit'});
+  const data = decode<{
+    route: string;
+    data: {createdAt: Date};
+    layouts: unknown[];
+  }>(await response.text());
+  expect(data.route).toBe('/notes/:id');
+  // Each layout's data, outermost first; the notes layout has no loader.
+  expect(data.layouts).toEqual([{count: expect.any(Number)}, undefined]);
   expect(data.data.createdAt).toBeInstanceOf(Date);
 });
 
@@ -178,6 +182,49 @@ test('after hydrating, the router renders pages without loading them', async () 
   await expect.poll(() => page.url()).toMatch(/\/notes\/\d+$/);
   await expect.poll(() => page.locator('h1').count()).toBe(1);
   expect(await marked(page)).toBe(true);
+});
+
+test('layouts nest, load their own data, and stay mounted', async () => {
+  await page.goto(`${origin}/`);
+  expect(await page.locator('#note-count').textContent()).toMatch(
+    /^\d+ notes$/
+  );
+  const layout = page.locator('layout-clicks button');
+  await layout.click();
+  await layout.click();
+  await expect.poll(() => layout.textContent()).toContain('Layout clicks: 2');
+
+  await page.getByRole('link', {name: 'Lit'}).click();
+  await expect
+    .poll(() => page.locator('article.note h1').textContent())
+    .toBe('Lit');
+  // The root layout's element is the same one, count and all.
+  expect(await layout.textContent()).toContain('Layout clicks: 2');
+  await page.goBack();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
+  expect(await page.locator('article.note').count()).toBe(0);
+  expect(await layout.textContent()).toContain('Layout clicks: 2');
+});
+
+test('an edited layout renders again in place', async () => {
+  await page.goto(`${origin}/`);
+  const layout = page.locator('layout-clicks button');
+  await layout.click();
+  await expect.poll(() => layout.textContent()).toContain('Layout clicks: 1');
+  const file = path.join(root, 'src/routes/_layout.ts');
+  const code = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    code.replace('${count} notes', '${count} notes in all')
+  );
+  await expect
+    .poll(() => page.locator('#note-count').textContent())
+    .toMatch(/notes in all$/);
+  expect(await layout.textContent()).toContain('Layout clicks: 1');
+  await writeFile(file, code);
+  await expect
+    .poll(() => page.locator('#note-count').textContent())
+    .toMatch(/notes$/);
 });
 
 test('anything the router cannot render is a full load', async () => {
