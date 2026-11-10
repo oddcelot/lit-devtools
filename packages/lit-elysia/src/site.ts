@@ -86,3 +86,46 @@ const headMarkers = (): [Comment, Comment] => {
 export const remember = (payload: Payload): void => {
   shown = payload;
 };
+
+/**
+ * The route a path answers, as the server's router would pick it: static
+ * segments over params, params over a catch-all.
+ */
+export const matchRoute = (
+  site: Site,
+  pathname: string
+): string | undefined => {
+  const parts = pathname.split('/').filter(Boolean);
+  return Object.keys(site.routes)
+    .map((route) => ({route, score: scoreOf(route, parts)}))
+    .filter(({score}) => score >= 0)
+    .sort((a, b) => b.score - a.score)[0]?.route;
+};
+
+/** How well a route fits: negative for not at all, more for static parts. */
+const scoreOf = (route: string, parts: string[]) => {
+  if (!route.startsWith('/')) return -1;
+  const {fixed, rest} = shapeOf(route);
+  if (!fits(fixed.length, parts.length, rest)) return -1;
+  // An exact fit outranks a catch-all with the same segments.
+  const exact = rest ? 0 : 1;
+  return fixed.reduce(
+    (sum, segment, i) => sum + segmentScore(segment, parts[i]!),
+    exact
+  );
+};
+
+/** A route's segments before any catch-all, and whether it has one. */
+const shapeOf = (route: string) => {
+  const segments = route.split('/').filter(Boolean);
+  const rest = segments.at(-1) === '*';
+  return {fixed: rest ? segments.slice(0, -1) : segments, rest};
+};
+
+const fits = (fixed: number, parts: number, rest: boolean) =>
+  rest ? parts >= fixed : parts === fixed;
+
+const segmentScore = (segment: string, part: string) => {
+  if (segment.startsWith(':')) return 1;
+  return segment === part ? 2 : -Infinity;
+};

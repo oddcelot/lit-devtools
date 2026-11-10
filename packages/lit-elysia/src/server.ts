@@ -50,6 +50,11 @@ export interface PagesOptions {
    * and its hooks, such as a guard in `onBeforeHandle`, run before them.
    */
   base?: AnyElysia;
+  /**
+   * Each route's chunks and stylesheets, from the build's manifest: the
+   * document links them so they load beside the client entry.
+   */
+  preloads?: Record<string, string[]>;
   /** `_404.ts` and `_error.ts`, named `#404` and `#error`. */
   errors?: ServerRoute[];
   /**
@@ -234,7 +239,8 @@ const respond = async (
       : await documentResponse(
           await viewOf(route),
           payload,
-          await options.shell(pathOf(request))
+          await options.shell(pathOf(request)),
+          preloadTags(options.preloads?.[route.path])
         );
   for (const [name, value] of Object.entries(collected.headers)) {
     response.headers.set(name, value);
@@ -315,10 +321,26 @@ const dataResponse = (payload: PageData) =>
     },
   });
 
-const documentResponse = async (view: View, payload: Payload, shell: string) =>
+/** `modulepreload` for the chunks, a stylesheet link for the CSS. */
+const preloadTags = (files: string[] = []) =>
+  files
+    .map((file) =>
+      file.endsWith('.css')
+        ? `<link rel="stylesheet" href="${file}">`
+        : `<link rel="modulepreload" crossorigin href="${file}">`
+    )
+    .join('');
+
+const documentResponse = async (
+  view: View,
+  payload: Payload,
+  shell: string,
+  preload: string
+) =>
   new Response(
     renderDocument({
       shell,
+      preload,
       template: compose(view, payload),
       title: titleOf(view, payload),
       head: await renderHead(headOf(view, payload)),

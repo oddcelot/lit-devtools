@@ -2,6 +2,7 @@ import {html} from 'lit';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
 import {safePromises} from '../src/deferred.ts';
+import {matchRoute} from '../src/site.ts';
 import {api} from '../src/eden.ts';
 import {PageError} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
@@ -325,4 +326,28 @@ test('the Eden client says so when used on the server', () => {
   expect(() => (api as unknown as Record<string, unknown>)['api']).toThrow(
     "api is the browser's client"
   );
+});
+
+test('the client picks the route the server would for a path', () => {
+  const site = {
+    files: {},
+    routes: Object.fromEntries(
+      [
+        '/',
+        '/notes/new',
+        '/notes/:id',
+        '/files/*',
+        '/files/readme',
+        '#404',
+      ].map((route) => [route, {page: '', layouts: []}])
+    ),
+  };
+  expect(matchRoute(site, '/')).toBe('/');
+  expect(matchRoute(site, '/notes/2')).toBe('/notes/:id');
+  // Static segments win over params, and over a catch-all.
+  expect(matchRoute(site, '/notes/new')).toBe('/notes/new');
+  expect(matchRoute(site, '/files/readme')).toBe('/files/readme');
+  expect(matchRoute(site, '/files/a/b')).toBe('/files/*');
+  expect(matchRoute(site, '/notes/2/edit')).toBeUndefined();
+  expect(matchRoute(site, '/nowhere')).toBeUndefined();
 });

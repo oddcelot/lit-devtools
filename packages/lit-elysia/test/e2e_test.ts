@@ -722,6 +722,46 @@ test('components call the API through the typed Eden client', async () => {
   expect(await marked(page)).toBe(true);
 });
 
+test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  const seen: string[] = [];
+  const listen = (request: import('playwright-core').Request) => {
+    const url = new URL(request.url());
+    if (request.headers()['x-lit-elysia'] === 'data')
+      seen.push(`data ${url.pathname}`);
+    else if (url.pathname.includes('/routes/'))
+      seen.push(`code ${url.pathname}`);
+  };
+  page.on('request', listen);
+  try {
+    // A sidebar link: its page's module, no data.
+    await page
+      .locator('aside')
+      .getByRole('link', {name: 'Eden client', exact: true})
+      .hover();
+    await expect
+      .poll(() => seen)
+      .toContainEqual(expect.stringMatching(/^code .*\/routes\/eden\.ts$/));
+    expect(seen.filter((entry) => entry.startsWith('data'))).toEqual([]);
+
+    // A note in the data-prefetch list: its data too, used by the click.
+    await page
+      .locator('main')
+      .getByRole('link', {name: 'Lit', exact: true})
+      .hover();
+    await expect.poll(() => seen).toContain('data /notes/2');
+    await page
+      .locator('main')
+      .getByRole('link', {name: 'Lit', exact: true})
+      .click();
+    await expect.poll(() => page.locator('main h1').textContent()).toBe('Lit');
+    expect(seen.filter((entry) => entry === 'data /notes/2')).toHaveLength(1);
+  } finally {
+    page.off('request', listen);
+  }
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();
@@ -750,6 +790,23 @@ test('the build serves the same pages from its server entry', async () => {
   const asset = await app.handle(script!);
   expect(asset.status).toBe(200);
   expect(asset.headers.get('cache-control')).toContain('immutable');
+  // The page's chunks are linked, so they load beside the client entry.
+  const note = await (
+    await app.handle(
+      new Request('http://localhost/notes/1', {headers: {accept: 'text/html'}})
+    )
+  ).text();
+  const preloads = [
+    ...note.matchAll(/<link rel="modulepreload" crossorigin href="([^"]+)">/g),
+  ].map((match) => match[1]!);
+  expect(preloads.some((file) => /\/assets\/_id_-[\w-]+\.js$/.test(file))).toBe(
+    true
+  );
+  for (const file of preloads)
+    expect((await app.handle(file)).status).toBe(200);
+  // The build's manifest is not served.
+  expect((await app.handle('/.vite/manifest.json')).status).toBe(404);
+
   const missing = await app.handle(
     new Request('http://localhost/notes/99', {headers: {accept: 'text/html'}})
   );

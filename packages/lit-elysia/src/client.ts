@@ -4,6 +4,7 @@ import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
+import {enablePrefetch} from './prefetch.ts';
 import {enableInvalidate} from './revalidate.ts';
 import {createReader, type Reader} from './serialize.ts';
 import {OUTLET_ID, QUEUE, type Payload} from './shared.ts';
@@ -39,6 +40,7 @@ export const boot = async (site: Site): Promise<void> => {
   remember(payload);
   takeOver(site, outlet);
   enableInvalidate(site, outlet);
+  enablePrefetch(site);
 };
 
 type Queue = object[];

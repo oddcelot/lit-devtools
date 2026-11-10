@@ -33,7 +33,10 @@ export const staticFiles = (dir: URL) => {
       .map((file) => String(file).split(path.sep).join('/'))
       .filter(
         (file) =>
-          file !== 'index.html' && statSync(path.join(root, file)).isFile()
+          file !== 'index.html' &&
+          // The build's own files, such as .vite/manifest.json, stay private.
+          !file.split('/').some((part) => part.startsWith('.')) &&
+          statSync(path.join(root, file)).isFile()
       )
   );
   return new Elysia({name: '@oddsquad/lit-elysia/static'}).onRequest(

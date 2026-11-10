@@ -1,5 +1,5 @@
 import {setInvalidator} from './links.ts';
-import {fetchPage, markChanged} from './navigation.ts';
+import {fetchPage, markChanged} from './fetch-page.ts';
 import {show, shownPage, viewOf, type Site} from './site.ts';
 
 /**

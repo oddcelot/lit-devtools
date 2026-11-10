@@ -104,7 +104,8 @@ const framework = (options: LitElysiaOptions): Plugin => {
         },
       },
       environments: {
-        client: {build: {outDir: 'dist/client', manifest: false}},
+        // The manifest maps each page to its chunks, for the preloads.
+        client: {build: {outDir: 'dist/client', manifest: true}},
         ssr: {
           build: {
             outDir: 'dist/server',
@@ -142,11 +143,14 @@ const framework = (options: LitElysiaOptions): Plugin => {
         return serverModule(await scanRoutes(routesDir()), serverFile());
       }
       if (id === RESOLVED_ENTRY_ID) {
-        const shell = await readFile(
-          path.resolve(config.root, 'dist/client/index.html'),
-          'utf8'
+        const client = path.resolve(config.root, 'dist/client');
+        const shell = await readFile(path.join(client, 'index.html'), 'utf8');
+        const preloads = await preloadsOf(
+          config,
+          await scanRoutes(routesDir()),
+          path.join(client, '.vite/manifest.json')
         );
-        return entryModule(shell);
+        return entryModule(shell, preloads);
       }
       return undefined;
     },
@@ -381,17 +385,61 @@ ${routeList(errors)}
 // The user's app goes in as a plugin, so its prefix and scoped hooks stay
 // its own instead of reaching the pages. The pages are added to its
 // \`context\` plugin, when it has one, so its locals and guards reach them.
-export const createApp = (shell) => {
+export const createApp = (shell, extra = {}) => {
   const app = new Elysia();
   if (userApp) app.use(userApp);
-  return app.use(pages({routes, errors, shell, base: user.context}));
+  return app.use(pages({routes, errors, shell, base: user.context, ...extra}));
 };
 `;
 
-const entryModule = (shell: string) => `
+const entryModule = (shell: string, preloads: Record<string, string[]>) => `
 import {createApp} from ${json(SERVER_ID)};
 import {staticFiles} from ${json(runtime('./static.ts'))};
 const shell = ${json(shell)};
+const preloads = ${json(preloads)};
 const app = staticFiles(new URL('../client/', import.meta.url));
-export default app.use(createApp(() => shell));
+export default app.use(createApp(() => shell, {preloads}));
 `;
+
+interface ManifestChunk {
+  file: string;
+  imports?: string[];
+  css?: string[];
+}
+
+/**
+ * Each route's chunks, from the client build's manifest: its page's and
+ * layouts', the chunks they import, and their CSS. The document links
+ * them, so the browser fetches them alongside the client entry instead of
+ * one after another.
+ */
+const preloadsOf = async (
+  config: ResolvedConfig,
+  {pages, errors}: Routes,
+  manifestFile: string
+): Promise<Record<string, string[]>> => {
+  const manifest = JSON.parse(
+    await readFile(manifestFile, 'utf8').catch(() => '{}')
+  ) as Record<string, ManifestChunk>;
+  const keyOf = (file: string) =>
+    normalizePath(path.relative(config.root, file));
+  const collect = (key: string, into: Set<string>) => {
+    const chunk = manifest[key];
+    if (!chunk || into.has(config.base + chunk.file)) return;
+    into.add(config.base + chunk.file);
+    for (const css of chunk.css ?? []) into.add(config.base + css);
+    for (const imported of chunk.imports ?? []) collect(imported, into);
+  };
+  return Object.fromEntries(
+    [...pages, ...errors].map((route) => {
+      const files = new Set<string>();
+      for (const file of [
+        route.page,
+        ...route.layouts.map((layout) => layout.page),
+      ]) {
+        collect(keyOf(file), files);
+      }
+      return [route.path, [...files]];
+    })
+  );
+};

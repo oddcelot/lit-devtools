@@ -40,7 +40,8 @@ export default definePage<LoadedData<typeof load>, Form>({
     html`<meta name="description" content="${notes.length} notes" />`,
   render: ({notes}, form) => html`
     <h1>Notes</h1>
-    <ul>
+    <!-- data-prefetch: resting on a note loads it ahead of the click. -->
+    <ul data-prefetch>
       ${notes.map(
         (note) =>
           html`<li>

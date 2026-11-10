@@ -23,6 +23,8 @@ export interface DocumentOptions {
   title: string | undefined;
   /** The `<head>` tags, rendered with {@link renderHead}. */
   head: string;
+  /** Links to the page's chunks and stylesheets, from the build. */
+  preload?: string;
   payload: Payload;
 }
 
@@ -49,12 +51,13 @@ export const renderDocument = ({
   template,
   title,
   head,
+  preload = '',
   payload,
 }: DocumentOptions): ReadableStream<Uint8Array> => {
   const [before, after = ''] = shell
     .replace(
       HEAD,
-      `${title === undefined ? '' : `<title>${escapeHtml(title)}</title>`}<!--${HEAD_START}-->${head}<!--${HEAD_END}-->`
+      `${title === undefined ? '' : `<title>${escapeHtml(title)}</title>`}${preload}<!--${HEAD_START}-->${head}<!--${HEAD_END}-->`
     )
     .split(BODY);
   // The data's promises stream after the page, before `</body>`.
