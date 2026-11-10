@@ -1,0 +1,39 @@
+/* Blades: classless styles for the semantic HTML the pages render. */
+@import '@anyblades/blades';
+
+header nav {
+  align-items: center;
+}
+
+article.note > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pico-spacing);
+}
+
+/* The router marks the outlet busy while it loads; the bar below says so,
+   so the spinner Blades would draw there stays out. */
+#lit-elysia[aria-busy='true']::before {
+  display: none;
+}
+
+/* Shown while the router waits on the server, after a moment. */
+html[data-navigating]::before {
+  content: '';
+  position: fixed;
+  z-index: 10;
+  inset: 0 auto auto 0;
+  height: 3px;
+  background: var(--pico-primary-background);
+  animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both;
+}
+
+@keyframes progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 90%;
+  }
+}

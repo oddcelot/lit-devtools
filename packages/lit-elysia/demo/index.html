@@ -3,25 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <style>
-      /* The router sets data-navigating while it waits on the server. */
-      html[data-navigating]::before {
-        content: '';
-        position: fixed;
-        inset: 0 auto auto 0;
-        height: 3px;
-        background: #324fff;
-        animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both;
-      }
-      @keyframes progress {
-        from {
-          width: 0;
-        }
-        to {
-          width: 90%;
-        }
-      }
-    </style>
+    <meta name="color-scheme" content="light dark" />
+    <link rel="stylesheet" href="/src/styles.css" />
     <!--lit-elysia:head-->
   </head>
   <body>

@@ -7,7 +7,33 @@ import {
 import type {actions, load} from './index.server.ts';
 import '../components/note-counter.ts';
 
-export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
+type Form = ActionData<typeof actions>;
+
+/** The form, with what didn't validate when it comes back. */
+const addNote = (form: Form | undefined) => {
+  const error = form?.error;
+  return html`
+    <article>
+      <form method="post">
+        <h2>Add a note</h2>
+        <label>
+          Title
+          <input
+            name="title"
+            value=${form?.title ?? ''}
+            aria-invalid=${error ? 'true' : nothing}
+            aria-describedby=${error ? 'form-error' : nothing}
+          />
+          ${error ? html`<small id="form-error" role="alert">${error}</small>` : nothing}
+        </label>
+        <label>Text <input name="body" value=${form?.body ?? ''} /></label>
+        <button>Add</button>
+      </form>
+    </article>
+  `;
+};
+
+export default definePage<LoadedData<typeof load>, Form>({
   title: () => 'Notes',
   head: ({notes}) =>
     html`<meta name="description" content="${notes.length} notes" />`,
@@ -18,25 +44,18 @@ export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
         (note) => html`<li><a href="/notes/${note.id}">${note.title}</a></li>`
       )}
     </ul>
-    <form method="post">
-      <h2>Add a note</h2>
-      ${
-        form?.error
-          ? html`<p id="form-error" role="alert">${form.error}</p>`
-          : nothing
-      }
-      <label>Title <input name="title" value=${form?.title ?? ''} /></label>
-      <label>Text <input name="body" value=${form?.body ?? ''} /></label>
-      <button>Add</button>
-    </form>
-    <p>
-      <a href="/latest">Newest note</a> ·
-      <a href="/notes/1?slow">A slow note</a> ·
-      <a href="/notes/99">A note that isn't there</a> ·
-      <a href="/notes/1" data-reload>First note, as a full load</a> ·
-      <a href="/broken">A page that fails</a> ·
-      <a href="/nowhere">A page that doesn't exist</a>
-    </p>
+    ${addNote(form)}
+    <section>
+      <h2>Try</h2>
+      <ul>
+        <li><a href="/latest">Newest note</a></li>
+        <li><a href="/notes/1?slow">A slow note</a></li>
+        <li><a href="/notes/99">A note that isn't there</a></li>
+        <li><a href="/notes/1" data-reload>First note, as a full load</a></li>
+        <li><a href="/broken">A page that fails</a></li>
+        <li><a href="/nowhere">A page that doesn't exist</a></li>
+      </ul>
+    </section>
     <note-counter></note-counter>
   `,
 });

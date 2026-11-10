@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "useDefineForClassFields": false,
-    "types": ["node"]
+    "types": ["node", "@oddsquad/vite-plugin-lit/client"]
   },
   "include": ["src", "demo", "test"]
 }

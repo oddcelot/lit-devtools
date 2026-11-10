@@ -671,6 +671,9 @@ importers:
 
   packages/lit-elysia/demo:
     dependencies:
+      '@anyblades/blades':
+        specifier: ^3.1.1
+        version: 3.1.1
       '@oddsquad/lit-elysia':
         specifier: workspace:*
         version: link:..
@@ -818,6 +821,9 @@ packages:
 
   '@antfu/install-pkg@2.1.0':
     resolution: {integrity: sha512-sdg9NxU3zR4Mnawfbc/x6GB5Wf17WYud5qOuEuxXjaKpYpMkISSJEjItGebXJ2bQ4DIcly4NYH23mtkGJjvKUw==}
+
+  '@anyblades/blades@3.1.1':
+    resolution: {integrity: sha512-JpoRNEV9gVJxOuI1vBYCqYr6MNO5qIo4jUdh2yYNVsx7doF61KJHxXQzljotGhbWzR8W1nzaC9QtN7PMGO4vmA==}
 
   '@ascorbic/loader-utils@1.0.2':
     resolution: {integrity: sha512-pg43g83gojVtEsAkXfjWuzJhuXneJp4wM/leBftGkCPV3yxKgB92EWA+nWu735BgbBMph3P7DrVqVc3ikt+dJA==}
@@ -6707,6 +6713,8 @@ snapshots:
     dependencies:
       package-manager-detector: 1.8.0
       tinyexec: 1.3.1
+
+  '@anyblades/blades@3.1.1': {}
 
   '@ascorbic/loader-utils@1.0.2(astro@7.3.5(@azure/identity@4.14.0(supports-color@10.2.2))(@types/node@26.6.3)(@vitejs/devtools@0.7.6)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))':
     dependencies:

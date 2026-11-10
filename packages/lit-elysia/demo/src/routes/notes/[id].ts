@@ -10,15 +10,19 @@ export default definePage<LoadedData<typeof load>>({
     <link rel="canonical" href="/notes/${note.id}" />
   `,
   render: (note) => html`
-    <a href="/">← All notes</a>
-    <h1>${note.title}</h1>
+    <header>
+      <a href="/">← All notes</a>
+      <h1>${note.title}</h1>
+    </header>
     <p>${note.body}</p>
-    <p>
-      Written
-      <time datetime=${note.createdAt.toISOString()}
-        >${note.createdAt.toISOString().slice(0, 10)}</time
-      >
-    </p>
-    <note-counter></note-counter>
+    <footer>
+      <small>
+        Written
+        <time datetime=${note.createdAt.toISOString()}
+          >${note.createdAt.toISOString().slice(0, 10)}</time
+        >
+      </small>
+      <note-counter></note-counter>
+    </footer>
   `,
 });

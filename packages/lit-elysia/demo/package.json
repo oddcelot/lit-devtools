@@ -9,6 +9,7 @@
     "start:bun": "bun -e \"import app from './dist/server/entry.js'; Bun.serve({port: 3000, fetch: app.fetch})\""
   },
   "dependencies": {
+    "@anyblades/blades": "^3.1.1",
     "@oddsquad/lit-elysia": "workspace:*",
     "elysia": "2.0.0-rc.4",
     "lit": "^3.3.3",

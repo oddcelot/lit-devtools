@@ -7,10 +7,19 @@ export default defineLayout<LoadedData<typeof load>>({
   title: () => 'Notes',
   head: () => html`<meta name="theme-color" content="#324fff" />`,
   render: (content, {count}) => html`
-    <header>
-      <a href="/">Notes</a> · <span id="note-count">${count} notes</span>
-      <layout-clicks></layout-clicks>
+    <header class="container">
+      <nav>
+        <ul>
+          <li>
+            <strong><a href="/">Notes</a></strong>
+          </li>
+        </ul>
+        <ul>
+          <li><small id="note-count">${count} notes</small></li>
+          <li><layout-clicks></layout-clicks></li>
+        </ul>
+      </nav>
     </header>
-    <main>${content}</main>
+    <main class="container">${content}</main>
   `,
 });

@@ -411,7 +411,7 @@ test('the build serves the same pages from its server entry', async () => {
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [litElysia({lit: false})],
+    plugins: [litElysia()],
   });
   await builder.buildApp();
   const entry = pathToFileURL(path.join(root, 'dist/server/entry.js')).href;
