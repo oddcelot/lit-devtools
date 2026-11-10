@@ -17,6 +17,12 @@ export const DATA_ID = 'lit-elysia-data';
  */
 export const QUEUE = '__litElysia';
 
+/**
+ * The path a page, layout, `load` or `actions` was written for, so the
+ * server can check it against the file's.
+ */
+export const ROUTE = Symbol.for('@oddsquad/lit-elysia#route');
+
 /** The route names of `_404.ts` and `_error.ts`, which answer no path. */
 export const NOT_FOUND = '#404';
 export const ERROR = '#error';

@@ -13,7 +13,12 @@ import {
 } from 'vite';
 import {ADAPTERS, type Adapter, type AdapterName} from './adapters.ts';
 import {sendResponse, toRequest} from './node.ts';
-import {scanRoutes, type RouteFile, type Routes} from './routes.ts';
+import {
+  scanRoutes,
+  type LayoutFile,
+  type RouteFile,
+  type Routes,
+} from './routes.ts';
 import {runtime} from './runtime-path.ts';
 
 export interface LitElysiaOptions {
@@ -309,6 +314,12 @@ const watchRoutes = (
 
 const json = (value: unknown) => JSON.stringify(value);
 
+/** An import of `file` from beside `target`, quoted, without its extension. */
+const importFrom = (target: string, file: string) => {
+  const relative = normalizePath(path.relative(path.dirname(target), file));
+  return `'${(relative.startsWith('.') ? relative : `./${relative}`).replace(/\.[cm]?[jt]s$/, '').replaceAll("'", "\\'")}'`;
+};
+
 /**
  * The server module's types for the list: its default export, the app
  * Eden types its client by, and its `context` plugin, which types loads.
@@ -318,9 +329,7 @@ const json = (value: unknown) => JSON.stringify(value);
 const serverTypes = async (target: string, serverFile: string | undefined) => {
   if (!serverFile) return '';
   const code = await readFile(serverFile, 'utf8').catch(() => '');
-  const from = json(
-    `./${path.relative(path.dirname(target), serverFile).replace(/\.[cm]?[jt]s$/, '')}`
-  ).replaceAll('"', "'");
+  const from = importFrom(target, serverFile);
   return [
     /export\s+default\b/.test(code) &&
       `\n    app: typeof import(${from}).default;`,
@@ -332,8 +341,28 @@ const serverTypes = async (target: string, serverFile: string | undefined) => {
 };
 
 /**
- * Writes the route list that types `href` and `route`, when it changed, so
- * an editor watching the file only hears of real changes.
+ * One entry of the list: a page or layout by its path, typed by its
+ * `.server.ts`, or with no data and no form without one.
+ */
+const typesEntry = (target: string, {path: name, server}: LayoutFile) => {
+  const key = `      '${name.replaceAll("'", "\\'")}': `;
+  if (!server) return `${key}{data: undefined; form: undefined};`;
+  const module = `typeof import(${importFrom(target, server)})`;
+  const line = `${key}ServerTypes<${module}>;`;
+  return line.length <= 80
+    ? line
+    : `${key}ServerTypes<\n        ${module}\n      >;`;
+};
+
+const typesMap = (target: string, entries: LayoutFile[]) =>
+  entries.length
+    ? `{\n${entries.map((entry) => typesEntry(target, entry)).join('\n')}\n    }`
+    : '{}';
+
+/**
+ * Writes the route list that types `href`, `route`, `definePage` and
+ * `defineLayout`, when it changed, so an editor watching the file only
+ * hears of real changes.
  */
 const writeRouteTypes = async (
   dir: string,
@@ -342,20 +371,23 @@ const writeRouteTypes = async (
 ) => {
   if (!target) return;
   const {pages} = await scanRoutes(dir);
+  const layouts = [
+    ...new Map(
+      pages
+        .flatMap((page) => page.layouts)
+        .map((layout) => [layout.path, layout])
+    ).values(),
+  ].sort((a, b) => a.path.localeCompare(b.path));
   // Laid out as the formatter would, so the two never rewrite each other.
-  const union =
-    pages
-      .map((page) => `      | '${page.path.replaceAll("'", "\\'")}'`)
-      .join('\n') || '      never';
   const content = `// Written by @oddsquad/lit-elysia from the routes folder. Don't edit.
+import type {ServerTypes} from '@oddsquad/lit-elysia/routes';
+
 declare module '@oddsquad/lit-elysia/routes' {
   interface Register {
-    routes:
-${union};${await serverTypes(target, serverFile)}
+    routes: ${typesMap(target, pages)};
+    layouts: ${typesMap(target, layouts)};${await serverTypes(target, serverFile)}
   }
 }
-
-export {};
 `;
   const current = await readFile(target, 'utf8').catch(() => undefined);
   if (current !== content) await writeFile(target, content);
@@ -419,7 +451,10 @@ const routeList = (routes: RouteFile[]) =>
     .map(
       (route) =>
         `  {path: ${json(route.path)}, ${serverModuleOf(route)}, layouts: [${route.layouts
-          .map((layout) => `{${serverModuleOf(layout)}}`)
+          .map(
+            (layout) =>
+              `{path: ${json(layout.path)}, ${serverModuleOf(layout)}}`
+          )
           .join(', ')}]},`
     )
     .join('\n');

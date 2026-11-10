@@ -10,12 +10,17 @@ export interface ModuleFiles {
   server?: string;
 }
 
+/** A `_layout.ts`, named by its folder's path: `/`, `/notes`. */
+export interface LayoutFile extends ModuleFiles {
+  path: string;
+}
+
 /** One page found under the routes directory. */
 export interface RouteFile extends ModuleFiles {
   /** The Elysia path it answers, such as `/notes/:id`. */
   path: string;
   /** The `_layout.ts` files around it, outermost first. */
-  layouts: ModuleFiles[];
+  layouts: LayoutFile[];
 }
 
 const MODULE = /\.(?:[cm]?[jt]s)$/;
@@ -108,7 +113,14 @@ export const scanRoutes = async (dir: string): Promise<Routes> => {
     ...(name.startsWith('/') && withServer(dir, files, file)),
     layouts: foldersOf(file).flatMap((folder) => {
       const layout = layouts.get(folder);
-      return layout ? [withServer(dir, files, layout)] : [];
+      return layout
+        ? [
+            {
+              path: routePath(`${folder}/index`),
+              ...withServer(dir, files, layout),
+            },
+          ]
+        : [];
     }),
   });
   return {

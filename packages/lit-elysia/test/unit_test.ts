@@ -4,7 +4,7 @@ import {routePath, scanRoutes} from '../src/routes.ts';
 import {safePromises} from '../src/deferred.ts';
 import {matchRoute} from '../src/site.ts';
 import {api} from '../src/eden.ts';
-import {PageError} from '../src/page.ts';
+import {PageError, definePage, defineLayout} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
 import {href, route} from '../src/links.ts';
@@ -268,8 +268,57 @@ test("a load typed for another route's params fails loudly", async () => {
     console.error = log;
   }
   expect(String(errors[0])).toContain(
-    "route('/params/:a/:b') is used in the page that answers /notes/:id"
+    "'/params/:a/:b' is named in the page that answers /notes/:id"
   );
+});
+
+/** The first error a request to `app` logs. */
+const loggedError = async (
+  app: ReturnType<typeof pages>,
+  url: string
+): Promise<string> => {
+  const errors: unknown[] = [];
+  const log = console.error;
+  console.error = (error: unknown) => errors.push(error);
+  try {
+    const response = await app.handle(new Request(url));
+    expect(response.status).toBe(500);
+  } finally {
+    console.error = log;
+  }
+  return String(errors[0]);
+};
+
+test('a page or layout defined for another path fails loudly', async () => {
+  const shell = () => '<html><body><!--lit-elysia:body--></body></html>';
+  const notePage = definePage('/params/:a/:b', {render: () => html``});
+  // A module's own page type is narrower than what the routes take.
+  const page = () => Promise.resolve({default: notePage as never});
+  expect(
+    await loggedError(
+      pages({shell, routes: [{path: '/notes/:id', page, layouts: []}]}),
+      'http://localhost/notes/1'
+    )
+  ).toContain("'/params/:a/:b' is named in the page that answers /notes/:id");
+
+  const layout = defineLayout('/nested', {render: (content) => content});
+  const layoutModule = () => Promise.resolve({default: layout as never});
+  const plain = () => Promise.resolve({default: {render: () => html``}});
+  expect(
+    await loggedError(
+      pages({
+        shell,
+        routes: [
+          {
+            path: '/notes/:id',
+            page: plain,
+            layouts: [{path: '/notes', page: layoutModule}],
+          },
+        ],
+      }),
+      'http://localhost/notes/1'
+    )
+  ).toContain("'/nested' is named in the layout of /notes");
 });
 
 test('headers a failed load set stay off its error page', async () => {

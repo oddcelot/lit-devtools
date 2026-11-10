@@ -13,7 +13,7 @@ import {
   type Page,
 } from './page.ts';
 import {safePromises} from './deferred.ts';
-import {ROUTE} from './links.ts';
+import {ROUTE} from './shared.ts';
 import {records} from './serialize.ts';
 import {
   DATA_HEADER,
@@ -38,8 +38,8 @@ export interface ServerModule<T> {
 /** A route as the generated server entry hands it over. */
 export interface ServerRoute extends ServerModule<Page<unknown>> {
   path: string;
-  /** The layouts around it, outermost first. */
-  layouts: ServerModule<Layout<unknown>>[];
+  /** The layouts around it, outermost first, by their folders' paths. */
+  layouts: (ServerModule<Layout<unknown>> & {path?: string})[];
 }
 
 export interface PagesOptions {
@@ -265,9 +265,11 @@ const respond = async (
 
 /** The modules a route renders with. */
 const viewOf = async (route: ServerRoute): Promise<View> => ({
-  page: (await route.page()).default,
+  page: checkRoute((await route.page()).default, route.path),
   layouts: await Promise.all(
-    route.layouts.map(async (layout) => (await layout.page()).default)
+    route.layouts.map(async (layout) =>
+      checkRoute((await layout.page()).default, layout.path, 'the layout of')
+    )
   ),
 });
 
@@ -307,16 +309,20 @@ const loadData = async (
 };
 
 /**
- * A `load` or `actions` made with `route(path)` was typed for that path's
- * params; answering another path, it would read params that aren't there.
+ * A `load` or `actions` made with `route(path)`, or a page or layout
+ * defined with its path, was typed for that path; in another file it
+ * would read params and data that aren't there.
  */
-const checkRoute = (value: object | undefined, path: string) => {
+const checkRoute = <T extends object | undefined>(
+  value: T,
+  path: string | undefined,
+  where = 'the page that answers'
+): T => {
   const named = (value as {[ROUTE]?: string} | undefined)?.[ROUTE];
-  if (named !== undefined && named !== path) {
-    throw new Error(
-      `[lit-elysia] route('${named}') is used in the page that answers ${path}`
-    );
+  if (path !== undefined && named !== undefined && named !== path) {
+    throw new Error(`[lit-elysia] '${named}' is named in ${where} ${path}`);
   }
+  return value;
 };
 
 /** One URL answers with HTML or data, so caches have to tell them apart. */
