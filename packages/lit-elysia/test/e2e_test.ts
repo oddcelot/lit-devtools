@@ -126,11 +126,16 @@ test('a page is rendered on the server with its data', async () => {
   });
 });
 
-test('the dev server writes the route list that types links', async () => {
+test('the dev server writes the route list that types pages and links', async () => {
   const types = await readFile(path.join(root, 'src/routes.gen.d.ts'), 'utf8');
   expect(types).toContain('interface Register');
-  expect(types).toContain("| '/notes/:id'");
-  expect(types).toContain("| '/files/*'");
+  expect(types).toContain(
+    "'/notes/:id': ServerTypes<typeof import('./routes/notes/[id].server')>;"
+  );
+  expect(types).toContain("'/eden': {data: undefined; form: undefined};");
+  expect(types).toContain("'/files/*': ServerTypes<");
+  // Layouts by their folders' paths.
+  expect(types).toMatch(/layouts: \{[^}]*'\/nested': ServerTypes</);
   expect(types).not.toContain('#404');
 });
 

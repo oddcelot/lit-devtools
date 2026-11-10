@@ -1,6 +1,14 @@
 import type {AnyElysia, Context} from 'elysia';
 import type {TemplateResult} from 'lit';
-import type {Register} from './routes-types.ts';
+import type {
+  LayoutData,
+  LayoutPath,
+  Register,
+  RouteData,
+  RouteForm,
+  RoutePath,
+} from './routes-types.ts';
+import {ROUTE} from './shared.ts';
 
 /** The `context` plugin `src/server.ts` exports, once the list registers it. */
 type ContextApp = Register extends {context: infer App} ? App : undefined;
@@ -174,15 +182,48 @@ export type ActionData<A extends Actions> = {
 /** Types a `.server.ts` module's `actions` export. */
 export const defineActions = <A extends Actions>(actions: A): A => actions;
 
-/** Types a page module's default export. */
-export const definePage = <Data = undefined, Form = unknown>(
+/**
+ * Types a page module's default export. Name the page's path, and its data
+ * and form come from its `.server.ts` through the generated route list:
+ * `definePage('/notes/:id', {render: (note) => ...})`. The server checks
+ * the path against the file's.
+ */
+export function definePage<P extends RoutePath>(
+  path: P,
+  page: Page<RouteData<P>, RouteForm<P>>
+): Page<RouteData<P>, RouteForm<P>>;
+/** Types a page with its data given: `definePage<Note>({...})`. */
+export function definePage<Data = undefined, Form = unknown>(
   page: Page<Data, Form>
-): Page<Data, Form> => page;
+): Page<Data, Form>;
+export function definePage(
+  ...args: [string, Page<unknown>] | [Page<unknown>]
+): Page<unknown> {
+  return args.length === 2
+    ? Object.assign(args[1], {[ROUTE]: args[0]})
+    : args[0];
+}
 
-/** Types a `_layout.ts` module's default export. */
-export const defineLayout = <Data = undefined>(
+/**
+ * Types a `_layout.ts` module's default export. Name its folder as a path,
+ * `/` for the top one, and its data comes from its `.server.ts` through
+ * the generated route list: `defineLayout('/notes', {...})`.
+ */
+export function defineLayout<P extends LayoutPath>(
+  path: P,
+  layout: Layout<LayoutData<P>>
+): Layout<LayoutData<P>>;
+/** Types a layout with its data given: `defineLayout<Data>({...})`. */
+export function defineLayout<Data = undefined>(
   layout: Layout<Data>
-): Layout<Data> => layout;
+): Layout<Data>;
+export function defineLayout(
+  ...args: [string, Layout<unknown>] | [Layout<unknown>]
+): Layout<unknown> {
+  return args.length === 2
+    ? Object.assign(args[1], {[ROUTE]: args[0]})
+    : args[0];
+}
 
 /** Types a `.server.ts` module's `load` export. */
 export const defineLoad = <Data>(load: Load<Data>): Load<Data> => load;

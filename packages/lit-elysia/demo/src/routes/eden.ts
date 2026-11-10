@@ -2,7 +2,7 @@ import {html} from 'lit';
 import {definePage} from '@oddsquad/lit-elysia/page';
 import '../components/api-notes.ts';
 
-export default definePage({
+export default definePage('/eden', {
   title: () => 'Eden client',
   render: () => html`
     <h1>Eden client</h1>

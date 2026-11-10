@@ -1,8 +1,7 @@
 import {html} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
-import type {load} from './private.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/private', {
   title: () => 'Private',
   render: ({visitor}) => html`
     <h1>Private</h1>

@@ -1,7 +1,6 @@
 import {html, nothing} from 'lit';
-import {defineLayout, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {defineLayout} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
-import type {load} from './_layout.server.ts';
 import '@awesome.me/webawesome/dist/components/card/card.js';
 import '../../components/note-counter.ts';
 
@@ -10,7 +9,7 @@ const TABS = [
   {label: 'Second tab', href: href('/nested/second')},
 ];
 
-export default defineLayout<LoadedData<typeof load>>({
+export default defineLayout('/nested', {
   title: () => 'Nested layout',
   render: (content, {path, loadedAt}) => html`
     <wa-card class="section">

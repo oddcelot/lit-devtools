@@ -1,12 +1,11 @@
 import {html} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
-import type {load} from './search.server.ts';
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/input/input.js';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/search', {
   title: ({q}) => (q ? `Search: ${q}` : 'Search'),
   render: ({q, results}) => html`
     <h1>Query string</h1>

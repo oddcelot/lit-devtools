@@ -1,11 +1,10 @@
 import {html, nothing} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
-import type {load} from './visitor.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 import '@awesome.me/webawesome/dist/components/input/input.js';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/visitor', {
   title: () => 'Who you are',
   render: ({visitor, site, from}) => html`
     <h1>Who you are</h1>

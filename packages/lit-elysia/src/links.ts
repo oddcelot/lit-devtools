@@ -1,3 +1,4 @@
+import {ROUTE} from './shared.ts';
 import type {
   HrefArgs,
   LinkOptions,
@@ -6,10 +7,16 @@ import type {
 } from './routes-types.ts';
 
 export type {
+  LayoutData,
+  LayoutPath,
   LinkOptions,
   ParamsOf,
   Register,
+  RouteData,
+  RouteForm,
   RoutePath,
+  RouteTypes,
+  ServerTypes,
 } from './routes-types.ts';
 
 /**
@@ -51,8 +58,7 @@ const queryOf = (options: LinkOptions | undefined) => {
   return entries.length ? `?${new URLSearchParams(entries)}` : '';
 };
 
-/** The route a `load` or `actions` were written for, for the dev check. */
-export const ROUTE = Symbol.for('@oddsquad/lit-elysia#route');
+export {ROUTE};
 
 /**
  * Types a page's `load` and `actions` by its route's path:

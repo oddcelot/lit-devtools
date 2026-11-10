@@ -1,14 +1,9 @@
 import {html, nothing} from 'lit';
-import {
-  definePage,
-  type ActionData,
-  type LoadedData,
-} from '@oddsquad/lit-elysia/page';
-import type {actions, load} from './actions.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 
-export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
+export default definePage('/actions', {
   title: () => 'Named actions',
   render: ({count}, form) => html`
     <h1>Named actions</h1>

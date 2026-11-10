@@ -1,7 +1,7 @@
 import {html} from 'lit';
 import {definePage} from '@oddsquad/lit-elysia/page';
 
-export default definePage({
+export default definePage('/nested/second', {
   title: () => 'Second tab',
   render: () => html`
     <h1>Second tab</h1>
