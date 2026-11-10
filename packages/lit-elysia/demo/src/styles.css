@@ -12,12 +12,6 @@ article.note > footer {
   gap: var(--pico-spacing);
 }
 
-/* The router marks the outlet busy while it loads; the bar below says so,
-   so the spinner Blades would draw there stays out. */
-#lit-elysia[aria-busy='true']::before {
-  display: none;
-}
-
 /* Shown while the router waits on the server, after a moment. */
 html[data-navigating]::before {
   content: '';
@@ -68,9 +62,10 @@ html[data-navigating]::before {
   padding-block: calc(var(--pico-nav-element-spacing-vertical) / 2);
 }
 
+/* Underlined, not bold: bold text is wider, and moved the links beside it. */
 nav a[aria-current='page'] {
-  font-weight: 600;
   text-decoration: underline;
+  text-decoration-thickness: 2px;
   text-underline-offset: 0.3em;
 }
 
