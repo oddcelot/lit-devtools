@@ -25,6 +25,8 @@ export interface Payload {
   layouts: unknown[];
   /** The response's status, when it isn't 200: an error page's. */
   status?: number;
+  /** What the action a form posted to returned. */
+  form?: unknown;
 }
 
 /**

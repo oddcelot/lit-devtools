@@ -2,7 +2,10 @@ import {Elysia} from 'elysia';
 import {compose, headOf, titleOf, type View} from './compose.ts';
 import {renderDocument, renderHead} from './document.ts';
 import {
+  ActionFailure,
   PageError,
+  type ActionContext,
+  type Actions,
   type ErrorData,
   type Layout,
   type Load,
@@ -25,7 +28,7 @@ type Import<T> = () => Promise<T>;
 /** A module and the loader in its `.server.ts`, as the server entry hands them over. */
 export interface ServerModule<T> {
   page: Import<{default: T}>;
-  server?: Import<{load?: Load<unknown>}>;
+  server?: Import<{load?: Load<unknown>; actions?: Actions}>;
 }
 
 /** A route as the generated server entry hands it over. */
@@ -58,6 +61,11 @@ export const pages = (options: PagesOptions) => {
     app.get(route.path, (context) =>
       handle(options, route, context as unknown as LoadContext)
     );
+    if (route.server) {
+      app.post(route.path, (context) =>
+        act(options, route, context as unknown as ActionContext)
+      );
+    }
   }
   // Last, so every route above, the user's included, comes first.
   app.get('/*', (context) =>
@@ -83,6 +91,48 @@ const handle = async (
   } catch (thrown) {
     return failure(options, context, thrown);
   }
+};
+
+/**
+ * A form posted to a page: runs the action it names, then answers with
+ * what the action returned, or with the page loaded again and the
+ * action's result as its `form`.
+ */
+const act = async (
+  options: PagesOptions,
+  route: ServerRoute,
+  context: ActionContext
+) => {
+  try {
+    const result = await runAction(route, context);
+    if (result instanceof Response) return result;
+    const failed = result instanceof ActionFailure;
+    const loaded = await loadAll(route, context);
+    if (loaded instanceof Response) return loaded;
+    return await respond(options, route, context.request, {
+      route: route.path,
+      ...loaded,
+      form: failed ? result.data : result,
+      ...(failed && {status: result.status}),
+    });
+  } catch (thrown) {
+    return failure(options, context, thrown);
+  }
+};
+
+const runAction = async (route: ServerRoute, context: ActionContext) => {
+  const name = actionName(context.request);
+  const action = (await route.server!()).actions?.[name];
+  if (!action) throw new PageError(405, `No action named ${name}`);
+  return action(context);
+};
+
+/** `?/name` names an action, as in `<form action="?/create">`. */
+const actionName = (request: Request) => {
+  const search = new URL(request.url).search;
+  return search.startsWith('?/')
+    ? decodeURIComponent(search.slice(2).split('&')[0]!)
+    : 'default';
 };
 
 const notFound = () => new PageError(404, 'Not found');

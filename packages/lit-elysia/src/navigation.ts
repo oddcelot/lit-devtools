@@ -72,6 +72,10 @@ const dispatch = (
     intercept(event, () =>
       renderPage(site, outlet, fetched.page, event.signal)
     );
+  } else if (event.formData) {
+    // A form post: the router posts it, then renders what comes back.
+    event.preventDefault();
+    void submitFirst(navigation, url, event.formData);
   } else if (event.navigationType === 'traverse') {
     intercept(event, () => revisit(site, outlet, url, event.signal));
   } else {
@@ -94,11 +98,10 @@ const isReloadLink = (target: EventTarget) =>
 const routable = (event: NavigateEvent) =>
   event.canIntercept && plain(event) && sameOrigin(event.destination.url);
 
-/** Not a jump within the page, a download, a form post or a reload. */
+/** Not a jump within the page, a download or a reload. */
 const plain = (event: NavigateEvent) =>
   !event.hashChange &&
   event.downloadRequest === null &&
-  event.formData === null &&
   event.navigationType !== 'reload';
 
 const sameOrigin = (url: string) => new URL(url).origin === location.origin;
@@ -135,6 +138,53 @@ const fetchFirst = async (
   if (controller.signal.aborted) return;
   if (!fetched) return loadDocument(url, history);
   navigation.navigate(fetched.url, {history, info: fetched});
+};
+
+/**
+ * Posts a form, then renders the page the server answered with: the one a
+ * redirect named, as a new entry, or this page again, with the action's
+ * result as its `form`, in place of the current entry.
+ */
+const submitFirst = async (
+  navigation: Navigation,
+  url: string,
+  formData: FormData
+) => {
+  pending?.abort();
+  const controller = (pending = new AbortController());
+  const fetched = await fetchPage(url, controller.signal, {
+    method: 'POST',
+    body: formData,
+  });
+  if (controller.signal.aborted) return;
+  if (!fetched) return submitDocument(url, formData);
+  const target = answerUrl(fetched, url);
+  navigation.navigate(target, {
+    history: target === location.href ? 'replace' : 'push',
+    info: {...fetched, url: target},
+  });
+};
+
+/** Where a post's answer goes: where it redirected, or where the form was. */
+const answerUrl = (fetched: Fetched, posted: string) =>
+  fetched.url === posted ? location.href : fetched.url;
+
+/**
+ * The post the router couldn't render, sent as the browser would have sent
+ * it. Text fields only: files need the form they came from.
+ */
+const submitDocument = (url: string, formData: FormData) => {
+  const form = document.createElement('form');
+  form.method = 'post';
+  form.action = url;
+  form.hidden = true;
+  for (const [name, value] of formData) {
+    if (typeof value !== 'string') continue;
+    form.append(Object.assign(document.createElement('input'), {name, value}));
+  }
+  passing = url;
+  document.body.append(form);
+  form.submit();
 };
 
 /** A full load of `url`, in a new entry or in place of the current one. */
@@ -175,9 +225,11 @@ const renderPage = async (
 /** The page's data, and where it is after any redirect. */
 const fetchPage = async (
   url: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  init: RequestInit = {}
 ): Promise<Fetched | undefined> => {
   const response = await fetch(url, {
+    ...init,
     headers: {[DATA_HEADER]: 'data'},
     signal,
   }).catch(() => undefined);

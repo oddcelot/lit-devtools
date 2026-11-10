@@ -11,12 +11,16 @@ export interface LoadContext {
  * A page: one template, rendered on the server with the data its `load`
  * returned, then hydrated in the browser with the same data.
  */
-export interface Page<Data = undefined> {
+export interface Page<Data = undefined, Form = unknown> {
   /** The document's `<title>`. */
   title?: (data: Data) => string;
   /** Tags for `<head>`: meta, links. They follow the layouts' own. */
   head?: (data: Data) => TemplateResult;
-  render: (data: Data) => TemplateResult;
+  /**
+   * `form` is what the action a form posted to returned, on the page that
+   * answers the post; otherwise `undefined`.
+   */
+  render: (data: Data, form?: Form) => TemplateResult;
 }
 
 /**
@@ -71,9 +75,59 @@ export class PageError extends Error {
 export const error = (status: number, message: string): PageError =>
   new PageError(status, message);
 
+/** What an action gets: the request, and the form's fields. */
+export interface ActionContext extends LoadContext {
+  /** The posted fields, as Elysia parsed them: strings, and files. */
+  body: Record<string, unknown>;
+}
+
+/**
+ * Returned from an action to render the page again with `data` as its
+ * `form`, answering with `status`: a form that didn't validate.
+ */
+export class ActionFailure<Data = unknown> {
+  constructor(
+    readonly status: number,
+    readonly data: Data
+  ) {}
+}
+
+export const fail = <Data>(status: number, data: Data): ActionFailure<Data> =>
+  new ActionFailure(status, data);
+
+/**
+ * An action, run for a form posted to its page: return a `Response`, such
+ * as a redirect, to send it; return `fail(...)` or any other value to
+ * render the page again with it as `form`.
+ */
+export type Action<Result = unknown> = (
+  context: ActionContext
+) => Result | Promise<Result>;
+
+/**
+ * A `.server.ts` module's `actions`: `default` for a form without a name,
+ * and others for `action="?/name"`.
+ */
+export type Actions = Record<string, Action>;
+
+/** What a page's `form` can be, from its actions. */
+export type ActionData<A extends Actions> = {
+  [K in keyof A]: Awaited<ReturnType<A[K]>> extends infer R
+    ? R extends Response
+      ? never
+      : R extends ActionFailure<infer D>
+        ? D
+        : R
+    : never;
+}[keyof A];
+
+/** Types a `.server.ts` module's `actions` export. */
+export const defineActions = <A extends Actions>(actions: A): A => actions;
+
 /** Types a page module's default export. */
-export const definePage = <Data = undefined>(page: Page<Data>): Page<Data> =>
-  page;
+export const definePage = <Data = undefined, Form = unknown>(
+  page: Page<Data, Form>
+): Page<Data, Form> => page;
 
 /** Types a `_layout.ts` module's default export. */
 export const defineLayout = <Data = undefined>(

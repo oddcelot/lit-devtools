@@ -301,6 +301,60 @@ test('the router renders error pages in place, and Back still works', async () =
   expect(await marked(page)).toBe(true);
 });
 
+test('a form posts to its action without JavaScript', async () => {
+  const invalid = await fetch(`${origin}/`, {
+    method: 'POST',
+    headers: {accept: 'text/html'},
+    body: new URLSearchParams({title: ' ', body: 'kept'}),
+  });
+  expect(invalid.status).toBe(400);
+  const html = await invalid.text();
+  expect(html).toContain('A note needs a title.');
+  expect(html).toMatch(/name="body"[^>]*value="kept"/);
+
+  const created = await fetch(`${origin}/`, {
+    method: 'POST',
+    body: new URLSearchParams({title: 'Posted', body: 'plain'}),
+    redirect: 'manual',
+  });
+  expect(created.status).toBe(303);
+  expect(created.headers.get('location')).toMatch(/^\/notes\/\d+$/);
+
+  const unnamed = await fetch(`${origin}/?/nope`, {
+    method: 'POST',
+    headers: {accept: 'text/html'},
+    body: new URLSearchParams({}),
+  });
+  expect(unnamed.status).toBe(405);
+});
+
+test('after hydrating, the router posts forms and renders the answer', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  const counter = page.locator('note-counter button');
+  await counter.click();
+
+  await page.getByLabel('Text').fill('kept too');
+  await page.getByRole('button', {name: 'Add'}).click();
+  await expect
+    .poll(() => page.locator('#form-error').textContent())
+    .toBe('A note needs a title.');
+  // The same page, re-rendered in place: same address, same counter.
+  expect(page.url()).toBe(`${origin}/`);
+  expect(await counter.textContent()).toContain('1 times');
+  expect(await page.getByLabel('Text').inputValue()).toBe('kept too');
+
+  await page.getByLabel('Title').fill('Routed');
+  await page.getByRole('button', {name: 'Add'}).click();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Routed');
+  expect(page.url()).toMatch(/\/notes\/\d+$/);
+  expect(await marked(page)).toBe(true);
+  await page.goBack();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
+  expect(await page.getByRole('link', {name: 'Routed'}).count()).toBe(1);
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();

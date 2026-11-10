@@ -18,7 +18,7 @@ export const compose = (
 ): TemplateResult =>
   layouts.reduceRight(
     (content, layout, i) => layout.render(content, payload.layouts[i]),
-    page.render(payload.data)
+    page.render(payload.data, payload.form)
   );
 
 /** The page's title, or else the innermost layout's that has one. */
