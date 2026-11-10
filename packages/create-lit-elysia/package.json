@@ -1,0 +1,26 @@
+{
+  "name": "create-lit-elysia",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Experimental: start a Lit app on Elysia 2 with @oddsquad/lit-elysia. `pnpm create lit-elysia my-app`.",
+  "license": "BSD-3-Clause",
+  "author": "oddcelot",
+  "type": "module",
+  "bin": {
+    "create-lit-elysia": "./bin/create.mjs"
+  },
+  "exports": {
+    ".": "./bin/create.mjs"
+  },
+  "files": [
+    "bin",
+    "template"
+  ],
+  "devDependencies": {
+    "@oddsquad/lit-elysia": "workspace:*",
+    "elysia": "2.0.0-rc.4",
+    "lit": "^3.3.3",
+    "typebox": "^1.3.0",
+    "vite": "catalog:"
+  }
+}

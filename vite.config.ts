@@ -25,6 +25,7 @@ export default defineConfig({
           include: [
             'src/test/unit/**/*_test.ts',
             'packages/lit-elysia/test/unit_test.ts',
+            'packages/create-lit-elysia/test/create_test.ts',
           ],
         },
       },
