@@ -22,7 +22,10 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['src/test/unit/**/*_test.ts'],
+          include: [
+            'src/test/unit/**/*_test.ts',
+            'packages/lit-elysia/test/unit_test.ts',
+          ],
         },
       },
       {
@@ -54,7 +57,10 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'node',
-          include: ['src/test/e2e/**/*_test.ts'],
+          include: [
+            'src/test/e2e/**/*_test.ts',
+            'packages/lit-elysia/test/e2e_test.ts',
+          ],
           // Each e2e file owns a vite dev server + browser; keep them
           // sequential to avoid port/file contention and CPU thrash.
           fileParallelism: false,

@@ -47,3 +47,5 @@ lit-devtools-snapshot/
 
 # Impeccable critique reports: dated snapshots; their findings go into beads.
 .impeccable/critique/
+/packages/lit-elysia/demo/dist/
+/packages/lit-elysia/demo/.e2e-tmp/

@@ -1,0 +1,32 @@
+{
+  "name": "@oddsquad/lit-elysia",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Experimental: a Lit framework on Elysia 2. Pages from files, rendered on the server with @lit-labs/ssr, streamed and hydrated, with the Vite plugin's HMR in dev.",
+  "license": "BSD-3-Clause",
+  "author": "oddcelot",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./page": "./src/page.ts",
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./node": "./src/node.ts"
+  },
+  "dependencies": {
+    "@lit-labs/ssr": "^4.1.0",
+    "@lit-labs/ssr-client": "^1.1.8",
+    "@oddsquad/vite-plugin-lit": "workspace:^"
+  },
+  "peerDependencies": {
+    "elysia": "^2.0.0-rc.4",
+    "lit": "^3.0.0",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "devDependencies": {
+    "elysia": "2.0.0-rc.4",
+    "lit": "^3.3.3",
+    "typebox": "^1.3.0",
+    "vite": "catalog:"
+  }
+}
