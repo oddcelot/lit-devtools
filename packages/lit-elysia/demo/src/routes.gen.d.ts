@@ -22,6 +22,7 @@ declare module '@oddsquad/lit-elysia/routes' {
       '/private': ServerTypes<typeof import('./routes/private.server')>;
       '/search': ServerTypes<typeof import('./routes/search.server')>;
       '/visitor': ServerTypes<typeof import('./routes/visitor.server')>;
+      '/whoami': ServerTypes<undefined>;
     };
     layouts: {
       '/': ServerTypes<typeof import('./routes/_layout.server')>;

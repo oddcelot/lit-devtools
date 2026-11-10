@@ -847,6 +847,23 @@ test('a generator route streams server-sent events to a component', async () => 
   await expect.poll(() => feed.locator('#feed li').count()).toBe(2);
 });
 
+test("a macro guards the API's routes, and Eden types its 401", async () => {
+  await page.goto(`${origin}/whoami`);
+  const who = page.locator('who-am-i');
+  await who.locator('#ask').click();
+  await expect
+    .poll(() => who.locator('#answer').textContent())
+    .toBe('401: Tell the site your name first.');
+  await page
+    .context()
+    .addCookies([{name: 'visitor', value: 'Ada', url: origin}]);
+  await who.locator('#ask').click();
+  await expect
+    .poll(() => who.locator('#answer').textContent())
+    .toBe('The API knows you as Ada.');
+  await page.context().clearCookies();
+});
+
 test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
   const seen: string[] = [];
   const listen = (request: import('playwright-core').Request) => {
