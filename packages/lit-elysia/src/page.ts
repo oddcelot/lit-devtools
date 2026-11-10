@@ -1,7 +1,35 @@
+import type {AnyElysia, Context} from 'elysia';
 import type {TemplateResult} from 'lit';
+import type {Register} from './routes-types.ts';
 
-/** What a page's `load` gets: the parts of Elysia's context a page needs. */
-export interface LoadContext<Params = Record<string, string>> {
+/** The `context` plugin `src/server.ts` exports, once the list registers it. */
+type ContextApp = Register extends {context: infer App} ? App : undefined;
+
+/**
+ * Elysia's context for the page routes: cookies, `set`, `redirect`,
+ * `headers`, and whatever the `context` plugin decorates and derives.
+ */
+type ElysiaContextOf<App> = App extends AnyElysia
+  ? Context<
+      {},
+      {
+        decorator: App['~Singleton']['decorator'];
+        store: App['~Singleton']['store'];
+        derive: App['~Singleton']['derive'] &
+          App['~Ephemeral']['derive'] &
+          App['~Volatile']['derive'];
+      }
+    >
+  : Context;
+
+/**
+ * What a page's `load` gets: Elysia's context, typed with what the
+ * `context` plugin in `src/server.ts` adds, and the framework's own.
+ */
+export type LoadContext<Params = Record<string, string>> = Omit<
+  ElysiaContextOf<ContextApp>,
+  'params' | 'query' | 'body'
+> & {
   /** Typed by the route's path with `route('/notes/:id').load(...)`. */
   params: Params;
   query: Record<string, string | undefined>;
@@ -17,7 +45,7 @@ export interface LoadContext<Params = Record<string, string>> {
    * the page on screen again when it depends on `notes`.
    */
   depends: (...keys: string[]) => void;
-}
+};
 
 /**
  * A page: one template, rendered on the server with the data its `load`

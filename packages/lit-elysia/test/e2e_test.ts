@@ -665,6 +665,40 @@ test('after a form action, cached pages load fresh', async () => {
   expect(await loadedAt()).not.toBe(first);
 });
 
+test("the context plugin's locals reach loads, and its guard runs first", async () => {
+  // Without a name, the guard sends the private page to the form.
+  const guarded = await fetch(`${origin}/private`, {
+    headers: {accept: 'text/html'},
+    redirect: 'manual',
+  });
+  expect(guarded.status).toBe(303);
+  expect(guarded.headers.get('location')).toBe('/visitor?from=private');
+
+  await page.context().clearCookies();
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  await follow('A guarded page');
+  await expect.poll(() => page.url()).toBe(`${origin}/visitor?from=private`);
+  expect(await page.locator('#greeting').textContent()).toContain(
+    'Hello, stranger. Welcome to Notes.'
+  );
+
+  // The action sets a cookie and redirects; the next load derives from it.
+  await page.getByLabel('Name').fill('Ada');
+  await page.getByRole('button', {name: 'Save'}).click();
+  await expect.poll(() => page.url()).toBe(`${origin}/private`);
+  expect(await page.locator('#private-greeting').textContent()).toContain(
+    'like Ada'
+  );
+  await follow('Who you are');
+  await expect
+    .poll(() => page.locator('#greeting').textContent())
+    .toContain('Hello, Ada.');
+  expect(await marked(page)).toBe(true);
+  await page.context().clearCookies();
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();

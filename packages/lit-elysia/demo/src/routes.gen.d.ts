@@ -13,7 +13,11 @@ declare module '@oddsquad/lit-elysia/routes' {
       | '/nested/second'
       | '/notes/:id'
       | '/params/:a/:b'
-      | '/search';
+      | '/private'
+      | '/search'
+      | '/visitor';
+    app: typeof import('./server').default;
+    context: typeof import('./server').context;
   }
 }
 

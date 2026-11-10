@@ -123,7 +123,7 @@ const framework = (options: LitElysiaOptions): Plugin => {
     },
 
     async buildStart() {
-      await writeRouteTypes(routesDir(), typesFile());
+      await writeRouteTypes(routesDir(), typesFile(), serverFile());
     },
 
     resolveId(id) {
@@ -166,8 +166,14 @@ const framework = (options: LitElysiaOptions): Plugin => {
 
     configureServer(server) {
       watchRoutes(server, routesDir(), () =>
-        writeRouteTypes(routesDir(), typesFile())
+        writeRouteTypes(routesDir(), typesFile(), serverFile())
       );
+      // The server module's exports type loads and the Eden client.
+      server.watcher.on('change', (changed) => {
+        if (path.resolve(changed) === serverFile()) {
+          void writeRouteTypes(routesDir(), typesFile(), serverFile());
+        }
+      });
       // After Vite's own middleware, so its files and modules come first and
       // anything left over goes to Elysia.
       return () => {
@@ -249,10 +255,36 @@ const watchRoutes = (
 const json = (value: unknown) => JSON.stringify(value);
 
 /**
+ * The server module's types for the list: its default export, the app
+ * Eden types its client by, and its `context` plugin, which types loads.
+ * Found by reading the file, so a server module that doesn't exist or
+ * doesn't export them adds nothing.
+ */
+const serverTypes = async (target: string, serverFile: string | undefined) => {
+  if (!serverFile) return '';
+  const code = await readFile(serverFile, 'utf8').catch(() => '');
+  const from = json(
+    `./${path.relative(path.dirname(target), serverFile).replace(/\.[cm]?[jt]s$/, '')}`
+  ).replaceAll('"', "'");
+  return [
+    /export\s+default\b/.test(code) &&
+      `\n    app: typeof import(${from}).default;`,
+    /export\s+const\s+context\b/.test(code) &&
+      `\n    context: typeof import(${from}).context;`,
+  ]
+    .filter(Boolean)
+    .join('');
+};
+
+/**
  * Writes the route list that types `href` and `route`, when it changed, so
  * an editor watching the file only hears of real changes.
  */
-const writeRouteTypes = async (dir: string, target: string | undefined) => {
+const writeRouteTypes = async (
+  dir: string,
+  target: string | undefined,
+  serverFile: string | undefined
+) => {
   if (!target) return;
   const {pages} = await scanRoutes(dir);
   // Laid out as the formatter would, so the two never rewrite each other.
@@ -264,7 +296,7 @@ const writeRouteTypes = async (dir: string, target: string | undefined) => {
 declare module '@oddsquad/lit-elysia/routes' {
   interface Register {
     routes:
-${union};
+${union};${await serverTypes(target, serverFile)}
   }
 }
 
@@ -338,7 +370,8 @@ const serverModule = (
 ) => `
 import {Elysia} from 'elysia';
 import {pages} from ${json(runtime('./server.ts'))};
-${serverFile ? `import userApp from ${json(serverFile)};` : 'const userApp = undefined;'}
+${serverFile ? `import * as user from ${json(serverFile)};` : 'const user = {};'}
+const userApp = user.default;
 const routes = [
 ${routeList(pages)}
 ];
@@ -346,11 +379,12 @@ const errors = [
 ${routeList(errors)}
 ];
 // The user's app goes in as a plugin, so its prefix and scoped hooks stay
-// its own instead of reaching the pages.
+// its own instead of reaching the pages. The pages are added to its
+// \`context\` plugin, when it has one, so its locals and guards reach them.
 export const createApp = (shell) => {
   const app = new Elysia();
   if (userApp) app.use(userApp);
-  return app.use(pages({routes, errors, shell}));
+  return app.use(pages({routes, errors, shell, base: user.context}));
 };
 `;
 

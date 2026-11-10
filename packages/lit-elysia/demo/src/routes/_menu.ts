@@ -60,6 +60,13 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     ],
   },
   {
+    title: 'Server context',
+    links: [
+      {label: 'Who you are', href: href('/visitor')},
+      {label: 'A guarded page', href: href('/private')},
+    ],
+  },
+  {
     title: 'Navigation',
     links: [
       {

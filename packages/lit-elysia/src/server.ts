@@ -1,4 +1,4 @@
-import {Elysia} from 'elysia';
+import {Elysia, type AnyElysia} from 'elysia';
 import {compose, headOf, titleOf, type View} from './compose.ts';
 import {renderDocument, renderHead} from './document.ts';
 import {
@@ -44,6 +44,12 @@ export interface ServerRoute extends ServerModule<Page<unknown>> {
 
 export interface PagesOptions {
   routes: ServerRoute[];
+  /**
+   * The `context` plugin `src/server.ts` exports: the page routes are added
+   * to it, so what it decorates and derives reaches every load and action,
+   * and its hooks, such as a guard in `onBeforeHandle`, run before them.
+   */
+  base?: AnyElysia;
   /** `_404.ts` and `_error.ts`, named `#404` and `#error`. */
   errors?: ServerRoute[];
   /**
@@ -60,7 +66,9 @@ export interface PagesOptions {
  * error, and any other `GET` for a page, answers with an error page.
  */
 export const pages = (options: PagesOptions) => {
-  const app = new Elysia({name: '@oddsquad/lit-elysia/pages'});
+  // Typed as a plain Elysia here: what the base adds is the pages' business.
+  const app = (options.base ??
+    new Elysia({name: '@oddsquad/lit-elysia/pages'})) as Elysia;
   for (const route of options.routes) {
     app.get(route.path, (context) =>
       handle(options, route, context as unknown as Raw)
@@ -80,12 +88,9 @@ export const pages = (options: PagesOptions) => {
   return app;
 };
 
-/** The parts of Elysia's context the pages read. */
+/** The parts of Elysia's context the framework itself reads. */
 interface Raw {
-  params: Record<string, string>;
-  query: Record<string, string | undefined>;
   request: Request;
-  body?: unknown;
 }
 
 /** What a request's loads and actions set aside for its response. */
@@ -94,23 +99,22 @@ interface Collected {
   depends: Set<string>;
 }
 
-/** The context the loads and actions of one request share. */
+/**
+ * The context the loads and actions of one request share: Elysia's own,
+ * with whatever the `context` plugin added, and the framework's helpers.
+ */
 const pageContext = (raw: Raw) => {
   const collected: Collected = {headers: {}, depends: new Set()};
-  const context: ActionContext = {
-    params: raw.params,
-    query: raw.query,
-    request: raw.request,
-    body: (raw.body ?? {}) as Record<string, unknown>,
-    setHeaders: (headers) => {
+  const context = Object.assign(raw, {
+    setHeaders: (headers: Record<string, string>) => {
       for (const [name, value] of Object.entries(headers)) {
         collected.headers[name.toLowerCase()] = value;
       }
     },
-    depends: (...keys) => {
+    depends: (...keys: string[]) => {
       for (const key of keys) collected.depends.add(key);
     },
-  };
+  }) as unknown as ActionContext;
   return {context, collected};
 };
 
