@@ -112,6 +112,33 @@ test('the page hydrates, and an edit keeps the state', async () => {
   expect(warnings.filter((text) => !text.includes('dev mode'))).toEqual([]);
 });
 
+test('an edited page renders again in place, and its elements keep their state', async () => {
+  await page.goto(`${origin}/`);
+  const button = page.locator('note-counter button');
+  await button.click();
+  await button.click();
+  await expect.poll(() => button.textContent()).toContain('2 times');
+  await page.evaluate(() => ((window as {mark?: boolean}).mark = true));
+
+  const file = path.join(root, 'src/routes/index.ts');
+  const code = await readFile(file, 'utf8');
+  await writeFile(
+    file,
+    code
+      .replace('<h1>Notes</h1>', '<h1>All notes</h1>')
+      .replace("title: () => 'Notes'", "title: () => 'All notes'")
+  );
+  await expect.poll(() => page.locator('h1').textContent()).toBe('All notes');
+  expect(await page.title()).toBe('All notes');
+  // No reload, and the counter in the page kept its count.
+  expect(await page.evaluate(() => (window as {mark?: boolean}).mark)).toBe(
+    true
+  );
+  expect(await button.textContent()).toContain('2 times');
+  await writeFile(file, code);
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
+});
+
 test('the router asks a page for its data alone', async () => {
   const response = await fetch(`${origin}/notes/2`, {
     headers: {'x-lit-elysia': 'data'},

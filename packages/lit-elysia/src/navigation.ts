@@ -1,7 +1,7 @@
 import {render} from 'lit';
 import type {Page} from './page.ts';
 import {decode} from './serialize.ts';
-import {DATA_HEADER, type PageData} from './shared.ts';
+import {DATA_HEADER, type PageData, type Payload} from './shared.ts';
 
 export type ClientRoutes = Record<
   string,
@@ -37,6 +37,15 @@ interface Fetched {
   url: string;
   page: PageData;
 }
+
+/** The page in the outlet and the data it rendered with, for HMR. */
+let shown: Payload | undefined;
+
+export const shownPage = (): Payload | undefined => shown;
+
+export const remember = (payload: Payload): void => {
+  shown = {route: payload.route, data: payload.data};
+};
 
 export const pageFor = (routes: ClientRoutes, route: string) => {
   const load = routes[route];
@@ -182,6 +191,7 @@ const renderPage = async (
   const page = (await pageFor(routes, next.route)()).default;
   if (signal.aborted) return;
   render(page.render(next.data), outlet);
+  remember(next);
   if (next.title !== undefined) document.title = next.title;
 };
 

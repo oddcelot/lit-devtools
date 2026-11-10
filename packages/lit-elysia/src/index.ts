@@ -113,7 +113,10 @@ const framework = (options: LitElysiaOptions): Plugin => {
     },
 
     async load(id) {
-      if (id === CLIENT_ID) return clientModule(await scanRoutes(routesDir()));
+      if (id === CLIENT_ID) {
+        const routes = await scanRoutes(routesDir());
+        return clientModule(routes, config.command === 'serve');
+      }
       if (id === RESOLVED_SERVER_ID) {
         return serverModule(await scanRoutes(routesDir()), serverFile());
       }
@@ -215,11 +218,29 @@ const watchRoutes = (server: ViteDevServer, dir: string) => {
 
 const json = (value: unknown) => JSON.stringify(value);
 
-const clientModule = (routes: RouteFile[]) => `
-import {boot} from ${json(runtime('./client.ts'))};
-boot({
-${routes.map((route) => `  ${json(route.path)}: () => import(${json(normalizePath(route.page))}),`).join('\n')}
-});
+const clientModule = (routes: RouteFile[], dev: boolean) => {
+  const pages = routes.map((route) => json(normalizePath(route.page)));
+  return `
+import {boot, hotPage} from ${json(runtime('./client.ts'))};
+const routes = {
+${routes.map((route, i) => `  ${json(route.path)}: () => import(${pages[i]}),`).join('\n')}
+};
+boot(routes);
+${dev ? hotAccept(routes, pages) : ''}`;
+};
+
+/**
+ * The client entry is the HMR boundary for the pages: an edited page
+ * renders again in place instead of reloading. Vite reads the list as
+ * written, so it is spelled out.
+ */
+const hotAccept = (routes: RouteFile[], pages: string[]) => `
+if (import.meta.hot) {
+  const paths = ${json(routes.map((route) => route.path))};
+  import.meta.hot.accept([${pages.join(', ')}], (modules) => {
+    modules.forEach((module, i) => module && hotPage(routes, paths[i], module));
+  });
+}
 `;
 
 const serverModule = (routes: RouteFile[], serverFile: string | undefined) => `
