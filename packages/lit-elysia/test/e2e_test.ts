@@ -160,6 +160,12 @@ test('anything the router cannot render is a full load', async () => {
   await page.getByRole('link', {name: "A note that isn't there"}).click();
   await expect.poll(() => page.textContent('body')).toContain('No such note');
   expect(await marked(page)).toBe(false);
+  // Back from the server's page loads the one before, rather than only
+  // changing the address.
+  await page.goBack();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
+  await page.goForward();
+  await expect.poll(() => page.textContent('body')).toContain('No such note');
 
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();
