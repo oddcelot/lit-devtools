@@ -5,6 +5,7 @@ import '../components/layout-clicks.ts';
 
 export default defineLayout<LoadedData<typeof load>>({
   title: () => 'Notes',
+  head: () => html`<meta name="theme-color" content="#324fff" />`,
   render: (content, {count}) => html`
     <header>
       <a href="/">Notes</a> · <span id="note-count">${count} notes</span>

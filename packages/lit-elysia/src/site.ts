@@ -1,7 +1,7 @@
-import {render} from 'lit';
-import {compose, titleOf, type View} from './compose.ts';
+import {render, type TemplateResult} from 'lit';
+import {compose, headOf, titleOf, type View} from './compose.ts';
 import type {Layout, Page} from './page.ts';
-import type {Payload} from './shared.ts';
+import {HEAD_END, HEAD_START, type Payload} from './shared.ts';
 
 /** The pages and layouts as the generated client entry hands them over. */
 export interface Site {
@@ -46,6 +46,40 @@ export const show = (
   shown = payload;
   const title = titleOf(view, payload);
   if (title !== undefined) document.title = title;
+  replaceHead(headOf(view, payload));
+};
+
+/**
+ * Swaps the page's `<head>` tags, between the markers the server wrote, for
+ * the ones `templates` render.
+ */
+const replaceHead = (templates: TemplateResult[]) => {
+  const [start, end] = headMarkers();
+  while (start.nextSibling && start.nextSibling !== end) {
+    start.nextSibling.remove();
+  }
+  for (const template of templates) {
+    // One container each: Lit keeps what it rendered on the container.
+    const scratch = document.createElement('div');
+    render(template, scratch);
+    end.before(...Array.from(scratch.children));
+  }
+};
+
+/** The markers around the pages' tags, added when the shell has none. */
+const headMarkers = (): [Comment, Comment] => {
+  const comments = Array.from(document.head.childNodes).filter(
+    (node): node is Comment => node.nodeType === Node.COMMENT_NODE
+  );
+  const start = comments.find((node) => node.data === HEAD_START);
+  const end = comments.find((node) => node.data === HEAD_END);
+  if (start && end) return [start, end];
+  const pair: [Comment, Comment] = [
+    document.createComment(HEAD_START),
+    document.createComment(HEAD_END),
+  ];
+  document.head.append(...pair);
+  return pair;
 };
 
 /** For hydration, which renders the first page itself. */

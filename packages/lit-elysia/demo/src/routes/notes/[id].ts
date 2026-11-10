@@ -5,6 +5,10 @@ import '../../components/note-counter.ts';
 
 export default definePage<LoadedData<typeof load>>({
   title: (note) => note.title,
+  head: (note) => html`
+    <meta name="description" content=${note.body} />
+    <link rel="canonical" href="/notes/${note.id}" />
+  `,
   render: (note) => html`
     <a href="/">← All notes</a>
     <h1>${note.title}</h1>

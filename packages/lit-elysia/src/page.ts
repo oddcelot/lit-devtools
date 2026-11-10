@@ -14,6 +14,8 @@ export interface LoadContext {
 export interface Page<Data = undefined> {
   /** The document's `<title>`. */
   title?: (data: Data) => string;
+  /** Tags for `<head>`: meta, links. They follow the layouts' own. */
+  head?: (data: Data) => TemplateResult;
   render: (data: Data) => TemplateResult;
 }
 
@@ -26,6 +28,8 @@ export interface Page<Data = undefined> {
 export interface Layout<Data = undefined> {
   /** The title, for pages that don't set their own. */
   title?: (data: Data) => string;
+  /** Tags for `<head>` on every page under it, before the page's own. */
+  head?: (data: Data) => TemplateResult;
   render: (content: TemplateResult, data: Data) => TemplateResult;
 }
 

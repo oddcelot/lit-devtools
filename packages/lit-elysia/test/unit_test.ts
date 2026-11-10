@@ -2,6 +2,7 @@ import {html} from 'lit';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
 import {decode, encode} from '../src/serialize.ts';
+import {renderHead} from '../src/document.ts';
 import {renderDocument} from '../src/server.ts';
 
 const DEMO_ROUTES = decodeURIComponent(
@@ -84,10 +85,13 @@ test('the document fills the shell and carries the data', async () => {
       '<html><head><!--lit-elysia:head--></head><body><!--lit-elysia:body--><footer></footer></body></html>',
     template: html`<p>${'</script>'}</p>`,
     title: '<</script>>',
+    head: '<meta name="description" content="x">',
     payload: {route: '/', data: '</script>', layouts: []},
   });
   const text = await new Response(stream).text();
-  expect(text).toContain('<title>&#60;&#60;/script&#62;&#62;</title>');
+  expect(text).toContain(
+    '<title>&#60;&#60;/script&#62;&#62;</title><!--lit-elysia-head--><meta name="description" content="x"><!--/lit-elysia-head-->'
+  );
   expect(text).toMatch(/<div id="lit-elysia"><!--lit-part [^>]+--><p>/);
   // The data can't close its own script element.
   const script =
@@ -120,4 +124,14 @@ test('page data keeps the types JSON loses', () => {
   expect('missing' in back).toBe(true);
   expect(back.second).toBe(back.first);
   expect(encode('</script><!--')).not.toContain('<');
+});
+
+test("head tags render without Lit's markers", async () => {
+  const head = await renderHead([
+    html`<meta name="theme-color" content="#fff" />`,
+    html`<meta name="description" content=${'a "quoted" <note>'} />`,
+  ]);
+  expect(head).toBe(
+    '<meta name="theme-color" content="#fff" /><meta name="description" content="a &quot;quoted&quot; &lt;note&gt;" />'
+  );
 });

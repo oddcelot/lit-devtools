@@ -232,6 +232,38 @@ test('layouts nest, load their own data, and stay mounted', async () => {
   expect(await layout.textContent()).toContain('Layout clicks: 2');
 });
 
+/** The page's head tags: name or rel, and value, in document order. */
+const headTags = (page: Page) =>
+  page.evaluate(() =>
+    Array.from(
+      document.head.querySelectorAll(
+        'meta[name="description"], meta[name="theme-color"], link[rel="canonical"]'
+      )
+    ).map(
+      (el) =>
+        `${el.getAttribute('name') ?? el.getAttribute('rel')}=${el.getAttribute('content') ?? el.getAttribute('href')}`
+    )
+  );
+
+test("pages and layouts set head tags, and the router swaps the page's", async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  expect(await headTags(page)).toEqual([
+    'theme-color=#324fff',
+    expect.stringMatching(/^description=\d+ notes$/),
+  ]);
+  await page.getByRole('link', {name: 'Lit'}).click();
+  await expect.poll(() => page.title()).toBe('Lit');
+  expect(await headTags(page)).toEqual([
+    'theme-color=#324fff',
+    'description=The pages: rendered on the server, hydrated.',
+    'canonical=/notes/2',
+  ]);
+  await page.goBack();
+  await expect.poll(() => page.title()).toBe('Notes');
+  expect(await headTags(page)).toHaveLength(2);
+});
+
 test('an edited layout renders again in place', async () => {
   await page.goto(`${origin}/`);
   const layout = page.locator('layout-clicks button');

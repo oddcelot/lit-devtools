@@ -30,3 +30,14 @@ export const titleOf = (
   const i = layouts.findLastIndex((layout) => layout.title);
   return i < 0 ? undefined : layouts[i]!.title!(payload.layouts[i]);
 };
+
+/** The `<head>` tags of the layouts, outermost first, then the page's. */
+export const headOf = (
+  {page, layouts}: View,
+  payload: Payload
+): TemplateResult[] => [
+  ...layouts.flatMap((layout, i) =>
+    layout.head ? [layout.head(payload.layouts[i])] : []
+  ),
+  ...(page.head ? [page.head(payload.data)] : []),
+];

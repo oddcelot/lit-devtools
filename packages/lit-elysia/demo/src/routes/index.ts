@@ -5,6 +5,8 @@ import '../components/note-counter.ts';
 
 export default definePage<LoadedData<typeof load>>({
   title: () => 'Notes',
+  head: ({notes}) =>
+    html`<meta name="description" content="${notes.length} notes" />`,
   render: ({notes}) => html`
     <h1>Notes</h1>
     <ul>

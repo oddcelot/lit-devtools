@@ -1,6 +1,6 @@
 import {Elysia} from 'elysia';
-import {compose, titleOf, type View} from './compose.ts';
-import {renderDocument} from './document.ts';
+import {compose, headOf, titleOf, type View} from './compose.ts';
+import {renderDocument, renderHead} from './document.ts';
 import {
   PageError,
   type ErrorData,
@@ -198,12 +198,13 @@ const dataResponse = (payload: PageData) =>
     },
   });
 
-const documentResponse = (view: View, payload: Payload, shell: string) =>
+const documentResponse = async (view: View, payload: Payload, shell: string) =>
   new Response(
     renderDocument({
       shell,
       template: compose(view, payload),
       title: titleOf(view, payload),
+      head: await renderHead(headOf(view, payload)),
       payload,
     }),
     {

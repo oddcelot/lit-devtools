@@ -1,5 +1,9 @@
 /** Where `index.html` takes the page's `<title>`. */
 export const HEAD = '<!--lit-elysia:head-->';
+/** Around the tags the pages put in `<head>`, so the router can swap them. */
+export const HEAD_START = 'lit-elysia-head';
+export const HEAD_END = '/lit-elysia-head';
+
 /** Where `index.html` takes the rendered page. */
 export const BODY = '<!--lit-elysia:body-->';
 
