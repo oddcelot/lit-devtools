@@ -2,7 +2,15 @@ import {render} from '@lit-labs/ssr';
 import type {RenderResult} from '@lit-labs/ssr/lib/render-result.js';
 import {Elysia} from 'elysia';
 import type {Load, LoadContext, Page} from './page.ts';
-import {BODY, DATA_ID, HEAD, OUTLET_ID, type Payload} from './shared.ts';
+import {
+  BODY,
+  DATA_HEADER,
+  DATA_ID,
+  HEAD,
+  OUTLET_ID,
+  type PageData,
+  type Payload,
+} from './shared.ts';
 
 /** A route as the generated server entry hands it over. */
 export interface ServerRoute {
@@ -22,7 +30,8 @@ export interface PagesOptions {
 
 /**
  * An Elysia plugin with a `GET` route for each page: it runs the page's
- * `load`, then streams the shell with the page rendered into it.
+ * `load`, then streams the shell with the page rendered into it, or, for
+ * the client router, answers with the data alone.
  */
 export const pages = ({routes, shell}: PagesOptions) => {
   const app = new Elysia({name: '@oddsquad/lit-elysia/pages'});
@@ -31,18 +40,36 @@ export const pages = ({routes, shell}: PagesOptions) => {
       const loaded = await loadData(route, context as unknown as LoadContext);
       if (loaded instanceof Response) return loaded;
       const page = (await route.page()).default;
-      const url = new URL(context.request.url);
-      return new Response(
-        renderDocument({
-          shell: await shell(url.pathname + url.search),
-          page,
-          payload: {route: route.path, data: loaded},
-        }),
-        {headers: {'content-type': 'text/html; charset=utf-8'}}
-      );
+      const payload = {route: route.path, data: loaded};
+      const {request} = context;
+      return request.headers.get(DATA_HEADER) === 'data'
+        ? dataResponse(page, payload)
+        : documentResponse(page, payload, await shell(pathOf(request)));
     });
   }
   return app;
+};
+
+/** One URL answers with HTML or data, so caches have to tell them apart. */
+const VARY = {vary: DATA_HEADER};
+
+const dataResponse = (page: Page<unknown>, payload: Payload) => {
+  const body: PageData = {...payload, title: page.title?.(payload.data)};
+  return Response.json(body, {headers: {...VARY, [DATA_HEADER]: 'data'}});
+};
+
+const documentResponse = (
+  page: Page<unknown>,
+  payload: Payload,
+  shell: string
+) =>
+  new Response(renderDocument({shell, page, payload}), {
+    headers: {...VARY, 'content-type': 'text/html; charset=utf-8'},
+  });
+
+const pathOf = (request: Request) => {
+  const url = new URL(request.url);
+  return url.pathname + url.search;
 };
 
 const loadData = async (route: ServerRoute, context: LoadContext) => {

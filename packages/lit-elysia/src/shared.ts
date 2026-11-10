@@ -14,3 +14,14 @@ export interface Payload {
   route: string;
   data: unknown;
 }
+
+/**
+ * The header that asks a page's URL for its data instead of its HTML, and
+ * marks the response that carries it.
+ */
+export const DATA_HEADER = 'x-lit-elysia';
+
+/** A page's data as the router fetches it: the payload, and its title. */
+export interface PageData extends Payload {
+  title?: string;
+}

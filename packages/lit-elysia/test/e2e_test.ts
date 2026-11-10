@@ -107,6 +107,61 @@ test('the page hydrates, and an edit keeps the state', async () => {
   expect(warnings.filter((text) => !text.includes('dev mode'))).toEqual([]);
 });
 
+test('the router asks a page for its data alone', async () => {
+  const response = await fetch(`${origin}/notes/2`, {
+    headers: {'x-lit-elysia': 'data'},
+  });
+  expect(response.headers.get('vary')).toContain('x-lit-elysia');
+  expect(await response.json()).toMatchObject({
+    route: '/notes/:id',
+    title: 'Lit',
+    data: {id: 2},
+  });
+});
+
+/** Marks the document, to tell a rendered page from a loaded one. */
+const mark = (page: Page) =>
+  page.evaluate(() => ((window as {mark?: boolean}).mark = true));
+const marked = (page: Page) =>
+  page.evaluate(() => (window as {mark?: boolean}).mark === true);
+
+test('after hydrating, the router renders pages without loading them', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+
+  await page.getByRole('link', {name: 'Lit'}).click();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Lit');
+  expect(page.url()).toBe(`${origin}/notes/2`);
+  expect(await page.title()).toBe('Lit');
+
+  await page.goBack();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
+  expect(await page.title()).toBe('Notes');
+
+  // A redirect from `load` lands on its target, still without a load.
+  await page.getByRole('link', {name: 'Newest note'}).click();
+  await expect.poll(() => page.url()).toMatch(/\/notes\/\d+$/);
+  await expect.poll(() => page.locator('h1').count()).toBe(1);
+  expect(await marked(page)).toBe(true);
+});
+
+test('anything the router cannot render is a full load', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  await page.getByRole('link', {name: "A note that isn't there"}).click();
+  await expect.poll(() => page.textContent('body')).toContain('No such note');
+  expect(await marked(page)).toBe(false);
+
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  await page.getByRole('link', {name: 'First note, as a full load'}).click();
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Elysia');
+  expect(await marked(page)).toBe(false);
+});
+
 test('the build serves the same pages from its server entry', async () => {
   const builder = await createBuilder({
     root,

@@ -12,6 +12,11 @@ export default definePage<LoadedData<typeof load>>({
         (note) => html`<li><a href="/notes/${note.id}">${note.title}</a></li>`
       )}
     </ul>
+    <p>
+      <a href="/latest">Newest note</a> ·
+      <a href="/notes/99">A note that isn't there</a> ·
+      <a href="/notes/1" data-reload>First note, as a full load</a>
+    </p>
     <note-counter></note-counter>
   `,
 });

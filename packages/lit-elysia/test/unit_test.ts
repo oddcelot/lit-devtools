@@ -25,6 +25,7 @@ test('the scan pairs each page with its .server.ts', async () => {
     }))
   ).toEqual([
     {path: '/', page: '/index.ts', server: '/index.server.ts'},
+    {path: '/latest', page: '/latest.ts', server: '/latest.server.ts'},
     {
       path: '/notes/:id',
       page: '/notes/[id].ts',
