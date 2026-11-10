@@ -11,7 +11,8 @@
     "./page": "./src/page.ts",
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
-    "./node": "./src/node.ts"
+    "./node": "./src/node.ts",
+    "./routes": "./src/links.ts"
   },
   "dependencies": {
     "@lit-labs/ssr": "^4.1.0",

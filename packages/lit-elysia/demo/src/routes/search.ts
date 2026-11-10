@@ -1,5 +1,6 @@
 import {html} from 'lit';
 import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './search.server.ts';
 
 export default definePage<LoadedData<typeof load>>({
@@ -17,7 +18,10 @@ export default definePage<LoadedData<typeof load>>({
     <p id="result-count">${results.length} notes match</p>
     <ul>
       ${results.map(
-        (note) => html`<li><a href="/notes/${note.id}">${note.title}</a></li>`
+        (note) =>
+          html`<li>
+            <a href=${href('/notes/:id', {id: note.id})}>${note.title}</a>
+          </li>`
       )}
     </ul>
   `,

@@ -5,7 +5,8 @@ import {safePromises} from '../src/deferred.ts';
 import {PageError} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
-import {renderDocument} from '../src/server.ts';
+import {href, route} from '../src/links.ts';
+import {pages, renderDocument} from '../src/server.ts';
 
 const DEMO_ROUTES = decodeURIComponent(
   new URL('../demo/src/routes', import.meta.url).pathname
@@ -217,5 +218,52 @@ test("head tags render without Lit's markers", async () => {
   ]);
   expect(head).toBe(
     '<meta name="theme-color" content="#fff" /><meta name="description" content="a &quot;quoted&quot; &lt;note&gt;" />'
+  );
+});
+
+test('href fills in and encodes params, query and hash', () => {
+  // Without the generated route list, any path type-checks: the unit tests
+  // exercise the runtime alone.
+  expect(href('/notes/:id', {id: 2})).toBe('/notes/2');
+  expect(href('/params/:a/:b', {a: 'x y', b: 'a/b'})).toBe(
+    '/params/x%20y/a%2Fb'
+  );
+  expect(href('/files/*', {'*': 'docs/a b.md'})).toBe('/files/docs/a%20b.md');
+  expect(
+    href('/search', {}, {query: {q: 'lit & elysia', page: 2, none: undefined}})
+  ).toBe('/search?q=lit+%26+elysia&page=2');
+  expect(href('/', {}, {hash: 'add'})).toBe('/#add');
+  // @ts-expect-error: the type check catches a missing param first.
+  expect(() => href('/notes/:id', {})).toThrow('no value for :id');
+});
+
+test("a load typed for another route's params fails loudly", async () => {
+  const shell = () => '<html><body><!--lit-elysia:body--></body></html>';
+  const page = () => Promise.resolve({default: {render: () => html``}});
+  const app = pages({
+    shell,
+    routes: [
+      {
+        path: '/notes/:id',
+        page,
+        server: () =>
+          Promise.resolve({
+            load: route('/params/:a/:b').load(({params}) => params),
+          }),
+        layouts: [],
+      },
+    ],
+  });
+  const errors: unknown[] = [];
+  const log = console.error;
+  console.error = (error: unknown) => errors.push(error);
+  try {
+    const response = await app.handle(new Request('http://localhost/notes/1'));
+    expect(response.status).toBe(500);
+  } finally {
+    console.error = log;
+  }
+  expect(String(errors[0])).toContain(
+    "route('/params/:a/:b') is used in the page that answers /notes/:id"
   );
 });

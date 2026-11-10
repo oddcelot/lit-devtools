@@ -1,8 +1,9 @@
 import type {TemplateResult} from 'lit';
 
 /** What a page's `load` gets: the parts of Elysia's context a page needs. */
-export interface LoadContext {
-  params: Record<string, string>;
+export interface LoadContext<Params = Record<string, string>> {
+  /** Typed by the route's path with `route('/notes/:id').load(...)`. */
+  params: Params;
   query: Record<string, string | undefined>;
   request: Request;
 }
@@ -42,8 +43,8 @@ export interface Layout<Data = undefined> {
  * instead, such as a redirect or a 404, to send it in place of the page.
  * The data travels to the browser as JSON, so keep it to what JSON holds.
  */
-export type Load<Data> = (
-  context: LoadContext
+export type Load<Data, Params = Record<string, string>> = (
+  context: LoadContext<Params>
 ) => Data | Response | Promise<Data | Response>;
 
 /** The data a `load` gives its page. */
@@ -76,7 +77,9 @@ export const error = (status: number, message: string): PageError =>
   new PageError(status, message);
 
 /** What an action gets: the request, and the form's fields. */
-export interface ActionContext extends LoadContext {
+export interface ActionContext<
+  Params = Record<string, string>,
+> extends LoadContext<Params> {
   /** The posted fields, as Elysia parsed them: strings, and files. */
   body: Record<string, unknown>;
 }
@@ -100,15 +103,17 @@ export const fail = <Data>(status: number, data: Data): ActionFailure<Data> =>
  * as a redirect, to send it; return `fail(...)` or any other value to
  * render the page again with it as `form`.
  */
-export type Action<Result = unknown> = (
-  context: ActionContext
+export type Action<Result = unknown, Params = Record<string, string>> = (
+  context: ActionContext<Params>
 ) => Result | Promise<Result>;
 
 /**
  * A `.server.ts` module's `actions`: `default` for a form without a name,
  * and others for `action="?/name"`.
  */
-export type Actions = Record<string, Action>;
+// `any` params: an action typed for its route's params is still an action.
+// oxlint-disable-next-line typescript/no-explicit-any
+export type Actions = Record<string, Action<unknown, any>>;
 
 /** What a page's `form` can be, from its actions. */
 export type ActionData<A extends Actions> = {

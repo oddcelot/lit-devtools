@@ -4,6 +4,7 @@ import {
   type ActionData,
   type LoadedData,
 } from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import type {actions, load} from './index.server.ts';
 import '../components/note-counter.ts';
 
@@ -41,7 +42,10 @@ export default definePage<LoadedData<typeof load>, Form>({
     <h1>Notes</h1>
     <ul>
       ${notes.map(
-        (note) => html`<li><a href="/notes/${note.id}">${note.title}</a></li>`
+        (note) =>
+          html`<li>
+            <a href=${href('/notes/:id', {id: note.id})}>${note.title}</a>
+          </li>`
       )}
     </ul>
     ${addNote(form)}

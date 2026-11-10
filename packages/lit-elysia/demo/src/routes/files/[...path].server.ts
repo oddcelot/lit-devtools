@@ -1,6 +1,6 @@
-import {defineLoad} from '@oddsquad/lit-elysia/page';
+import {route} from '@oddsquad/lit-elysia/routes';
 
 /** Elysia names the wildcard `*`. */
-export const load = defineLoad(({params}) => ({
-  segments: (params['*'] ?? '').split('/').filter(Boolean),
+export const load = route('/files/*').load(({params}) => ({
+  segments: params['*'].split('/').filter(Boolean),
 }));

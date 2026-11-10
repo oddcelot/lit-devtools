@@ -1,5 +1,5 @@
 import {existsSync} from 'node:fs';
-import {readFile} from 'node:fs/promises';
+import {readFile, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {litPlugin, type LitPluginOptions} from '@oddsquad/vite-plugin-lit';
@@ -25,6 +25,12 @@ export interface LitElysiaOptions {
   server?: string;
   /** Options for the Lit Vite plugin, or `false` to leave it out. */
   lit?: LitPluginOptions | false;
+  /**
+   * Where to write the list of routes that types `href` and `route`, from
+   * the project root, or `false` for none. Default `routes.gen.d.ts` beside
+   * the routes folder.
+   */
+  types?: string | false;
 }
 
 /** URL of the client entry, which `index.html` gets a script for. */
@@ -56,6 +62,17 @@ const framework = (options: LitElysiaOptions): Plugin => {
   let config: ResolvedConfig;
   const routesDir = () =>
     path.resolve(config.root, options.routes ?? 'src/routes');
+  const typesFile = () =>
+    options.types === false
+      ? undefined
+      : path.resolve(
+          config.root,
+          options.types ??
+            path.join(
+              path.dirname(options.routes ?? 'src/routes'),
+              'routes.gen.d.ts'
+            )
+        );
   const serverFile = () => {
     const file = path.resolve(config.root, options.server ?? 'src/server.ts');
     return existsSync(file) ? normalizePath(file) : undefined;
@@ -105,6 +122,10 @@ const framework = (options: LitElysiaOptions): Plugin => {
       config = resolved;
     },
 
+    async buildStart() {
+      await writeRouteTypes(routesDir(), typesFile());
+    },
+
     resolveId(id) {
       if (id === CLIENT_URL) return CLIENT_ID;
       if (id === SERVER_ID) return RESOLVED_SERVER_ID;
@@ -144,7 +165,9 @@ const framework = (options: LitElysiaOptions): Plugin => {
     },
 
     configureServer(server) {
-      watchRoutes(server, routesDir());
+      watchRoutes(server, routesDir(), () =>
+        writeRouteTypes(routesDir(), typesFile())
+      );
       // After Vite's own middleware, so its files and modules come first and
       // anything left over goes to Elysia.
       return () => {
@@ -203,9 +226,14 @@ const handle = async (
 };
 
 /** A page added or removed changes the routes: rebuild them, then reload. */
-const watchRoutes = (server: ViteDevServer, dir: string) => {
+const watchRoutes = (
+  server: ViteDevServer,
+  dir: string,
+  changed: () => Promise<void>
+) => {
   const onChange = (file: string) => {
     if (!path.resolve(file).startsWith(dir + path.sep)) return;
+    void changed();
     for (const env of Object.values(server.environments)) {
       for (const id of [CLIENT_ID, RESOLVED_SERVER_ID]) {
         const module = env.moduleGraph.getModuleById(id);
@@ -219,6 +247,32 @@ const watchRoutes = (server: ViteDevServer, dir: string) => {
 };
 
 const json = (value: unknown) => JSON.stringify(value);
+
+/**
+ * Writes the route list that types `href` and `route`, when it changed, so
+ * an editor watching the file only hears of real changes.
+ */
+const writeRouteTypes = async (dir: string, target: string | undefined) => {
+  if (!target) return;
+  const {pages} = await scanRoutes(dir);
+  // Laid out as the formatter would, so the two never rewrite each other.
+  const union =
+    pages
+      .map((page) => `      | '${page.path.replaceAll("'", "\\'")}'`)
+      .join('\n') || '      never';
+  const content = `// Written by @oddsquad/lit-elysia from the routes folder. Don't edit.
+declare module '@oddsquad/lit-elysia/routes' {
+  interface Register {
+    routes:
+${union};
+  }
+}
+
+export {};
+`;
+  const current = await readFile(target, 'utf8').catch(() => undefined);
+  if (current !== content) await writeFile(target, content);
+};
 
 const file = (name: string) => json(normalizePath(name));
 

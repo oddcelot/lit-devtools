@@ -1,5 +1,6 @@
 import {html} from 'lit';
 import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './[...path].server.ts';
 
 export default definePage<LoadedData<typeof load>>({
@@ -14,8 +15,8 @@ export default definePage<LoadedData<typeof load>>({
       ${segments.map((segment) => html`<li>${segment}</li>`)}
     </ol>
     <p>
-      <a href="/files/one">one segment</a> ·
-      <a href="/files/a/b/c/d/e">five segments</a>
+      <a href=${href('/files/*', {'*': 'one'})}>one segment</a> ·
+      <a href=${href('/files/*', {'*': 'a/b/c/d/e'})}>five segments</a>
     </p>
   `,
 });

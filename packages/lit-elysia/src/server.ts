@@ -13,6 +13,7 @@ import {
   type Page,
 } from './page.ts';
 import {safePromises} from './deferred.ts';
+import {ROUTE} from './links.ts';
 import {records} from './serialize.ts';
 import {
   DATA_HEADER,
@@ -29,7 +30,9 @@ type Import<T> = () => Promise<T>;
 /** A module and the loader in its `.server.ts`, as the server entry hands them over. */
 export interface ServerModule<T> {
   page: Import<{default: T}>;
-  server?: Import<{load?: Load<unknown>; actions?: Actions}>;
+  // `any` params: a load typed for its route's params is still a load.
+  // oxlint-disable-next-line typescript/no-explicit-any
+  server?: Import<{load?: Load<unknown, any>; actions?: Actions}>;
 }
 
 /** A route as the generated server entry hands it over. */
@@ -123,7 +126,9 @@ const act = async (
 
 const runAction = async (route: ServerRoute, context: ActionContext) => {
   const name = actionName(context.request);
-  const action = (await route.server!()).actions?.[name];
+  const actions = (await route.server!()).actions;
+  checkRoute(actions, route.path);
+  const action = actions?.[name];
   if (!action) throw new PageError(405, `No action named ${name}`);
   return action(context);
 };
@@ -213,7 +218,9 @@ const viewOf = async (route: ServerRoute): Promise<View> => ({
  */
 const loadAll = async (route: ServerRoute, context: LoadContext) => {
   const [data, ...layouts] = await Promise.all(
-    [route, ...route.layouts].map((module) => loadData(module, context))
+    [route, ...route.layouts].map((module, i) =>
+      loadData(module, context, i === 0 ? route.path : undefined)
+    )
   );
   const response = [data, ...layouts].find(
     (value) => value instanceof Response
@@ -232,10 +239,25 @@ const loadLayouts = async (route: ServerRoute, context: LoadContext) => {
 
 const loadData = async (
   module: ServerModule<unknown>,
-  context: LoadContext
+  context: LoadContext,
+  path?: string
 ) => {
   const load = module.server && (await module.server()).load;
+  if (path) checkRoute(load, path);
   return load ? load(context) : undefined;
+};
+
+/**
+ * A `load` or `actions` made with `route(path)` was typed for that path's
+ * params; answering another path, it would read params that aren't there.
+ */
+const checkRoute = (value: object | undefined, path: string) => {
+  const named = (value as {[ROUTE]?: string} | undefined)?.[ROUTE];
+  if (named !== undefined && named !== path) {
+    throw new Error(
+      `[lit-elysia] route('${named}') is used in the page that answers ${path}`
+    );
+  }
 };
 
 /** One URL answers with HTML or data, so caches have to tell them apart. */

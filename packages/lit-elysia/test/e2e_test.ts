@@ -75,6 +75,14 @@ test('a page is rendered on the server with its data', async () => {
   });
 });
 
+test('the dev server writes the route list that types links', async () => {
+  const types = await readFile(path.join(root, 'src/routes.gen.d.ts'), 'utf8');
+  expect(types).toContain('interface Register');
+  expect(types).toContain("| '/notes/:id'");
+  expect(types).toContain("| '/files/*'");
+  expect(types).not.toContain('#404');
+});
+
 test('errors answer with the error pages, through the layouts', async () => {
   const missing = await fetch(`${origin}/notes/99`, {
     headers: {accept: 'text/html'},

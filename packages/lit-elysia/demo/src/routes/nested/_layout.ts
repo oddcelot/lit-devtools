@@ -1,11 +1,12 @@
 import {html, nothing} from 'lit';
 import {defineLayout, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './_layout.server.ts';
 import '../../components/note-counter.ts';
 
 const TABS = [
-  {label: 'First tab', href: '/nested'},
-  {label: 'Second tab', href: '/nested/second'},
+  {label: 'First tab', href: href('/nested')},
+  {label: 'Second tab', href: href('/nested/second')},
 ];
 
 export default defineLayout<LoadedData<typeof load>>({

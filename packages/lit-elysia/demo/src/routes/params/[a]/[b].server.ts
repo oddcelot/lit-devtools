@@ -1,3 +1,7 @@
-import {defineLoad} from '@oddsquad/lit-elysia/page';
+import {route} from '@oddsquad/lit-elysia/routes';
 
-export const load = defineLoad(({params}) => ({a: params.a!, b: params.b!}));
+// `params.a` and `params.b` are typed from the path.
+export const load = route('/params/:a/:b').load(({params}) => ({
+  a: params.a,
+  b: params.b,
+}));

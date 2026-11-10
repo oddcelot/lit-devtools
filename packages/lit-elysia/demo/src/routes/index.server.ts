@@ -1,4 +1,5 @@
 import {defineActions, defineLoad, fail} from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import {addNote, allNotes} from '../notes.ts';
 
 export const load = defineLoad(() => ({notes: allNotes()}));
@@ -14,7 +15,7 @@ export const actions = defineActions({
     const note = addNote({title, body: text});
     return new Response(null, {
       status: 303,
-      headers: {location: `/notes/${note.id}`},
+      headers: {location: href('/notes/:id', {id: note.id})},
     });
   },
 });
