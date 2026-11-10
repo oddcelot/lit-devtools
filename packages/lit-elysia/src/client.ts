@@ -36,10 +36,25 @@ export const boot = async (site: Site): Promise<void> => {
   const payload = reader.read<Payload>(queue[0]!);
   follow(queue, reader);
   hydrate(compose(await viewOf(site, payload.route), payload), outlet);
+  // After the elements' first updates, which hydrate against the server's
+  // HTML: from here on, styles they write get the nonce.
+  setTimeout(useCspNonce);
   remember(payload);
   takeOver(site, outlet);
   enableInvalidate(site, outlet);
   enablePrefetch(site);
+};
+
+/**
+ * Lit's `litNonce`, from the document's csp-nonce meta: Lit's fallback
+ * styles take it, and so do components that write a <style> of their own,
+ * as Web Awesome's wa-page does when it renders again in the browser.
+ */
+const useCspNonce = () => {
+  const meta = document.querySelector<HTMLMetaElement>(
+    'meta[property="csp-nonce"]'
+  );
+  if (meta?.nonce) (globalThis as {litNonce?: string}).litNonce = meta.nonce;
 };
 
 type Queue = object[];

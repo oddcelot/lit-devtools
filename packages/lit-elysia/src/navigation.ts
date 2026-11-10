@@ -3,6 +3,7 @@ import {takePrefetched} from './prefetch.ts';
 import {whileLoading} from './progress.ts';
 import type {PageData} from './shared.ts';
 import {show, viewOf, type Site} from './site.ts';
+import {postedData, watchSubmissions} from './submissions.ts';
 
 type History = 'push' | 'replace';
 
@@ -39,6 +40,7 @@ interface Navigation {
 export const takeOver = (site: Site, outlet: HTMLElement): void => {
   const navigation = (window as {navigation?: Navigation}).navigation;
   if (!navigation) return;
+  watchSubmissions();
   let reload = false;
   document.addEventListener(
     'click',
@@ -63,14 +65,15 @@ const dispatch = (
 ) => {
   const url = event.destination.url;
   const fetched = fetchedFor(event.info, url);
+  const formData = postedData(url, event.formData);
   if (fetched) {
     intercept(event, () =>
       renderPage(site, outlet, fetched.page, event.signal)
     );
-  } else if (event.formData) {
+  } else if (formData) {
     // A form post: the router posts it, then renders what comes back.
     event.preventDefault();
-    void submitFirst(navigation, url, event.formData);
+    void submitFirst(navigation, url, formData);
   } else if (event.navigationType === 'traverse') {
     intercept(event, () => revisit(site, outlet, url, event.signal));
   } else {
