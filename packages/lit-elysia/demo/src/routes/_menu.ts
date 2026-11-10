@@ -73,6 +73,7 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     links: [
       {label: 'Eden client', href: href('/eden')},
       {label: 'Live feed over SSE', href: href('/live')},
+      {label: 'Auth macro', href: href('/whoami')},
     ],
   },
   {

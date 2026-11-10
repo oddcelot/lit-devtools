@@ -3,13 +3,34 @@ import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {clearLoads, loads} from './load-log.ts';
 import {addNote, allNotes, findNote, notesAdded, noteTitled} from './notes.ts';
 
+/** The visitor's name from its cookie, when it has one. */
+const visitorOf = (value: unknown) =>
+  typeof value === 'string' && value ? value : undefined;
+
+/**
+ * A macro: a route that asks for `{auth: true}` gets `visitor`, the name
+ * from the cookie, as a string, or answers a typed 401 without one.
+ */
+const auth = new Elysia({name: 'demo/auth'}).macro({
+  auth: {
+    derive: ({cookie}) => {
+      const visitor = visitorOf(cookie['visitor']?.value);
+      return visitor
+        ? {visitor}
+        : status(401, {message: 'Tell the site your name first.'});
+    },
+  },
+});
+
 /**
  * The app the pages are added to: here, a small JSON API. Its errors are
  * part of its types: `status(404, ...)` reaches the Eden client as an
  * `error` it can narrow by status, each with its own body.
  */
 export default new Elysia({prefix: '/api'})
+  .use(auth)
   .get('/notes', () => allNotes())
+  .get('/me', {auth: true}, ({visitor}) => ({name: visitor}))
   // Server-sent events from a generator: one per note added, for as long as
   // the client listens. Eden reads them back typed, with `for await`.
   .get('/notes/feed', async function* ({request}) {
@@ -53,10 +74,6 @@ const wait = (ms: number, signal: AbortSignal) =>
       resolve();
     });
   });
-
-/** The visitor's name from its cookie, when it has one. */
-const visitorOf = (value: unknown) =>
-  typeof value === 'string' && value ? value : undefined;
 
 /**
  * The pages' own context: every load and action gets `site`, `visitor` and
