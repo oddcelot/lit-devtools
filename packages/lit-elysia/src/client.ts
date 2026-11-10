@@ -3,6 +3,7 @@
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
+import {configurePending, type PendingOptions} from './pending.ts';
 import {enablePrefetch} from './prefetch.ts';
 import {enableInvalidate} from './revalidate.ts';
 import {createReader, type Reader} from './serialize.ts';
@@ -28,7 +29,11 @@ export {NAVIGATED, NAVIGATING} from './progress.ts';
  * hydrates without waiting for it. The page modules, and the components
  * they import, load after this one.
  */
-export const boot = async (site: Site): Promise<void> => {
+export const boot = async (
+  site: Site,
+  options: {pending?: Partial<PendingOptions>} = {}
+): Promise<void> => {
+  configurePending(options.pending ?? {});
   const queue = await firstRecord();
   const outlet = document.getElementById(OUTLET_ID);
   if (!outlet) return;

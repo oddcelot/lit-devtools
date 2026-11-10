@@ -49,6 +49,12 @@ export interface LitElysiaOptions {
    * serve `dist/client` beside.
    */
   adapter?: AdapterName;
+  /**
+   * When the router marks the page busy: after `ms` of waiting on the
+   * server (default 150), and then for `minMs` at least (default 300).
+   * `configurePending()` changes them in the browser.
+   */
+  pending?: {ms?: number; minMs?: number};
 }
 
 /** URL of the client entry, which `index.html` gets a script for. */
@@ -172,7 +178,11 @@ const framework = (options: LitElysiaOptions): Plugin => {
     async load(id) {
       if (id === CLIENT_ID) {
         const {pages, errors} = await scanRoutes(routesDir());
-        return clientModule([...pages, ...errors], config.command === 'serve');
+        return clientModule(
+          [...pages, ...errors],
+          config.command === 'serve',
+          options.pending
+        );
       }
       if (id === RESOLVED_SERVER_ID) {
         return serverModule(
@@ -353,7 +363,11 @@ export {};
 
 const file = (name: string) => json(normalizePath(name));
 
-const clientModule = (routes: RouteFile[], dev: boolean) => {
+const clientModule = (
+  routes: RouteFile[],
+  dev: boolean,
+  pending: LitElysiaOptions['pending']
+) => {
   const files = [
     ...new Set(
       routes.flatMap((route) => [
@@ -378,7 +392,7 @@ ${routes
   .join('\n')}
   },
 };
-boot(site);
+boot(site, {pending: ${json(pending ?? {})}});
 ${dev ? hotAccept(files) : ''}`;
 };
 

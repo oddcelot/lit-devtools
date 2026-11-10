@@ -82,3 +82,5 @@ export const setInvalidator = (next: Invalidator): void => {
  */
 export const invalidate = (key?: string): Promise<void> =>
   invalidator?.(key) ?? Promise.resolve();
+
+export {configurePending, type PendingOptions} from './pending.ts';
