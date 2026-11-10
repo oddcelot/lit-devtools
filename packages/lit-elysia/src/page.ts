@@ -3,6 +3,7 @@ import type {TemplateResult} from 'lit';
 import type {
   LayoutData,
   LayoutPath,
+  Query,
   Register,
   RouteData,
   RouteForm,
@@ -34,13 +35,17 @@ type ElysiaContextOf<App> = App extends AnyElysia
  * What a page's `load` gets: Elysia's context, typed with what the
  * `context` plugin in `src/server.ts` adds, and the framework's own.
  */
-export type LoadContext<Params = Record<string, string>> = Omit<
-  ElysiaContextOf<ContextApp>,
-  'params' | 'query' | 'body'
-> & {
+export type LoadContext<
+  Params = Record<string, string>,
+  QueryOf = Query,
+> = Omit<ElysiaContextOf<ContextApp>, 'params' | 'query' | 'body'> & {
   /** Typed by the route's path with `route('/notes/:id').load(...)`. */
   params: Params;
-  query: Record<string, string | undefined>;
+  /**
+   * Checked and coerced by the schema in `route(path, {query})`: a query
+   * that doesn't fit it answers 400 before the load runs.
+   */
+  query: QueryOf;
   request: Request;
   /**
    * Aborts when the client goes before the page is done: the router moved
@@ -96,8 +101,8 @@ export interface Layout<Data = undefined> {
  * instead, such as a redirect or a 404, to send it in place of the page.
  * The data travels to the browser as JSON, so keep it to what JSON holds.
  */
-export type Load<Data, Params = Record<string, string>> = (
-  context: LoadContext<Params>
+export type Load<Data, Params = Record<string, string>, QueryOf = Query> = (
+  context: LoadContext<Params, QueryOf>
 ) => Data | Response | Promise<Data | Response>;
 
 /** The data a `load` gives its page. */
@@ -132,7 +137,8 @@ export const error = (status: number, message: string): PageError =>
 /** What an action gets: the request, and the form's fields. */
 export interface ActionContext<
   Params = Record<string, string>,
-> extends LoadContext<Params> {
+  QueryOf = Query,
+> extends LoadContext<Params, QueryOf> {
   /** The posted fields, as Elysia parsed them: strings, and files. */
   body: Record<string, unknown>;
 }
@@ -156,17 +162,19 @@ export const fail = <Data>(status: number, data: Data): ActionFailure<Data> =>
  * as a redirect, to send it; return `fail(...)` or any other value to
  * render the page again with it as `form`.
  */
-export type Action<Result = unknown, Params = Record<string, string>> = (
-  context: ActionContext<Params>
-) => Result | Promise<Result>;
+export type Action<
+  Result = unknown,
+  Params = Record<string, string>,
+  QueryOf = Query,
+> = (context: ActionContext<Params, QueryOf>) => Result | Promise<Result>;
 
 /**
  * A `.server.ts` module's `actions`: `default` for a form without a name,
  * and others for `action="?/name"`.
  */
-// `any` params: an action typed for its route's params is still an action.
+// `any` params and query: an action typed for its route's is still an action.
 // oxlint-disable-next-line typescript/no-explicit-any
-export type Actions = Record<string, Action<unknown, any>>;
+export type Actions = Record<string, Action<unknown, any, any>>;
 
 /** What a page's `form` can be, from its actions. */
 export type ActionData<A extends Actions> = {

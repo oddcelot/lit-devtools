@@ -23,6 +23,9 @@ export const QUEUE = '__litElysia';
  */
 export const ROUTE = Symbol.for('@oddsquad/lit-elysia#route');
 
+/** The query schema `route(path, {query})` gave a `load` or `actions`. */
+export const QUERY = Symbol.for('@oddsquad/lit-elysia#query');
+
 /** The route names of `_404.ts` and `_error.ts`, which answer no path. */
 export const NOT_FOUND = '#404';
 export const ERROR = '#error';

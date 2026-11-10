@@ -1,4 +1,5 @@
 import {html} from 'lit';
+import {t} from 'elysia';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
 import {safePromises} from '../src/deferred.ts';
@@ -233,9 +234,12 @@ test('href fills in and encodes params, query and hash', () => {
     '/params/x%20y/a%2Fb'
   );
   expect(href('/files/*', {'*': 'docs/a b.md'})).toBe('/files/docs/a%20b.md');
-  expect(
-    href('/search', {}, {query: {q: 'lit & elysia', page: 2, none: undefined}})
-  ).toBe('/search?q=lit+%26+elysia&page=2');
+  expect(href('/search', {}, {query: {q: 'lit & elysia', limit: 2}})).toBe(
+    '/search?q=lit+%26+elysia&limit=2'
+  );
+  expect(href('/search', {}, {query: {q: undefined}})).toBe('/search');
+  // @ts-expect-error: the page's query schema has no such name.
+  expect(href('/search', {}, {query: {page: 2}})).toBe('/search?page=2');
   expect(href('/', {}, {hash: 'add'})).toBe('/#add');
   // @ts-expect-error: the type check catches a missing param first.
   expect(() => href('/notes/:id', {})).toThrow('no value for :id');
@@ -332,6 +336,59 @@ test('a page or layout defined for another path fails loudly', async () => {
       'http://localhost/notes/1'
     )
   ).toContain("'/nested' is named in the layout of /notes");
+});
+
+test("a route's query schema checks and coerces the query", async () => {
+  const query = t.Object({limit: t.Optional(t.Numeric({minimum: 1}))});
+  const shell = () => '<html><body><!--lit-elysia:body--></body></html>';
+  const render = (data: unknown, form?: unknown) =>
+    html`<pre>${JSON.stringify({data, form})}</pre>`;
+  const app = pages({
+    shell,
+    routes: [
+      {
+        path: '/search',
+        page: () => Promise.resolve({default: {render}}),
+        server: () =>
+          Promise.resolve({
+            load: route('/search', {query}).load(({query}) => query),
+            actions: route('/search', {query}).actions({
+              save: ({query}) => query,
+            }),
+          }),
+        layouts: [],
+      },
+    ],
+  });
+  const get = (search: string) =>
+    app.handle(
+      new Request(`http://localhost/search${search}`, {
+        headers: {accept: 'text/html'},
+      })
+    );
+  const text = async (response: Response) =>
+    (await response.text()).replaceAll('&quot;', '"');
+
+  expect(await text(await get('?limit=3'))).toContain('"data":{"limit":3}');
+  const errors: unknown[] = [];
+  const log = console.error;
+  console.error = (error: unknown) => errors.push(error);
+  try {
+    expect((await get('?limit=many')).status).toBe(400);
+    expect((await get('?limit=0')).status).toBe(400);
+  } finally {
+    console.error = log;
+  }
+
+  const posted = await app.handle(
+    new Request('http://localhost/search?/save&limit=2', {
+      method: 'POST',
+      headers: {accept: 'text/html'},
+      body: new URLSearchParams({}),
+    })
+  );
+  // The action's name isn't part of the query it checks.
+  expect(await text(posted)).toContain('"form":{"limit":2}');
 });
 
 test('headers a failed load set stay off its error page', async () => {

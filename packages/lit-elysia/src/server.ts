@@ -1,4 +1,10 @@
-import {Elysia, type AnyElysia} from 'elysia';
+import {
+  Elysia,
+  ValidationError,
+  Validator,
+  type AnyElysia,
+  type AnySchema,
+} from 'elysia';
 import {compose, headOf, titleOf, type View} from './compose.ts';
 import {renderDocument, renderHead} from './document.ts';
 import {
@@ -13,7 +19,7 @@ import {
   type Page,
 } from './page.ts';
 import {safePromises} from './deferred.ts';
-import {ROUTE} from './shared.ts';
+import {QUERY, ROUTE} from './shared.ts';
 import {records} from './serialize.ts';
 import {
   DATA_HEADER,
@@ -30,9 +36,9 @@ type Import<T> = () => Promise<T>;
 /** A module and the loader in its `.server.ts`, as the server entry hands them over. */
 export interface ServerModule<T> {
   page: Import<{default: T}>;
-  // `any` params: a load typed for its route's params is still a load.
+  // `any` params and query: a load typed for its route's is still a load.
   // oxlint-disable-next-line typescript/no-explicit-any
-  server?: Import<{load?: Load<unknown, any>; actions?: Actions}>;
+  server?: Import<{load?: Load<unknown, any, any>; actions?: Actions}>;
 }
 
 /** A route as the generated server entry hands it over. */
@@ -179,7 +185,52 @@ const runAction = async (route: ServerRoute, context: ActionContext) => {
   checkRoute(actions, route.path);
   const action = actions?.[name];
   if (!action) throw new PageError(405, `No action named ${name}`);
-  return action(context);
+  return action(await withQuery(actions, context));
+};
+
+const validators = new WeakMap<AnySchema, Validator>();
+
+/** One validator a schema, made the first time a request needs it. */
+const validatorOf = (schema: AnySchema) => {
+  let validator = validators.get(schema);
+  if (!validator) {
+    // On Workers, which refuse to generate code during a request, Elysia
+    // checks without it and warns once a schema.
+    validator = Validator.create(schema as never) as Validator;
+    validators.set(schema, validator);
+  }
+  return validator;
+};
+
+/**
+ * The context with its query checked and coerced by the schema
+ * `route(path, {query})` gave a load or actions; as it was without one.
+ * A query that doesn't fit answers 400. The action's own name, `?/name`,
+ * isn't part of the query. The context is shared by the layouts' loads,
+ * so the query is swapped on a view of it.
+ */
+const withQuery = async <C extends LoadContext>(
+  value: object | undefined,
+  context: C
+): Promise<C> => {
+  const schema = (value as {[QUERY]?: AnySchema} | undefined)?.[QUERY];
+  if (!schema) return context;
+  const raw = Object.fromEntries(
+    Object.entries(context.query).filter(([name]) => !name.startsWith('/'))
+  );
+  let query: unknown;
+  try {
+    query = await validatorOf(schema).From!(raw, 'query');
+  } catch (thrown) {
+    if (thrown instanceof ValidationError) {
+      throw new PageError(400, `Bad query: ${thrown.message}`);
+    }
+    throw thrown;
+  }
+  return new Proxy(context, {
+    get: (target, key) =>
+      key === 'query' ? query : Reflect.get(target, key, target),
+  });
 };
 
 /** `?/name` names an action, as in `<form action="?/create">`. */
@@ -305,7 +356,7 @@ const loadData = async (
 ) => {
   const load = module.server && (await module.server()).load;
   if (path) checkRoute(load, path);
-  return load ? load(context) : undefined;
+  return load ? load(await withQuery(load, context)) : undefined;
 };
 
 /**

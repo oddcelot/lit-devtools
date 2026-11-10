@@ -1,3 +1,4 @@
+import type {AnySchema, UnwrapSchema} from 'elysia';
 import type {
   Action,
   ActionData,
@@ -30,7 +31,28 @@ export interface RouteTypes {
   data: unknown;
   form: unknown;
   actions: string;
+  query: Query;
 }
+
+/** A query no schema checked: each name's value, if it's there. */
+export type Query = Record<string, string | undefined>;
+
+/** What a link may put in a query no schema checks. */
+export type LinkQuery = Record<string, string | number | undefined>;
+
+/**
+ * Carried by a `load` that `route(path, {query})` made, for the types
+ * alone: what links put in its query, and what the load gets from it.
+ */
+export interface QueryTypes<Input = LinkQuery, Output = Query> {
+  readonly '~query'?: {input: Input; output: Output};
+}
+
+/** What a query schema takes from a link, and what a load gets. */
+export type SchemaQuery<Schema extends AnySchema> = {
+  input: UnwrapSchema<Schema, {}, 'input'>;
+  output: UnwrapSchema<Schema, {}, 'output'>;
+};
 
 /**
  * The types of a `.server.ts` module, by its exports: the data its `load`
@@ -48,6 +70,10 @@ export interface ServerTypes<Module> {
   actions: Module extends {actions: infer A extends Actions}
     ? Extract<keyof A, string>
     : never;
+  /** What links put in the query: typed by the load's schema, if it has one. */
+  query: Module extends {load: QueryTypes<infer Input, unknown>}
+    ? Input
+    : LinkQuery;
 }
 
 type Unregistered = Record<string, RouteTypes>;
@@ -81,6 +107,13 @@ export type RouteActions<P extends RoutePath> = RouteMap[P] extends {
   ? A
   : string;
 
+/** What a link puts in a page's query: what its schema takes, if any. */
+export type RouteQuery<P extends RoutePath> = RouteMap[P] extends {
+  query: infer Q;
+}
+  ? Q
+  : LinkQuery;
+
 /** The data a layout's `load` returns, by its folder's path. */
 export type LayoutData<P extends LayoutPath> = LayoutMap[P] extends {
   data: infer D;
@@ -110,24 +143,36 @@ export type LinkParams<P extends string> = {
   [K in keyof ParamsOf<P>]: string | number;
 };
 
-export interface LinkOptions {
-  query?: Record<string, string | number | undefined>;
+export interface LinkOptions<Q = LinkQuery> {
+  query?: Q;
   hash?: string;
 }
 
-/** A path with no params needs none; one with params needs all of them. */
-export type HrefArgs<P extends string> = keyof ParamsOf<P> extends never
-  ? [params?: Record<string, never>, options?: LinkOptions]
-  : [params: LinkParams<P>, options?: LinkOptions];
+/**
+ * A path with no params needs none; one with params needs all of them.
+ * The query is the page's schema's, when its load has one.
+ */
+export type HrefArgs<P extends RoutePath> = keyof ParamsOf<P> extends never
+  ? [params?: Record<string, never>, options?: LinkOptions<RouteQuery<P>>]
+  : [params: LinkParams<P>, options?: LinkOptions<RouteQuery<P>>];
 
-/** A `load` and `actions` typed for one route's params. */
-export interface RouteHelpers<P extends string> {
+/** What a route's query schema makes of it, or the plain query without one. */
+export interface QuerySides {
+  input: unknown;
+  output: unknown;
+}
+
+/** A `load` and `actions` typed for one route's params and query. */
+export interface RouteHelpers<
+  P extends string,
+  Q extends QuerySides = {input: LinkQuery; output: Query},
+> {
   load<Data>(
     load: (
-      context: LoadContext<ParamsOf<P>>
+      context: LoadContext<ParamsOf<P>, Q['output']>
     ) => Data | Response | Promise<Data | Response>
-  ): Load<Data, ParamsOf<P>>;
-  actions<A extends Record<string, Action<unknown, ParamsOf<P>>>>(
+  ): Load<Data, ParamsOf<P>, Q['output']> & QueryTypes<Q['input'], Q['output']>;
+  actions<A extends Record<string, Action<unknown, ParamsOf<P>, Q['output']>>>(
     actions: A
   ): A;
 }
