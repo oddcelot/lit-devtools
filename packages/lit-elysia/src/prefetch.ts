@@ -38,7 +38,8 @@ const fresh = (at: number) => Date.now() - at < LIFETIME && at > lastChanged();
  * Fetches ahead what a link will need, when the pointer rests on it, it
  * gets focus or a finger lands on it: the modules of the page it leads to,
  * always, as code has no effect on the server; its data too, inside an
- * element with `data-prefetch`, as that runs its loads.
+ * element with `data-prefetch`, as that runs its loads. A link can opt out
+ * with `data-prefetch="off"`.
  */
 export const enablePrefetch = (site: Site): void => {
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -54,6 +55,9 @@ export const enablePrefetch = (site: Site): void => {
     options
   );
   document.addEventListener('pointerout', () => clearTimeout(timer), options);
+  // A press is the click itself: the router fetches, a late prefetch would
+  // only fetch again.
+  document.addEventListener('pointerdown', () => clearTimeout(timer), options);
   document.addEventListener('focusin', (event) => intent(event, 0), options);
   document.addEventListener('touchstart', (event) => intent(event, 0), options);
 };
@@ -73,10 +77,23 @@ const targetOf = (event: Event): Target | undefined => {
   if (!link || !followable(link)) return undefined;
   return {
     url: new URL(link.href),
-    data: path.some(
-      (node) => node instanceof Element && node.hasAttribute('data-prefetch')
-    ),
+    data: wantsData(path),
   };
+};
+
+/**
+ * Whether the nearest `data-prefetch` around the link asks for data: an
+ * element can turn it on for everything inside, and a link inside can turn
+ * it off for itself with `data-prefetch="off"`.
+ */
+const wantsData = (path: EventTarget[]) => {
+  const nearest = path.find(
+    (node): node is Element =>
+      node instanceof Element && node.hasAttribute('data-prefetch')
+  );
+  return (
+    nearest !== undefined && nearest.getAttribute('data-prefetch') !== 'off'
+  );
 };
 
 const followable = (link: HTMLAnchorElement) =>

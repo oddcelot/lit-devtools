@@ -6,8 +6,10 @@ export interface MenuLink {
   href: string;
   /** A full page load, past the router. */
   reload?: boolean;
-  /** Another site: the router leaves it to the browser. */
-  external?: boolean;
+  /** `external` for another site: the router leaves it to the browser. */
+  rel?: 'external';
+  /** `off`: not prefetched on hover, its load does something you'd notice. */
+  prefetch?: 'off';
 }
 
 /** The sidebar: one demo of each routing feature. */
@@ -78,7 +80,7 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
       {
         label: 'Elysia (another site)',
         href: 'https://elysiajs.com',
-        external: true,
+        rel: 'external',
       },
     ],
   },
@@ -87,7 +89,8 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     links: [
       {label: "A note that isn't there", href: href('/notes/:id', {id: 99})},
       {label: "A page that doesn't exist", href: '/nowhere'},
-      {label: 'A page that fails', href: href('/broken')},
+      // Its load fails on purpose: hovering shouldn't log an error.
+      {label: 'A page that fails', href: href('/broken'), prefetch: 'off'},
     ],
   },
 ];

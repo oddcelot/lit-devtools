@@ -796,8 +796,6 @@ test('components call the API through the typed Eden client', async () => {
 });
 
 test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
-  await page.goto(`${origin}/`);
-  await page.locator('note-counter wa-button').waitFor();
   const seen: string[] = [];
   const listen = (request: import('playwright-core').Request) => {
     const url = new URL(request.url());
@@ -806,28 +804,51 @@ test('resting on a link prefetches its code, and its data inside data-prefetch',
     else if (url.pathname.includes('/routes/'))
       seen.push(`code ${url.pathname}`);
   };
+  const data = () => seen.filter((entry) => entry.startsWith('data'));
+  const code = (route: string) => new RegExp(`^code .*/routes/${route}\\.ts$`);
+  await page.goto(`${origin}/notes/1`);
+  await page.locator('note-counter wa-button').waitFor();
   page.on('request', listen);
   try {
-    // A sidebar link: its page's module, no data.
+    // A link in the page, outside data-prefetch: its page's module, no data.
     await page
-      .locator('#menu')
-      .getByRole('link', {name: 'Eden client', exact: true})
+      .locator('#content')
+      .getByRole('link', {name: '← All notes'})
       .hover();
     await expect
       .poll(() => seen)
-      .toContainEqual(expect.stringMatching(/^code .*\/routes\/eden\.ts$/));
-    expect(seen.filter((entry) => entry.startsWith('data'))).toEqual([]);
+      .toContainEqual(expect.stringMatching(code('index')));
+    expect(data()).toEqual([]);
 
-    // A note in the data-prefetch list: its data too, used by the click.
-    await page
-      .locator('#content')
-      .getByRole('link', {name: 'Lit', exact: true})
+    // A sidebar entry, inside the menu's data-prefetch: its data too.
+    const menu = page.locator('#menu');
+    await menu.getByRole('link', {name: 'Eden client', exact: true}).hover();
+    await expect.poll(() => seen).toContain('data /eden');
+    expect(seen).toContainEqual(expect.stringMatching(code('eden')));
+
+    // An entry that opts out: code only.
+    seen.length = 0;
+    await menu
+      .getByRole('link', {name: 'A page that fails', exact: true})
       .hover();
-    await expect.poll(() => seen).toContain('data /notes/2');
-    await page
+    await expect
+      .poll(() => seen)
+      .toContainEqual(expect.stringMatching(code('broken')));
+    await page.waitForTimeout(200);
+    expect(data()).toEqual([]);
+
+    // A rested-on note is fetched once: the click takes the prefetched data.
+    await menu.getByRole('link', {name: 'All notes', exact: true}).click();
+    await expect
+      .poll(() => page.locator('#content h1').textContent())
+      .toBe('Notes');
+    seen.length = 0;
+    const note = page
       .locator('#content')
-      .getByRole('link', {name: 'Lit', exact: true})
-      .click();
+      .getByRole('link', {name: 'Lit', exact: true});
+    await note.hover();
+    await expect.poll(() => seen).toContain('data /notes/2');
+    await note.click();
     await expect
       .poll(() => page.locator('#content h1').textContent())
       .toBe('Lit');

@@ -1,4 +1,5 @@
-import {html, nothing} from 'lit';
+import {html} from 'lit';
+import {ifDefined} from 'lit/directives/if-defined.js';
 import {defineLayout, type LoadedData} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './_layout.server.ts';
@@ -7,13 +8,14 @@ import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
 import '../components/layout-clicks.ts';
 
-const link = ({label, href, reload, external}: MenuLink, path: string) =>
+const link = ({label, href, reload, rel, prefetch}: MenuLink, path: string) =>
   html`<li>
     <a
       href=${href}
-      aria-current=${href === path && !reload ? 'page' : nothing}
+      aria-current=${ifDefined(href === path && !reload ? 'page' : undefined)}
       ?data-reload=${reload}
-      rel=${external ? 'external' : nothing}
+      rel=${ifDefined(rel)}
+      data-prefetch=${ifDefined(prefetch)}
       >${label}</a
     >
   </li>`;
@@ -59,10 +61,12 @@ export default defineLayout<LoadedData<typeof load>>({
         </div>
       </header>
       ${bars}
+      <!-- data-prefetch: resting on an entry loads its page ahead of the click. -->
       <nav
         slot="navigation"
         id="menu"
         aria-label="Routing demos"
+        data-prefetch
         @click=${closeDrawer}
       >
         ${MENU.map(
