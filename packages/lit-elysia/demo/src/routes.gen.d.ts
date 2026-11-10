@@ -9,11 +9,11 @@ declare module '@oddsquad/lit-elysia/routes' {
       '/broken': ServerTypes<typeof import('./routes/broken.server')>;
       '/cached': ServerTypes<typeof import('./routes/cached.server')>;
       '/deferred': ServerTypes<typeof import('./routes/deferred.server')>;
-      '/eden': {data: undefined; form: undefined};
+      '/eden': ServerTypes<undefined>;
       '/files/*': ServerTypes<typeof import('./routes/files/[...path].server')>;
       '/latest': ServerTypes<typeof import('./routes/latest.server')>;
-      '/nested': {data: undefined; form: undefined};
-      '/nested/second': {data: undefined; form: undefined};
+      '/nested': ServerTypes<undefined>;
+      '/nested/second': ServerTypes<undefined>;
       '/notes/:id': ServerTypes<typeof import('./routes/notes/[id].server')>;
       '/params/:a/:b': ServerTypes<
         typeof import('./routes/params/[a]/[b].server')
@@ -25,7 +25,7 @@ declare module '@oddsquad/lit-elysia/routes' {
     layouts: {
       '/': ServerTypes<typeof import('./routes/_layout.server')>;
       '/nested': ServerTypes<typeof import('./routes/nested/_layout.server')>;
-      '/notes': {data: undefined; form: undefined};
+      '/notes': ServerTypes<undefined>;
     };
     app: typeof import('./server').default;
     context: typeof import('./server').context;

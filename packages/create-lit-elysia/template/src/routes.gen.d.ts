@@ -5,7 +5,7 @@ declare module '@oddsquad/lit-elysia/routes' {
   interface Register {
     routes: {
       '/': ServerTypes<typeof import('./routes/index.server')>;
-      '/about': {data: undefined; form: undefined};
+      '/about': ServerTypes<undefined>;
     };
     layouts: {
       '/': ServerTypes<typeof import('./routes/_layout.server')>;

@@ -342,11 +342,11 @@ const serverTypes = async (target: string, serverFile: string | undefined) => {
 
 /**
  * One entry of the list: a page or layout by its path, typed by its
- * `.server.ts`, or with no data and no form without one.
+ * `.server.ts`, if it has one.
  */
 const typesEntry = (target: string, {path: name, server}: LayoutFile) => {
   const key = `      '${name.replaceAll("'", "\\'")}': `;
-  if (!server) return `${key}{data: undefined; form: undefined};`;
+  if (!server) return `${key}ServerTypes<undefined>;`;
   const module = `typeof import(${importFrom(target, server)})`;
   const line = `${key}ServerTypes<${module}>;`;
   return line.length <= 80

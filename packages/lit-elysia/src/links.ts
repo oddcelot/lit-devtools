@@ -2,6 +2,7 @@ import {ROUTE} from './shared.ts';
 import type {
   HrefArgs,
   LinkOptions,
+  RouteActions,
   RouteHelpers,
   RoutePath,
 } from './routes-types.ts';
@@ -13,6 +14,7 @@ export type {
   ParamsOf,
   Register,
   RouteData,
+  RouteActions,
   RouteForm,
   RoutePath,
   RouteTypes,
@@ -35,6 +37,26 @@ export const href = <P extends RoutePath>(
     .map((segment) => fill(segment, values))
     .join('/');
   return filled + queryOf(options) + (options?.hash ? `#${options.hash}` : '');
+};
+
+/**
+ * A form's `action` for one of a page's actions:
+ * `action('/notes/:id', 'save', {id: 2})` is `/notes/2?/save`, and the
+ * `default` action is the page's path alone. With the generated route
+ * list, a name the page's `actions` don't have fails the type check.
+ */
+export const action = <P extends RoutePath>(
+  path: P,
+  name: RouteActions<P>,
+  ...[params, options]: HrefArgs<P>
+): string => {
+  const base = href(path, ...([params] as HrefArgs<P>));
+  const query = queryOf(options);
+  const search =
+    name === 'default'
+      ? query
+      : `?/${encodeURIComponent(String(name))}${query.replace(/^\?/, '&')}`;
+  return base + search + (options?.hash ? `#${options.hash}` : '');
 };
 
 const fill = (segment: string, values: Record<string, string | number>) => {
