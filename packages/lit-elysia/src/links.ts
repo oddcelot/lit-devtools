@@ -1,10 +1,14 @@
-import {ROUTE} from './shared.ts';
+import type {AnySchema} from 'elysia';
+import {QUERY, ROUTE} from './shared.ts';
 import type {
   HrefArgs,
   LinkOptions,
+  LinkQuery,
+  Query,
   RouteActions,
   RouteHelpers,
   RoutePath,
+  SchemaQuery,
 } from './routes-types.ts';
 
 export type {
@@ -12,8 +16,10 @@ export type {
   LayoutPath,
   LinkOptions,
   ParamsOf,
+  Query,
   Register,
   RouteData,
+  RouteQuery,
   RouteActions,
   RouteForm,
   RoutePath,
@@ -73,25 +79,57 @@ const fill = (segment: string, values: Record<string, string | number>) => {
   return encodeURIComponent(String(value));
 };
 
-const queryOf = (options: LinkOptions | undefined) => {
-  const entries = Object.entries(options?.query ?? {}).flatMap(
-    ([key, value]) => (value === undefined ? [] : [[key, String(value)]])
+/** The query, with a name once per item of a list, and none for `undefined`. */
+const queryOf = (options: LinkOptions<unknown> | undefined) => {
+  const query = (options?.query ?? {}) as Record<string, unknown>;
+  const entries = Object.entries(query).flatMap(([key, value]) =>
+    // A query schema takes strings, numbers and booleans, and lists of them.
+    (Array.isArray(value) ? value : [value]).flatMap(
+      (item: string | number | boolean | undefined) =>
+        item === undefined ? [] : [[key, String(item)]]
+    )
   );
   return entries.length ? `?${new URLSearchParams(entries)}` : '';
 };
 
 export {ROUTE};
 
+/** What `route` takes besides the path. */
+export interface RouteOptions<Schema extends AnySchema> {
+  /**
+   * A schema for the query, Elysia's `t` or any Standard Schema: the
+   * server checks and coerces the query with it before the load or the
+   * action runs, and answers 400 when it doesn't fit. Links to the page
+   * are typed by what it takes.
+   */
+  query: Schema;
+}
+
 /**
  * Types a page's `load` and `actions` by its route's path:
- * `route('/notes/:id').load(({params}) => findNote(params.id))`. The
- * server checks the path against the file's, so a copied one can't type
- * the wrong params unnoticed.
+ * `route('/notes/:id').load(({params}) => findNote(params.id))`, and by a
+ * schema for its query: `route('/search', {query: t.Object({q: t.String()})})`.
+ * The server checks the path against the file's, so a copied one can't
+ * type the wrong params unnoticed.
  */
-export const route = <P extends RoutePath>(path: P): RouteHelpers<P> => ({
-  load: (load) => Object.assign(load, {[ROUTE]: path}),
-  actions: (actions) => Object.assign(actions, {[ROUTE]: path}),
-});
+export function route<P extends RoutePath>(
+  path: P
+): RouteHelpers<P, {input: LinkQuery; output: Query}>;
+export function route<P extends RoutePath, Schema extends AnySchema>(
+  path: P,
+  options: RouteOptions<Schema>
+): RouteHelpers<P, SchemaQuery<Schema>>;
+export function route(
+  path: string,
+  options?: RouteOptions<AnySchema>
+): RouteHelpers<string> {
+  const mark = <T extends object>(value: T): T =>
+    Object.assign(value, {
+      [ROUTE]: path,
+      ...(options && {[QUERY]: options.query}),
+    });
+  return {load: mark, actions: mark};
+}
 
 type Invalidator = (key?: string) => Promise<void>;
 let invalidator: Invalidator | undefined;
