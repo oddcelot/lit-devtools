@@ -254,7 +254,7 @@ test('the router asks a page for its data alone', async () => {
   expect(data.route).toBe('/notes/:id');
   // Each layout's data, outermost first; the notes layout has no loader.
   expect(data.layouts).toEqual([
-    {count: expect.any(Number), path: '/notes/2'},
+    {count: expect.any(Number), path: '/notes/2', latency: 0},
     undefined,
   ]);
   expect(data.data.createdAt).toBeInstanceOf(Date);
@@ -880,6 +880,40 @@ test('each document gets its own nonce, on every tag that needs one', async () =
   expect(tags.length).toBeGreaterThan(4);
   for (const tag of tags) expect(tag).toContain(`nonce="${nonce}"`);
   expect(first.html).toContain(`<meta property="csp-nonce" nonce="${nonce}">`);
+});
+
+test('the latency controls slow every page request down on the server', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter wa-button').waitFor();
+  const choose = async (label: string) => {
+    await page.locator('#latency wa-button', {hasText: label}).click();
+    await expect
+      .poll(() =>
+        page.locator('#latency wa-button[variant="brand"]').textContent()
+      )
+      .toContain(label);
+  };
+  const timed = async (label: string, heading: string) => {
+    const started = Date.now();
+    await follow(label);
+    await expect
+      .poll(() => page.locator('#content h1').textContent())
+      .toBe(heading);
+    return Date.now() - started;
+  };
+  try {
+    await choose('Fast 3G');
+    expect(await timed('Two params', 'Two params')).toBeGreaterThanOrEqual(450);
+    // A document as well as the router's fetches.
+    const started = Date.now();
+    await page.reload();
+    await page.locator('#content h1').waitFor();
+    expect(Date.now() - started).toBeGreaterThanOrEqual(450);
+    await choose('Instant');
+    expect(await timed('Catch-all', 'Catch-all')).toBeLessThan(450);
+  } finally {
+    await page.context().clearCookies();
+  }
 });
 
 test('a data-reload link is a full load', async () => {

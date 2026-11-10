@@ -1,4 +1,5 @@
 import {Elysia, t} from 'elysia';
+import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {addNote, allNotes} from './notes.ts';
 
 /** The app the pages are added to: here, a small JSON API. */
@@ -10,19 +11,26 @@ export default new Elysia({prefix: '/api'})
     ({body}) => addNote(body)
   );
 
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** The visitor's name from its cookie, when it has one. */
+const visitorOf = (value: unknown) =>
+  typeof value === 'string' && value ? value : undefined;
+
 /**
- * The pages' own context: every load and action gets `site` and `visitor`,
- * typed, and the guard runs before them.
+ * The pages' own context: every load and action gets `site`, `visitor` and
+ * `latency`, typed; the guard runs before them, then the simulated latency.
  */
 export const context = new Elysia({name: 'demo/context'})
   .decorate('site', {name: 'Notes'})
-  .derive(({cookie}) => {
-    const value = cookie['visitor']?.value;
-    return {visitor: typeof value === 'string' && value ? value : undefined};
-  })
-  .onBeforeHandle(({request, cookie, redirect}) => {
-    const {pathname} = new URL(request.url);
-    if (pathname === '/private' && !cookie['visitor']?.value) {
-      return redirect('/visitor?from=private', 303);
-    }
-  });
+  .derive(({cookie}) => ({
+    visitor: visitorOf(cookie['visitor']?.value),
+    latency: latencyOf(cookie[LATENCY_COOKIE]?.value),
+  }))
+  // The guard: the private page wants a name first.
+  .onBeforeHandle(({request, visitor, redirect}) =>
+    new URL(request.url).pathname === '/private' && !visitor
+      ? redirect('/visitor?from=private', 303)
+      : undefined
+  )
+  .onBeforeHandle(({latency}) => wait(latency));
