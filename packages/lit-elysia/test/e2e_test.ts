@@ -1001,6 +1001,31 @@ test('pendingMs and pendingMinMs decide when the page is marked busy, and how lo
   }
 });
 
+test('pages left before they arrive stop their work on the server', async () => {
+  await page
+    .context()
+    .addCookies([{name: 'latency', value: '2000', url: origin}]);
+  try {
+    await page.goto(`${origin}/`);
+    await page.locator('#menu a[aria-current="page"]').waitFor();
+    await fetch(`${origin}/api/loads`, {method: 'DELETE'});
+    // J four times, quicker than any page arrives: each one leaves the last.
+    for (let i = 0; i < 4; i++) {
+      await page.keyboard.press('j');
+      await page.waitForTimeout(150);
+    }
+    await expect.poll(() => page.title(), {timeout: 8000}).toMatch(/^Files/);
+    // Long enough for the pages passed over to have loaded, had they run on.
+    await page.waitForTimeout(2300);
+    const ran = (await (await fetch(`${origin}/api/loads`)).json()) as string[];
+    expect(ran).toEqual(['/files/docs/guide/routing.md']);
+    await page.keyboard.press('k');
+    await expect.poll(() => page.title(), {timeout: 8000}).toMatch(/^Params/);
+  } finally {
+    await page.context().clearCookies();
+  }
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter wa-button').waitFor();

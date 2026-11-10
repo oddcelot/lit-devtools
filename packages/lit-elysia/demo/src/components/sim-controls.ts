@@ -40,6 +40,17 @@ export class SimControls extends LitElement {
       letter-spacing: 0.06em;
       color: var(--wa-color-text-quiet);
     }
+    .keys {
+      margin: 0 0 var(--wa-space-s);
+      font-size: var(--wa-font-size-xs);
+      color: var(--wa-color-text-quiet);
+    }
+    kbd {
+      font-family: var(--wa-font-family-code);
+      padding: 0 0.3em;
+      border: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+      border-radius: var(--wa-border-radius-s);
+    }
     /* Two by two: four in a row don't fit the sidebar. */
     #latency {
       display: grid;
@@ -78,6 +89,9 @@ export class SimControls extends LitElement {
   override render() {
     return html`
       <h2>Simulate</h2>
+      <p class="keys">
+        Press <kbd>J</kbd> and <kbd>K</kbd> to step through the menu.
+      </p>
       <div role="group" aria-label="Simulated latency" id="latency">
         ${SPEEDS.map(({label, ms}) => {
           const look = ms === this.latency ? CHOSEN : OTHER;

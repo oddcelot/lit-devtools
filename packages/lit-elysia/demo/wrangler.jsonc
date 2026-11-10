@@ -4,6 +4,8 @@
   "name": "lit-elysia-demo",
   "main": "dist/server/entry.js",
   "compatibility_date": "2026-11-01",
-  "compatibility_flags": ["nodejs_compat"],
+  // enable_request_signal: request.signal aborts when the client leaves,
+  // so pages the router moved past stop their work (default from 2026-11-17).
+  "compatibility_flags": ["nodejs_compat", "enable_request_signal"],
   "assets": {"directory": "dist/client"},
 }

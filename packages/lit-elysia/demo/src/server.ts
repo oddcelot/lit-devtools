@@ -1,17 +1,32 @@
 import {Elysia, t} from 'elysia';
 import {LATENCY_COOKIE, latencyOf} from './latency.ts';
+import {clearLoads, loads} from './load-log.ts';
 import {addNote, allNotes} from './notes.ts';
 
 /** The app the pages are added to: here, a small JSON API. */
 export default new Elysia({prefix: '/api'})
   .get('/notes', () => allNotes())
+  // Which pages' loads ran: the latency wait stops a page the client left.
+  .get('/loads', () => loads())
+  .delete('/loads', () => {
+    clearLoads();
+    return null;
+  })
   .post(
     '/notes',
     {body: t.Object({title: t.String(), body: t.String()})},
     ({body}) => addNote(body)
   );
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+/** Waits `ms`, or less: until the client goes, if it does first. */
+const wait = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
 
 /** The visitor's name from its cookie, when it has one. */
 const visitorOf = (value: unknown) =>
@@ -33,4 +48,9 @@ export const context = new Elysia({name: 'demo/context'})
       ? redirect('/visitor?from=private', 303)
       : undefined
   )
-  .onBeforeHandle(({latency}) => wait(latency));
+  // The latency, unless the client leaves during it: the router moved on, so
+  // the page's loads never run.
+  .onBeforeHandle(async ({latency, request}) => {
+    await wait(latency, request.signal);
+    if (request.signal.aborted) return new Response(null, {status: 499});
+  });

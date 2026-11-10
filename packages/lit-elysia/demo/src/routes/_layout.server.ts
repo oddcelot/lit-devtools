@@ -5,6 +5,7 @@ import {
   PENDING_MS_COOKIE,
   millisOf,
 } from '../latency.ts';
+import {noteLoad} from '../load-log.ts';
 import {allNotes} from '../notes.ts';
 
 /**
@@ -15,6 +16,7 @@ export const load = defineLoad(({request, latency, cookie}) => {
   const url = new URL(request.url);
   // A form post answers at its action, `?/name`: the page is its path.
   const search = request.method === 'GET' ? url.search : '';
+  noteLoad(url.pathname);
   return {
     count: allNotes().length,
     path: url.pathname + search,

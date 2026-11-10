@@ -7,6 +7,7 @@ import {MENU, type MenuLink} from './_menu.ts';
 import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
 import '../components/layout-clicks.ts';
+import '../components/menu-keys.ts';
 import '../components/sim-controls.ts';
 
 const link = ({label, href, reload, rel, prefetch}: MenuLink, path: string) =>
@@ -85,6 +86,7 @@ export default defineLayout<LoadedData<typeof load>>({
         pending-ms=${pendingMs}
         pending-min-ms=${pendingMinMs}
       ></sim-controls>
+      <menu-keys></menu-keys>
       <div id="content">${content}</div>
     </wa-page>
   `,
