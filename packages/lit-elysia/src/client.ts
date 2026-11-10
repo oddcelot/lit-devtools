@@ -1,6 +1,5 @@
-// First, before Lit itself loads: server-rendered elements then hydrate
-// instead of rendering a second copy into their shadow roots.
-import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
+// Lit's hydrate support is loaded first by the generated client entry,
+// from hydrate-support.ts: it must come before Lit itself.
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';

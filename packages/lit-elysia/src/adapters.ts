@@ -1,7 +1,7 @@
 import {writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
-import {fileURLToPath} from 'node:url';
-import {normalizePath, type EnvironmentOptions} from 'vite';
+import type {EnvironmentOptions} from 'vite';
+import {runtime} from './runtime-path.ts';
 
 /** Where the built app runs. */
 export type AdapterName = 'node' | 'bun' | 'cloudflare';
@@ -80,6 +80,3 @@ const cloudflare: Adapter = {
 };
 
 export const ADAPTERS: Record<AdapterName, Adapter> = {node, bun, cloudflare};
-
-const runtime = (file: string) =>
-  normalizePath(fileURLToPath(new URL(file, import.meta.url)));

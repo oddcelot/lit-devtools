@@ -1,7 +1,6 @@
 import {existsSync} from 'node:fs';
 import {readFile, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
-import {fileURLToPath} from 'node:url';
 import {litPlugin, type LitPluginOptions} from '@oddsquad/vite-plugin-lit';
 import {
   isRunnableDevEnvironment,
@@ -15,6 +14,7 @@ import {
 import {ADAPTERS, type Adapter, type AdapterName} from './adapters.ts';
 import {sendResponse, toRequest} from './node.ts';
 import {scanRoutes, type RouteFile, type Routes} from './routes.ts';
+import {runtime} from './runtime-path.ts';
 
 export interface LitElysiaOptions {
   /** Where the pages are, from the project root. Default `src/routes`. */
@@ -64,9 +64,6 @@ const RESOLVED_ENTRY_ID = `\0${ENTRY_ID}`;
 const START_ID = 'virtual:lit-elysia/start';
 const RESOLVED_START_ID = `\0${START_ID}`;
 
-const runtime = (file: string) =>
-  normalizePath(fileURLToPath(new URL(file, import.meta.url)));
-
 /**
  * A Lit framework on Elysia 2: pages from files under `src/routes`, rendered
  * on the server with `@lit-labs/ssr`, streamed and hydrated. In dev the
@@ -110,7 +107,8 @@ const framework = (options: LitElysiaOptions): Plugin => {
       resolve: {
         dedupe: ['lit', 'lit-html', 'lit-element', '@lit/reactive-element'],
       },
-      // Its sources are TypeScript, which Node cannot load as a dependency.
+      // Through Vite, not Node: in the repo its sources are TypeScript, and
+      // the pages must share one copy of it with the app either way.
       ssr: {noExternal: ['@oddsquad/lit-elysia']},
       optimizeDeps: {
         entries: [
@@ -136,6 +134,8 @@ const framework = (options: LitElysiaOptions): Plugin => {
             build: {
               outDir: 'dist/server',
               ssr: true,
+              // public/ is the client's: dist/client has it already.
+              copyPublicDir: false,
               rollupOptions: {
                 input: {
                   entry: ENTRY_ID,
@@ -363,6 +363,7 @@ const clientModule = (routes: RouteFile[], dev: boolean) => {
     ),
   ].map(file);
   return `
+import ${json(runtime('./hydrate-support.ts'))};
 import {boot, hotModule} from ${json(runtime('./client.ts'))};
 const site = {
   files: {

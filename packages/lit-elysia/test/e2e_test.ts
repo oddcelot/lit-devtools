@@ -46,7 +46,7 @@ let page: Page;
 beforeAll(async () => {
   // Inside the demo, so its bare imports resolve from its node_modules.
   root = path.join(DEMO_DIR, '.e2e-tmp', randomUUID().slice(0, 8));
-  for (const entry of ['index.html', 'src']) {
+  for (const entry of ['index.html', 'public', 'src']) {
     await cp(path.join(DEMO_DIR, entry), path.join(root, entry), {
       recursive: true,
     });
@@ -973,6 +973,9 @@ test('the cloudflare adapter builds one Worker module for Static Assets', async 
     recursive: true,
   });
   await cp(path.join(root, 'index.html'), path.join(workerRoot, 'index.html'));
+  await cp(path.join(root, 'public'), path.join(workerRoot, 'public'), {
+    recursive: true,
+  });
   try {
     const builder = await createBuilder({
       root: workerRoot,

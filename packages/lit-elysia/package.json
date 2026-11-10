@@ -15,6 +15,44 @@
     "./routes": "./src/links.ts",
     "./eden": "./src/eden.ts"
   },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "./page": {
+        "types": "./dist/page.d.mts",
+        "default": "./dist/page.mjs"
+      },
+      "./server": {
+        "types": "./dist/server.d.mts",
+        "default": "./dist/server.mjs"
+      },
+      "./client": {
+        "types": "./dist/client.d.mts",
+        "default": "./dist/client.mjs"
+      },
+      "./node": {
+        "types": "./dist/node.d.mts",
+        "default": "./dist/node.mjs"
+      },
+      "./routes": {
+        "types": "./dist/links.d.mts",
+        "default": "./dist/links.mjs"
+      },
+      "./eden": {
+        "types": "./dist/eden.d.mts",
+        "default": "./dist/eden.mjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vp pack"
+  },
   "dependencies": {
     "@elysia/eden": "2.0.0-rc.1",
     "@lit-labs/ssr": "^4.1.0",

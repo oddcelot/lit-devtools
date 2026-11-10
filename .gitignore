@@ -49,3 +49,4 @@ lit-devtools-snapshot/
 .impeccable/critique/
 /packages/lit-elysia/demo/dist/
 /packages/lit-elysia/demo/.e2e-tmp/
+/packages/lit-elysia/dist/
