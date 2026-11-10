@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@awesome.me/webawesome": "^3.14.0",
+    "@elysia/openapi": "2.0.0-rc.1",
     "@oddsquad/lit-elysia": "workspace:*",
     "elysia": "2.0.0-rc.4",
     "lit": "^3.3.3",

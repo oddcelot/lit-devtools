@@ -1,3 +1,4 @@
+import {openapi} from '@elysia/openapi';
 import {Elysia, sse, status, t} from 'elysia';
 import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {clearLoads, loads} from './load-log.ts';
@@ -6,6 +7,15 @@ import {addNote, allNotes, findNote, notesAdded, noteTitled} from './notes.ts';
 /** The visitor's name from its cookie, when it has one. */
 const visitorOf = (value: unknown) =>
   typeof value === 'string' && value ? value : undefined;
+
+/** What the API answers, for the docs and for checking its answers. */
+const Note = t.Object({
+  id: t.Number(),
+  title: t.String(),
+  body: t.String(),
+  createdAt: t.Date(),
+});
+const Problem = t.Object({message: t.String()});
 
 /**
  * A macro: a route that asks for `{auth: true}` gets `visitor`, the name
@@ -28,20 +38,55 @@ const auth = new Elysia({name: 'demo/auth'}).macro({
  * `error` it can narrow by status, each with its own body.
  */
 export default new Elysia({prefix: '/api'})
+  // Docs for the API at /api/docs, made from the schemas below; the spec
+  // itself at /api/docs/json.
+  .use(
+    openapi({
+      path: '/docs',
+      documentation: {
+        info: {
+          title: 'Notes API',
+          version: '0.0.0',
+          description: 'The JSON API of the lit-elysia demo.',
+        },
+      },
+      exclude: {paths: [/\/loads$/]},
+    })
+  )
   .use(auth)
-  .get('/notes', () => allNotes())
-  .get('/me', {auth: true}, ({visitor}) => ({name: visitor}))
+  .get(
+    '/notes',
+    {response: t.Array(Note), detail: {summary: 'Every note'}},
+    () => allNotes()
+  )
+  .get(
+    '/me',
+    {
+      auth: true,
+      response: {200: t.Object({name: t.String()}), 401: Problem},
+      detail: {summary: 'The name the site knows you by'},
+    },
+    ({visitor}) => ({name: visitor})
+  )
   // Server-sent events from a generator: one per note added, for as long as
   // the client listens. Eden reads them back typed, with `for await`.
-  .get('/notes/feed', async function* ({request}) {
-    yield sse({event: 'ready', data: {count: allNotes().length}});
-    for await (const note of notesAdded(request.signal)) {
-      yield sse({event: 'note', data: note});
+  .get(
+    '/notes/feed',
+    {detail: {summary: 'New notes, as server-sent events'}},
+    async function* ({request}) {
+      yield sse({event: 'ready', data: {count: allNotes().length}});
+      for await (const note of notesAdded(request.signal)) {
+        yield sse({event: 'note', data: note});
+      }
     }
-  })
+  )
   .get(
     '/notes/:id',
-    {params: t.Object({id: t.Numeric()})},
+    {
+      params: t.Object({id: t.Numeric()}),
+      response: {200: Note, 404: Problem},
+      detail: {summary: 'One note'},
+    },
     ({params: {id}}) =>
       findNote(id) ?? status(404, {message: `There is no note ${id}.`})
   )
@@ -53,7 +98,14 @@ export default new Elysia({prefix: '/api'})
   })
   .post(
     '/notes',
-    {body: t.Object({title: t.String(), body: t.String()})},
+    {
+      body: t.Object({title: t.String(), body: t.String()}),
+      response: {
+        200: Note,
+        409: t.Object({message: t.String(), existing: t.Number()}),
+      },
+      detail: {summary: 'Add a note, unless its title is taken'},
+    },
     ({body}) => {
       const taken = noteTitled(body.title);
       return taken
