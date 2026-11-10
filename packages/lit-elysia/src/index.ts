@@ -279,7 +279,7 @@ const handle = async (
   }
   const origin = `http://${req.headers.host ?? 'localhost'}`;
   try {
-    await sendResponse(res, await app.fetch(toRequest(req, origin)));
+    await sendResponse(res, await app.fetch(toRequest(req, origin, res)));
   } catch (error) {
     if (error instanceof Error) server.ssrFixStacktrace(error);
     throw error;

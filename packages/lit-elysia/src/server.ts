@@ -122,6 +122,7 @@ interface Collected {
 const pageContext = (raw: Raw) => {
   const collected: Collected = {headers: {}, depends: new Set()};
   const context = Object.assign(raw, {
+    signal: raw.request.signal,
     setHeaders: (headers: Record<string, string>) => {
       for (const [name, value] of Object.entries(headers)) {
         collected.headers[name.toLowerCase()] = value;
@@ -204,6 +205,8 @@ const wantsPage = (request: Request) =>
  * doesn't get its error cached.
  */
 const failure = async (options: PagesOptions, raw: Raw, thrown: unknown) => {
+  // The client went, and its page's work with it: nothing to show or log.
+  if (raw.request.signal.aborted) return new Response(null, {status: 499});
   const {context, collected} = pageContext(raw);
   const error = errorOf(thrown);
   const name = error.status === 404 ? NOT_FOUND : ERROR;
@@ -388,15 +391,22 @@ const pathOf = (request: Request) => {
 
 const lines = (source: AsyncIterable<string>) => {
   const encoder = new TextEncoder();
+  let cancelled = false;
   return new ReadableStream<Uint8Array>({
     async start(controller) {
       try {
-        for await (const line of source)
+        for await (const line of source) {
+          // The client left: stop waiting on the data's promises.
+          if (cancelled) return;
           controller.enqueue(encoder.encode(`${line}\n`));
+        }
         controller.close();
       } catch (error) {
-        controller.error(error);
+        if (!cancelled) controller.error(error);
       }
+    },
+    cancel() {
+      cancelled = true;
     },
   });
 };

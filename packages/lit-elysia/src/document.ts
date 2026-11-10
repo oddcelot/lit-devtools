@@ -74,10 +74,14 @@ export const renderDocument = ({
     close < 0 ? [after, ''] : [after.slice(0, close), after.slice(close)];
   const encoder = new TextEncoder();
   const sign = signer(nonce);
+  let cancelled = false;
   return new ReadableStream({
     async start(controller) {
-      const send = (html: string) =>
+      // Once the client has gone, nothing more is rendered or awaited.
+      const send = (html: string) => {
+        if (cancelled) throw new Error('cancelled');
         controller.enqueue(encoder.encode(sign(html)));
+      };
       try {
         send(`${before}<div id="${OUTLET_ID}">`);
         for await (const chunk of flatten(render(template))) send(chunk);
@@ -90,8 +94,11 @@ export const renderDocument = ({
         send(closing);
         controller.close();
       } catch (error) {
-        controller.error(error);
+        if (!cancelled) controller.error(error);
       }
+    },
+    cancel() {
+      cancelled = true;
     },
   });
 };

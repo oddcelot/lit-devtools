@@ -8,7 +8,9 @@ import {PageError} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
 import {href, route} from '../src/links.ts';
+import {sendResponse, toRequest} from '../src/node.ts';
 import {pages, renderDocument} from '../src/server.ts';
+import {createServer, request as httpRequest} from 'node:http';
 
 const DEMO_ROUTES = decodeURIComponent(
   new URL('../demo/src/routes', import.meta.url).pathname
@@ -378,4 +380,44 @@ test('a nonce goes on every tag CSP checks, and nowhere else', async () => {
   expect(text).toContain('<meta property="csp-nonce" nonce="abc">');
   // Text that only mentions a script stays text.
   expect(text).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+});
+
+test('the Node bridge aborts a request whose client left, and stops its body', async () => {
+  let signal: AbortSignal | undefined;
+  let cancelled = false;
+  const server = createServer((req, res) => {
+    const request = toRequest(req, 'http://localhost', res);
+    signal = request.signal;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('first'));
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    void sendResponse(res, new Response(body));
+  });
+  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const {port} = server.address() as {port: number};
+  try {
+    await new Promise<void>((resolve) => {
+      const client = httpRequest(
+        {port, host: '127.0.0.1', path: '/'},
+        (res) => {
+          // The first chunk is in: the client hangs up mid-stream.
+          res.once('data', () => {
+            client.destroy();
+            resolve();
+          });
+        }
+      );
+      client.on('error', () => undefined);
+      client.end();
+    });
+    await expect.poll(() => signal?.aborted).toBe(true);
+    await expect.poll(() => cancelled).toBe(true);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });

@@ -35,6 +35,12 @@ export type LoadContext<Params = Record<string, string>> = Omit<
   query: Record<string, string | undefined>;
   request: Request;
   /**
+   * Aborts when the client goes before the page is done: the router moved
+   * on to another page. Pass it on, to `fetch` or a query, so a page nobody
+   * waits for any more stops its work.
+   */
+  signal: AbortSignal;
+  /**
    * Headers for the response, the page's document and the router's data
    * alike: `setHeaders({'cache-control': 'max-age=60'})` lets the browser
    * cache the page, and the router reuses it within that time.

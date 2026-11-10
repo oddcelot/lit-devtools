@@ -58,7 +58,8 @@ const wranglerJson = (name) => ({
   name,
   main: 'dist/server/entry.js',
   compatibility_date: '2026-11-01',
-  compatibility_flags: ['nodejs_compat'],
+  // request.signal aborts when the client leaves (the default from 2026-11-17).
+  compatibility_flags: ['nodejs_compat', 'enable_request_signal'],
   assets: {directory: 'dist/client'},
 });
 
