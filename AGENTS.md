@@ -37,6 +37,23 @@ mean to accept a change to it, and never with coverage loaded, so the gate
 reads the same everywhere. `pnpm run fallow:coverage` is the report to read:
 it runs the unit tests with coverage and scores CRAP from that.
 
+## Less code per intent
+
+Code is a liability as well as an asset. Every line has to be read, typed,
+tested and kept true through every later change. Judge a change by how
+many lines it takes to capture what it means, and aim for fewer. The
+codebase can still grow: modules multiply as features do. What should
+shrink is what each intent costs.
+
+- Put the cost in primitives. When call sites keep repeating a check, a
+  guard or a shape, move it into a primitive (a helper, a type, a schema)
+  that carries it once. Each call site then states only its intent.
+- Weigh each new constraint against the tax it adds at every later turn.
+  Reach first for one a type or an existing primitive already enforces.
+- A reduction is a complete change. Expressing the same behaviour in fewer
+  lines, or folding a special case into a primitive, is a commit of its
+  own, with its own body explaining what got simpler.
+
 ## Commits and the changelog
 
 Subjects are plain sentences in the imperative — `Flash updated elements on the
