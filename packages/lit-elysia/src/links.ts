@@ -1,14 +1,13 @@
 import type {AnySchema} from 'elysia';
-import {QUERY, ROUTE} from './shared.ts';
+import {PARAMS, QUERY, ROUTE} from './shared.ts';
 import type {
   HrefArgs,
   LinkOptions,
-  LinkQuery,
-  Query,
+  ParamsFrom,
+  QuerySidesOf,
   RouteActions,
   RouteHelpers,
   RoutePath,
-  SchemaQuery,
 } from './routes-types.ts';
 
 export type {
@@ -94,42 +93,41 @@ const queryOf = (options: LinkOptions<unknown> | undefined) => {
 
 export {ROUTE};
 
-/** What `route` takes besides the path. */
-export interface RouteOptions<Schema extends AnySchema> {
+/** What `route` takes besides the path: schemas, Elysia's `t` or any Standard Schema. */
+export interface RouteOptions {
   /**
-   * A schema for the query, Elysia's `t` or any Standard Schema: the
-   * server checks and coerces the query with it before the load or the
-   * action runs, and answers 400 when it doesn't fit. Links to the page
-   * are typed by what it takes.
+   * For the query: the server checks and coerces it before the load or
+   * the action runs, and answers 400 when it doesn't fit. Links to the
+   * page are typed by what it takes.
    */
-  query: Schema;
+  query?: AnySchema;
+  /**
+   * For the path's params: `{id: t.Numeric()}` makes `params.id` a
+   * number, and a param that doesn't fit answers 404, as no such page.
+   */
+  params?: AnySchema;
 }
 
 /**
  * Types a page's `load` and `actions` by its route's path:
- * `route('/notes/:id').load(({params}) => findNote(params.id))`, and by a
- * schema for its query: `route('/search', {query: t.Object({q: t.String()})})`.
- * The server checks the path against the file's, so a copied one can't
- * type the wrong params unnoticed.
+ * `route('/notes/:id').load(({params}) => findNote(params.id))`, and by
+ * schemas for its query and params:
+ * `route('/search', {query: t.Object({q: t.String()})})`. The server
+ * checks the path against the file's, so a copied one can't type the
+ * wrong params unnoticed.
  */
-export function route<P extends RoutePath>(
-  path: P
-): RouteHelpers<P, {input: LinkQuery; output: Query}>;
-export function route<P extends RoutePath, Schema extends AnySchema>(
+export const route = <P extends RoutePath, O extends RouteOptions = {}>(
   path: P,
-  options: RouteOptions<Schema>
-): RouteHelpers<P, SchemaQuery<Schema>>;
-export function route(
-  path: string,
-  options?: RouteOptions<AnySchema>
-): RouteHelpers<string> {
+  options?: O
+): RouteHelpers<P, QuerySidesOf<O>, ParamsFrom<P, O>> => {
   const mark = <T extends object>(value: T): T =>
     Object.assign(value, {
       [ROUTE]: path,
-      ...(options && {[QUERY]: options.query}),
+      ...(options?.query && {[QUERY]: options.query}),
+      ...(options?.params && {[PARAMS]: options.params}),
     });
-  return {load: mark, actions: mark};
-}
+  return {load: mark, actions: mark} as never;
+};
 
 type Invalidator = (key?: string) => Promise<void>;
 let invalidator: Invalidator | undefined;

@@ -19,7 +19,7 @@ import {
   type Page,
 } from './page.ts';
 import {safePromises} from './deferred.ts';
-import {QUERY, ROUTE} from './shared.ts';
+import {PARAMS, QUERY, ROUTE} from './shared.ts';
 import {records} from './serialize.ts';
 import {
   DATA_HEADER,
@@ -185,7 +185,7 @@ const runAction = async (route: ServerRoute, context: ActionContext) => {
   checkRoute(actions, route.path);
   const action = actions?.[name];
   if (!action) throw new PageError(405, `No action named ${name}`);
-  return action(await withQuery(actions, context));
+  return action(await withSchemas(actions, context));
 };
 
 const validators = new WeakMap<AnySchema, Validator>();
@@ -203,33 +203,57 @@ const validatorOf = (schema: AnySchema) => {
 };
 
 /**
- * The context with its query checked and coerced by the schema
- * `route(path, {query})` gave a load or actions; as it was without one.
- * A query that doesn't fit answers 400. The action's own name, `?/name`,
- * isn't part of the query. The context is shared by the layouts' loads,
- * so the query is swapped on a view of it.
+ * What a schema makes of `value`, or `undefined` when it doesn't fit:
+ * checked and coerced, as Elysia does for its own routes.
  */
-const withQuery = async <C extends LoadContext>(
+const parse = async (
+  schema: AnySchema,
+  value: Record<string, unknown>,
+  type: 'query' | 'params'
+) => {
+  try {
+    return {value: await validatorOf(schema).From!(value, type)};
+  } catch (thrown) {
+    if (thrown instanceof ValidationError) return {error: thrown.message};
+    throw thrown;
+  }
+};
+
+/**
+ * The context with its query and params checked and coerced by the
+ * schemas `route(path, {query, params})` gave a load or actions; as it was
+ * without them. A query that doesn't fit answers 400, a param 404: no
+ * such page. The action's own name, `?/name`, isn't part of the query.
+ * The context is shared by the layouts' loads, so the checked values go
+ * on a view of it.
+ */
+const withSchemas = async <C extends LoadContext>(
   value: object | undefined,
   context: C
 ): Promise<C> => {
-  const schema = (value as {[QUERY]?: AnySchema} | undefined)?.[QUERY];
-  if (!schema) return context;
-  const raw = Object.fromEntries(
-    Object.entries(context.query).filter(([name]) => !name.startsWith('/'))
-  );
-  let query: unknown;
-  try {
-    query = await validatorOf(schema).From!(raw, 'query');
-  } catch (thrown) {
-    if (thrown instanceof ValidationError) {
-      throw new PageError(400, `Bad query: ${thrown.message}`);
-    }
-    throw thrown;
+  const marked = value as
+    | {[QUERY]?: AnySchema; [PARAMS]?: AnySchema}
+    | undefined;
+  const checked: Partial<Record<'query' | 'params', unknown>> = {};
+  if (marked?.[QUERY]) {
+    const raw = Object.fromEntries(
+      Object.entries(context.query).filter(([name]) => !name.startsWith('/'))
+    );
+    const query = await parse(marked[QUERY], raw, 'query');
+    if ('error' in query) throw new PageError(400, `Bad query: ${query.error}`);
+    checked.query = query.value;
   }
+  if (marked?.[PARAMS]) {
+    const params = await parse(marked[PARAMS], context.params, 'params');
+    if ('error' in params) throw notFound();
+    checked.params = params.value;
+  }
+  if (!('query' in checked) && !('params' in checked)) return context;
   return new Proxy(context, {
     get: (target, key) =>
-      key === 'query' ? query : Reflect.get(target, key, target),
+      typeof key === 'string' && key in checked
+        ? checked[key as keyof typeof checked]
+        : Reflect.get(target, key, target),
   });
 };
 
@@ -356,7 +380,7 @@ const loadData = async (
 ) => {
   const load = module.server && (await module.server()).load;
   if (path) checkRoute(load, path);
-  return load ? load(await withQuery(load, context)) : undefined;
+  return load ? load(await withSchemas(load, context)) : undefined;
 };
 
 /**

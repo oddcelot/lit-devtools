@@ -162,17 +162,34 @@ export interface QuerySides {
   output: unknown;
 }
 
+/** The query a `route`'s schema makes, or the plain query without one. */
+export type QuerySidesOf<O> = O extends {query: infer S extends AnySchema}
+  ? SchemaQuery<S>
+  : {input: LinkQuery; output: Query};
+
+/**
+ * The params a load gets: those the path names, as strings, with what
+ * the `route`'s params schema makes of them in their place.
+ */
+export type ParamsFrom<P extends string, O> = O extends {
+  params: infer S extends AnySchema;
+}
+  ? Omit<ParamsOf<P>, keyof UnwrapSchema<S, {}, 'output'>> &
+      UnwrapSchema<S, {}, 'output'>
+  : ParamsOf<P>;
+
 /** A `load` and `actions` typed for one route's params and query. */
 export interface RouteHelpers<
   P extends string,
   Q extends QuerySides = {input: LinkQuery; output: Query},
+  Params = ParamsOf<P>,
 > {
   load<Data>(
     load: (
-      context: LoadContext<ParamsOf<P>, Q['output']>
+      context: LoadContext<Params, Q['output']>
     ) => Data | Response | Promise<Data | Response>
-  ): Load<Data, ParamsOf<P>, Q['output']> & QueryTypes<Q['input'], Q['output']>;
-  actions<A extends Record<string, Action<unknown, ParamsOf<P>, Q['output']>>>(
+  ): Load<Data, Params, Q['output']> & QueryTypes<Q['input'], Q['output']>;
+  actions<A extends Record<string, Action<unknown, Params, Q['output']>>>(
     actions: A
   ): A;
 }
