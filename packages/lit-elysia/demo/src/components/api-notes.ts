@@ -48,6 +48,33 @@ export class ApiNotes extends LitElement {
     await invalidate();
   }
 
+  /**
+   * Posts a title the API already has. Its 409 is typed: narrowed by its
+   * status, `error.value` has the body the route returned, `existing` too.
+   */
+  async addTaken() {
+    const {error} = await api.api.notes.post({
+      title: 'Elysia',
+      body: 'A second note by a title that is taken.',
+    });
+    if (error?.status === 409) {
+      this.problem = `409: ${error.value.message} It is note ${error.value.existing}.`;
+    } else if (error) {
+      this.problem = `The API said ${String(error.status)}`;
+    }
+  }
+
+  /** Asks for a note by id: the 404 has a message of its own. */
+  async lookUp(id: number) {
+    const {data, error} = await api.api.notes({id}).get();
+    if (error?.status === 404) {
+      this.problem = `404: ${error.value.message}`;
+      return;
+    }
+    this.problem = error ? `The API said ${String(error.status)}` : undefined;
+    this.titles = data ? [data.title] : undefined;
+  }
+
   override render() {
     return html`
       <div class="actions">
@@ -55,10 +82,16 @@ export class ApiNotes extends LitElement {
         <wa-button id="add" variant="brand" @click=${() => this.add()}>
           Add one through the API
         </wa-button>
+        <wa-button id="add-taken" @click=${() => this.addTaken()}>
+          Add “Elysia” again
+        </wa-button>
+        <wa-button id="look-up" @click=${() => this.lookUp(99)}>
+          Look up note 99
+        </wa-button>
       </div>
       ${
         this.problem
-          ? html`<wa-callout variant="danger" role="alert"
+          ? html`<wa-callout variant="warning" role="alert"
               >${this.problem}</wa-callout
             >`
           : nothing

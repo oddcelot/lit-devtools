@@ -180,6 +180,17 @@ test("the user's Elysia app keeps its routes and validation", async () => {
     body: JSON.stringify({title: 1}),
   });
   expect(invalid.status).toBe(422);
+
+  const missing = await fetch(`${origin}/api/notes/99`);
+  expect(missing.status).toBe(404);
+  expect(await missing.json()).toEqual({message: 'There is no note 99.'});
+  const taken = await fetch(`${origin}/api/notes`, {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({title: 'elysia', body: 'again'}),
+  });
+  expect(taken.status).toBe(409);
+  expect(await taken.json()).toMatchObject({existing: 1});
 });
 
 test('the page hydrates, and an edit keeps the state', async () => {
@@ -804,6 +815,16 @@ test('components call the API through the typed Eden client', async () => {
     .poll(() => page.locator('#note-count').textContent())
     .toBe(`${count + 1} notes`);
   expect(await marked(page)).toBe(true);
+
+  // The API's errors reach the component typed, by their status.
+  await component.locator('#add-taken').click();
+  await expect
+    .poll(() => component.locator('wa-callout').textContent())
+    .toBe('409: “Elysia” is taken. It is note 1.');
+  await component.locator('#look-up').click();
+  await expect
+    .poll(() => component.locator('wa-callout').textContent())
+    .toBe('404: There is no note 99.');
 });
 
 test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
