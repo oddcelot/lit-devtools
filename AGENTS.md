@@ -54,6 +54,24 @@ shrink is what each intent costs.
   lines, or folding a special case into a primitive, is a commit of its
   own, with its own body explaining what got simpler.
 
+## Writing
+
+Write all prose in ASD-STE100 Simplified Technical English (STE): docs, the
+changelog, UI text, code comments, commit bodies and replies to the user.
+The STE rules that matter most here:
+
+- Give each sentence one topic. Keep instructions to 20 words or fewer and
+  descriptions to 25.
+- Use the active voice, and name the thing that does the action.
+- Write instructions in the imperative: "Open the panel."
+- Use one word for one meaning, and use that word everywhere. A term that
+  `CONTEXT.md` defines keeps that name.
+- Use the simple tenses: present, past and future.
+
+User-facing content (the docs site, changelog entries, panel and extension
+text) is also concise and friendly. Talk to the reader as "you", start with
+what they can do now, and keep only the words that help them.
+
 ## Commits and the changelog
 
 Subjects are plain sentences in the imperative — `Flash updated elements on the
