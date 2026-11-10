@@ -64,6 +64,7 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     links: [
       {label: 'Who you are', href: href('/visitor')},
       {label: 'A guarded page', href: href('/private')},
+      {label: 'Eden client', href: href('/eden')},
     ],
   },
   {

@@ -699,6 +699,29 @@ test("the context plugin's locals reach loads, and its guard runs first", async 
   await page.context().clearCookies();
 });
 
+test('components call the API through the typed Eden client', async () => {
+  await page.goto(`${origin}/eden`);
+  const component = page.locator('api-notes');
+  await component.locator('#list').click();
+  await expect
+    .poll(() => component.locator('#api-titles li').count())
+    .toBeGreaterThan(1);
+  const before = await component.locator('#api-titles li').count();
+  const count = Number(
+    (await page.locator('#note-count').textContent())!.split(' ')[0]
+  );
+  await mark(page);
+  await component.locator('#add').click();
+  await expect
+    .poll(() => component.locator('#api-titles li').count())
+    .toBe(before + 1);
+  // invalidate() loaded the page again in place: the layout's count too.
+  await expect
+    .poll(() => page.locator('#note-count').textContent())
+    .toBe(`${count + 1} notes`);
+  expect(await marked(page)).toBe(true);
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();

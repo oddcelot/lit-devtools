@@ -7,6 +7,7 @@ declare module '@oddsquad/lit-elysia/routes' {
       | '/broken'
       | '/cached'
       | '/deferred'
+      | '/eden'
       | '/files/*'
       | '/latest'
       | '/nested'

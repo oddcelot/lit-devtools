@@ -12,9 +12,11 @@
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
     "./node": "./src/node.ts",
-    "./routes": "./src/links.ts"
+    "./routes": "./src/links.ts",
+    "./eden": "./src/eden.ts"
   },
   "dependencies": {
+    "@elysia/eden": "2.0.0-rc.1",
     "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
     "@oddsquad/vite-plugin-lit": "workspace:^",

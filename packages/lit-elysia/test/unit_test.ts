@@ -2,6 +2,7 @@ import {html} from 'lit';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
 import {safePromises} from '../src/deferred.ts';
+import {api} from '../src/eden.ts';
 import {PageError} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
@@ -317,4 +318,11 @@ test('headers a failed load set stay off its error page', async () => {
   const failed = await app.handle(new Request('http://localhost/fails'));
   expect(failed.status).toBe(404);
   expect(failed.headers.get('cache-control')).toBeNull();
+});
+
+test('the Eden client says so when used on the server', () => {
+  // Importing it is free; touching it outside a browser explains itself.
+  expect(() => (api as unknown as Record<string, unknown>)['api']).toThrow(
+    "api is the browser's client"
+  );
 });
