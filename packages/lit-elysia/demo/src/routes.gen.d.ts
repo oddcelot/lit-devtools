@@ -5,6 +5,7 @@ declare module '@oddsquad/lit-elysia/routes' {
       | '/'
       | '/actions'
       | '/broken'
+      | '/cached'
       | '/deferred'
       | '/files/*'
       | '/latest'

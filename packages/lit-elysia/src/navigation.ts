@@ -153,6 +153,8 @@ const submitFirst = async (
 ) => {
   pending?.abort();
   const controller = (pending = new AbortController());
+  // A post changes data: pages fetched before it are fetched fresh.
+  markChanged();
   const fetched = await fetchPage(url, controller.signal, {
     method: 'POST',
     body: formData,
@@ -225,7 +227,30 @@ const renderPage = async (
 };
 
 /** The page's data, and where it is after any redirect. */
-const fetchPage = (
+/** When data last changed: a form post, or `invalidate`. */
+let changedAt = 0;
+/** When the router last fetched each URL's data. */
+const fetchedAt = new Map<string, number>();
+
+export const markChanged = (): void => {
+  changedAt = Date.now();
+};
+
+/**
+ * How a fetch may use the browser's HTTP cache: freely, until data has
+ * changed; after that, only for a URL fetched since, so `max-age` saves
+ * requests without showing what a change made stale.
+ */
+const cacheFor = (url: string, init: RequestInit): RequestCache | undefined =>
+  init.cache ?? (init.method !== 'POST' && stale(url) ? 'no-cache' : undefined);
+
+/** Fetched before data last changed, or never since. */
+const stale = (url: string) =>
+  changedAt > 0 && (fetchedAt.get(keyOf(url)) ?? 0) <= changedAt;
+
+const keyOf = (url: string) => new URL(url, location.href).href.split('#')[0]!;
+
+export const fetchPage = (
   url: string,
   signal: AbortSignal,
   init: RequestInit = {}
@@ -237,11 +262,7 @@ const requestPage = async (
   signal: AbortSignal,
   init: RequestInit
 ): Promise<Fetched | undefined> => {
-  const response = await fetch(url, {
-    ...init,
-    headers: {[DATA_HEADER]: 'data'},
-    signal,
-  }).catch(() => undefined);
+  const response = await fetchData(url, signal, init);
   const body = pageData(response);
   const page = body && (await readPage(body, signal));
   if (!page) return undefined;
@@ -250,6 +271,28 @@ const requestPage = async (
     url: response!.redirected ? response!.url : url,
     page,
   };
+};
+
+/** The data request, through the cache when it may, noting when it was. */
+const fetchData = async (
+  url: string,
+  signal: AbortSignal,
+  init: RequestInit
+) => {
+  const response = await fetch(url, {
+    ...init,
+    cache: cacheFor(url, init) ?? 'default',
+    headers: {[DATA_HEADER]: 'data'},
+    signal,
+  }).catch(() => undefined);
+  noteFetched(url, init, response);
+  return response;
+};
+
+/** A page's data, read fresh: later visits may take it from the cache. */
+const noteFetched = (url: string, init: RequestInit, response?: Response) => {
+  if (response?.ok && init.method !== 'POST')
+    fetchedAt.set(keyOf(url), Date.now());
 };
 
 /** The body, when the server answered with page data. */

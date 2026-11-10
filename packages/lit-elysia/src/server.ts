@@ -63,37 +63,68 @@ export const pages = (options: PagesOptions) => {
   const app = new Elysia({name: '@oddsquad/lit-elysia/pages'});
   for (const route of options.routes) {
     app.get(route.path, (context) =>
-      handle(options, route, context as unknown as LoadContext)
+      handle(options, route, context as unknown as Raw)
     );
     if (route.server) {
       app.post(route.path, (context) =>
-        act(options, route, context as unknown as ActionContext)
+        act(options, route, context as unknown as Raw)
       );
     }
   }
   // Last, so every route above, the user's included, comes first.
   app.get('/*', (context) =>
     wantsPage(context.request)
-      ? failure(options, context as unknown as LoadContext, notFound())
+      ? failure(options, context as unknown as Raw, notFound())
       : new Response('Not Found', {status: 404})
   );
   return app;
 };
 
-const handle = async (
-  options: PagesOptions,
-  route: ServerRoute,
-  context: LoadContext
-) => {
+/** The parts of Elysia's context the pages read. */
+interface Raw {
+  params: Record<string, string>;
+  query: Record<string, string | undefined>;
+  request: Request;
+  body?: unknown;
+}
+
+/** What a request's loads and actions set aside for its response. */
+interface Collected {
+  headers: Record<string, string>;
+  depends: Set<string>;
+}
+
+/** The context the loads and actions of one request share. */
+const pageContext = (raw: Raw) => {
+  const collected: Collected = {headers: {}, depends: new Set()};
+  const context: ActionContext = {
+    params: raw.params,
+    query: raw.query,
+    request: raw.request,
+    body: (raw.body ?? {}) as Record<string, unknown>,
+    setHeaders: (headers) => {
+      for (const [name, value] of Object.entries(headers)) {
+        collected.headers[name.toLowerCase()] = value;
+      }
+    },
+    depends: (...keys) => {
+      for (const key of keys) collected.depends.add(key);
+    },
+  };
+  return {context, collected};
+};
+
+const handle = async (options: PagesOptions, route: ServerRoute, raw: Raw) => {
+  const {context, collected} = pageContext(raw);
   try {
     const loaded = await loadAll(route, context);
     if (loaded instanceof Response) return loaded;
-    return await respond(options, route, context.request, {
+    return await respond(options, route, context.request, collected, {
       route: route.path,
       ...loaded,
     });
   } catch (thrown) {
-    return failure(options, context, thrown);
+    return failure(options, raw, thrown);
   }
 };
 
@@ -102,25 +133,22 @@ const handle = async (
  * what the action returned, or with the page loaded again and the
  * action's result as its `form`.
  */
-const act = async (
-  options: PagesOptions,
-  route: ServerRoute,
-  context: ActionContext
-) => {
+const act = async (options: PagesOptions, route: ServerRoute, raw: Raw) => {
+  const {context, collected} = pageContext(raw);
   try {
     const result = await runAction(route, context);
     if (result instanceof Response) return result;
     const failed = result instanceof ActionFailure;
     const loaded = await loadAll(route, context);
     if (loaded instanceof Response) return loaded;
-    return await respond(options, route, context.request, {
+    return await respond(options, route, context.request, collected, {
       route: route.path,
       ...loaded,
       form: failed ? result.data : result,
       ...(failed && {status: result.status}),
     });
   } catch (thrown) {
-    return failure(options, context, thrown);
+    return failure(options, raw, thrown);
   }
 };
 
@@ -151,13 +179,12 @@ const wantsPage = (request: Request) =>
 /**
  * The error page for what a `load` threw: its status and message for a
  * `PageError`, a 500 that says nothing more for anything else. Without an
- * error page, or when the layouts around it fail too, plain text.
+ * error page, or when the layouts around it fail too, plain text. It starts
+ * over with headers of its own: a page that set `max-age` and then failed
+ * doesn't get its error cached.
  */
-const failure = async (
-  options: PagesOptions,
-  context: LoadContext,
-  thrown: unknown
-) => {
+const failure = async (options: PagesOptions, raw: Raw, thrown: unknown) => {
+  const {context, collected} = pageContext(raw);
   const error = errorOf(thrown);
   const name = error.status === 404 ? NOT_FOUND : ERROR;
   const route =
@@ -167,7 +194,7 @@ const failure = async (
   if (!route) return plain;
   try {
     const {layouts} = await loadLayouts(route, context);
-    return await respond(options, route, context.request, {
+    return await respond(options, route, context.request, collected, {
       route: route.path,
       data: error,
       layouts,
@@ -192,16 +219,23 @@ const respond = async (
   options: PagesOptions,
   route: ServerRoute,
   request: Request,
+  collected: Collected,
   loaded: Payload
 ) => {
-  const payload = safePromises(loaded);
-  return request.headers.get(DATA_HEADER) === 'data'
-    ? dataResponse(payload)
-    : documentResponse(
-        await viewOf(route),
-        payload,
-        await options.shell(pathOf(request))
-      );
+  const depends = [...collected.depends];
+  const payload = safePromises({...loaded, ...(depends.length && {depends})});
+  const response =
+    request.headers.get(DATA_HEADER) === 'data'
+      ? dataResponse(payload)
+      : await documentResponse(
+          await viewOf(route),
+          payload,
+          await options.shell(pathOf(request))
+        );
+  for (const [name, value] of Object.entries(collected.headers)) {
+    response.headers.set(name, value);
+  }
+  return response;
 };
 
 /** The modules a route renders with. */

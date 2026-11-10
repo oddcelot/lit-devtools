@@ -32,6 +32,8 @@ export interface Payload {
   status?: number;
   /** What the action a form posted to returned. */
   form?: unknown;
+  /** The keys the loads said their data depends on. */
+  depends?: string[];
 }
 
 /**

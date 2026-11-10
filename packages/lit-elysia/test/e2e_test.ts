@@ -600,6 +600,71 @@ test('the router renders a page at once, and its deferred data as it streams', a
   expect(await marked(page)).toBe(true);
 });
 
+test('a load sets headers on the document and on the data', async () => {
+  const document = await fetch(`${origin}/cached`, {
+    headers: {accept: 'text/html'},
+  });
+  expect(document.headers.get('cache-control')).toBe('private, max-age=10');
+  const data = await fetch(`${origin}/cached`, {
+    headers: {'x-lit-elysia': 'data'},
+  });
+  expect(data.headers.get('cache-control')).toBe('private, max-age=10');
+  const [first] = (await data.text()).split('\n');
+  expect(createReader().read<{depends: string[]}>(first!).depends).toEqual([
+    'clock',
+  ]);
+});
+
+const loadedAt = () => page.locator('#loaded-at').textContent();
+
+test('the router reuses cached data, and invalidate loads it again in place', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await follow('Cached for 10 seconds');
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('Cached for 10 seconds');
+  const first = await loadedAt();
+  await follow('All notes');
+  await expect.poll(() => page.locator('main h1').textContent()).toBe('Notes');
+  await follow('Cached for 10 seconds');
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('Cached for 10 seconds');
+  // The browser had it: the same response, not a new render.
+  expect(await loadedAt()).toBe(first);
+
+  await mark(page);
+  const counter = page.locator('note-counter button');
+  await counter.click();
+  await page.locator('#revalidate').click();
+  await expect.poll(loadedAt).not.toBe(first);
+  // In place: same document, same address, same counter.
+  expect(await marked(page)).toBe(true);
+  expect(page.url()).toBe(`${origin}/cached`);
+  expect(await counter.textContent()).toContain('1 times');
+});
+
+test('after a form action, cached pages load fresh', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await follow('Cached for 10 seconds');
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('Cached for 10 seconds');
+  const first = await loadedAt();
+  const notes = Number(await page.locator('#cached-notes').textContent());
+  await follow('All notes');
+  await page.getByLabel('Title').fill('Fresh');
+  await page.getByRole('button', {name: 'Add'}).click();
+  await expect.poll(() => page.locator('main h1').textContent()).toBe('Fresh');
+  await follow('Cached for 10 seconds');
+  await expect
+    .poll(() => page.locator('#cached-notes').textContent())
+    .toBe(String(notes + 1));
+  expect(await loadedAt()).not.toBe(first);
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();

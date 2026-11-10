@@ -52,6 +52,7 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     title: 'Data',
     links: [
       {label: 'Deferred data', href: href('/deferred')},
+      {label: 'Cached for 10 seconds', href: href('/cached')},
       {
         label: 'A slow note',
         href: href('/notes/:id', {id: 1}, {query: {slow: ''}}),

@@ -6,6 +6,17 @@ export interface LoadContext<Params = Record<string, string>> {
   params: Params;
   query: Record<string, string | undefined>;
   request: Request;
+  /**
+   * Headers for the response, the page's document and the router's data
+   * alike: `setHeaders({'cache-control': 'max-age=60'})` lets the browser
+   * cache the page, and the router reuses it within that time.
+   */
+  setHeaders: (headers: Record<string, string>) => void;
+  /**
+   * Keys this data depends on: `invalidate('notes')` in the browser loads
+   * the page on screen again when it depends on `notes`.
+   */
+  depends: (...keys: string[]) => void;
 }
 
 /**

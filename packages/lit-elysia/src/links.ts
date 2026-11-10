@@ -64,3 +64,21 @@ export const route = <P extends RoutePath>(path: P): RouteHelpers<P> => ({
   load: (load) => Object.assign(load, {[ROUTE]: path}),
   actions: (actions) => Object.assign(actions, {[ROUTE]: path}),
 });
+
+type Invalidator = (key?: string) => Promise<void>;
+let invalidator: Invalidator | undefined;
+
+/** For the router, once it has taken over the page. */
+export const setInvalidator = (next: Invalidator): void => {
+  invalidator = next;
+};
+
+/**
+ * Loads data again after it changed somewhere the router can't see. The
+ * page on screen loads again, in place, if it depends on `key` (see
+ * `depends` in a load), or always without one; every other page the
+ * router fetched before now skips the cache when next shown. A form action
+ * does the same by itself. Does nothing on the server.
+ */
+export const invalidate = (key?: string): Promise<void> =>
+  invalidator?.(key) ?? Promise.resolve();

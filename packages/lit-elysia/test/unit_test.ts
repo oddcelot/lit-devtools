@@ -267,3 +267,54 @@ test("a load typed for another route's params fails loudly", async () => {
     "route('/params/:a/:b') is used in the page that answers /notes/:id"
   );
 });
+
+test('headers a failed load set stay off its error page', async () => {
+  const page = () =>
+    Promise.resolve({default: {render: () => html`<p>page</p>`}});
+  const app = pages({
+    shell: () => '<html><body><!--lit-elysia:body--></body></html>',
+    routes: [
+      {
+        path: '/fine',
+        page,
+        server: () =>
+          Promise.resolve({
+            load: ({
+              setHeaders,
+              depends,
+            }: {
+              setHeaders: (h: Record<string, string>) => void;
+              depends: (k: string) => void;
+            }) => {
+              setHeaders({'Cache-Control': 'max-age=60'});
+              depends('things');
+              return {};
+            },
+          }),
+        layouts: [],
+      },
+      {
+        path: '/fails',
+        page,
+        server: () =>
+          Promise.resolve({
+            load: ({
+              setHeaders,
+            }: {
+              setHeaders: (h: Record<string, string>) => void;
+            }) => {
+              setHeaders({'cache-control': 'max-age=60'});
+              throw new PageError(404, 'Gone');
+            },
+          }),
+        layouts: [],
+      },
+    ],
+    errors: [{path: '#404', page, layouts: []}],
+  });
+  const fine = await app.handle(new Request('http://localhost/fine'));
+  expect(fine.headers.get('cache-control')).toBe('max-age=60');
+  const failed = await app.handle(new Request('http://localhost/fails'));
+  expect(failed.status).toBe(404);
+  expect(failed.headers.get('cache-control')).toBeNull();
+});

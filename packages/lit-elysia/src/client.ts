@@ -4,6 +4,7 @@ import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
+import {enableInvalidate} from './revalidate.ts';
 import {createReader, type Reader} from './serialize.ts';
 import {OUTLET_ID, QUEUE, type Payload} from './shared.ts';
 import {
@@ -37,6 +38,7 @@ export const boot = async (site: Site): Promise<void> => {
   hydrate(compose(await viewOf(site, payload.route), payload), outlet);
   remember(payload);
   takeOver(site, outlet);
+  enableInvalidate(site, outlet);
 };
 
 type Queue = object[];
