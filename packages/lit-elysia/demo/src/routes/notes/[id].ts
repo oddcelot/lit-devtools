@@ -1,10 +1,9 @@
 import {html} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
-import type {load} from './[id].server.ts';
 import '../../components/note-counter.ts';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/notes/:id', {
   title: (note) => note.title,
   head: (note) => html`
     <meta name="description" content=${note.body} />

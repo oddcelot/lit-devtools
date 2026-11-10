@@ -1,13 +1,8 @@
 import {html, nothing} from 'lit';
-import {
-  definePage,
-  type ActionData,
-  type LoadedData,
-} from '@oddsquad/lit-elysia/page';
-import type {actions, load} from './index.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import '../components/click-counter.ts';
 
-export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
+export default definePage('/', {
   title: () => 'Todos',
   render: ({todos}, form) => html`
     <h1>Todos</h1>

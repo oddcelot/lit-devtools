@@ -1,9 +1,8 @@
 import {html} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
-import type {load} from './[...path].server.ts';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/files/*', {
   title: ({segments}) => `Files: ${segments.join('/')}`,
   render: ({segments}) => html`
     <h1>Catch-all</h1>

@@ -1,8 +1,7 @@
 import {html} from 'lit';
 import {ifDefined} from 'lit/directives/if-defined.js';
-import {defineLayout, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {defineLayout} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
-import type {load} from './_layout.server.ts';
 import {MENU, type MenuLink} from './_menu.ts';
 import '@awesome.me/webawesome/dist/components/page/page.js';
 import '@awesome.me/webawesome/dist/components/badge/badge.js';
@@ -48,7 +47,7 @@ const closeDrawer = (event: Event) => {
   if (link && page) page.hideNavigation();
 };
 
-export default defineLayout<LoadedData<typeof load>>({
+export default defineLayout('/', {
   title: () => 'Notes',
   head: () => html`<meta name="theme-color" content="#324fff" />`,
   render: (content, {count, path, latency, pendingMs, pendingMinMs}) => html`

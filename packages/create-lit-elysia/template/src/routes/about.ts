@@ -1,7 +1,7 @@
 import {html} from 'lit';
 import {definePage} from '@oddsquad/lit-elysia/page';
 
-export default definePage({
+export default definePage('/about', {
   title: () => 'About',
   render: () => html`
     <h1>About</h1>

@@ -1,18 +1,13 @@
 import {html, nothing} from 'lit';
-import {
-  definePage,
-  type ActionData,
-  type LoadedData,
-} from '@oddsquad/lit-elysia/page';
-import {href} from '@oddsquad/lit-elysia/routes';
-import type {actions, load} from './index.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
+import {href, type RouteForm} from '@oddsquad/lit-elysia/routes';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 import '@awesome.me/webawesome/dist/components/card/card.js';
 import '@awesome.me/webawesome/dist/components/input/input.js';
 import '../components/note-counter.ts';
 
-type Form = ActionData<typeof actions>;
+type Form = RouteForm<'/'>;
 
 /** The form, with what didn't validate when it comes back. */
 const addNote = (form: Form | undefined) => {
@@ -40,7 +35,7 @@ const addNote = (form: Form | undefined) => {
   `;
 };
 
-export default definePage<LoadedData<typeof load>, Form>({
+export default definePage('/', {
   title: () => 'Notes',
   head: ({notes}) =>
     html`<meta name="description" content="${notes.length} notes" />`,

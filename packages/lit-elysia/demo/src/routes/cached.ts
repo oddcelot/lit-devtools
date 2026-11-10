@@ -1,11 +1,10 @@
 import {html} from 'lit';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import {invalidate} from '@oddsquad/lit-elysia/routes';
-import type {load} from './cached.server.ts';
 import '@awesome.me/webawesome/dist/components/button/button.js';
 import '../components/note-counter.ts';
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/cached', {
   title: () => 'Cached for 10 seconds',
   render: ({renderedAt, notes}) => html`
     <h1>Cached for 10 seconds</h1>

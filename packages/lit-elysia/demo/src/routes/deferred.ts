@@ -1,7 +1,6 @@
 import {html, type TemplateResult} from 'lit';
 import {until} from 'lit/directives/until.js';
-import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
-import type {load} from './deferred.server.ts';
+import {definePage} from '@oddsquad/lit-elysia/page';
 import '@awesome.me/webawesome/dist/components/callout/callout.js';
 import '@awesome.me/webawesome/dist/components/card/card.js';
 import '@awesome.me/webawesome/dist/components/spinner/spinner.js';
@@ -28,7 +27,7 @@ const later = <T>(
     </p>`
   );
 
-export default definePage<LoadedData<typeof load>>({
+export default definePage('/deferred', {
   title: () => 'Deferred data',
   render: ({renderedAt, count, tags, broken}) => html`
     <h1>Deferred data</h1>
