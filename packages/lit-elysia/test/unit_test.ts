@@ -391,6 +391,35 @@ test("a route's query schema checks and coerces the query", async () => {
   expect(await text(posted)).toContain('"form":{"limit":2}');
 });
 
+test("a route's params schema coerces them, and 404s what doesn't fit", async () => {
+  const params = t.Object({id: t.Numeric()});
+  const load = route('/notes/:id', {params}).load(({params}) => {
+    params.id satisfies number;
+    return params;
+  });
+  const app = pages({
+    shell: () => '<html><body><!--lit-elysia:body--></body></html>',
+    routes: [
+      {
+        path: '/notes/:id',
+        page: () =>
+          Promise.resolve({
+            default: {render: (data: unknown) => html`${JSON.stringify(data)}`},
+          }),
+        server: () => Promise.resolve({load}),
+        layouts: [],
+      },
+    ],
+  });
+  const get = (path: string) =>
+    app.handle(
+      new Request(`http://localhost${path}`, {headers: {accept: 'text/html'}})
+    );
+  const found = await get('/notes/7');
+  expect((await found.text()).replaceAll('&quot;', '"')).toContain('{"id":7}');
+  expect((await get('/notes/seven')).status).toBe(404);
+});
+
 test('headers a failed load set stay off its error page', async () => {
   const page = () =>
     Promise.resolve({default: {render: () => html`<p>page</p>`}});
