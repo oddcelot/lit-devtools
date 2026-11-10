@@ -25,6 +25,9 @@ export const allNotes = (): Note[] => notes;
 export const findNote = (id: number): Note | undefined =>
   notes.find((note) => note.id === id);
 
+export const noteTitled = (title: string): Note | undefined =>
+  notes.find((note) => note.title.toLowerCase() === title.trim().toLowerCase());
+
 export const addNote = (input: Pick<Note, 'title' | 'body'>): Note => {
   const note = {id: notes.length + 1, ...input, createdAt: new Date()};
   notes.push(note);

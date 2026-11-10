@@ -1,11 +1,21 @@
-import {Elysia, t} from 'elysia';
+import {Elysia, status, t} from 'elysia';
 import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {clearLoads, loads} from './load-log.ts';
-import {addNote, allNotes} from './notes.ts';
+import {addNote, allNotes, findNote, noteTitled} from './notes.ts';
 
-/** The app the pages are added to: here, a small JSON API. */
+/**
+ * The app the pages are added to: here, a small JSON API. Its errors are
+ * part of its types: `status(404, ...)` reaches the Eden client as an
+ * `error` it can narrow by status, each with its own body.
+ */
 export default new Elysia({prefix: '/api'})
   .get('/notes', () => allNotes())
+  .get(
+    '/notes/:id',
+    {params: t.Object({id: t.Numeric()})},
+    ({params: {id}}) =>
+      findNote(id) ?? status(404, {message: `There is no note ${id}.`})
+  )
   // Which pages' loads ran: the latency wait stops a page the client left.
   .get('/loads', () => loads())
   .delete('/loads', () => {
@@ -15,7 +25,15 @@ export default new Elysia({prefix: '/api'})
   .post(
     '/notes',
     {body: t.Object({title: t.String(), body: t.String()})},
-    ({body}) => addNote(body)
+    ({body}) => {
+      const taken = noteTitled(body.title);
+      return taken
+        ? status(409, {
+            message: `“${taken.title}” is taken.`,
+            existing: taken.id,
+          })
+        : addNote(body);
+    }
   );
 
 /** Waits `ms`, or less: until the client goes, if it does first. */
