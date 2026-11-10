@@ -355,6 +355,48 @@ test('after hydrating, the router posts forms and renders the answer', async () 
   expect(await page.getByRole('link', {name: 'Routed'}).count()).toBe(1);
 });
 
+test('the page is marked busy while the router waits on the server', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await page.evaluate(() => {
+    const seen: string[] = [];
+    (window as {seen?: string[]}).seen = seen;
+    for (const type of ['lit-elysia:navigating', 'lit-elysia:navigated']) {
+      addEventListener(type, () =>
+        seen.push(
+          `${type}:${document.documentElement.hasAttribute('data-navigating')}`
+        )
+      );
+    }
+  });
+  await page.getByRole('link', {name: 'A slow note'}).click();
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.documentElement.hasAttribute('data-navigating')
+      )
+    )
+    .toBe(true);
+  expect(await page.locator('#lit-elysia').getAttribute('aria-busy')).toBe(
+    'true'
+  );
+  await expect.poll(() => page.locator('h1').textContent()).toBe('Elysia');
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        document.documentElement.hasAttribute('data-navigating')
+      )
+    )
+    .toBe(false);
+  expect(
+    await page.locator('#lit-elysia').getAttribute('aria-busy')
+  ).toBeNull();
+  // One wait for the whole navigation, fetch and modules together.
+  expect(await page.evaluate(() => (window as {seen?: string[]}).seen)).toEqual(
+    ['lit-elysia:navigating:true', 'lit-elysia:navigated:false']
+  );
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();

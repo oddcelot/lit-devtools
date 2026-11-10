@@ -31,6 +31,7 @@ export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
     </form>
     <p>
       <a href="/latest">Newest note</a> ·
+      <a href="/notes/1?slow">A slow note</a> ·
       <a href="/notes/99">A note that isn't there</a> ·
       <a href="/notes/1" data-reload>First note, as a full load</a> ·
       <a href="/broken">A page that fails</a> ·

@@ -4,6 +4,8 @@ import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
+
+export {NAVIGATED, NAVIGATING} from './progress.ts';
 import {decode} from './serialize.ts';
 import {DATA_ID, OUTLET_ID, type Payload} from './shared.ts';
 import {

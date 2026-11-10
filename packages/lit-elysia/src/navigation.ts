@@ -1,3 +1,4 @@
+import {whileLoading} from './progress.ts';
 import {decode} from './serialize.ts';
 import {DATA_HEADER, type PageData} from './shared.ts';
 import {show, viewOf, type Site} from './site.ts';
@@ -217,16 +218,24 @@ const renderPage = async (
   next: PageData,
   signal: AbortSignal
 ) => {
-  const view = await viewOf(site, next.route);
+  // The page's modules, the first time it is shown.
+  const view = await whileLoading(() => viewOf(site, next.route));
   if (signal.aborted) return;
   show(outlet, view, next);
 };
 
 /** The page's data, and where it is after any redirect. */
-const fetchPage = async (
+const fetchPage = (
   url: string,
   signal: AbortSignal,
   init: RequestInit = {}
+): Promise<Fetched | undefined> =>
+  whileLoading(() => requestPage(url, signal, init));
+
+const requestPage = async (
+  url: string,
+  signal: AbortSignal,
+  init: RequestInit
 ): Promise<Fetched | undefined> => {
   const response = await fetch(url, {
     ...init,
