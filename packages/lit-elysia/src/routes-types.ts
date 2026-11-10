@@ -22,16 +22,21 @@ import type {
 // oxlint-disable-next-line typescript/no-empty-interface
 export interface Register {}
 
-/** What a module's `.server.ts` gives it: its data, and its form's result. */
+/**
+ * What a module's `.server.ts` gives it: its data, its form's result, and
+ * the names of its actions.
+ */
 export interface RouteTypes {
   data: unknown;
   form: unknown;
+  actions: string;
 }
 
 /**
  * The types of a `.server.ts` module, by its exports: the data its `load`
- * returns, and what its `actions` render the page with. Without them,
- * `undefined`.
+ * returns, what its `actions` render the page with, and their names.
+ * Without them, `undefined`, and no names; `ServerTypes<undefined>` for a
+ * module with no `.server.ts`.
  */
 export interface ServerTypes<Module> {
   data: Module extends {load: infer L extends (...args: never[]) => unknown}
@@ -40,6 +45,9 @@ export interface ServerTypes<Module> {
   form: Module extends {actions: infer A extends Actions}
     ? ActionData<A>
     : undefined;
+  actions: Module extends {actions: infer A extends Actions}
+    ? Extract<keyof A, string>
+    : never;
 }
 
 type Unregistered = Record<string, RouteTypes>;
@@ -65,6 +73,13 @@ export type RouteForm<P extends RoutePath> = RouteMap[P] extends {
 }
   ? F
   : unknown;
+
+/** The names of the page's actions: `default`, and those for `?/name`. */
+export type RouteActions<P extends RoutePath> = RouteMap[P] extends {
+  actions: infer A;
+}
+  ? A
+  : string;
 
 /** The data a layout's `load` returns, by its folder's path. */
 export type LayoutData<P extends LayoutPath> = LayoutMap[P] extends {

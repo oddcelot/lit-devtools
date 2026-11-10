@@ -7,7 +7,7 @@ import {api} from '../src/eden.ts';
 import {PageError, definePage, defineLayout} from '../src/page.ts';
 import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
-import {href, route} from '../src/links.ts';
+import {action, href, route} from '../src/links.ts';
 import {sendResponse, toRequest} from '../src/node.ts';
 import {pages, renderDocument} from '../src/server.ts';
 import {createServer, request as httpRequest} from 'node:http';
@@ -239,6 +239,19 @@ test('href fills in and encodes params, query and hash', () => {
   expect(href('/', {}, {hash: 'add'})).toBe('/#add');
   // @ts-expect-error: the type check catches a missing param first.
   expect(() => href('/notes/:id', {})).toThrow('no value for :id');
+});
+
+test('action builds the URL a form posts to, by the action name', () => {
+  expect(action('/actions', 'increment')).toBe('/actions?/increment');
+  expect(action('/', 'default')).toBe('/');
+  expect(
+    action('/notes/:id', 'default' as never, {id: 2}, {query: {from: 'list'}})
+  ).toBe('/notes/2?from=list');
+  expect(
+    action('/actions', 'reset', {}, {query: {from: 'list'}, hash: 'result'})
+  ).toBe('/actions?/reset&from=list#result');
+  // @ts-expect-error: the page's actions have no such name.
+  expect(action('/actions', 'nope')).toBe('/actions?/nope');
 });
 
 test("a load typed for another route's params fails loudly", async () => {

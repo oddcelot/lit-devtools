@@ -132,7 +132,7 @@ test('the dev server writes the route list that types pages and links', async ()
   expect(types).toContain(
     "'/notes/:id': ServerTypes<typeof import('./routes/notes/[id].server')>;"
   );
-  expect(types).toContain("'/eden': {data: undefined; form: undefined};");
+  expect(types).toContain("'/eden': ServerTypes<undefined>;");
   expect(types).toContain("'/files/*': ServerTypes<");
   // Layouts by their folders' paths.
   expect(types).toMatch(/layouts: \{[^}]*'\/nested': ServerTypes</);
