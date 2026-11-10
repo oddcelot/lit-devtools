@@ -7,5 +7,7 @@ import {allNotes} from '../notes.ts';
  */
 export const load = defineLoad(({request}) => {
   const url = new URL(request.url);
-  return {count: allNotes().length, path: url.pathname + url.search};
+  // A form post answers at its action, `?/name`: the page is its path.
+  const search = request.method === 'GET' ? url.search : '';
+  return {count: allNotes().length, path: url.pathname + search};
 });

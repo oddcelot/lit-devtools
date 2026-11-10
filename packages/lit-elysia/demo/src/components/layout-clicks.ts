@@ -1,17 +1,16 @@
 import {LitElement, html} from 'lit';
-import buttons from './button.css?css-sheet';
+import '@awesome.me/webawesome/dist/components/button/button.js';
 
 /** Lives in the layout: its count shows whether the layout stayed mounted. */
 export class LayoutClicks extends LitElement {
   static override properties = {clicks: {type: Number}};
-  static override styles = [buttons];
 
   clicks = 0;
 
   override render() {
-    return html`<button class="secondary" @click=${() => this.clicks++}>
+    return html`<wa-button size="s" @click=${() => this.clicks++}>
       Layout clicks: ${this.clicks}
-    </button>`;
+    </wa-button>`;
   }
 }
 customElements.define('layout-clicks', LayoutClicks);

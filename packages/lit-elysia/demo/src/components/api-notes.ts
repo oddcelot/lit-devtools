@@ -1,7 +1,8 @@
-import {LitElement, html, nothing} from 'lit';
+import {LitElement, css, html, nothing} from 'lit';
 import {api} from '@oddsquad/lit-elysia/eden';
 import {invalidate} from '@oddsquad/lit-elysia/routes';
-import buttons from './button.css?css-sheet';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/callout/callout.js';
 
 /**
  * Talks to the app's JSON API through the typed Eden client: the routes,
@@ -12,7 +13,20 @@ export class ApiNotes extends LitElement {
     titles: {state: true},
     problem: {state: true},
   };
-  static override styles = [buttons];
+  // Web Awesome's utility classes are page CSS, which stops at the shadow root.
+  static override styles = css`
+    :host {
+      display: block;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--wa-space-s);
+    }
+    wa-callout {
+      margin-top: var(--wa-space-m);
+    }
+  `;
 
   titles?: string[];
   problem?: string;
@@ -36,11 +50,19 @@ export class ApiNotes extends LitElement {
 
   override render() {
     return html`
-      <button id="list" @click=${() => this.list()}>List notes</button>
-      <button id="add" class="secondary" @click=${() => this.add()}>
-        Add one through the API
-      </button>
-      ${this.problem ? html`<p role="alert">${this.problem}</p>` : nothing}
+      <div class="actions">
+        <wa-button id="list" @click=${() => this.list()}>List notes</wa-button>
+        <wa-button id="add" variant="brand" @click=${() => this.add()}>
+          Add one through the API
+        </wa-button>
+      </div>
+      ${
+        this.problem
+          ? html`<wa-callout variant="danger" role="alert"
+              >${this.problem}</wa-callout
+            >`
+          : nothing
+      }
       ${
         this.titles
           ? html`<ol id="api-titles">

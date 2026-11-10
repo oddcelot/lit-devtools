@@ -6,6 +6,10 @@ import {
 } from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
 import type {actions, load} from './index.server.ts';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/callout/callout.js';
+import '@awesome.me/webawesome/dist/components/card/card.js';
+import '@awesome.me/webawesome/dist/components/input/input.js';
 import '../components/note-counter.ts';
 
 type Form = ActionData<typeof actions>;
@@ -14,23 +18,25 @@ type Form = ActionData<typeof actions>;
 const addNote = (form: Form | undefined) => {
   const error = form?.error;
   return html`
-    <article>
-      <form method="post">
-        <h2 id="add">Add a note</h2>
-        <label>
-          Title
-          <input
-            name="title"
-            value=${form?.title ?? ''}
-            aria-invalid=${error ? 'true' : nothing}
-            aria-describedby=${error ? 'form-error' : nothing}
-          />
-          ${error ? html`<small id="form-error" role="alert">${error}</small>` : nothing}
-        </label>
-        <label>Text <input name="body" value=${form?.body ?? ''} /></label>
-        <button>Add</button>
+    <wa-card>
+      <h2 slot="header" id="add">Add a note</h2>
+      <form method="post" class="wa-stack">
+        ${
+          error
+            ? html`<wa-callout id="form-error" variant="danger" role="alert"
+                >${error}</wa-callout
+              >`
+            : nothing
+        }
+        <wa-input
+          name="title"
+          label="Title"
+          value=${form?.title ?? ''}
+        ></wa-input>
+        <wa-input name="body" label="Text" value=${form?.body ?? ''}></wa-input>
+        <div><wa-button type="submit" variant="brand">Add</wa-button></div>
       </form>
-    </article>
+    </wa-card>
   `;
 };
 

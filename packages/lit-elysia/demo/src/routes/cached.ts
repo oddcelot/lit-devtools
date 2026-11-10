@@ -2,6 +2,7 @@ import {html} from 'lit';
 import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
 import {invalidate} from '@oddsquad/lit-elysia/routes';
 import type {load} from './cached.server.ts';
+import '@awesome.me/webawesome/dist/components/button/button.js';
 import '../components/note-counter.ts';
 
 export default definePage<LoadedData<typeof load>>({
@@ -18,9 +19,13 @@ export default definePage<LoadedData<typeof load>>({
       the data. Add a note first, and it doesn't: a form action changes data, so
       the router asks again.
     </p>
-    <button id="revalidate" @click=${() => invalidate('clock')}>
+    <wa-button
+      id="revalidate"
+      variant="brand"
+      @click=${() => invalidate('clock')}
+    >
       Load again: invalidate('clock')
-    </button>
+    </wa-button>
     <note-counter></note-counter>
   `,
 });

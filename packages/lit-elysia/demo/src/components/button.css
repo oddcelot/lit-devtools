@@ -1,3 +1,0 @@
-/* Blades' buttons, for the components' shadow roots. Its colours and sizes
-   are custom properties set on :root, which reach in from the page. */
-@import '@anyblades/blades/content/button';

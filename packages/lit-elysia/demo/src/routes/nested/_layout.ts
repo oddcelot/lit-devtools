@@ -2,6 +2,7 @@ import {html, nothing} from 'lit';
 import {defineLayout, type LoadedData} from '@oddsquad/lit-elysia/page';
 import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './_layout.server.ts';
+import '@awesome.me/webawesome/dist/components/card/card.js';
 import '../../components/note-counter.ts';
 
 const TABS = [
@@ -12,31 +13,27 @@ const TABS = [
 export default defineLayout<LoadedData<typeof load>>({
   title: () => 'Nested layout',
   render: (content, {path, loadedAt}) => html`
-    <article class="section">
-      <header>
+    <wa-card class="section">
+      <div slot="header" class="wa-stack wa-gap-xs">
         <strong>A section with a layout of its own</strong>
-        <nav aria-label="Section tabs">
-          <ul>
-            ${TABS.map(
-              ({label, href}) =>
-                html`<li>
-                  <a
-                    href=${href}
-                    aria-current=${href === path ? 'page' : nothing}
-                    >${label}</a
-                  >
-                </li>`
-            )}
-          </ul>
+        <nav aria-label="Section tabs" class="tabs wa-cluster">
+          ${TABS.map(
+            ({label, href}) =>
+              html`<a
+                href=${href}
+                aria-current=${href === path ? 'page' : nothing}
+                >${label}</a
+              >`
+          )}
         </nav>
-      </header>
+      </div>
       ${content}
-      <footer>
+      <div slot="footer" class="wa-split">
         <small id="loaded-at"
           >Layout data loaded ${loadedAt.toISOString()}</small
         >
         <note-counter></note-counter>
-      </footer>
-    </article>
+      </div>
+    </wa-card>
   `,
 });

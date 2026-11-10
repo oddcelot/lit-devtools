@@ -1,5 +1,6 @@
 import {html} from 'lit';
 import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import {href} from '@oddsquad/lit-elysia/routes';
 import type {load} from './[id].server.ts';
 import '../../components/note-counter.ts';
 
@@ -10,12 +11,12 @@ export default definePage<LoadedData<typeof load>>({
     <link rel="canonical" href="/notes/${note.id}" />
   `,
   render: (note) => html`
-    <header>
-      <a href="/">← All notes</a>
+    <div slot="header">
+      <a href=${href('/')}>← All notes</a>
       <h1>${note.title}</h1>
-    </header>
+    </div>
     <p>${note.body}</p>
-    <footer>
+    <div slot="footer" class="wa-split">
       <small>
         Written
         <time datetime=${note.createdAt.toISOString()}
@@ -23,6 +24,6 @@ export default definePage<LoadedData<typeof load>>({
         >
       </small>
       <note-counter></note-counter>
-    </footer>
+    </div>
   `,
 });

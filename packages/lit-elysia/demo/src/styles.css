@@ -1,25 +1,96 @@
-/* Blades: classless styles for the semantic HTML the pages render. */
-@import '@anyblades/blades';
+/* Web Awesome: the default theme, its native element styles and its
+   utilities. Its components bring their own styles. */
+@import '@awesome.me/webawesome/dist/styles/webawesome.css';
 
-header nav {
-  align-items: center;
+body {
+  margin: 0;
 }
 
-article.note > footer {
+/* Desktop only: wa-page's own mobile layout sets the menu's width itself. */
+@media (min-width: 769px) {
+  wa-page {
+    --menu-width: 15rem;
+  }
+}
+
+/* The page's header: brand on one side, the layout's own bits on the other. */
+.site-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--pico-spacing);
+  gap: var(--wa-space-m);
+  padding: var(--wa-space-s) var(--wa-space-l);
+}
+
+.brand {
+  font-weight: var(--wa-font-weight-bold);
+  text-decoration: none;
+}
+
+/* The routing menu in the navigation slot. */
+#menu {
+  padding: var(--wa-space-m);
+}
+
+#menu h2 {
+  margin: var(--wa-space-m) 0 var(--wa-space-3xs);
+  font-size: var(--wa-font-size-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wa-color-text-quiet);
+}
+
+#menu h2:first-child {
+  margin-top: 0;
+}
+
+#menu ul,
+#menu li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#menu a {
+  display: block;
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-s);
+  text-decoration: none;
+}
+
+#menu a:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+}
+
+#menu a[aria-current='page'] {
+  background: var(--wa-color-brand-fill-quiet);
+  color: var(--wa-color-brand-on-quiet);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+#content {
+  padding: var(--wa-space-l);
+  max-width: 48rem;
+}
+
+/* Section tabs: plain links, the current one underlined. */
+.tabs a[aria-current='page'] {
+  font-weight: var(--wa-font-weight-semibold);
+  text-decoration-thickness: 2px;
+}
+
+wa-card {
+  margin-block: var(--wa-space-m);
 }
 
 /* Shown while the router waits on the server, after a moment. */
 html[data-navigating]::before {
   content: '';
   position: fixed;
-  z-index: 10;
+  z-index: 100;
   inset: 0 auto auto 0;
   height: 3px;
-  background: var(--pico-primary-background);
+  background: var(--wa-color-brand-fill-loud);
   animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both;
 }
 
@@ -30,67 +101,4 @@ html[data-navigating]::before {
   to {
     width: 90%;
   }
-}
-
-/* The sidebar beside the page, above it on narrow screens. */
-.app {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--pico-spacing);
-}
-
-@media (min-width: 768px) {
-  .app {
-    grid-template-columns: 13rem 1fr;
-    align-items: start;
-  }
-
-  .app > aside {
-    position: sticky;
-    top: var(--pico-spacing);
-  }
-}
-
-/* Blades pulls a nav's first and last lists out to the edges; in the
-   sidebar every group lines up. */
-.app > aside ul {
-  margin-inline: 0;
-  padding: 0;
-}
-
-.app > aside li {
-  padding-block: calc(var(--pico-nav-element-spacing-vertical) / 2);
-}
-
-/* Underlined, not bold: bold text is wider, and moved the links beside it. */
-nav a[aria-current='page'] {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.3em;
-}
-
-.app > aside small {
-  display: block;
-  padding-inline: var(--pico-nav-link-spacing-horizontal);
-  margin-top: var(--pico-spacing);
-  color: var(--pico-muted-color);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-article.section > footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--pico-spacing);
-}
-
-/* Forms side by side, one button each. */
-.actions {
-  display: flex;
-  gap: var(--pico-spacing);
-}
-
-.actions form {
-  margin: 0;
 }

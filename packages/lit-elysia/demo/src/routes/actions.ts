@@ -5,6 +5,8 @@ import {
   type LoadedData,
 } from '@oddsquad/lit-elysia/page';
 import type {actions, load} from './actions.server.ts';
+import '@awesome.me/webawesome/dist/components/button/button.js';
+import '@awesome.me/webawesome/dist/components/callout/callout.js';
 
 export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
   title: () => 'Named actions',
@@ -14,11 +16,19 @@ export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
       Two forms, two actions: <code>?/increment</code> and <code>?/reset</code>.
     </p>
     <p>Server count: <strong id="server-count">${count}</strong></p>
-    ${form ? html`<p id="action-result" role="status">${form.done}</p>` : nothing}
-    <div class="actions">
-      <form method="post" action="?/increment"><button>Add one</button></form>
+    ${
+      form
+        ? html`<wa-callout id="action-result" role="status"
+            >${form.done}</wa-callout
+          >`
+        : nothing
+    }
+    <div class="wa-cluster">
+      <form method="post" action="?/increment">
+        <wa-button type="submit" variant="brand">Add one</wa-button>
+      </form>
       <form method="post" action="?/reset">
-        <button class="secondary">Reset</button>
+        <wa-button type="submit">Reset</wa-button>
       </form>
     </div>
   `,

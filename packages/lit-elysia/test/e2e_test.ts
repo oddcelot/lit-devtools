@@ -18,16 +18,20 @@ import {serve} from '../src/node.ts';
 import {createReader} from '../src/serialize.ts';
 
 /**
- * Strict, as a deployment would want it: no 'unsafe-inline' anywhere, so
- * every inline script and style a page carries needs the nonce. The whole
+ * Strict, as a deployment would want it: no 'unsafe-inline' for scripts or
+ * style elements, so every one a page carries needs the nonce. Style
+ * attributes, which Web Awesome's templates use, are allowed. The whole
  * suite runs under it, and a test fails on any violation (see afterEach).
  */
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'nonce-{nonce}'",
   "style-src 'self' 'nonce-{nonce}'",
+  // Web Awesome's templates use style attributes, which no nonce covers.
+  "style-src-attr 'unsafe-inline'",
   "img-src 'self' data:",
-  "connect-src 'self' ws: wss:",
+  // Web Awesome loads its built-in icons from data: URLs.
+  "connect-src 'self' data: ws: wss:",
   "object-src 'none'",
   "base-uri 'self'",
 ].join('; ');
@@ -184,7 +188,7 @@ test('the page hydrates, and an edit keeps the state', async () => {
   page.on('pageerror', (error) => warnings.push(error.message));
   await page.goto(`${origin}/notes/1`);
   expect(await page.locator('time').textContent()).toBe('2026-11-01');
-  const button = page.locator('note-counter button');
+  const button = page.locator('note-counter wa-button');
   await button.click();
   await button.click();
   await expect.poll(() => button.textContent()).toContain('Liked 2 times');
@@ -199,14 +203,18 @@ test('the page hydrates, and an edit keeps the state', async () => {
   expect(
     warnings.filter(
       (text) =>
-        !text.includes('dev mode') && !text.includes('Content Security Policy')
+        !text.includes('dev mode') &&
+        !text.includes('Content Security Policy') &&
+        // Lit's dev-mode note on Web Awesome's wa-page and wa-drawer, which
+        // set properties in their own updates: theirs, not ours.
+        !text.includes('lit.dev/msg/change-in-update')
     )
   ).toEqual([]);
 });
 
 test('an edited page renders again in place, and its elements keep their state', async () => {
   await page.goto(`${origin}/`);
-  const button = page.locator('note-counter button');
+  const button = page.locator('note-counter wa-button');
   await button.click();
   await button.click();
   await expect.poll(() => button.textContent()).toContain('2 times');
@@ -260,7 +268,7 @@ const marked = (page: Page) =>
 
 test('after hydrating, the router renders pages without loading them', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
 
   await page.getByRole('link', {name: 'Lit'}).click();
@@ -286,20 +294,18 @@ test('layouts nest, load their own data, and stay mounted', async () => {
   expect(await page.locator('#note-count').textContent()).toMatch(
     /^\d+ notes$/
   );
-  const layout = page.locator('layout-clicks button');
+  const layout = page.locator('layout-clicks wa-button');
   await layout.click();
   await layout.click();
   await expect.poll(() => layout.textContent()).toContain('Layout clicks: 2');
 
   await page.getByRole('link', {name: 'Lit'}).click();
-  await expect
-    .poll(() => page.locator('article.note h1').textContent())
-    .toBe('Lit');
+  await expect.poll(() => page.locator('.note h1').textContent()).toBe('Lit');
   // The root layout's element is the same one, count and all.
   expect(await layout.textContent()).toContain('Layout clicks: 2');
   await page.goBack();
   await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
-  expect(await page.locator('article.note').count()).toBe(0);
+  expect(await page.locator('.note').count()).toBe(0);
   expect(await layout.textContent()).toContain('Layout clicks: 2');
 });
 
@@ -318,7 +324,7 @@ const headTags = (page: Page) =>
 
 test("pages and layouts set head tags, and the router swaps the page's", async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   expect(await headTags(page)).toEqual([
     'theme-color=#324fff',
     expect.stringMatching(/^description=\d+ notes$/),
@@ -337,7 +343,7 @@ test("pages and layouts set head tags, and the router swaps the page's", async (
 
 test('an edited layout renders again in place', async () => {
   await page.goto(`${origin}/`);
-  const layout = page.locator('layout-clicks button');
+  const layout = page.locator('layout-clicks wa-button');
   await layout.click();
   await expect.poll(() => layout.textContent()).toContain('Layout clicks: 1');
   const file = path.join(root, 'src/routes/_layout.ts');
@@ -358,7 +364,7 @@ test('an edited layout renders again in place', async () => {
 
 test('the router renders error pages in place, and Back still works', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
   await page.getByRole('link', {name: "A note that isn't there"}).click();
   await expect.poll(() => page.title()).toBe('Not found');
@@ -401,9 +407,9 @@ test('a form posts to its action without JavaScript', async () => {
 
 test('after hydrating, the router posts forms and renders the answer', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
-  const counter = page.locator('note-counter button');
+  const counter = page.locator('note-counter wa-button');
   await counter.click();
 
   await page.getByLabel('Text').fill('kept too');
@@ -428,7 +434,7 @@ test('after hydrating, the router posts forms and renders the answer', async () 
 
 test('the page is marked busy while the router waits on the server', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await page.evaluate(() => {
     const seen: string[] = [];
     (window as {seen?: string[]}).seen = seen;
@@ -476,17 +482,17 @@ test('the page is marked busy while the router waits on the server', async () =>
 /** Follows a sidebar entry, as the router does after hydrating. */
 const follow = async (label: string) => {
   await page
-    .locator('aside')
+    .locator('#menu')
     .getByRole('link', {name: label, exact: true})
     .click();
 };
 
 const current = () =>
-  page.locator('aside a[aria-current="page"]').allTextContents();
+  page.locator('#menu a[aria-current="page"]').allTextContents();
 
 test('the sidebar marks the page on screen as the router moves', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
   expect(await current()).toEqual(['All notes']);
   await follow('Two params');
@@ -499,7 +505,7 @@ test('the sidebar marks the page on screen as the router moves', async () => {
 
 test('params, a catch-all and a query string reach the page', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await follow('Two params');
   await expect.poll(() => page.locator('#param-a').textContent()).toBe('red');
   expect(await page.locator('#param-b').textContent()).toBe('round');
@@ -526,7 +532,7 @@ test('params, a catch-all and a query string reach the page', async () => {
 
 test('a nested layout keeps its elements across its pages, and reloads its data', async () => {
   await page.goto(`${origin}/nested`);
-  const counter = page.locator('note-counter button');
+  const counter = page.locator('note-counter wa-button');
   await counter.click();
   await counter.click();
   const firstLoad = await page.locator('#loaded-at').textContent();
@@ -535,7 +541,7 @@ test('a nested layout keeps its elements across its pages, and reloads its data'
     .getByRole('link', {name: 'Second tab'})
     .click();
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('Second tab');
   expect(await counter.textContent()).toContain('2 times');
   await expect
@@ -543,13 +549,15 @@ test('a nested layout keeps its elements across its pages, and reloads its data'
     .not.toBe(firstLoad);
   // Leaving the section and coming back starts it over.
   await follow('All notes');
-  await expect.poll(() => page.locator('main h1').textContent()).toBe('Notes');
+  await expect
+    .poll(() => page.locator('#content h1').textContent())
+    .toBe('Notes');
   await follow('Nested layout');
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('First tab');
   expect(
-    await page.locator('article.section note-counter button').textContent()
+    await page.locator('.section note-counter wa-button').textContent()
   ).toContain('0 times');
 });
 
@@ -565,6 +573,8 @@ test('named actions run the one their form names', async () => {
     before + 1
   );
   expect(page.url()).toBe(`${origin}/actions`);
+  // The page that answered the post is still the one the menu marks.
+  expect(await current()).toEqual(['Named actions']);
   await page.getByRole('button', {name: 'Reset'}).click();
   await expect
     .poll(() => page.locator('#server-count').textContent())
@@ -581,7 +591,7 @@ test('a hash link lands on its heading, and other sites are left to the browser'
   await follow('Add a note');
   await expect.poll(() => page.url()).toBe(`${origin}/#add`);
   await expect.poll(() => page.locator('#add').isVisible()).toBe(true);
-  const external = page.locator('aside a[rel="external"]');
+  const external = page.locator('#menu a[rel="external"]');
   expect(await external.getAttribute('href')).toBe('https://elysiajs.com');
 });
 
@@ -616,7 +626,7 @@ test('deferred data streams into the document after the page', async () => {
 
 test('a streaming page hydrates before its deferred data arrives', async () => {
   await page.goto(`${origin}/deferred`, {waitUntil: 'commit'});
-  const counter = page.locator('note-counter button');
+  const counter = page.locator('note-counter wa-button');
   // Hydrated: the element has rendered on the client, listeners and all.
   await page.waitForFunction(
     () =>
@@ -641,12 +651,12 @@ test('a streaming page hydrates before its deferred data arrives', async () => {
 
 test('the router renders a page at once, and its deferred data as it streams', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
   const started = Date.now();
   await follow('Deferred data');
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('Deferred data');
   expect(Date.now() - started).toBeLessThan(1000);
   expect(await page.locator('#count [aria-busy="true"]').count()).toBe(1);
@@ -678,23 +688,25 @@ const loadedAt = () => page.locator('#loaded-at').textContent();
 
 test('the router reuses cached data, and invalidate loads it again in place', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await follow('Cached for 10 seconds');
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('Cached for 10 seconds');
   const first = await loadedAt();
   await follow('All notes');
-  await expect.poll(() => page.locator('main h1').textContent()).toBe('Notes');
+  await expect
+    .poll(() => page.locator('#content h1').textContent())
+    .toBe('Notes');
   await follow('Cached for 10 seconds');
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('Cached for 10 seconds');
   // The browser had it: the same response, not a new render.
   expect(await loadedAt()).toBe(first);
 
   await mark(page);
-  const counter = page.locator('note-counter button');
+  const counter = page.locator('note-counter wa-button');
   await counter.click();
   await page.locator('#revalidate').click();
   await expect.poll(loadedAt).not.toBe(first);
@@ -706,17 +718,19 @@ test('the router reuses cached data, and invalidate loads it again in place', as
 
 test('after a form action, cached pages load fresh', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await follow('Cached for 10 seconds');
   await expect
-    .poll(() => page.locator('main h1').textContent())
+    .poll(() => page.locator('#content h1').textContent())
     .toBe('Cached for 10 seconds');
   const first = await loadedAt();
   const notes = Number(await page.locator('#cached-notes').textContent());
   await follow('All notes');
   await page.getByLabel('Title').fill('Fresh');
   await page.getByRole('button', {name: 'Add'}).click();
-  await expect.poll(() => page.locator('main h1').textContent()).toBe('Fresh');
+  await expect
+    .poll(() => page.locator('#content h1').textContent())
+    .toBe('Fresh');
   await follow('Cached for 10 seconds');
   await expect
     .poll(() => page.locator('#cached-notes').textContent())
@@ -735,7 +749,7 @@ test("the context plugin's locals reach loads, and its guard runs first", async 
 
   await page.context().clearCookies();
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
   await follow('A guarded page');
   await expect.poll(() => page.url()).toBe(`${origin}/visitor?from=private`);
@@ -783,7 +797,7 @@ test('components call the API through the typed Eden client', async () => {
 
 test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   const seen: string[] = [];
   const listen = (request: import('playwright-core').Request) => {
     const url = new URL(request.url());
@@ -796,7 +810,7 @@ test('resting on a link prefetches its code, and its data inside data-prefetch',
   try {
     // A sidebar link: its page's module, no data.
     await page
-      .locator('aside')
+      .locator('#menu')
       .getByRole('link', {name: 'Eden client', exact: true})
       .hover();
     await expect
@@ -806,15 +820,17 @@ test('resting on a link prefetches its code, and its data inside data-prefetch',
 
     // A note in the data-prefetch list: its data too, used by the click.
     await page
-      .locator('main')
+      .locator('#content')
       .getByRole('link', {name: 'Lit', exact: true})
       .hover();
     await expect.poll(() => seen).toContain('data /notes/2');
     await page
-      .locator('main')
+      .locator('#content')
       .getByRole('link', {name: 'Lit', exact: true})
       .click();
-    await expect.poll(() => page.locator('main h1').textContent()).toBe('Lit');
+    await expect
+      .poll(() => page.locator('#content h1').textContent())
+      .toBe('Lit');
     expect(seen.filter((entry) => entry === 'data /notes/2')).toHaveLength(1);
   } finally {
     page.off('request', listen);
@@ -847,7 +863,7 @@ test('each document gets its own nonce, on every tag that needs one', async () =
 
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
-  await page.locator('note-counter button').waitFor();
+  await page.locator('note-counter wa-button').waitFor();
   await mark(page);
   await page.getByRole('link', {name: 'First note, as a full load'}).click();
   await expect.poll(() => page.locator('h1').textContent()).toBe('Elysia');
@@ -914,7 +930,7 @@ test('the build runs under its policy, enforced, with nothing blocked', async ()
       /'nonce-[^']+'/
     );
     await page.goto(`${built}/deferred`);
-    const counter = page.locator('note-counter button');
+    const counter = page.locator('note-counter wa-button');
     await counter.click();
     await expect.poll(() => counter.textContent()).toContain('1 times');
     await expect

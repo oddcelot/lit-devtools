@@ -12,8 +12,11 @@ export default defineConfig({
         "default-src 'self'",
         "script-src 'self' 'nonce-{nonce}'",
         "style-src 'self' 'nonce-{nonce}'",
+        // Web Awesome's templates use style attributes, which no nonce covers.
+        "style-src-attr 'unsafe-inline'",
         "img-src 'self' data:",
-        "connect-src 'self' ws: wss:",
+        // Web Awesome loads its built-in icons from data: URLs.
+        "connect-src 'self' data: ws: wss:",
         "object-src 'none'",
         "base-uri 'self'",
       ].join('; '),

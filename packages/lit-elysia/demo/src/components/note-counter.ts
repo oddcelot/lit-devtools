@@ -1,17 +1,16 @@
 import {LitElement, html} from 'lit';
-import buttons from './button.css?css-sheet';
+import '@awesome.me/webawesome/dist/components/button/button.js';
 
 /** Counts clicks; edit the template and the count stays. */
 export class NoteCounter extends LitElement {
   static override properties = {count: {type: Number}};
-  static override styles = [buttons];
 
   count = 0;
 
   override render() {
-    return html`<button class="outline" @click=${() => this.count++}>
+    return html`<wa-button appearance="outlined" @click=${() => this.count++}>
       Liked ${this.count} times
-    </button>`;
+    </wa-button>`;
   }
 }
 customElements.define('note-counter', NoteCounter);
