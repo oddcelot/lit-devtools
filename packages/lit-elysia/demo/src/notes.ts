@@ -28,8 +28,38 @@ export const findNote = (id: number): Note | undefined =>
 export const noteTitled = (title: string): Note | undefined =>
   notes.find((note) => note.title.toLowerCase() === title.trim().toLowerCase());
 
+const added = new EventTarget();
+
 export const addNote = (input: Pick<Note, 'title' | 'body'>): Note => {
   const note = {id: notes.length + 1, ...input, createdAt: new Date()};
   notes.push(note);
+  added.dispatchEvent(new CustomEvent('note', {detail: note}));
   return note;
 };
+
+/**
+ * Each note added from now on, as it is added, until `signal` aborts.
+ * The notes live in the server's memory, so on Workers a feed sees those
+ * added in its own isolate.
+ */
+export async function* notesAdded(signal: AbortSignal): AsyncGenerator<Note> {
+  const queue: Note[] = [];
+  let wake: (() => void) | undefined;
+  const onNote = (event: Event) => {
+    queue.push((event as CustomEvent<Note>).detail);
+    wake?.();
+  };
+  const onAbort = () => wake?.();
+  added.addEventListener('note', onNote);
+  signal.addEventListener('abort', onAbort);
+  try {
+    while (!signal.aborted) {
+      const note = queue.shift();
+      if (note) yield note;
+      else await new Promise<void>((resolve) => (wake = resolve));
+    }
+  } finally {
+    added.removeEventListener('note', onNote);
+    signal.removeEventListener('abort', onAbort);
+  }
+}
