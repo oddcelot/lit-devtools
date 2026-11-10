@@ -17,3 +17,14 @@ export const latencyOf = (value: unknown): number => {
   const ms = Number(value);
   return SPEEDS.some((speed) => speed.ms === ms) ? ms : 0;
 };
+
+/** The router's pending settings, as TanStack's kitchen sink has them. */
+export const PENDING_MS_COOKIE = 'pending-ms';
+export const PENDING_MIN_MS_COOKIE = 'pending-min-ms';
+export const PENDING_DEFAULTS = {ms: 150, minMs: 300};
+
+/** A slider's milliseconds from its cookie: 0 to 5000, or the default. */
+export const millisOf = (value: unknown, fallback: number): number => {
+  const ms = Number(value);
+  return Number.isInteger(ms) && ms >= 0 && ms <= 5000 ? ms : fallback;
+};

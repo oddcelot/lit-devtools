@@ -23,7 +23,7 @@ wa-page::part(drawer__body) {
 /* Desktop only: wa-page's own mobile layout sets the menu's width itself. */
 @media (min-width: 769px) {
   wa-page {
-    --menu-width: 15rem;
+    --menu-width: 16rem;
   }
 }
 
@@ -40,6 +40,14 @@ wa-page::part(drawer__body) {
 .brand {
   font-weight: var(--wa-font-weight-bold);
   text-decoration: none;
+}
+
+/* wa-page sizes its navigation, the menu above its footer, to the menu's
+   height, and a longer menu then runs under the footer. Grown to fit, it
+   scrolls as one: the whole menu, then the simulation panel. */
+wa-page::part(navigation) {
+  height: auto;
+  min-height: 100%;
 }
 
 /* The routing menu in the navigation slot. */
@@ -98,7 +106,8 @@ wa-card {
   margin-block: var(--wa-space-m);
 }
 
-/* Shown while the router waits on the server, after a moment. */
+/* Shown while the router counts a navigation as pending: from pendingMs
+   on, for pendingMinMs at least (the settings in the sidebar's footer). */
 html[data-navigating]::before {
   content: '';
   position: fixed;
@@ -106,7 +115,7 @@ html[data-navigating]::before {
   inset: 0 auto auto 0;
   height: 3px;
   background: var(--wa-color-brand-fill-loud);
-  animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) 150ms both;
+  animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) both;
 }
 
 @keyframes progress {

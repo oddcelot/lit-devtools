@@ -254,7 +254,13 @@ test('the router asks a page for its data alone', async () => {
   expect(data.route).toBe('/notes/:id');
   // Each layout's data, outermost first; the notes layout has no loader.
   expect(data.layouts).toEqual([
-    {count: expect.any(Number), path: '/notes/2', latency: 0},
+    {
+      count: expect.any(Number),
+      path: '/notes/2',
+      latency: 0,
+      pendingMs: 150,
+      pendingMinMs: 300,
+    },
     undefined,
   ]);
   expect(data.data.createdAt).toBeInstanceOf(Date);
@@ -911,6 +917,85 @@ test('the latency controls slow every page request down on the server', async ()
     expect(Date.now() - started).toBeGreaterThanOrEqual(450);
     await choose('Instant');
     expect(await timed('Catch-all', 'Catch-all')).toBeLessThan(450);
+  } finally {
+    await page.context().clearCookies();
+  }
+});
+
+test('pendingMs and pendingMinMs decide when the page is marked busy, and how long', async () => {
+  const set = (values: Record<string, number>) =>
+    page.context().addCookies(
+      Object.entries(values).map(([name, value]) => ({
+        name,
+        value: String(value),
+        url: origin,
+      }))
+    );
+  /** Loads the page fresh, then records each change of the busy state. */
+  const watch = async () => {
+    await page.goto(`${origin}/`);
+    await page.waitForFunction(
+      () =>
+        (
+          document.querySelector('sim-controls') as {
+            hasUpdated?: boolean;
+          } | null
+        )?.hasUpdated
+    );
+    await page.evaluate(() => {
+      const log: [number, boolean][] = [];
+      (window as {busy?: typeof log}).busy = log;
+      const started = performance.now();
+      new MutationObserver(() =>
+        log.push([
+          Math.round(performance.now() - started),
+          document.documentElement.hasAttribute('data-navigating'),
+        ])
+      ).observe(document.documentElement, {
+        attributeFilter: ['data-navigating'],
+      });
+    });
+  };
+  const busy = () =>
+    page.evaluate(() => (window as {busy?: [number, boolean][]}).busy!);
+  try {
+    // A 500 ms navigation under a 1000 ms pendingMs never counts as pending.
+    await set({latency: 500, 'pending-ms': 1000, 'pending-min-ms': 0});
+    await watch();
+    await follow('Two params');
+    await expect
+      .poll(() => page.locator('#content h1').textContent())
+      .toBe('Two params');
+    await page.waitForTimeout(300);
+    expect(await busy()).toEqual([]);
+
+    // A quick one under pendingMs 0 shows at once, and for pendingMinMs.
+    await set({latency: 0, 'pending-ms': 0, 'pending-min-ms': 1000});
+    await watch();
+    await follow('Catch-all');
+    await expect.poll(busy, {timeout: 3000}).toHaveLength(2);
+    const [[shown, on], [hidden, off]] = (await busy()) as [
+      [number, boolean],
+      [number, boolean],
+    ];
+    expect([on, off]).toEqual([true, false]);
+    expect(hidden - shown).toBeGreaterThanOrEqual(950);
+
+    // The sliders set the values, and keep them in a cookie.
+    await page
+      .locator('#pending-ms')
+      .evaluate((slider: HTMLElement & {value: number}) => {
+        slider.value = 2000;
+        slider.dispatchEvent(
+          new Event('input', {bubbles: true, composed: true})
+        );
+      });
+    await expect
+      .poll(() => page.locator('#pending-ms').getAttribute('label'))
+      .toBe('pendingMs: 2000 ms');
+    expect(await page.evaluate(() => document.cookie)).toContain(
+      'pending-ms=2000'
+    );
   } finally {
     await page.context().clearCookies();
   }
