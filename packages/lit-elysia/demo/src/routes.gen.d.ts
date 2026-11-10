@@ -12,6 +12,7 @@ declare module '@oddsquad/lit-elysia/routes' {
       '/eden': ServerTypes<undefined>;
       '/files/*': ServerTypes<typeof import('./routes/files/[...path].server')>;
       '/latest': ServerTypes<typeof import('./routes/latest.server')>;
+      '/live': ServerTypes<undefined>;
       '/nested': ServerTypes<undefined>;
       '/nested/second': ServerTypes<undefined>;
       '/notes/:id': ServerTypes<typeof import('./routes/notes/[id].server')>;

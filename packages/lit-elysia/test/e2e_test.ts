@@ -827,6 +827,26 @@ test('components call the API through the typed Eden client', async () => {
     .toBe('404: There is no note 99.');
 });
 
+test('a generator route streams server-sent events to a component', async () => {
+  await page.goto(`${origin}/live`);
+  const feed = page.locator('note-feed');
+  await expect
+    .poll(() => feed.locator('#feed-state').textContent())
+    .toBe('Listening');
+  // A note added elsewhere, past the component, arrives through the feed.
+  const added = await fetch(`${origin}/api/notes`, {
+    method: 'POST',
+    headers: {'content-type': 'application/json'},
+    body: JSON.stringify({title: 'Over the feed', body: 'sse'}),
+  });
+  expect(added.status).toBe(200);
+  await expect
+    .poll(() => feed.locator('#feed li').allTextContents())
+    .toEqual(['Over the feed']);
+  await feed.locator('#feed-add').click();
+  await expect.poll(() => feed.locator('#feed li').count()).toBe(2);
+});
+
 test('resting on a link prefetches its code, and its data inside data-prefetch', async () => {
   const seen: string[] = [];
   const listen = (request: import('playwright-core').Request) => {

@@ -1,7 +1,7 @@
-import {Elysia, status, t} from 'elysia';
+import {Elysia, sse, status, t} from 'elysia';
 import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {clearLoads, loads} from './load-log.ts';
-import {addNote, allNotes, findNote, noteTitled} from './notes.ts';
+import {addNote, allNotes, findNote, notesAdded, noteTitled} from './notes.ts';
 
 /**
  * The app the pages are added to: here, a small JSON API. Its errors are
@@ -10,6 +10,14 @@ import {addNote, allNotes, findNote, noteTitled} from './notes.ts';
  */
 export default new Elysia({prefix: '/api'})
   .get('/notes', () => allNotes())
+  // Server-sent events from a generator: one per note added, for as long as
+  // the client listens. Eden reads them back typed, with `for await`.
+  .get('/notes/feed', async function* ({request}) {
+    yield sse({event: 'ready', data: {count: allNotes().length}});
+    for await (const note of notesAdded(request.signal)) {
+      yield sse({event: 'note', data: note});
+    }
+  })
   .get(
     '/notes/:id',
     {params: t.Object({id: t.Numeric()})},
