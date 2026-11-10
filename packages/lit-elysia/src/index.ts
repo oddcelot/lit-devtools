@@ -5,12 +5,14 @@ import {fileURLToPath} from 'node:url';
 import {litPlugin, type LitPluginOptions} from '@oddsquad/vite-plugin-lit';
 import {
   isRunnableDevEnvironment,
+  mergeConfig,
   normalizePath,
   type Plugin,
   type PluginOption,
   type ResolvedConfig,
   type ViteDevServer,
 } from 'vite';
+import {ADAPTERS, type Adapter, type AdapterName} from './adapters.ts';
 import {sendResponse, toRequest} from './node.ts';
 import {scanRoutes, type RouteFile, type Routes} from './routes.ts';
 
@@ -40,6 +42,13 @@ export interface LitElysiaOptions {
    * styles it would block.
    */
   csp?: string;
+  /**
+   * Where the build runs: `node` (the default) and `bun` write
+   * `dist/server/index.js`, which starts a server on `PORT`; `cloudflare`
+   * writes a Worker, `dist/server/entry.js`, for Workers Static Assets to
+   * serve `dist/client` beside.
+   */
+  adapter?: AdapterName;
 }
 
 /** URL of the client entry, which `index.html` gets a script for. */
@@ -51,6 +60,9 @@ const RESOLVED_SERVER_ID = `\0${SERVER_ID}`;
 /** The built server's entry: the app, the shell and the client's files. */
 const ENTRY_ID = 'virtual:lit-elysia/entry';
 const RESOLVED_ENTRY_ID = `\0${ENTRY_ID}`;
+/** The adapter's server start, `dist/server/index.js`. */
+const START_ID = 'virtual:lit-elysia/start';
+const RESOLVED_START_ID = `\0${START_ID}`;
 
 const runtime = (file: string) =>
   normalizePath(fileURLToPath(new URL(file, import.meta.url)));
@@ -69,6 +81,7 @@ export const litElysia = (options: LitElysiaOptions = {}): PluginOption[] => [
 
 const framework = (options: LitElysiaOptions): Plugin => {
   let config: ResolvedConfig;
+  const adapter = ADAPTERS[options.adapter ?? 'node'];
   const routesDir = () =>
     path.resolve(config.root, options.routes ?? 'src/routes');
   const typesFile = () =>
@@ -109,22 +122,34 @@ const framework = (options: LitElysiaOptions): Plugin => {
         buildApp: async (builder) => {
           // The client first: the server entry inlines its index.html.
           await builder.build(builder.environments.client!);
+          await adapter.afterClient?.(
+            path.resolve(builder.config.root, 'dist/client')
+          );
           await builder.build(builder.environments.ssr!);
         },
       },
       environments: {
         // The manifest maps each page to its chunks, for the preloads.
         client: {build: {outDir: 'dist/client', manifest: true}},
-        ssr: {
-          build: {
-            outDir: 'dist/server',
-            ssr: true,
-            rollupOptions: {
-              input: {entry: ENTRY_ID},
-              ...(command === 'build' && {external: [/^node:/]}),
+        ssr: mergeConfig(
+          {
+            build: {
+              outDir: 'dist/server',
+              ssr: true,
+              rollupOptions: {
+                input: {
+                  entry: ENTRY_ID,
+                  ...(adapter.start && {index: START_ID}),
+                },
+                ...(command === 'build' && {external: [/^node:/]}),
+                // Every chunk beside the entries: shared code finds the
+                // client's files at ../client/ from any of them.
+                output: {chunkFileNames: '[name]-[hash].js'},
+              },
             },
           },
-        },
+          adapter.ssr ?? {}
+        ),
       },
     }),
 
@@ -140,6 +165,7 @@ const framework = (options: LitElysiaOptions): Plugin => {
       if (id === CLIENT_URL) return CLIENT_ID;
       if (id === SERVER_ID) return RESOLVED_SERVER_ID;
       if (id === ENTRY_ID) return RESOLVED_ENTRY_ID;
+      if (id === START_ID) return RESOLVED_START_ID;
       return undefined;
     },
 
@@ -164,8 +190,9 @@ const framework = (options: LitElysiaOptions): Plugin => {
           await scanRoutes(routesDir()),
           path.join(client, '.vite/manifest.json')
         );
-        return entryModule(shell, preloads);
+        return entryModule(shell, preloads, adapter);
       }
+      if (id === RESOLVED_START_ID) return adapter.start?.(ENTRY_ID);
       return undefined;
     },
 
@@ -410,13 +437,22 @@ export const createApp = (shell, extra = {}) => {
 };
 `;
 
-const entryModule = (shell: string, preloads: Record<string, string[]>) => `
+const entryModule = (
+  shell: string,
+  preloads: Record<string, string[]>,
+  adapter: Adapter
+) => `
 import {createApp} from ${json(SERVER_ID)};
-import {staticFiles} from ${json(runtime('./static.ts'))};
+${adapter.servesStatic ? `import {staticFiles} from ${json(runtime('./static.ts'))};` : ''}
 const shell = ${json(shell)};
 const preloads = ${json(preloads)};
-const app = staticFiles(new URL('../client/', import.meta.url));
-export default app.use(createApp(() => shell, {preloads}));
+const pages = createApp(() => shell, {preloads});
+const app = ${
+  adapter.servesStatic
+    ? "staticFiles(new URL('../client/', import.meta.url)).use(pages)"
+    : 'pages'
+};
+${adapter.exportApp}
 `;
 
 interface ManifestChunk {

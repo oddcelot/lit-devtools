@@ -4,8 +4,10 @@
  * serves the same pages from its server entry.
  */
 
+import {spawn} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
-import {cp, readFile, rm, writeFile} from 'node:fs/promises';
+import {cp, readdir, readFile, rm, writeFile} from 'node:fs/promises';
+import {createServer as createNetServer} from 'node:net';
 import * as path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 import {afterAll, afterEach, beforeAll, expect, test} from 'vite-plus/test';
@@ -924,5 +926,80 @@ test('the build runs under its policy, enforced, with nothing blocked', async ()
     expect(violations.splice(0)).toEqual([]);
   } finally {
     await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+/** A port nothing listens on right now, from the OS. */
+const freePort = () =>
+  new Promise<number>((resolve, reject) => {
+    const probe = createNetServer();
+    probe.once('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const {port} = probe.address() as {port: number};
+      probe.close(() => resolve(port));
+    });
+  });
+
+test("the node adapter's start script serves the build on PORT", async () => {
+  // Built by the build test above.
+  const port = await freePort();
+  const child = spawn(process.execPath, ['dist/server/index.js'], {
+    cwd: root,
+    env: {...process.env, PORT: String(port), HOST: '127.0.0.1'},
+  });
+  try {
+    await new Promise<void>((resolve, reject) => {
+      child.stdout.on('data', (chunk: Buffer) => {
+        if (String(chunk).includes('Listening on')) resolve();
+      });
+      child.once('exit', (code) => reject(new Error(`exited with ${code}`)));
+    });
+    const page = await fetch(`http://127.0.0.1:${port}/`, {
+      headers: {accept: 'text/html'},
+    });
+    expect(page.status).toBe(200);
+    expect(await page.text()).toContain('<title>Notes</title>');
+    expect((await fetch(`http://127.0.0.1:${port}/api/notes`)).status).toBe(
+      200
+    );
+  } finally {
+    child.kill();
+  }
+});
+
+test('the cloudflare adapter builds one Worker module for Static Assets', async () => {
+  const workerRoot = `${root}-worker`;
+  await cp(path.join(root, 'src'), path.join(workerRoot, 'src'), {
+    recursive: true,
+  });
+  await cp(path.join(root, 'index.html'), path.join(workerRoot, 'index.html'));
+  try {
+    const builder = await createBuilder({
+      root: workerRoot,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [litElysia({adapter: 'cloudflare'})],
+    });
+    await builder.buildApp();
+    // One file, exporting only its handler, with nothing Node-only at load.
+    expect(await readdir(path.join(workerRoot, 'dist/server'))).toEqual([
+      'entry.js',
+    ]);
+    const worker = await readFile(
+      path.join(workerRoot, 'dist/server/entry.js'),
+      'utf8'
+    );
+    expect([...worker.matchAll(/^export .*$/gm)].map((m) => m[0])).toEqual([
+      expect.stringMatching(/^export \{ \w+ as default \};?$/),
+    ]);
+    // Rolldown's Node shim, which a Worker can't run at load.
+    expect(worker).not.toContain('createRequire(import.meta.url)');
+    expect(worker).toContain('.compile()');
+    // Static Assets serve dist/client, but not the shell or the manifest.
+    expect(
+      await readFile(path.join(workerRoot, 'dist/client/.assetsignore'), 'utf8')
+    ).toBe('index.html\n.vite\n');
+  } finally {
+    await rm(workerRoot, {recursive: true, force: true});
   }
 });

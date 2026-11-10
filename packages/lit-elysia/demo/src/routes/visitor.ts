@@ -1,12 +1,8 @@
 import {html, nothing} from 'lit';
-import {
-  definePage,
-  type ActionData,
-  type LoadedData,
-} from '@oddsquad/lit-elysia/page';
-import type {actions, load} from './visitor.server.ts';
+import {definePage, type LoadedData} from '@oddsquad/lit-elysia/page';
+import type {load} from './visitor.server.ts';
 
-export default definePage<LoadedData<typeof load>, ActionData<typeof actions>>({
+export default definePage<LoadedData<typeof load>>({
   title: () => 'Who you are',
   render: ({visitor, site, from}) => html`
     <h1>Who you are</h1>

@@ -21,11 +21,14 @@ const nameFrom = (body: Record<string, unknown>) =>
   typeof body['name'] === 'string' ? body['name'].trim() : '';
 
 export const actions = route('/visitor').actions({
+  // A redirect after saving: the next request carries the new cookie, so
+  // its load derives the new visitor.
   default: ({body, cookie, query, redirect}) => {
     const name = nameFrom(body);
     remember(cookie as unknown as Cookies, name);
-    return name && query['from'] === 'private'
-      ? redirect('/private', 303)
-      : {saved: name};
+    return redirect(
+      name && query['from'] === 'private' ? '/private' : '/visitor',
+      303
+    );
   },
 });

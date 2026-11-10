@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "vp dev",
     "build": "vp build",
-    "start": "node --input-type=module -e \"import app from './dist/server/entry.js'; import {serve} from '@oddsquad/lit-elysia/node'; await serve(app.fetch, {port: 3000})\"",
-    "start:bun": "bun -e \"import app from './dist/server/entry.js'; Bun.serve({port: 3000, fetch: app.fetch})\""
+    "start": "node dist/server/index.js",
+    "start:bun": "bun dist/server/index.js",
+    "build:cloudflare": "ADAPTER=cloudflare vp build",
+    "preview:cloudflare": "pnpm dlx --allow-build=workerd --allow-build=esbuild wrangler@4 dev"
   },
   "dependencies": {
     "@anyblades/blades": "^3.1.1",

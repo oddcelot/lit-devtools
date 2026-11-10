@@ -1,0 +1,9 @@
+{
+  // For `pnpm build:cloudflare` then `pnpm preview:cloudflare`, which runs
+  // the Worker locally in workerd.
+  "name": "lit-elysia-demo",
+  "main": "dist/server/entry.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {"directory": "dist/client"},
+}
