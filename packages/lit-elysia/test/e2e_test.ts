@@ -8,11 +8,30 @@ import {randomUUID} from 'node:crypto';
 import {cp, readFile, rm, writeFile} from 'node:fs/promises';
 import * as path from 'node:path';
 import {fileURLToPath, pathToFileURL} from 'node:url';
-import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
+import {afterAll, afterEach, beforeAll, expect, test} from 'vite-plus/test';
 import {createBuilder, createServer, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {litElysia} from '../src/index.ts';
+import {serve} from '../src/node.ts';
 import {createReader} from '../src/serialize.ts';
+
+/**
+ * Strict, as a deployment would want it: no 'unsafe-inline' anywhere, so
+ * every inline script and style a page carries needs the nonce. The whole
+ * suite runs under it, and a test fails on any violation (see afterEach).
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'nonce-{nonce}'",
+  "style-src 'self' 'nonce-{nonce}'",
+  "img-src 'self' data:",
+  "connect-src 'self' ws: wss:",
+  "object-src 'none'",
+  "base-uri 'self'",
+].join('; ');
+
+/** Every CSP violation the pages report, until the test that saw it ends. */
+const violations: string[] = [];
 
 const DEMO_DIR = fileURLToPath(new URL('../demo', import.meta.url));
 
@@ -36,7 +55,7 @@ beforeAll(async () => {
     logLevel: 'silent',
     cacheDir: path.join(root, '.vite'),
     server: {port: 0, host: '127.0.0.1'},
-    plugins: [litElysia()],
+    plugins: [litElysia({csp: CSP})],
   });
   await server.listen();
   const address = server.httpServer!.address() as {port: number};
@@ -49,9 +68,35 @@ beforeAll(async () => {
   });
   page = await browser.newPage();
   page.setDefaultTimeout(15_000);
+  await page.exposeFunction('reportViolation', (report: string) =>
+    violations.push(report)
+  );
+  await page.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (event) => {
+      (
+        window as unknown as {reportViolation(report: string): void}
+      ).reportViolation(
+        `${event.effectiveDirective} ${event.blockedURI} ${event.sample} at ${event.sourceFile}:${event.lineNumber}`
+      );
+    });
+  });
   // The first load can still be optimizing deps; start from a settled one.
   await page.goto(`${origin}/`);
   await server.waitForRequestsIdle();
+});
+
+/**
+ * The Lit plugin's dev runtime (its HMR indicator, its injected tokens)
+ * adds styles without the nonce yet, which is why the dev server sends the
+ * policy report-only (bead vpl-a3h1). Everything else must comply.
+ */
+const pluginDevRuntime = /\/lib\/(runtime\/|token-text\.js)/;
+
+afterEach(() => {
+  const seen = violations
+    .splice(0)
+    .filter((report) => !pluginDevRuntime.test(report));
+  expect(seen, 'Content-Security-Policy violations').toEqual([]);
 });
 
 afterAll(async () => {
@@ -148,7 +193,13 @@ test('the page hydrates, and an edit keeps the state', async () => {
   const code = await readFile(file, 'utf8');
   await writeFile(file, code.replace('Liked ${', 'Loved ${'));
   await expect.poll(() => button.textContent()).toContain('Loved 2 times');
-  expect(warnings.filter((text) => !text.includes('dev mode'))).toEqual([]);
+  // CSP reports are checked on their own, after each test.
+  expect(
+    warnings.filter(
+      (text) =>
+        !text.includes('dev mode') && !text.includes('Content Security Policy')
+    )
+  ).toEqual([]);
 });
 
 test('an edited page renders again in place, and its elements keep their state', async () => {
@@ -564,6 +615,12 @@ test('deferred data streams into the document after the page', async () => {
 test('a streaming page hydrates before its deferred data arrives', async () => {
   await page.goto(`${origin}/deferred`, {waitUntil: 'commit'});
   const counter = page.locator('note-counter button');
+  // Hydrated: the element has rendered on the client, listeners and all.
+  await page.waitForFunction(
+    () =>
+      (document.querySelector('note-counter') as {hasUpdated?: boolean} | null)
+        ?.hasUpdated === true
+  );
   await counter.click();
   await expect.poll(() => counter.textContent()).toContain('1 times');
   // Clicked and counted while the slow values were still on their way.
@@ -762,6 +819,30 @@ test('resting on a link prefetches its code, and its data inside data-prefetch',
   }
 });
 
+test('each document gets its own nonce, on every tag that needs one', async () => {
+  const read = async () => {
+    const response = await fetch(`${origin}/deferred`, {
+      headers: {accept: 'text/html'},
+    });
+    // Report-only in dev, where the Lit plugin's tools need inline styles.
+    const policy = response.headers.get('content-security-policy-report-only')!;
+    return {policy, html: await response.text()};
+  };
+  const first = await read();
+  const second = await read();
+  const nonce = /'nonce-([^']+)'/.exec(first.policy)![1]!;
+  expect(/'nonce-([^']+)'/.exec(second.policy)![1]).not.toBe(nonce);
+  expect(first.policy).toBe(CSP.replaceAll('{nonce}', nonce));
+  // Every script and style: the shell's, Vite's, the streamed data, and the
+  // styles Lit writes into shadow roots.
+  const tags = [...first.html.matchAll(/<(script|style)\b[^>]*>/g)].map(
+    (match) => match[0]
+  );
+  expect(tags.length).toBeGreaterThan(4);
+  for (const tag of tags) expect(tag).toContain(`nonce="${nonce}"`);
+  expect(first.html).toContain(`<meta property="csp-nonce" nonce="${nonce}">`);
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();
@@ -776,7 +857,7 @@ test('the build serves the same pages from its server entry', async () => {
     root,
     configFile: false,
     logLevel: 'silent',
-    plugins: [litElysia()],
+    plugins: [litElysia({csp: CSP})],
   });
   await builder.buildApp();
   const entry = pathToFileURL(path.join(root, 'dist/server/entry.js')).href;
@@ -797,7 +878,7 @@ test('the build serves the same pages from its server entry', async () => {
     )
   ).text();
   const preloads = [
-    ...note.matchAll(/<link rel="modulepreload" crossorigin href="([^"]+)">/g),
+    ...note.matchAll(/<link\b[^>]*rel="modulepreload"[^>]*href="([^"]+)">/g),
   ].map((match) => match[1]!);
   expect(preloads.some((file) => /\/assets\/_id_-[\w-]+\.js$/.test(file))).toBe(
     true
@@ -812,4 +893,36 @@ test('the build serves the same pages from its server entry', async () => {
   );
   expect(missing.status).toBe(404);
   expect(await missing.text()).toContain('<title>Not found</title>');
+});
+
+test('the build runs under its policy, enforced, with nothing blocked', async () => {
+  // Built by the test before; served over HTTP for a real browser.
+  const entry = pathToFileURL(path.join(root, 'dist/server/entry.js')).href;
+  const {default: app} = (await import(entry)) as {
+    default: {fetch: (request: Request) => Promise<Response>};
+  };
+  const server = await serve((request) => app.fetch(request), {
+    port: 0,
+    host: '127.0.0.1',
+  });
+  const built = `http://127.0.0.1:${(server.address() as {port: number}).port}`;
+  try {
+    const response = await fetch(`${built}/`, {headers: {accept: 'text/html'}});
+    expect(response.headers.get('content-security-policy')).toMatch(
+      /'nonce-[^']+'/
+    );
+    await page.goto(`${built}/deferred`);
+    const counter = page.locator('note-counter button');
+    await counter.click();
+    await expect.poll(() => counter.textContent()).toContain('1 times');
+    await expect
+      .poll(() => page.locator('#tags li').allTextContents(), {timeout: 5000})
+      .toEqual(['Elysia', 'Lit', 'seroval']);
+    await follow('Two params');
+    await expect.poll(() => page.locator('#param-a').textContent()).toBe('red');
+    // Production has no dev runtime: not a single violation is allowed.
+    expect(violations.splice(0)).toEqual([]);
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });

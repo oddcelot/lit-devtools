@@ -25,6 +25,11 @@ export interface DocumentOptions {
   head: string;
   /** Links to the page's chunks and stylesheets, from the build. */
   preload?: string;
+  /**
+   * This response's CSP nonce: it goes on every script, style and link the
+   * document carries, Lit's shadow-root styles included.
+   */
+  nonce?: string;
   payload: Payload;
 }
 
@@ -52,12 +57,15 @@ export const renderDocument = ({
   title,
   head,
   preload = '',
+  nonce,
   payload,
 }: DocumentOptions): ReadableStream<Uint8Array> => {
+  // Vite's client reads the nonce here for the styles and scripts it adds.
+  const meta = nonce ? `<meta property="csp-nonce" nonce="${nonce}">` : '';
   const [before, after = ''] = shell
     .replace(
       HEAD,
-      `${title === undefined ? '' : `<title>${escapeHtml(title)}</title>`}${preload}<!--${HEAD_START}-->${head}<!--${HEAD_END}-->`
+      `${title === undefined ? '' : `<title>${escapeHtml(title)}</title>`}${meta}${preload}<!--${HEAD_START}-->${head}<!--${HEAD_END}-->`
     )
     .split(BODY);
   // The data's promises stream after the page, before `</body>`.
@@ -65,9 +73,11 @@ export const renderDocument = ({
   const [beforeClose, closing] =
     close < 0 ? [after, ''] : [after.slice(0, close), after.slice(close)];
   const encoder = new TextEncoder();
+  const sign = signer(nonce);
   return new ReadableStream({
     async start(controller) {
-      const send = (html: string) => controller.enqueue(encoder.encode(html));
+      const send = (html: string) =>
+        controller.enqueue(encoder.encode(sign(html)));
       try {
         send(`${before}<div id="${OUTLET_ID}">`);
         for await (const chunk of flatten(render(template))) send(chunk);
@@ -85,6 +95,19 @@ export const renderDocument = ({
     },
   });
 };
+
+/**
+ * Puts the nonce on the tags CSP checks. Text Lit renders has its `<`
+ * escaped, and so do the data records, so only real tags match.
+ */
+const signer = (nonce: string | undefined) =>
+  nonce
+    ? (html: string) =>
+        html.replace(
+          /<(script|style|link)\b(?![^>]*\snonce=)/gi,
+          `<$1 nonce="${nonce}"`
+        )
+    : (html: string) => html;
 
 /** An inline script that queues a data record for the client. */
 const push = (record: string, id?: string) =>

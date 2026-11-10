@@ -55,6 +55,17 @@ export interface PagesOptions {
    * document links them so they load beside the client entry.
    */
   preloads?: Record<string, string[]>;
+  /**
+   * A Content-Security-Policy for the documents, with `{nonce}` where each
+   * response's nonce goes: `script-src 'self' 'nonce-{nonce}'`.
+   */
+  csp?: string;
+  /**
+   * Send the policy as `Content-Security-Policy-Report-Only`: violations
+   * are reported, nothing is blocked. For dev, where Vite's and the Lit
+   * plugin's tools add styles a strict policy would stop.
+   */
+  cspReportOnly?: boolean;
   /** `_404.ts` and `_error.ts`, named `#404` and `#error`. */
   errors?: ServerRoute[];
   /**
@@ -240,7 +251,8 @@ const respond = async (
           await viewOf(route),
           payload,
           await options.shell(pathOf(request)),
-          preloadTags(options.preloads?.[route.path])
+          preloadTags(options.preloads?.[route.path]),
+          options
         );
   for (const [name, value] of Object.entries(collected.headers)) {
     response.headers.set(name, value);
@@ -335,12 +347,15 @@ const documentResponse = async (
   view: View,
   payload: Payload,
   shell: string,
-  preload: string
-) =>
-  new Response(
+  preload: string,
+  {csp, cspReportOnly}: PagesOptions
+) => {
+  const nonce = csp ? newNonce() : undefined;
+  const response = new Response(
     renderDocument({
       shell,
       preload,
+      nonce,
       template: compose(view, payload),
       title: titleOf(view, payload),
       head: await renderHead(headOf(view, payload)),
@@ -351,6 +366,20 @@ const documentResponse = async (
       headers: {...VARY, 'content-type': 'text/html; charset=utf-8'},
     }
   );
+  if (csp && nonce) {
+    response.headers.set(
+      cspReportOnly
+        ? 'content-security-policy-report-only'
+        : 'content-security-policy',
+      csp.replaceAll('{nonce}', nonce)
+    );
+  }
+  return response;
+};
+
+/** 128 random bits, base64: a fresh nonce for each document. */
+const newNonce = () =>
+  btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
 
 const pathOf = (request: Request) => {
   const url = new URL(request.url);

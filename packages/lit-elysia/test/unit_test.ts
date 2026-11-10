@@ -351,3 +351,31 @@ test('the client picks the route the server would for a path', () => {
   expect(matchRoute(site, '/notes/2/edit')).toBeUndefined();
   expect(matchRoute(site, '/nowhere')).toBeUndefined();
 });
+
+test('a nonce goes on every tag CSP checks, and nowhere else', async () => {
+  const stream = renderDocument({
+    shell:
+      '<html><head><script src="/a.js"></script><!--lit-elysia:head--></head><body><!--lit-elysia:body--></body></html>',
+    template: html`<p>${'<script>alert(1)</script>'}</p>
+      <style>
+        p {
+          color: red;
+        }
+      </style>`,
+    title: 't',
+    head: '<link rel="canonical" href="/">',
+    preload: '<link rel="modulepreload" href="/b.js">',
+    nonce: 'abc',
+    payload: {route: '/', data: '<script>', layouts: []},
+  });
+  const text = await new Response(stream).text();
+  const tags = [...text.matchAll(/<(script|style|link)\b[^>]*>/g)].map(
+    (m) => m[0]
+  );
+  // The shell's script, the preload, the head link, the style, the data.
+  expect(tags.length).toBe(5);
+  for (const tag of tags) expect(tag).toContain('nonce="abc"');
+  expect(text).toContain('<meta property="csp-nonce" nonce="abc">');
+  // Text that only mentions a script stays text.
+  expect(text).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+});

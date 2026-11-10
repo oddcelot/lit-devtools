@@ -31,6 +31,15 @@ export interface LitElysiaOptions {
    * the routes folder.
    */
   types?: string | false;
+  /**
+   * A Content-Security-Policy for the pages, with `{nonce}` where each
+   * response's nonce goes. The nonce lands on every script, style and link
+   * a page carries, so a policy can leave out `'unsafe-inline'`:
+   * `script-src 'self' 'nonce-{nonce}'; style-src 'self' 'nonce-{nonce}'`.
+   * The dev server sends it report-only: the Lit plugin's dev tools add
+   * styles it would block.
+   */
+  csp?: string;
 }
 
 /** URL of the client entry, which `index.html` gets a script for. */
@@ -140,7 +149,12 @@ const framework = (options: LitElysiaOptions): Plugin => {
         return clientModule([...pages, ...errors], config.command === 'serve');
       }
       if (id === RESOLVED_SERVER_ID) {
-        return serverModule(await scanRoutes(routesDir()), serverFile());
+        return serverModule(
+          await scanRoutes(routesDir()),
+          serverFile(),
+          options.csp,
+          config.command === 'serve'
+        );
       }
       if (id === RESOLVED_ENTRY_ID) {
         const client = path.resolve(config.root, 'dist/client');
@@ -370,7 +384,9 @@ const routeList = (routes: RouteFile[]) =>
 
 const serverModule = (
   {pages, errors}: Routes,
-  serverFile: string | undefined
+  serverFile: string | undefined,
+  csp: string | undefined,
+  dev: boolean
 ) => `
 import {Elysia} from 'elysia';
 import {pages} from ${json(runtime('./server.ts'))};
@@ -388,7 +404,9 @@ ${routeList(errors)}
 export const createApp = (shell, extra = {}) => {
   const app = new Elysia();
   if (userApp) app.use(userApp);
-  return app.use(pages({routes, errors, shell, base: user.context, ...extra}));
+  return app.use(
+    pages({routes, errors, shell, base: user.context, csp: ${json(csp)}, cspReportOnly: ${dev}, ...extra})
+  );
 };
 `;
 
