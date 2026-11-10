@@ -50,6 +50,12 @@ wa-page::part(navigation) {
   min-height: 100%;
 }
 
+/* The Simulate panel sticks to the menu's bottom: links scrolled into view
+   stop above it. sim-controls sets the height. */
+wa-page::part(menu) {
+  scroll-padding-bottom: var(--simulate-height, 0px);
+}
+
 /* The routing menu in the navigation slot. */
 #menu {
   padding: var(--wa-space-m);

@@ -1026,6 +1026,36 @@ test('pages left before they arrive stop their work on the server', async () => 
   }
 });
 
+test('the Simulate panel stays at the bottom of the menu, clear of its links', async () => {
+  await page.setViewportSize({width: 1280, height: 600});
+  try {
+    await page.goto(`${origin}/`);
+    await page.locator('sim-controls').waitFor();
+    const top = async () =>
+      (await page.locator('sim-controls').boundingBox())!.y;
+    const before = await top();
+    await page
+      .locator('wa-page')
+      .evaluate((wa) =>
+        wa.shadowRoot!.querySelector('[part~="menu"]')!.scrollBy(0, 150)
+      );
+    expect(await top()).toBe(before);
+    // A link near the end, focused, is scrolled into view above the panel.
+    const link = page
+      .locator('#menu')
+      .getByRole('link', {name: 'Elysia (another site)'});
+    await link.focus();
+    await expect
+      .poll(async () => {
+        const box = (await link.boundingBox())!;
+        return box.y + box.height <= (await top());
+      })
+      .toBe(true);
+  } finally {
+    await page.setViewportSize({width: 1280, height: 720});
+  }
+});
+
 test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter wa-button').waitFor();

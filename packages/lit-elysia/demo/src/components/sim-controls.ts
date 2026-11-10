@@ -28,21 +28,33 @@ export class SimControls extends LitElement {
     pendingMinMs: {type: Number, attribute: 'pending-min-ms'},
   };
   static override styles = css`
+    /* Stuck to the bottom of the menu while it scrolls, which passes under
+       it: a surface of its own, so the menu doesn't show through. */
     :host {
       display: block;
-      padding: var(--wa-space-m);
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      padding: var(--wa-space-s) var(--wa-space-m) var(--wa-space-m);
       border-top: var(--wa-border-width-s) solid var(--wa-color-surface-border);
+      background: var(--wa-color-surface-default);
+    }
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: var(--wa-space-xs);
     }
     h2 {
-      margin: 0 0 var(--wa-space-s);
+      margin: 0;
       font-size: var(--wa-font-size-2xs);
       text-transform: uppercase;
       letter-spacing: 0.06em;
       color: var(--wa-color-text-quiet);
     }
     .keys {
-      margin: 0 0 var(--wa-space-s);
-      font-size: var(--wa-font-size-xs);
+      margin: 0;
+      font-size: var(--wa-font-size-2xs);
       color: var(--wa-color-text-quiet);
     }
     kbd {
@@ -58,13 +70,38 @@ export class SimControls extends LitElement {
       gap: var(--wa-space-2xs);
     }
     wa-slider {
-      margin-top: var(--wa-space-m);
+      margin-top: var(--wa-space-s);
     }
   `;
 
   latency = 0;
   pendingMs = 150;
   pendingMinMs = 300;
+
+  /**
+   * Tells wa-page how tall the panel is, as `--simulate-height`: the menu
+   * keeps that much clear when it scrolls a link into view, so focus never
+   * lands behind the panel. Made when connected: the server, which
+   * renders the panel too, has no ResizeObserver.
+   */
+  #size: ResizeObserver | undefined;
+
+  override connectedCallback() {
+    super.connectedCallback();
+    this.#size = new ResizeObserver(([entry]) => {
+      const height = entry!.borderBoxSize[0]!.blockSize;
+      this.closest('wa-page')?.style.setProperty(
+        '--simulate-height',
+        `${height}px`
+      );
+    });
+    this.#size.observe(this);
+  }
+
+  override disconnectedCallback() {
+    super.disconnectedCallback();
+    this.#size?.disconnect();
+  }
 
   // In the browser only: the server has nothing to configure.
   override updated() {
@@ -88,10 +125,10 @@ export class SimControls extends LitElement {
 
   override render() {
     return html`
-      <h2>Simulate</h2>
-      <p class="keys">
-        Press <kbd>J</kbd> and <kbd>K</kbd> to step through the menu.
-      </p>
+      <header>
+        <h2>Simulate</h2>
+        <p class="keys"><kbd>J</kbd> <kbd>K</kbd> step through the menu</p>
+      </header>
       <div role="group" aria-label="Simulated latency" id="latency">
         ${SPEEDS.map(({label, ms}) => {
           const look = ms === this.latency ? CHOSEN : OTHER;
@@ -108,7 +145,7 @@ export class SimControls extends LitElement {
       <wa-slider
         id="pending-ms"
         label="pendingMs: ${this.pendingMs} ms"
-        hint="Busy only after waiting this long"
+        size="s"
         min="0"
         max="5000"
         step="100"
@@ -118,7 +155,7 @@ export class SimControls extends LitElement {
       <wa-slider
         id="pending-min-ms"
         label="pendingMinMs: ${this.pendingMinMs} ms"
-        hint="Then busy for this long at least"
+        size="s"
         min="0"
         max="5000"
         step="100"
