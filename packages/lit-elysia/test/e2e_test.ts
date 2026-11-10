@@ -70,8 +70,34 @@ test('a page is rendered on the server with its data', async () => {
   expect(decode(script)).toMatchObject({route: '/notes/:id', data: {id: 2}});
 });
 
-test("a load's Response is sent in place of the page", async () => {
-  expect((await fetch(`${origin}/notes/99`)).status).toBe(404);
+test('errors answer with the error pages, through the layouts', async () => {
+  const missing = await fetch(`${origin}/notes/99`, {
+    headers: {accept: 'text/html'},
+  });
+  expect(missing.status).toBe(404);
+  const html = await missing.text();
+  expect(html).toContain('<title>Not found</title>');
+  expect(html).toContain('No such note');
+  expect(html).toContain('id="note-count"');
+
+  const broken = await fetch(`${origin}/broken`, {
+    headers: {accept: 'text/html'},
+  });
+  expect(broken.status).toBe(500);
+  const text = await broken.text();
+  expect(text).toContain('<title>Error 500</title>');
+  // What went wrong stays on the server.
+  expect(text).not.toContain('on fire');
+
+  const nowhere = await fetch(`${origin}/nowhere`, {
+    headers: {accept: 'text/html'},
+  });
+  expect(nowhere.status).toBe(404);
+  expect(await nowhere.text()).toContain('<title>Not found</title>');
+  // Clients that don't ask for a page get a plain 404.
+  const api = await fetch(`${origin}/api/nowhere`);
+  expect(api.status).toBe(404);
+  expect(await api.text()).toBe('Not Found');
 });
 
 test("the user's Elysia app keeps its routes and validation", async () => {
@@ -227,20 +253,23 @@ test('an edited layout renders again in place', async () => {
     .toMatch(/notes$/);
 });
 
-test('anything the router cannot render is a full load', async () => {
+test('the router renders error pages in place, and Back still works', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();
   await mark(page);
   await page.getByRole('link', {name: "A note that isn't there"}).click();
-  await expect.poll(() => page.textContent('body')).toContain('No such note');
-  expect(await marked(page)).toBe(false);
-  // Back from the server's page loads the one before, rather than only
-  // changing the address.
+  await expect.poll(() => page.title()).toBe('Not found');
+  expect(await page.locator('#error-message').textContent()).toBe(
+    'No such note'
+  );
   await page.goBack();
   await expect.poll(() => page.locator('h1').textContent()).toBe('Notes');
-  await page.goForward();
-  await expect.poll(() => page.textContent('body')).toContain('No such note');
+  await page.getByRole('link', {name: 'A page that fails'}).click();
+  await expect.poll(() => page.title()).toBe('Error 500');
+  expect(await marked(page)).toBe(true);
+});
 
+test('a data-reload link is a full load', async () => {
   await page.goto(`${origin}/`);
   await page.locator('note-counter button').waitFor();
   await mark(page);
@@ -259,7 +288,7 @@ test('the build serves the same pages from its server entry', async () => {
   await builder.buildApp();
   const entry = pathToFileURL(path.join(root, 'dist/server/entry.js')).href;
   const {default: app} = (await import(entry)) as {
-    default: {handle: (url: string) => Promise<Response>};
+    default: {handle: (url: string | Request) => Promise<Response>};
   };
   const html = await (await app.handle('/')).text();
   expect(html).toContain('<title>Notes</title>');
@@ -268,5 +297,9 @@ test('the build serves the same pages from its server entry', async () => {
   const asset = await app.handle(script!);
   expect(asset.status).toBe(200);
   expect(asset.headers.get('cache-control')).toContain('immutable');
-  expect((await app.handle('/notes/99')).status).toBe(404);
+  const missing = await app.handle(
+    new Request('http://localhost/notes/99', {headers: {accept: 'text/html'}})
+  );
+  expect(missing.status).toBe(404);
+  expect(await missing.text()).toContain('<title>Not found</title>');
 });

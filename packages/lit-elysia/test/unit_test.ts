@@ -19,7 +19,7 @@ test('a page file names its Elysia path', () => {
 const ROOT = {page: '/_layout.ts', server: '/_layout.server.ts'};
 
 test('the scan pairs each page with its loader and its layouts', async () => {
-  const routes = await scanRoutes(DEMO_ROUTES);
+  const {pages: routes} = await scanRoutes(DEMO_ROUTES);
   expect(
     routes.map((route) => ({
       path: route.path,
@@ -32,6 +32,12 @@ test('the scan pairs each page with its loader and its layouts', async () => {
     }))
   ).toEqual([
     {path: '/', page: '/index.ts', server: '/index.server.ts', layouts: [ROOT]},
+    {
+      path: '/broken',
+      page: '/broken.ts',
+      server: '/broken.server.ts',
+      layouts: [ROOT],
+    },
     {
       path: '/latest',
       page: '/latest.ts',
@@ -48,8 +54,28 @@ test('the scan pairs each page with its loader and its layouts', async () => {
   ]);
 });
 
+test('the error pages answer no path and load nothing of their own', async () => {
+  const {errors} = await scanRoutes(DEMO_ROUTES);
+  expect(
+    errors
+      .map((route) => ({
+        path: route.path,
+        page: route.page.slice(DEMO_ROUTES.length),
+        server: route.server,
+        layouts: route.layouts.length,
+      }))
+      .sort((a, b) => a.path.localeCompare(b.path))
+  ).toEqual([
+    {path: '#404', page: '/_404.ts', server: undefined, layouts: 1},
+    {path: '#error', page: '/_error.ts', server: undefined, layouts: 1},
+  ]);
+});
+
 test('a missing routes directory has no pages', async () => {
-  expect(await scanRoutes(`${DEMO_ROUTES}/nowhere`)).toEqual([]);
+  expect(await scanRoutes(`${DEMO_ROUTES}/nowhere`)).toEqual({
+    pages: [],
+    errors: [],
+  });
 });
 
 test('the document fills the shell and carries the data', async () => {

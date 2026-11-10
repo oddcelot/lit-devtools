@@ -1,9 +1,22 @@
 import {Elysia} from 'elysia';
 import {compose, titleOf, type View} from './compose.ts';
 import {renderDocument} from './document.ts';
-import type {Layout, Load, LoadContext, Page} from './page.ts';
+import {
+  PageError,
+  type ErrorData,
+  type Layout,
+  type Load,
+  type LoadContext,
+  type Page,
+} from './page.ts';
 import {encode} from './serialize.ts';
-import {DATA_HEADER, type PageData, type Payload} from './shared.ts';
+import {
+  DATA_HEADER,
+  ERROR,
+  NOT_FOUND,
+  type PageData,
+  type Payload,
+} from './shared.ts';
 
 export {renderDocument} from './document.ts';
 
@@ -24,6 +37,8 @@ export interface ServerRoute extends ServerModule<Page<unknown>> {
 
 export interface PagesOptions {
   routes: ServerRoute[];
+  /** `_404.ts` and `_error.ts`, named `#404` and `#error`. */
+  errors?: ServerRoute[];
   /**
    * The app shell, `index.html`, for a request's URL: the dev server
    * transforms it per request, the build once.
@@ -34,27 +49,102 @@ export interface PagesOptions {
 /**
  * An Elysia plugin with a `GET` route for each page: it runs the page's
  * `load` and its layouts', then streams the shell with the page rendered
- * into it, or, for the client router, answers with the data alone.
+ * into it, or, for the client router, answers with the data alone. An
+ * error, and any other `GET` for a page, answers with an error page.
  */
-export const pages = ({routes, shell}: PagesOptions) => {
+export const pages = (options: PagesOptions) => {
   const app = new Elysia({name: '@oddsquad/lit-elysia/pages'});
-  for (const route of routes) {
-    app.get(route.path, async (context) => {
-      const loaded = await loadAll(route, context as unknown as LoadContext);
-      if (loaded instanceof Response) return loaded;
-      const payload: Payload = {route: route.path, ...loaded};
-      const {request} = context;
-      return request.headers.get(DATA_HEADER) === 'data'
-        ? dataResponse(payload)
-        : documentResponse(
-            await viewOf(route),
-            payload,
-            await shell(pathOf(request))
-          );
-    });
+  for (const route of options.routes) {
+    app.get(route.path, (context) =>
+      handle(options, route, context as unknown as LoadContext)
+    );
   }
+  // Last, so every route above, the user's included, comes first.
+  app.get('/*', (context) =>
+    wantsPage(context.request)
+      ? failure(options, context as unknown as LoadContext, notFound())
+      : new Response('Not Found', {status: 404})
+  );
   return app;
 };
+
+const handle = async (
+  options: PagesOptions,
+  route: ServerRoute,
+  context: LoadContext
+) => {
+  try {
+    const loaded = await loadAll(route, context);
+    if (loaded instanceof Response) return loaded;
+    return await respond(options, route, context.request, {
+      route: route.path,
+      ...loaded,
+    });
+  } catch (thrown) {
+    return failure(options, context, thrown);
+  }
+};
+
+const notFound = () => new PageError(404, 'Not found');
+
+/** A browser asking for a document, or the router asking for page data. */
+const wantsPage = (request: Request) =>
+  request.headers.get(DATA_HEADER) === 'data' ||
+  (request.headers.get('accept') ?? '').includes('text/html');
+
+/**
+ * The error page for what a `load` threw: its status and message for a
+ * `PageError`, a 500 that says nothing more for anything else. Without an
+ * error page, or when the layouts around it fail too, plain text.
+ */
+const failure = async (
+  options: PagesOptions,
+  context: LoadContext,
+  thrown: unknown
+) => {
+  const error = errorOf(thrown);
+  const name = error.status === 404 ? NOT_FOUND : ERROR;
+  const route =
+    options.errors?.find((page) => page.path === name) ??
+    options.errors?.find((page) => page.path === ERROR);
+  const plain = new Response(error.message, {status: error.status});
+  if (!route) return plain;
+  try {
+    const {layouts} = await loadLayouts(route, context);
+    return await respond(options, route, context.request, {
+      route: route.path,
+      data: error,
+      layouts,
+      status: error.status,
+    });
+  } catch (again) {
+    console.error(again);
+    return plain;
+  }
+};
+
+const errorOf = (thrown: unknown): ErrorData => {
+  if (thrown instanceof PageError) {
+    return {status: thrown.status, message: thrown.message};
+  }
+  console.error(thrown);
+  return {status: 500, message: 'Something went wrong'};
+};
+
+/** The page as data for the router, or as a document for everyone else. */
+const respond = async (
+  options: PagesOptions,
+  route: ServerRoute,
+  request: Request,
+  payload: Payload
+) =>
+  request.headers.get(DATA_HEADER) === 'data'
+    ? dataResponse(payload)
+    : documentResponse(
+        await viewOf(route),
+        payload,
+        await options.shell(pathOf(request))
+      );
 
 /** The modules a route renders with. */
 const viewOf = async (route: ServerRoute): Promise<View> => ({
@@ -78,6 +168,15 @@ const loadAll = async (route: ServerRoute, context: LoadContext) => {
   return (response as Response | undefined) ?? {data, layouts};
 };
 
+/** The layouts' data alone, for an error page: a `Response` is an error too. */
+const loadLayouts = async (route: ServerRoute, context: LoadContext) => {
+  const loaded = await loadAll({...route, server: undefined}, context);
+  if (loaded instanceof Response) {
+    throw new Error('a layout load answered an error page with a Response');
+  }
+  return loaded;
+};
+
 const loadData = async (
   module: ServerModule<unknown>,
   context: LoadContext
@@ -91,6 +190,7 @@ const VARY = {vary: DATA_HEADER};
 
 const dataResponse = (payload: PageData) =>
   new Response(encode(payload), {
+    status: payload.status ?? 200,
     headers: {
       ...VARY,
       [DATA_HEADER]: 'data',
@@ -106,7 +206,10 @@ const documentResponse = (view: View, payload: Payload, shell: string) =>
       title: titleOf(view, payload),
       payload,
     }),
-    {headers: {...VARY, 'content-type': 'text/html; charset=utf-8'}}
+    {
+      status: payload.status ?? 200,
+      headers: {...VARY, 'content-type': 'text/html; charset=utf-8'},
+    }
   );
 
 const pathOf = (request: Request) => {

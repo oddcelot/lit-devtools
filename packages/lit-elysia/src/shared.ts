@@ -8,6 +8,10 @@ export const OUTLET_ID = 'lit-elysia';
 /** The `<script type="application/json">` the page's data travels in. */
 export const DATA_ID = 'lit-elysia-data';
 
+/** The route names of `_404.ts` and `_error.ts`, which answer no path. */
+export const NOT_FOUND = '#404';
+export const ERROR = '#error';
+
 /** What the server hands the browser to hydrate the page with. */
 export interface Payload {
   /** The route's path, such as `/notes/:id`, which names its page module. */
@@ -15,6 +19,8 @@ export interface Payload {
   data: unknown;
   /** What each layout's `load` returned, outermost first. */
   layouts: unknown[];
+  /** The response's status, when it isn't 200: an error page's. */
+  status?: number;
 }
 
 /**

@@ -12,7 +12,7 @@ import {
   type ViteDevServer,
 } from 'vite';
 import {sendResponse, toRequest} from './node.ts';
-import {scanRoutes, type RouteFile} from './routes.ts';
+import {scanRoutes, type RouteFile, type Routes} from './routes.ts';
 
 export interface LitElysiaOptions {
   /** Where the pages are, from the project root. Default `src/routes`. */
@@ -114,8 +114,8 @@ const framework = (options: LitElysiaOptions): Plugin => {
 
     async load(id) {
       if (id === CLIENT_ID) {
-        const routes = await scanRoutes(routesDir());
-        return clientModule(routes, config.command === 'serve');
+        const {pages, errors} = await scanRoutes(routesDir());
+        return clientModule([...pages, ...errors], config.command === 'serve');
       }
       if (id === RESOLVED_SERVER_ID) {
         return serverModule(await scanRoutes(routesDir()), serverFile());
@@ -266,26 +266,35 @@ if (import.meta.hot) {
 const serverModuleOf = ({page, server}: {page: string; server?: string}) =>
   `page: () => import(${file(page)})${server ? `, server: () => import(${file(server)})` : ''}`;
 
-const serverModule = (routes: RouteFile[], serverFile: string | undefined) => `
+const routeList = (routes: RouteFile[]) =>
+  routes
+    .map(
+      (route) =>
+        `  {path: ${json(route.path)}, ${serverModuleOf(route)}, layouts: [${route.layouts
+          .map((layout) => `{${serverModuleOf(layout)}}`)
+          .join(', ')}]},`
+    )
+    .join('\n');
+
+const serverModule = (
+  {pages, errors}: Routes,
+  serverFile: string | undefined
+) => `
 import {Elysia} from 'elysia';
 import {pages} from ${json(runtime('./server.ts'))};
 ${serverFile ? `import userApp from ${json(serverFile)};` : 'const userApp = undefined;'}
 const routes = [
-${routes
-  .map(
-    (route) =>
-      `  {path: ${json(route.path)}, ${serverModuleOf(route)}, layouts: [${route.layouts
-        .map((layout) => `{${serverModuleOf(layout)}}`)
-        .join(', ')}]},`
-  )
-  .join('\n')}
+${routeList(pages)}
+];
+const errors = [
+${routeList(errors)}
 ];
 // The user's app goes in as a plugin, so its prefix and scoped hooks stay
 // its own instead of reaching the pages.
 export const createApp = (shell) => {
   const app = new Elysia();
   if (userApp) app.use(userApp);
-  return app.use(pages({routes, shell}));
+  return app.use(pages({routes, errors, shell}));
 };
 `;
 

@@ -44,6 +44,29 @@ export type LoadedData<L extends (...args: never[]) => unknown> = Exclude<
   Response
 >;
 
+/** What `_404.ts` and `_error.ts` render. */
+export interface ErrorData {
+  status: number;
+  message: string;
+}
+
+/**
+ * Thrown from a `load` to answer with an error page: `_404.ts` for a 404
+ * when there is one, `_error.ts` otherwise.
+ */
+export class PageError extends Error {
+  constructor(
+    readonly status: number,
+    message: string
+  ) {
+    super(message);
+  }
+}
+
+/** `throw error(404, 'No such note')` from a `load`. */
+export const error = (status: number, message: string): PageError =>
+  new PageError(status, message);
+
 /** Types a page module's default export. */
 export const definePage = <Data = undefined>(page: Page<Data>): Page<Data> =>
   page;

@@ -1,5 +1,6 @@
 import {readdir} from 'node:fs/promises';
 import * as path from 'node:path';
+import {ERROR, NOT_FOUND} from './shared.ts';
 
 /** A module and its `.server.ts` sibling, which loads its data. */
 export interface ModuleFiles {
@@ -83,25 +84,41 @@ const foldersOf = (file: string) => {
   return ['', ...parts.map((_, i) => parts.slice(0, i + 1).join('/'))];
 };
 
+/** What the scan finds: the pages, and the error pages that answer no path. */
+export interface Routes {
+  pages: RouteFile[];
+  /** `_404.ts` and `_error.ts` at the top, named `#404` and `#error`. */
+  errors: RouteFile[];
+}
+
+const ERROR_PAGES: Record<string, string> = {_404: NOT_FOUND, _error: ERROR};
+
 /** Every page under `dir`, each with its loader and the layouts around it. */
-export const scanRoutes = async (dir: string): Promise<RouteFile[]> => {
+export const scanRoutes = async (dir: string): Promise<Routes> => {
   const files = await listModules(dir);
   const layouts = new Map(
     files
       .filter((file) => LAYOUT.test(file))
       .map((file) => [path.posix.dirname(file).replace(/^\.$/, ''), file])
   );
-  const layoutsFor = (file: string) =>
-    foldersOf(file).flatMap((folder) => {
+  const route = (name: string, file: string): RouteFile => ({
+    path: name,
+    // Error pages render their error, not data of their own.
+    page: path.join(dir, file),
+    ...(name.startsWith('/') && withServer(dir, files, file)),
+    layouts: foldersOf(file).flatMap((folder) => {
       const layout = layouts.get(folder);
       return layout ? [withServer(dir, files, layout)] : [];
-    });
-  return files
-    .filter((file) => !SERVER.test(file) && !special(file))
-    .map((file) => ({
-      path: routePath(file),
-      ...withServer(dir, files, file),
-      layouts: layoutsFor(file),
-    }))
-    .sort((a, b) => a.path.localeCompare(b.path));
+    }),
+  });
+  return {
+    pages: files
+      .filter((file) => !SERVER.test(file) && !special(file))
+      .map((file) => route(routePath(file), file))
+      .sort((a, b) => a.path.localeCompare(b.path)),
+    errors: files.flatMap((file) => {
+      const name = ERROR_PAGES[file.replace(MODULE, '')];
+      return name ? [route(name, file)] : [];
+    }),
+  };
 };
