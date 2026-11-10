@@ -4,10 +4,8 @@ import '@lit-labs/ssr-client/lit-element-hydrate-support.js';
 import {hydrate} from '@lit-labs/ssr-client';
 import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
-
-export {NAVIGATED, NAVIGATING} from './progress.ts';
-import {decode} from './serialize.ts';
-import {DATA_ID, OUTLET_ID, type Payload} from './shared.ts';
+import {createReader, type Reader} from './serialize.ts';
+import {OUTLET_ID, QUEUE, type Payload} from './shared.ts';
 import {
   remember,
   show,
@@ -17,21 +15,55 @@ import {
   type Site,
 } from './site.ts';
 
+export {NAVIGATED, NAVIGATING} from './progress.ts';
+
 /**
  * Hydrates the page the server rendered: the same templates with the same
  * data, so Lit adopts the DOM it finds instead of building it again. Then
  * the router takes over the navigations that follow.
  *
- * The page modules, and the components they import, load after this one.
+ * It starts as soon as the page's first data record is in, which the server
+ * sends right after the page, so a page still streaming its deferred data
+ * hydrates without waiting for it. The page modules, and the components
+ * they import, load after this one.
  */
 export const boot = async (site: Site): Promise<void> => {
-  const script = document.getElementById(DATA_ID);
+  const queue = await firstRecord();
   const outlet = document.getElementById(OUTLET_ID);
-  if (!script || !outlet) return;
-  const payload = decode<Payload>(script.textContent!);
+  if (!outlet) return;
+  const reader = createReader();
+  const payload = reader.read<Payload>(queue[0]!);
+  follow(queue, reader);
   hydrate(compose(await viewOf(site, payload.route), payload), outlet);
   remember(payload);
   takeOver(site, outlet);
+};
+
+type Queue = object[];
+
+const queueOf = (): Queue =>
+  ((globalThis as Record<string, unknown>)[QUEUE] ??= []) as Queue;
+
+/** The queue, once the record that follows the page is on it. */
+const firstRecord = (): Promise<Queue> => {
+  const queue = queueOf();
+  if (queue.length) return Promise.resolve(queue);
+  return new Promise((resolve) => {
+    queue.push = (...items) => {
+      const length = Array.prototype.push.apply(queue, items);
+      resolve(queue);
+      return length;
+    };
+  });
+};
+
+/** Reads the records queued after the first, and each one pushed later. */
+const follow = (queue: Queue, reader: Reader) => {
+  for (const record of queue.slice(1)) reader.read(record);
+  queue.push = (...items) => {
+    for (const record of items) reader.read(record);
+    return queue.length;
+  };
 };
 
 /**

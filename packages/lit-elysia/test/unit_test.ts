@@ -1,7 +1,9 @@
 import {html} from 'lit';
 import {expect, test} from 'vite-plus/test';
 import {routePath, scanRoutes} from '../src/routes.ts';
-import {decode, encode} from '../src/serialize.ts';
+import {safePromises} from '../src/deferred.ts';
+import {PageError} from '../src/page.ts';
+import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
 import {renderDocument} from '../src/server.ts';
 
@@ -111,20 +113,58 @@ test('the document fills the shell and carries the data', async () => {
     '<title>&#60;&#60;/script&#62;&#62;</title><!--lit-elysia-head--><meta name="description" content="x"><!--/lit-elysia-head-->'
   );
   expect(text).toMatch(/<div id="lit-elysia"><!--lit-part [^>]+--><p>/);
-  // The data can't close its own script element.
+  // Queued right after the page; the data can't close its own script.
   const script =
-    /<script type="application\/json" id="lit-elysia-data">(.*?)<\/script><footer>/s.exec(
+    /<script id="lit-elysia-data">\(self\.__litElysia\|\|=\[\]\)\.push\((.*?)\)<\/script><footer>/s.exec(
       text
     );
   expect(script).not.toBeNull();
-  expect(decode(script![1]!)).toEqual({
+  expect(createReader().read(script![1]!)).toEqual({
     route: '/',
     data: '</script>',
     layouts: [],
   });
 });
 
-test('page data keeps the types JSON loses', () => {
+test('deferred data streams after the page, before </body>', async () => {
+  let resolve!: (value: string) => void;
+  const later = new Promise<string>((r) => (resolve = r));
+  const stream = renderDocument({
+    shell: '<html><body><!--lit-elysia:body--><footer></footer></body></html>',
+    template: html`<p>now</p>`,
+    title: undefined,
+    head: '',
+    payload: {route: '/', data: {now: 1, later}, layouts: []},
+  });
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let text = '';
+  // Everything up to the data's first record goes out before it settles.
+  while (!text.includes('<footer></footer>')) {
+    text += decoder.decode((await reader.read()).value);
+  }
+  expect(text).toContain('<p>now</p>');
+  expect(text).not.toContain('</body>');
+  resolve('settled');
+  for (
+    let chunk = await reader.read();
+    !chunk.done;
+    chunk = await reader.read()
+  ) {
+    text += decoder.decode(chunk.value);
+  }
+  const queued = [...text.matchAll(/\.push\((.*?)\)<\/script>/gs)].map(
+    (m) => m[1]!
+  );
+  expect(queued).toHaveLength(2);
+  expect(text.indexOf(queued[1]!)).toBeLessThan(text.indexOf('</body>'));
+  const read = createReader();
+  const payload = read.read<{data: {later: Promise<string>}}>(queued[0]!);
+  read.read(queued[1]!);
+  expect(await payload.data.later).toBe('settled');
+});
+
+test('page data keeps the types JSON loses, promises included', async () => {
   const shared = {name: 'shared'};
   const data = {
     when: new Date('2026-11-10T12:00:00Z'),
@@ -133,15 +173,41 @@ test('page data keeps the types JSON loses', () => {
     missing: undefined,
     first: shared,
     second: shared,
+    later: Promise.resolve(new Date(0)),
   };
-  const back = decode<typeof data>(encode(data));
+  const back = await roundTrip<typeof data>(data);
   expect(back.when).toBeInstanceOf(Date);
   expect(back.when.toISOString()).toBe('2026-11-10T12:00:00.000Z');
   expect(back.tags).toEqual(new Set(['a', 'b']));
   expect(back.counts.get('a')).toBe(1n);
   expect('missing' in back).toBe(true);
   expect(back.second).toBe(back.first);
-  expect(encode('</script><!--')).not.toContain('<');
+  expect((await back.later).getTime()).toBe(0);
+  for await (const record of records('</script><!--')) {
+    expect(record).not.toContain('<');
+  }
+});
+
+test('a deferred rejection sends a safe message and no stack', async () => {
+  const shared = {name: 'shared'};
+  const wrapped = safePromises({
+    first: shared,
+    second: shared,
+    plain: [1, {deep: true}],
+    missing: Promise.reject(new PageError(404, 'No comments')),
+    broken: Promise.reject(new Error('password=hunter2')),
+  });
+  // Objects without promises stay themselves, shared ones too.
+  expect(wrapped.second).toBe(wrapped.first);
+  const sent: string[] = [];
+  for await (const record of records(wrapped)) sent.push(record);
+  expect(sent.join('')).not.toContain('hunter2');
+  expect(sent.join('')).not.toContain('stack');
+  const read = createReader();
+  const back = read.read<typeof wrapped>(sent[0]!);
+  for (const record of sent.slice(1)) read.read(record);
+  await expect(back.missing).rejects.toThrow('No comments');
+  await expect(back.broken).rejects.toThrow('Something went wrong');
 });
 
 test("head tags render without Lit's markers", async () => {

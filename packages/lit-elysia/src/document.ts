@@ -4,7 +4,7 @@ import {
   type RenderResult,
 } from '@lit-labs/ssr/lib/render-result.js';
 import type {TemplateResult} from 'lit';
-import {encode} from './serialize.ts';
+import {records} from './serialize.ts';
 import {
   BODY,
   DATA_ID,
@@ -12,6 +12,7 @@ import {
   HEAD_END,
   HEAD_START,
   OUTLET_ID,
+  QUEUE,
   type Payload,
 } from './shared.ts';
 
@@ -56,6 +57,10 @@ export const renderDocument = ({
       `${title === undefined ? '' : `<title>${escapeHtml(title)}</title>`}<!--${HEAD_START}-->${head}<!--${HEAD_END}-->`
     )
     .split(BODY);
+  // The data's promises stream after the page, before `</body>`.
+  const close = after.lastIndexOf('</body>');
+  const [beforeClose, closing] =
+    close < 0 ? [after, ''] : [after.slice(0, close), after.slice(close)];
   const encoder = new TextEncoder();
   return new ReadableStream({
     async start(controller) {
@@ -63,9 +68,13 @@ export const renderDocument = ({
       try {
         send(`${before}<div id="${OUTLET_ID}">`);
         for await (const chunk of flatten(render(template))) send(chunk);
-        send(
-          `</div><script type="application/json" id="${DATA_ID}">${encode(payload)}</script>${after}`
-        );
+        const data = records(payload);
+        const first = await data.next();
+        // Right after the page: when it runs, the page above is complete,
+        // and the client can hydrate while the rest still streams.
+        send(`</div>${push(first.value as string, DATA_ID)}${beforeClose}`);
+        for await (const record of data) send(push(record));
+        send(closing);
         controller.close();
       } catch (error) {
         controller.error(error);
@@ -73,6 +82,10 @@ export const renderDocument = ({
     },
   });
 };
+
+/** An inline script that queues a data record for the client. */
+const push = (record: string, id?: string) =>
+  `<script${id ? ` id="${id}"` : ''}>(self.${QUEUE}||=[]).push(${record})</script>`;
 
 /**
  * Walks a render result, joining the strings it yields synchronously and

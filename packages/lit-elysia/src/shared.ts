@@ -9,8 +9,13 @@ export const BODY = '<!--lit-elysia:body-->';
 
 /** The element the page renders into, on the server and in the browser. */
 export const OUTLET_ID = 'lit-elysia';
-/** The `<script type="application/json">` the page's data travels in. */
+/** The inline script that queues the page's data, right after the page. */
 export const DATA_ID = 'lit-elysia-data';
+/**
+ * The global the document's data records queue on: the first right after
+ * the page, then one per promise as it settles on the server.
+ */
+export const QUEUE = '__litElysia';
 
 /** The route names of `_404.ts` and `_error.ts`, which answer no path. */
 export const NOT_FOUND = '#404';

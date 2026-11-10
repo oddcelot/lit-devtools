@@ -1,5 +1,5 @@
 import {whileLoading} from './progress.ts';
-import {decode} from './serialize.ts';
+import {createReader} from './serialize.ts';
 import {DATA_HEADER, type PageData} from './shared.ts';
 import {show, viewOf, type Site} from './site.ts';
 
@@ -242,10 +242,62 @@ const requestPage = async (
     headers: {[DATA_HEADER]: 'data'},
     signal,
   }).catch(() => undefined);
-  if (response?.headers.get(DATA_HEADER) !== 'data') return undefined;
+  const body = pageData(response);
+  const page = body && (await readPage(body, signal));
+  if (!page) return undefined;
   return {
     // `fetch` drops the fragment, so keep the URL as asked unless redirected.
-    url: response.redirected ? response.url : url,
-    page: decode<PageData>(await response.text()),
+    url: response!.redirected ? response!.url : url,
+    page,
   };
 };
+
+/** The body, when the server answered with page data. */
+const pageData = (response: Response | undefined) =>
+  response?.headers.get(DATA_HEADER) === 'data'
+    ? (response.body ?? undefined)
+    : undefined;
+
+/**
+ * The page's data from its first record; the rest are read as they arrive,
+ * each settling a promise in it.
+ */
+const readPage = async (
+  body: ReadableStream<Uint8Array>,
+  signal: AbortSignal
+): Promise<PageData | undefined> => {
+  const lines = readLines(body);
+  const first = await lines.next().catch(() => undefined);
+  if (!first || first.done) return undefined;
+  const reader = createReader();
+  const page = reader.read<PageData>(first.value);
+  void readRest(lines, reader, signal);
+  return page;
+};
+
+/** Leaving the page rejects what is still pending. */
+const readRest = async (
+  lines: AsyncGenerator<string>,
+  reader: ReturnType<typeof createReader>,
+  signal: AbortSignal
+) => {
+  try {
+    for await (const line of lines) reader.read(line);
+  } catch (error) {
+    reader.abort(signal.aborted ? signal.reason : error);
+  }
+};
+
+/** A response body, one line at a time. */
+async function* readLines(
+  body: ReadableStream<Uint8Array>
+): AsyncGenerator<string> {
+  const decoder = new TextDecoder();
+  let rest = '';
+  for await (const chunk of body as unknown as AsyncIterable<Uint8Array>) {
+    const lines = (rest + decoder.decode(chunk, {stream: true})).split('\n');
+    rest = lines.pop()!;
+    yield* lines.filter(Boolean);
+  }
+  if (rest) yield rest;
+}

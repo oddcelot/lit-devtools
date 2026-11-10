@@ -41,9 +41,15 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     ],
   },
   {
+    title: 'Data',
+    links: [
+      {label: 'Deferred data', href: '/deferred'},
+      {label: 'A slow note', href: '/notes/1?slow'},
+    ],
+  },
+  {
     title: 'Navigation',
     links: [
-      {label: 'A slow note', href: '/notes/1?slow'},
       {label: 'First note, as a full load', href: '/notes/1', reload: true},
       {
         label: 'Elysia (another site)',

@@ -135,7 +135,9 @@ const framework = (options: LitElysiaOptions): Plugin => {
       handler: () => [
         {
           tag: 'script',
-          attrs: {type: 'module', src: CLIENT_URL},
+          // Async: it waits for the page's first data record itself, so a
+          // page still streaming deferred data hydrates before it ends.
+          attrs: {type: 'module', async: true, src: CLIENT_URL},
           injectTo: 'head',
         },
       ],

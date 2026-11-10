@@ -12,7 +12,7 @@ import {afterAll, beforeAll, expect, test} from 'vite-plus/test';
 import {createBuilder, createServer, type ViteDevServer} from 'vite';
 import {chromium, type Browser, type Page} from 'playwright-core';
 import {litElysia} from '../src/index.ts';
-import {decode} from '../src/serialize.ts';
+import {createReader} from '../src/serialize.ts';
 
 const DEMO_DIR = fileURLToPath(new URL('../demo', import.meta.url));
 
@@ -66,8 +66,13 @@ test('a page is rendered on the server with its data', async () => {
   const html = await response.text();
   expect(html).toContain('<title>Lit</title>');
   expect(html).toContain('<template shadowroot="open" shadowrootmode="open">');
-  const script = /id="lit-elysia-data">(.*?)<\/script>/s.exec(html)![1]!;
-  expect(decode(script)).toMatchObject({route: '/notes/:id', data: {id: 2}});
+  const record = /id="lit-elysia-data">[^<]*?\.push\((.*?)\)<\/script>/s.exec(
+    html
+  )![1]!;
+  expect(createReader().read(record)).toMatchObject({
+    route: '/notes/:id',
+    data: {id: 2},
+  });
 });
 
 test('errors answer with the error pages, through the layouts', async () => {
@@ -170,11 +175,13 @@ test('the router asks a page for its data alone', async () => {
     headers: {'x-lit-elysia': 'data'},
   });
   expect(response.headers.get('vary')).toContain('x-lit-elysia');
-  const data = decode<{
+  expect(response.headers.get('content-type')).toBe('application/x-ndjson');
+  const [first] = (await response.text()).split('\n');
+  const data = createReader().read<{
     route: string;
     data: {createdAt: Date};
     layouts: unknown[];
-  }>(await response.text());
+  }>(first!);
   expect(data.route).toBe('/notes/:id');
   // Each layout's data, outermost first; the notes layout has no loader.
   expect(data.layouts).toEqual([
@@ -515,6 +522,74 @@ test('a hash link lands on its heading, and other sites are left to the browser'
   await expect.poll(() => page.locator('#add').isVisible()).toBe(true);
   const external = page.locator('aside a[rel="external"]');
   expect(await external.getAttribute('href')).toBe('https://elysiajs.com');
+});
+
+test('deferred data streams into the document after the page', async () => {
+  const started = Date.now();
+  const response = await fetch(`${origin}/deferred`, {
+    headers: {accept: 'text/html'},
+  });
+  const reader = response.body!.getReader();
+  const decoder = new TextDecoder();
+  let html = '';
+  let pageAt = 0;
+  for (
+    let chunk = await reader.read();
+    !chunk.done;
+    chunk = await reader.read()
+  ) {
+    html += decoder.decode(chunk.value, {stream: true});
+    if (!pageAt && html.includes('id="lit-elysia-data"'))
+      pageAt = Date.now() - started;
+  }
+  const doneAt = Date.now() - started;
+  // The page, placeholders and all, comes long before its slowest value.
+  expect(html).toContain('Counting notes…');
+  expect(pageAt).toBeLessThan(1000);
+  expect(doneAt).toBeGreaterThanOrEqual(1900);
+  expect(html.match(/__litElysia\|\|=\[\]\)\.push/g)).toHaveLength(4);
+  expect(html.indexOf('</body>')).toBeGreaterThan(html.lastIndexOf('.push('));
+  // What failed stays on the server.
+  expect(html).not.toContain('on fire');
+});
+
+test('a streaming page hydrates before its deferred data arrives', async () => {
+  await page.goto(`${origin}/deferred`, {waitUntil: 'commit'});
+  const counter = page.locator('note-counter button');
+  await counter.click();
+  await expect.poll(() => counter.textContent()).toContain('1 times');
+  // Clicked and counted while the slow values were still on their way.
+  expect(await page.locator('#tags [aria-busy="true"]').count()).toBe(1);
+  await expect
+    .poll(() => page.locator('#broken [role="alert"]').textContent())
+    .toBe('Something went wrong');
+  await expect
+    .poll(() => page.locator('#count p').textContent())
+    .toMatch(/notes, counted at/);
+  await expect
+    .poll(() => page.locator('#tags li').allTextContents(), {timeout: 5000})
+    .toEqual(['Elysia', 'Lit', 'seroval']);
+  expect(await counter.textContent()).toContain('1 times');
+});
+
+test('the router renders a page at once, and its deferred data as it streams', async () => {
+  await page.goto(`${origin}/`);
+  await page.locator('note-counter button').waitFor();
+  await mark(page);
+  const started = Date.now();
+  await follow('Deferred data');
+  await expect
+    .poll(() => page.locator('main h1').textContent())
+    .toBe('Deferred data');
+  expect(Date.now() - started).toBeLessThan(1000);
+  expect(await page.locator('#count [aria-busy="true"]').count()).toBe(1);
+  await expect
+    .poll(() => page.locator('#tags li').allTextContents(), {timeout: 5000})
+    .toEqual(['Elysia', 'Lit', 'seroval']);
+  expect(await page.locator('#broken [role="alert"]').textContent()).toBe(
+    'Something went wrong'
+  );
+  expect(await marked(page)).toBe(true);
 });
 
 test('a data-reload link is a full load', async () => {

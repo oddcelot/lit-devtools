@@ -12,7 +12,8 @@ import {
   type LoadContext,
   type Page,
 } from './page.ts';
-import {encode} from './serialize.ts';
+import {safePromises} from './deferred.ts';
+import {records} from './serialize.ts';
 import {
   DATA_HEADER,
   ERROR,
@@ -186,15 +187,17 @@ const respond = async (
   options: PagesOptions,
   route: ServerRoute,
   request: Request,
-  payload: Payload
-) =>
-  request.headers.get(DATA_HEADER) === 'data'
+  loaded: Payload
+) => {
+  const payload = safePromises(loaded);
+  return request.headers.get(DATA_HEADER) === 'data'
     ? dataResponse(payload)
     : documentResponse(
         await viewOf(route),
         payload,
         await options.shell(pathOf(request))
       );
+};
 
 /** The modules a route renders with. */
 const viewOf = async (route: ServerRoute): Promise<View> => ({
@@ -238,13 +241,17 @@ const loadData = async (
 /** One URL answers with HTML or data, so caches have to tell them apart. */
 const VARY = {vary: DATA_HEADER};
 
+/**
+ * The page's data for the router, one record per line: the first now, one
+ * more per promise as it settles.
+ */
 const dataResponse = (payload: PageData) =>
-  new Response(encode(payload), {
+  new Response(lines(records(payload)), {
     status: payload.status ?? 200,
     headers: {
       ...VARY,
       [DATA_HEADER]: 'data',
-      'content-type': 'application/json',
+      'content-type': 'application/x-ndjson',
     },
   });
 
@@ -266,4 +273,19 @@ const documentResponse = async (view: View, payload: Payload, shell: string) =>
 const pathOf = (request: Request) => {
   const url = new URL(request.url);
   return url.pathname + url.search;
+};
+
+const lines = (source: AsyncIterable<string>) => {
+  const encoder = new TextEncoder();
+  return new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        for await (const line of source)
+          controller.enqueue(encoder.encode(`${line}\n`));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    },
+  });
 };
