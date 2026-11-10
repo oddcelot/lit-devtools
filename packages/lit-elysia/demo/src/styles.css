@@ -6,6 +6,20 @@ body {
   margin: 0;
 }
 
+/* Thin scrollbars in the brand colour, wherever the page scrolls.
+   scrollbar-color is inherited, into shadow roots too, so the root sets it
+   for all of them; scrollbar-width isn't, so each scroller gets it: the
+   page's own elements, and wa-page's menu and mobile drawer by their parts. */
+:root {
+  scrollbar-color: var(--wa-color-brand-fill-loud) transparent;
+}
+
+*,
+wa-page::part(menu),
+wa-page::part(drawer__body) {
+  scrollbar-width: thin;
+}
+
 /* Desktop only: wa-page's own mobile layout sets the menu's width itself. */
 @media (min-width: 769px) {
   wa-page {
