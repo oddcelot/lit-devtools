@@ -1299,7 +1299,9 @@ test('the cloudflare adapter builds one Worker module for Static Assets', async 
     ]);
     // Rolldown's Node shim, which a Worker can't run at load.
     expect(worker).not.toContain('createRequire(import.meta.url)');
-    expect(worker).toContain('.compile()');
+    // The pages' validators too, at startup: in a request, a Worker would
+    // refuse the code they generate.
+    expect(worker).toMatch(/await prepare\w*\(\);\s*\w+\.compile\(\)/);
     // Static Assets serve dist/client, but not the shell or the manifest.
     expect(
       await readFile(path.join(workerRoot, 'dist/client/.assetsignore'), 'utf8')

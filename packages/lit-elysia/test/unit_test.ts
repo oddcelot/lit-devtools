@@ -10,7 +10,7 @@ import {createReader, records, roundTrip} from '../src/serialize.ts';
 import {renderHead} from '../src/document.ts';
 import {action, href, route} from '../src/links.ts';
 import {sendResponse, toRequest} from '../src/node.ts';
-import {pages, renderDocument} from '../src/server.ts';
+import {pages, prepareSchemas, renderDocument} from '../src/server.ts';
 import {createServer, request as httpRequest} from 'node:http';
 
 const DEMO_ROUTES = decodeURIComponent(
@@ -602,4 +602,40 @@ test('pages answer HEAD with the status and headers of their GET, and no body', 
   expect(await head.text()).toBe('');
   expect((await ask('HEAD', '/notes/2')).status).toBe(404);
   expect((await ask('HEAD', '/nowhere')).status).toBe(404);
+});
+
+test("prepareSchemas loads every page's and layout's server module once", async () => {
+  const loaded: string[] = [];
+  const server = (name: string, module: object) => () => {
+    loaded.push(name);
+    return Promise.resolve(module);
+  };
+  const layout = {
+    path: '/',
+    page: () => Promise.resolve({}),
+    server: server('layout', {load: () => ({})}),
+  };
+  const query = t.Object({q: t.Optional(t.String())});
+  const params = t.Object({id: t.Numeric()});
+  await prepareSchemas([
+    {
+      path: '/search',
+      page: () => Promise.resolve({}),
+      server: server('search', {
+        load: route('/search', {query}).load(() => ({})),
+      }),
+      layouts: [layout],
+    },
+    {
+      path: '/notes/:id',
+      page: () => Promise.resolve({}),
+      server: server('note', {
+        load: route('/notes/:id', {params}).load(() => ({})),
+        actions: route('/notes/:id', {params}).actions({save: () => ({})}),
+      }),
+      layouts: [layout],
+    },
+    {path: '/about', page: () => Promise.resolve({}), layouts: [layout]},
+  ] as never);
+  expect(loaded.sort()).toEqual(['layout', 'note', 'search']);
 });

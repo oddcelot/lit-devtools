@@ -466,7 +466,7 @@ const serverModule = (
   dev: boolean
 ) => `
 import {Elysia} from 'elysia';
-import {pages} from ${json(runtime('./server.ts'))};
+import {pages, prepareSchemas} from ${json(runtime('./server.ts'))};
 ${serverFile ? `import * as user from ${json(serverFile)};` : 'const user = {};'}
 const userApp = user.default;
 const routes = [
@@ -478,6 +478,8 @@ ${routeList(errors)}
 // The user's app goes in as a plugin, so its prefix and scoped hooks stay
 // its own instead of reaching the pages. The pages are added to its
 // \`context\` plugin, when it has one, so its locals and guards reach them.
+// Makes the pages' validators ahead of their first request.
+export const prepare = () => prepareSchemas([...routes, ...errors]);
 export const createApp = (shell, extra = {}) => {
   const app = new Elysia();
   if (userApp) app.use(userApp);
@@ -492,7 +494,7 @@ const entryModule = (
   preloads: Record<string, string[]>,
   adapter: Adapter
 ) => `
-import {createApp} from ${json(SERVER_ID)};
+import {createApp, prepare} from ${json(SERVER_ID)};
 ${adapter.servesStatic ? `import {staticFiles} from ${json(runtime('./static.ts'))};` : ''}
 const shell = ${json(shell)};
 const preloads = ${json(preloads)};
