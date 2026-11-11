@@ -78,7 +78,10 @@ the components.
 Build the client and the server entry separately (`vite build`, then
 `vite build --ssr src/entry-server.ts`) and serve them without Vite, as the
 example's `preview.mjs` does. A `?css-sheet` import is inlined in the server
-build, so the rendered HTML still arrives styled.
+build, so the rendered HTML still arrives styled. To send each shadow root a
+one-line `@import` of the client's asset instead, register the asset URLs, as
+[Share one stylesheet with ?css-sheet](/guides/stylesheets/css-sheet/#choose-the-build-output)
+shows.
 
 There is no dev server then, so no HMR and no DevTools dock. The Lit panel
 can still attach through
