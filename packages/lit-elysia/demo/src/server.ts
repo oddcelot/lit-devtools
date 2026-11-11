@@ -3,6 +3,7 @@ import {Elysia, sse, status, t} from 'elysia';
 import {LATENCY_COOKIE, latencyOf} from './latency.ts';
 import {clearLoads, loads} from './load-log.ts';
 import {addNote, allNotes, findNote, notesAdded, noteTitled} from './notes.ts';
+import {firstOrders, MAX_ORDERS, ORDER_STATUSES} from './orders.ts';
 
 /** The visitor's name from its cookie, when it has one. */
 const visitorOf = (value: unknown) =>
@@ -16,6 +17,19 @@ const Note = t.Object({
   createdAt: t.Date(),
 });
 const Problem = t.Object({message: t.String()});
+
+const Order = t.Object({
+  id: t.Number(),
+  customer: t.String(),
+  email: t.String(),
+  city: t.String(),
+  product: t.String(),
+  quantity: t.Number(),
+  total: t.Number({description: 'In cents'}),
+  status: t.UnionEnum(ORDER_STATUSES),
+  placedAt: t.String({format: 'date-time'}),
+  tags: t.Array(t.String()),
+});
 
 /**
  * A macro: a route that asks for `{auth: true}` gets `visitor`, the name
@@ -89,6 +103,19 @@ export default new Elysia({prefix: '/api'})
     },
     ({params: {id}}) =>
       findNote(id) ?? status(404, {message: `There is no note ${id}.`})
+  )
+  // The benchmark page's orders as JSON: the same work without Lit, to
+  // compare against. The response schema checks every row on the way out.
+  .get(
+    '/orders',
+    {
+      query: t.Object({
+        rows: t.Optional(t.Numeric({minimum: 1, maximum: MAX_ORDERS})),
+      }),
+      response: t.Array(Order),
+      detail: {summary: 'Made-up orders, 1,000 unless asked'},
+    },
+    ({query}) => firstOrders(query.rows ?? 1000)
   )
   // Which pages' loads ran: the latency wait stops a page the client left.
   .get('/loads', () => loads())

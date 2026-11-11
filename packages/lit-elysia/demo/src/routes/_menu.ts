@@ -79,6 +79,19 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
     ],
   },
   {
+    title: 'Benchmark',
+    links: [
+      // Heavy on purpose: hovering shouldn't render 1,000 rows.
+      {label: '1,000 orders', href: href('/bench'), prefetch: 'off'},
+      {
+        label: '10,000 orders',
+        href: href('/bench', {}, {query: {rows: 10_000}}),
+        prefetch: 'off',
+      },
+      {label: 'The same as JSON', href: '/api/orders', reload: true},
+    ],
+  },
+  {
     title: 'Navigation',
     links: [
       {
