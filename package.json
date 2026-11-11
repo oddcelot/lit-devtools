@@ -209,7 +209,7 @@
     "cac": "7.0.0",
     "fallow": "^3.42.0",
     "git-cliff": "^2.14.2",
-    "happy-dom": "^20.14.5",
+    "happy-dom": "^21.0.4",
     "jsr": "0.14.3",
     "lightningcss": "^1.33.0",
     "lintapple": "^0.1.20",

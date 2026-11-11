@@ -1,3 +1,6 @@
+// @vitest-environment-options {"settings": {"enableIframePageLoading": true}}
+// happy-dom 21 loads no iframe page by default. The dock test needs one, and
+// its only page is about:blank.
 import {afterEach, describe, expect, test, vi} from 'vite-plus/test';
 import {createDock} from '../../lib/runtime/dock.js';
 
