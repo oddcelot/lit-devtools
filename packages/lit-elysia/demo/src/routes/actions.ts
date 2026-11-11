@@ -9,8 +9,9 @@ export default definePage('/actions', {
   render: ({count}, form) => html`
     <h1>Named actions</h1>
     <p>
-      Two forms, two actions: <code>?/increment</code> and <code>?/reset</code>,
-      each URL built by <code>action()</code>.
+      One form, two actions: each button names its own with
+      <code>formaction</code>, <code>?/increment</code> or <code>?/reset</code>,
+      built by <code>action()</code>.
     </p>
     <p>Server count: <strong id="server-count">${count}</strong></p>
     ${
@@ -20,13 +21,16 @@ export default definePage('/actions', {
           >`
         : nothing
     }
-    <div class="wa-cluster">
-      <form method="post" action=${action('/actions', 'increment')}>
-        <wa-button type="submit" variant="brand">Add one</wa-button>
-      </form>
-      <form method="post" action=${action('/actions', 'reset')}>
-        <wa-button type="submit">Reset</wa-button>
-      </form>
-    </div>
+    <form method="post" class="wa-cluster">
+      <wa-button
+        type="submit"
+        variant="brand"
+        formaction=${action('/actions', 'increment')}
+        >Add one</wa-button
+      >
+      <wa-button type="submit" formaction=${action('/actions', 'reset')}
+        >Reset</wa-button
+      >
+    </form>
   `,
 });

@@ -593,7 +593,7 @@ test('a nested layout keeps its elements across its pages, and reloads its data'
   ).toContain('0 times');
 });
 
-test('named actions run the one their form names', async () => {
+test('named actions run the one their button names', async () => {
   await page.goto(`${origin}/actions`);
   await page.locator('#server-count').waitFor();
   const before = Number(await page.locator('#server-count').textContent());
