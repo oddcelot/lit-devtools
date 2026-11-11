@@ -208,16 +208,43 @@ const runAction = async (route: ServerRoute, context: ActionContext) => {
 
 const validators = new WeakMap<AnySchema, Validator>();
 
-/** One validator a schema, made the first time a request needs it. */
+/**
+ * One validator a schema, made the first time a request needs it, or at
+ * startup by `prepareSchemas`.
+ */
 const validatorOf = (schema: AnySchema) => {
   let validator = validators.get(schema);
   if (!validator) {
-    // On Workers, which refuse to generate code during a request, Elysia
-    // checks without it and warns once a schema.
     validator = Validator.create(schema as never) as Validator;
     validators.set(schema, validator);
   }
   return validator;
+};
+
+/**
+ * Makes the validators of every page's and layout's schemas now, instead
+ * of on the first request each needs. A Worker refuses to generate code
+ * during a request, so it runs this at startup: without it, Elysia checks
+ * without generated code and warns once a schema.
+ */
+export const prepareSchemas = async (routes: ServerRoute[]) => {
+  const modules = new Set(
+    routes.flatMap((route) => [route, ...route.layouts]).map((m) => m.server)
+  );
+  for (const server of modules) {
+    if (!server) continue;
+    const {load, actions} = (await server()) as {
+      load?: object;
+      actions?: object;
+    };
+    for (const value of [load, actions]) {
+      const marked = value as
+        | {[QUERY]?: AnySchema; [PARAMS]?: AnySchema}
+        | undefined;
+      if (marked?.[QUERY]) validatorOf(marked[QUERY]);
+      if (marked?.[PARAMS]) validatorOf(marked[PARAMS]);
+    }
+  }
 };
 
 /**

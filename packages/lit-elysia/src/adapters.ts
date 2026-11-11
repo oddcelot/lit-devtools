@@ -57,9 +57,10 @@ console.log(\`Listening on \${server.url}\`);
  */
 const cloudflare: Adapter = {
   servesStatic: false,
-  // Compiled at startup: a Worker refuses code generation in a request.
+  // Compiled at startup, the pages' validators too: a Worker refuses code
+  // generation in a request.
   exportApp:
-    'app.compile();\nexport default {fetch: (request) => app.fetch(request)};',
+    'await prepare();\napp.compile();\nexport default {fetch: (request) => app.fetch(request)};',
   ssr: {
     resolve: {noExternal: true},
     build: {
