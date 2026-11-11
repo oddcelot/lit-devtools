@@ -31,8 +31,8 @@ hoistPattern:
 # `rolldown/package.json` to pick the wasm build, and fails without it.
 # src/test/unit/playground-pins_test.ts fails when any of the three drift.
 catalog:
-  vite: npm:@voidzero-dev/vite-plus-core@1.0.0
-  vite-plus: 1.0.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite-plus: 1.5.0
 overrides:
   vite@*: 'catalog:'
   # Except for the examples, which are plain Vite projects: their `dev`

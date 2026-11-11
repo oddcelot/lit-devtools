@@ -807,54 +807,55 @@ export class DevtoolsSettings extends LitElement {
         }
         <table>
           ${m.entries.map(
-            (entry, i) => html`<tr class="manifest-row">
-              <td class="val manifest-entry">
-                <lit-switch
-                  size="s"
-                  .checked=${entry.enabled}
-                  @change=${(e: Event) =>
-                    void setting.toggle(
-                      entry.url,
-                      (e.target as LitSwitch).checked
-                    )}
-                  ><code>${path(entry.url)}</code></lit-switch
-                >
-                ${
-                  entry.linked
-                    ? html`<lit-badge
-                        variant="neutral"
-                        title="The page links it with rel=custom-elements-manifest"
-                        >linked by page</lit-badge
-                      >`
-                    : nothing
-                }
-                ${this._renderAccess(setting, entry)}
-                <span class="spacer"></span>
-                <lit-icon-button
-                  icon="caret-up"
-                  label="Move ${path(entry.url)} up"
-                  ?disabled=${i === 0}
-                  @click=${() => void setting.move(entry.url, -1)}
-                ></lit-icon-button>
-                <lit-icon-button
-                  icon="caret-down"
-                  label="Move ${path(entry.url)} down"
-                  ?disabled=${i === last}
-                  @click=${() => void setting.move(entry.url, 1)}
-                ></lit-icon-button>
-                ${
-                  entry.linked
-                    ? nothing
-                    : html`<lit-button
-                        size="s"
-                        variant="neutral"
-                        appearance="plain"
-                        @click=${() => void setting.remove(entry.url)}
-                        >Remove</lit-button
-                      >`
-                }
-              </td>
-            </tr>`
+            (entry, i) =>
+              html`<tr class="manifest-row">
+                <td class="val manifest-entry">
+                  <lit-switch
+                    size="s"
+                    .checked=${entry.enabled}
+                    @change=${(e: Event) =>
+                      void setting.toggle(
+                        entry.url,
+                        (e.target as LitSwitch).checked
+                      )}
+                    ><code>${path(entry.url)}</code></lit-switch
+                  >
+                  ${
+                    entry.linked
+                      ? html`<lit-badge
+                          variant="neutral"
+                          title="The page links it with rel=custom-elements-manifest"
+                          >linked by page</lit-badge
+                        >`
+                      : nothing
+                  }
+                  ${this._renderAccess(setting, entry)}
+                  <span class="spacer"></span>
+                  <lit-icon-button
+                    icon="caret-up"
+                    label="Move ${path(entry.url)} up"
+                    ?disabled=${i === 0}
+                    @click=${() => void setting.move(entry.url, -1)}
+                  ></lit-icon-button>
+                  <lit-icon-button
+                    icon="caret-down"
+                    label="Move ${path(entry.url)} down"
+                    ?disabled=${i === last}
+                    @click=${() => void setting.move(entry.url, 1)}
+                  ></lit-icon-button>
+                  ${
+                    entry.linked
+                      ? nothing
+                      : html`<lit-button
+                          size="s"
+                          variant="neutral"
+                          appearance="plain"
+                          @click=${() => void setting.remove(entry.url)}
+                          >Remove</lit-button
+                        >`
+                  }
+                </td>
+              </tr>`
           )}
         </table>
         <table>
@@ -986,15 +987,16 @@ export class DevtoolsSettings extends LitElement {
                     <td class="val">not detected</td>
                   </tr>`
                 : packages.map(
-                    ([name, versions]) => html`<tr>
-                      <td class="key">${name}</td>
-                      <td class="val">
-                        ${
-                          versions.join(', ') +
-                          (versions.length > 1 ? ' (duplicate copies)' : '')
-                        }
-                      </td>
-                    </tr>`
+                    ([name, versions]) =>
+                      html`<tr>
+                        <td class="key">${name}</td>
+                        <td class="val">
+                          ${
+                            versions.join(', ') +
+                            (versions.length > 1 ? ' (duplicate copies)' : '')
+                          }
+                        </td>
+                      </tr>`
                   )
             }
             <tr>

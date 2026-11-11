@@ -424,21 +424,24 @@ export class TimelineSpanDetail extends LitElement {
   private _renderValues(row: TimelineSpan): TemplateResult {
     return html`<div class="values">
       ${row.changedDetail!.map(
-        (c) => html`<span class="vkey">${c.key}</span>
-          <span class="prev">${c.prev}</span>
-          <lit-icon class="arrow" name="arrow-right"></lit-icon>
-          <span class="next">${c.next}</span>
-          <span
-            >${
-              c.sameRef
-                ? html`<lit-badge variant="neutral">same reference</lit-badge>`
-                : c.equal
+        (c) =>
+          html`<span class="vkey">${c.key}</span>
+            <span class="prev">${c.prev}</span>
+            <lit-icon class="arrow" name="arrow-right"></lit-icon>
+            <span class="next">${c.next}</span>
+            <span
+              >${
+                c.sameRef
                   ? html`<lit-badge variant="neutral"
-                      >new reference, same value</lit-badge
+                      >same reference</lit-badge
                     >`
-                  : nothing
-            }</span
-          >`
+                  : c.equal
+                    ? html`<lit-badge variant="neutral"
+                        >new reference, same value</lit-badge
+                      >`
+                    : nothing
+              }</span
+            >`
       )}
     </div>`;
   }

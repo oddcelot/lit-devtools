@@ -44,29 +44,33 @@ const setDensity = (next: 'docs' | 'devtools') => {
 const halves = (
   label: string,
   content: (scheme: 'dark' | 'light') => unknown
-) => html`<div class="halves">
-  ${(['dark', 'light'] as const).map(
-    (scheme) =>
-      html`<div class="half wa-${scheme}">
-        <div class="scheme">${label} · .wa-${scheme}</div>
-        ${content(scheme)}
-      </div>`
-  )}
-</div>`;
+) =>
+  html`<div class="halves">
+    ${(['dark', 'light'] as const).map(
+      (scheme) =>
+        html`<div class="half wa-${scheme}">
+          <div class="scheme">${label} · .wa-${scheme}</div>
+          ${content(scheme)}
+        </div>`
+    )}
+  </div>`;
 
-const section = (s: Section) => html`<section id=${s.tag}>
-  <header>
-    <h2>${s.tag}</h2>
-    <p>${s.summary}</p>
-  </header>
-  ${s.render === undefined ? null : halves('uses', s.render)}
-  ${
-    s.variants === false
-      ? null
-      : halves('variants', () => renderVariants(s.tag, s.variants as Variants))
-  }
-  ${renderApi(s.tag)}
-</section>`;
+const section = (s: Section) =>
+  html`<section id=${s.tag}>
+    <header>
+      <h2>${s.tag}</h2>
+      <p>${s.summary}</p>
+    </header>
+    ${s.render === undefined ? null : halves('uses', s.render)}
+    ${
+      s.variants === false
+        ? null
+        : halves('variants', () =>
+            renderVariants(s.tag, s.variants as Variants)
+          )
+    }
+    ${renderApi(s.tag)}
+  </section>`;
 
 const draw = () =>
   render(

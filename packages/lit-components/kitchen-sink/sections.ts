@@ -259,24 +259,25 @@ export const SECTIONS: Section[] = [
     variants: {attributes: ['appearance'], content: 'Card content'},
     summary:
       'extends WaCard · appearance, with-header, with-footer, header-actions; slots',
-    render: () => html`<div class="cards">
-      <lit-card>A plain surface for a block of content.</lit-card>
-      <lit-card with-header with-header-actions>
-        <span slot="header">Reactive properties</span>
-        <lit-icon-button
-          slot="header-actions"
-          icon="gear"
-          label="Settings"
-        ></lit-icon-button>
-        label, factor and items, with their current values.
-      </lit-card>
-      <lit-card with-footer appearance="filled">
-        Filled, with a footer.
-        <lit-button slot="footer" variant="neutral" appearance="outlined"
-          >Cancel</lit-button
-        >
-      </lit-card>
-    </div>`,
+    render: () =>
+      html`<div class="cards">
+        <lit-card>A plain surface for a block of content.</lit-card>
+        <lit-card with-header with-header-actions>
+          <span slot="header">Reactive properties</span>
+          <lit-icon-button
+            slot="header-actions"
+            icon="gear"
+            label="Settings"
+          ></lit-icon-button>
+          label, factor and items, with their current values.
+        </lit-card>
+        <lit-card with-footer appearance="filled">
+          Filled, with a footer.
+          <lit-button slot="footer" variant="neutral" appearance="outlined"
+            >Cancel</lit-button
+          >
+        </lit-card>
+      </div>`,
   },
   {
     tag: 'lit-details',
@@ -409,19 +410,20 @@ export const SECTIONS: Section[] = [
       booleans: ['accent'],
     },
     summary: 'compound · icon, value, label, accent',
-    render: () => html`<div class="cards">
-      <lit-stat-card
-        icon="package"
-        value="v3.3.3"
-        label="Lit"
-        accent
-      ></lit-stat-card>
-      <lit-stat-card
-        icon="cube"
-        value="24"
-        label="custom elements"
-      ></lit-stat-card>
-    </div>`,
+    render: () =>
+      html`<div class="cards">
+        <lit-stat-card
+          icon="package"
+          value="v3.3.3"
+          label="Lit"
+          accent
+        ></lit-stat-card>
+        <lit-stat-card
+          icon="cube"
+          value="24"
+          label="custom elements"
+        ></lit-stat-card>
+      </div>`,
   },
   {
     tag: 'lit-state-row',
@@ -433,46 +435,47 @@ export const SECTIONS: Section[] = [
     },
     summary:
       'compound · name, value, type, depth, expandable, expanded, badge · toggle',
-    render: () => html`<div>
-      <lit-state-row
-        name="label"
-        value='"initial"'
-        type="string"
-      ></lit-state-row>
-      <lit-state-row name="factor" value="2" type="number"></lit-state-row>
-      <lit-state-row name="open" value="false" type="boolean"></lit-state-row>
-      <lit-state-row
-        name="host"
-        value="<hmr-counter>"
-        type="ref"
-      ></lit-state-row>
-      <lit-state-row
-        name="render"
-        value="ƒ render()"
-        type="function"
-      ></lit-state-row>
-      <lit-state-row name="parent" value="null" type="null"></lit-state-row>
-      <lit-state-row
-        name="config"
-        value="{colorScheme: 'auto'}"
-        expandable
-        expanded
-        badge="Reactive"
-      >
+    render: () =>
+      html`<div>
         <lit-state-row
-          name="colorScheme"
-          value='"auto"'
+          name="label"
+          value='"initial"'
           type="string"
-          depth="1"
+        ></lit-state-row>
+        <lit-state-row name="factor" value="2" type="number"></lit-state-row>
+        <lit-state-row name="open" value="false" type="boolean"></lit-state-row>
+        <lit-state-row
+          name="host"
+          value="<hmr-counter>"
+          type="ref"
         ></lit-state-row>
         <lit-state-row
-          name="dense"
-          value="true"
-          type="boolean"
-          depth="1"
+          name="render"
+          value="ƒ render()"
+          type="function"
         ></lit-state-row>
-      </lit-state-row>
-    </div>`,
+        <lit-state-row name="parent" value="null" type="null"></lit-state-row>
+        <lit-state-row
+          name="config"
+          value="{colorScheme: 'auto'}"
+          expandable
+          expanded
+          badge="Reactive"
+        >
+          <lit-state-row
+            name="colorScheme"
+            value='"auto"'
+            type="string"
+            depth="1"
+          ></lit-state-row>
+          <lit-state-row
+            name="dense"
+            value="true"
+            type="boolean"
+            depth="1"
+          ></lit-state-row>
+        </lit-state-row>
+      </div>`,
   },
   {
     tag: 'lit-tree-node',
@@ -484,16 +487,17 @@ export const SECTIONS: Section[] = [
     },
     summary:
       'compound · tag, depth, expandable, expanded, selected, badge · select, toggle',
-    render: () => html`<div role="tree">
-      <lit-tree-node tag="my-app" expandable expanded>
-        <lit-tree-node tag="my-header" depth="1"></lit-tree-node>
-        <lit-tree-node tag="my-list" depth="1" expandable expanded badge="3">
-          <lit-tree-node tag="my-item" depth="2" selected></lit-tree-node>
-          <lit-tree-node tag="my-item" depth="2"></lit-tree-node>
+    render: () =>
+      html`<div role="tree">
+        <lit-tree-node tag="my-app" expandable expanded>
+          <lit-tree-node tag="my-header" depth="1"></lit-tree-node>
+          <lit-tree-node tag="my-list" depth="1" expandable expanded badge="3">
+            <lit-tree-node tag="my-item" depth="2" selected></lit-tree-node>
+            <lit-tree-node tag="my-item" depth="2"></lit-tree-node>
+          </lit-tree-node>
+          <lit-tree-node tag="my-footer" depth="1" expandable></lit-tree-node>
         </lit-tree-node>
-        <lit-tree-node tag="my-footer" depth="1" expandable></lit-tree-node>
-      </lit-tree-node>
-    </div>`,
+      </div>`,
   },
   {
     tag: 'lit-icon',
@@ -644,10 +648,11 @@ export const SECTIONS: Section[] = [
     variants: false,
     summary:
       "src/panel/figures/live · the whole panel, live, inspecting a demo page above it, as on the docs' setup guide · every tab",
-    render: (scheme) => html`<iframe
-      class="live-panel"
-      title="Lit DevTools panel inspecting a demo page"
-      src=${`live-panel.html?scheme=${scheme}#tab=components`}
-    ></iframe>`,
+    render: (scheme) =>
+      html`<iframe
+        class="live-panel"
+        title="Lit DevTools panel inspecting a demo page"
+        src=${`live-panel.html?scheme=${scheme}#tab=components`}
+      ></iframe>`,
   },
 ];

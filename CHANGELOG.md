@@ -38,7 +38,7 @@ helpers carries none of their dev code. Nothing needs action to upgrade.
 
 - **Added** — **The details pane shows a form-associated element.** A
   **form** `associated` line under the root says the class sets `static
-formAssociated = true`, read off the live element.
+  formAssociated = true`, read off the live element.
 - **Fixed** — **The details pane says when a component has no slots or
   parts.** Slots and Parts show "none" instead of disappearing, and so does
   Events when the component's docs list none.

@@ -748,25 +748,28 @@ export class UpdatesView extends LitElement {
                 cycle.changedDetail
                   ? html`<div class="changes">
                       ${cycle.changedDetail.map(
-                        (c) => html`<div class="change">
-                          <span class="key">${c.key}</span>
-                          <span class="value" title=${c.prev}>${c.prev}</span>
-                          <lit-icon name="arrow-right"></lit-icon>
-                          <span class="value" title=${c.next}>${c.next}</span>
-                          ${
-                            c.sameRef
-                              ? html`<lit-badge class="badge" variant="neutral"
-                                  >same reference</lit-badge
-                                >`
-                              : c.equal
+                        (c) =>
+                          html`<div class="change">
+                            <span class="key">${c.key}</span>
+                            <span class="value" title=${c.prev}>${c.prev}</span>
+                            <lit-icon name="arrow-right"></lit-icon>
+                            <span class="value" title=${c.next}>${c.next}</span>
+                            ${
+                              c.sameRef
                                 ? html`<lit-badge
                                     class="badge"
                                     variant="neutral"
-                                    >new reference, same value</lit-badge
+                                    >same reference</lit-badge
                                   >`
-                                : nothing
-                          }
-                        </div>`
+                                : c.equal
+                                  ? html`<lit-badge
+                                      class="badge"
+                                      variant="neutral"
+                                      >new reference, same value</lit-badge
+                                    >`
+                                  : nothing
+                            }
+                          </div>`
                       )}
                     </div>`
                   : nothing

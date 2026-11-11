@@ -101,7 +101,7 @@ interface Variant {
   mode?: 'production' | 'development';
   /** `vite build` with `build.lib` instead of the `index.html` app. */
   lib?: boolean;
-  /** `build.minify: false`, which keeps Rolldown's `//#region` comments. */
+  /** `build.minify: false`, which keeps Rolldown's `// <id>` comments. */
   unminified?: boolean;
   /** Replaces `sheet.css`. */
   sheet?: string;
@@ -245,9 +245,9 @@ const leaksIn = (
   const leaks: string[] = [];
   for (const [file, code] of Object.entries(files)) {
     if (file === ROOT_KEY) continue;
-    // Region comments name each module by id, ours included; they hold no
+    // Module comments name each module by id, ours included; they hold no
     // code, so only the developer's own path counts there.
-    const body = code.replace(/^\/\/#(?:end)?region.*$/gm, '');
+    const body = code.replace(/^\/\/ .*$/gm, '');
     for (const marker of markers) {
       if (body.includes(marker)) leaks.push(`${file}: ${marker}`);
     }
@@ -299,7 +299,7 @@ const propertyBuilds = {
   lib: build({sheet: PROPERTY_SHEET, lib: true}),
 };
 
-/** Unminified, so each module keeps a `//#region` comment naming it. */
+/** Unminified, so each module keeps a `// <id>` comment naming it. */
 const unminifiedPropertyBuilds = {
   app: build({sheet: PROPERTY_SHEET, unminified: true}),
   lib: build({sheet: PROPERTY_SHEET, unminified: true, lib: true}),
@@ -356,10 +356,10 @@ test.each(['app', 'lib'] as const)(
   }
 );
 
-/** The id of every module a build bundled, from its region comments. */
+/** The id of every module a build bundled, from its module comments. */
 const regions = (files: Record<string, string>) =>
   Object.values(comparable(files)).flatMap((code) =>
-    [...code.matchAll(/^\/\/#region (.*)$/gm)].map((m) => m[1]!)
+    [...code.matchAll(/^\/\/ (.*)$/gm)].map((m) => m[1]!)
   );
 
 // A ?css-sheet compiles to code written into its own module, so a library's

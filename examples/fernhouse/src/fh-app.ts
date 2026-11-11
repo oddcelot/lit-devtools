@@ -22,12 +22,7 @@ export class FhApp extends LitElement {
       display: block;
       min-height: 100vh;
       font-family:
-        Manrope,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        'Segoe UI',
-        Roboto,
+        Manrope, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
         sans-serif;
       color: #1f2a1f;
       background: #f4f1ea;
