@@ -480,15 +480,23 @@ const documentResponse = async (
   {csp, cspReportOnly}: PagesOptions
 ) => {
   const nonce = csp ? newNonce() : undefined;
+  // A page that isn't hydrated goes out as HTML alone, its data and form
+  // left out of the records: the layouts hydrate without it.
+  const unhydrated = view.page.hydrate === false;
+  const {data: _data, form: _form, ...rest} = payload;
+  const sent: Payload = unhydrated
+    ? {...rest, data: undefined, hydrate: false}
+    : payload;
   const response = new Response(
     renderDocument({
       shell,
       preload,
       nonce,
-      template: compose(view, payload),
+      template: compose(view, sent),
+      ...(unhydrated && {page: view.page.render(payload.data, payload.form)}),
       title: titleOf(view, payload),
       head: await renderHead(headOf(view, payload)),
-      payload,
+      payload: sent,
     }),
     {
       status: payload.status ?? 200,

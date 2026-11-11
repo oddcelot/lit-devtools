@@ -12,6 +12,8 @@ import {
   HEAD_END,
   HEAD_START,
   OUTLET_ID,
+  PAGE_END,
+  PAGE_START,
   QUEUE,
   type Payload,
 } from './shared.ts';
@@ -20,6 +22,11 @@ export interface DocumentOptions {
   shell: string;
   /** The page inside its layouts. */
   template: TemplateResult;
+  /**
+   * A page that isn't hydrated: the layouts in `template` hold its marker,
+   * and the page is written after it, outside their templates.
+   */
+  page?: TemplateResult;
   title: string | undefined;
   /** The `<head>` tags, rendered with {@link renderHead}. */
   head: string;
@@ -54,6 +61,7 @@ export const renderHead = async (
 export const renderDocument = ({
   shell,
   template,
+  page,
   title,
   head,
   preload = '',
@@ -84,7 +92,9 @@ export const renderDocument = ({
       };
       try {
         send(`${before}<div id="${OUTLET_ID}">`);
-        for await (const chunk of flatten(render(template))) send(chunk);
+        for await (const chunk of withPage(flatten(render(template)), page)) {
+          send(chunk);
+        }
         const data = records(payload);
         const first = await data.next();
         // Right after the page: when it runs, the page above is complete,
@@ -119,6 +129,49 @@ const signer = (nonce: string | undefined) =>
 /** An inline script that queues a data record for the client. */
 const push = (record: string, id?: string) =>
   `<script${id ? ` id="${id}"` : ''}>(self.${QUEUE}||=[]).push(${record})</script>`;
+
+/**
+ * The layouts' HTML with the page's after its marker, then the end marker
+ * the browser looks for. The marker is static text in one template, so it
+ * arrives whole, in one chunk.
+ */
+async function* withPage(
+  chunks: AsyncGenerator<string>,
+  page: TemplateResult | undefined
+): AsyncGenerator<string> {
+  const marker = `<!--${PAGE_START}-->`;
+  for await (const chunk of chunks) {
+    const at = page ? chunk.indexOf(marker) : -1;
+    if (at < 0) {
+      yield chunk;
+      continue;
+    }
+    yield chunk.slice(0, at + marker.length);
+    const strip = markerStripper();
+    for await (const html of flatten(render(page!))) yield strip(html);
+    yield `<!--${PAGE_END}-->${chunk.slice(at + marker.length)}`;
+  }
+}
+
+/**
+ * Takes Lit's markers out of a page nothing hydrates, chunk by chunk: its
+ * template's, which only hydration reads. Inside a `<template>`, such as a
+ * component's declarative shadow root, they stay: the component hydrates
+ * against them. Each marker is one string to Lit, so none spans two chunks.
+ */
+const markerStripper = () => {
+  let depth = 0;
+  return (html: string) =>
+    html.replace(
+      /<template\b|<\/template>|<!--\/?lit-(?:part|node)\b[^>]*-->/g,
+      (token) => {
+        if (token.startsWith('<template')) depth++;
+        else if (token === '</template>') depth--;
+        else if (depth === 0) return '';
+        return token;
+      }
+    );
+};
 
 /**
  * Walks a render result, joining the strings it yields synchronously and
