@@ -122,3 +122,19 @@ let orders: Order[] | undefined;
 /** The first `count` orders. */
 export const firstOrders = (count: number): Order[] =>
   (orders ??= generate()).slice(0, count);
+
+/**
+ * What the benchmark pages load: `rows` orders, 1,000 unless asked, and
+ * totals worked out on the server.
+ */
+export const ordersPage = (rows = 1000) => {
+  const orders = firstOrders(rows);
+  const byStatus = Object.fromEntries(
+    ORDER_STATUSES.map((status) => [
+      status,
+      orders.filter((order) => order.status === status).length,
+    ])
+  ) as Record<OrderStatus, number>;
+  const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+  return {orders, byStatus, revenue};
+};

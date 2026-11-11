@@ -19,6 +19,8 @@
     "typebox": "^1.3.0"
   },
   "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "workspace:*",
+    "unocss": "^66.10.5",
     "vite": "catalog:"
   }
 }

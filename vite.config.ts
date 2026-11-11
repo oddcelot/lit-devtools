@@ -171,6 +171,9 @@ export default defineConfig({
       'docs/dist/',
       'docs/.astro/',
       'docs/.generated/',
+      // Written by unoSheet() in the demo's config, and committed: the
+      // lit-elysia tests build the demo without that config.
+      '/packages/lit-elysia/demo/src/uno.generated.css',
       '/assets/promo-video/',
       '/assets/promo-video-v2/',
       '/assets/promo-video-extension/',
