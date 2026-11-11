@@ -161,6 +161,8 @@ export default defineConfig({
       '.e2e-tmp/',
       'playground/dist/',
       'bench/results/',
+      // Holds a stray quote on purpose, which the formatter would fix.
+      'examples/checks/src/mistakes/syntax.ts',
       'docs/dist/',
       'docs/.astro/',
       'docs/.generated/',

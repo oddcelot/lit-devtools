@@ -851,28 +851,30 @@ export class TimelineTracks extends LitElement {
       // shows its label at the left edge.
       const left = Math.max(x0, -1);
       const width = isTick ? MIN_MARK_PX : Math.min(x1, this._width + 1) - left;
-      marks.push(html`<div
-        class="mark ${isTick ? 'tick' : ''} ${open ? 'open' : ''} ${
-          selected ? 'selected' : ''
-        }"
-        role="button"
-        tabindex="0"
-        title=${describe(span)}
-        style="left:${left}px;width:${width}px;top:${rowIndex * ROW_PX}px;background:${color}"
-        @click=${() => this._select(span.key)}
-        @keydown=${(e: KeyboardEvent) => {
-          if (e.key === 'Enter' && e.shiftKey && span.end !== undefined) {
-            // The keyboard way to a range: this span's own extent.
-            e.preventDefault();
-            this._emitRange(normalizeRange(span.start, span.end));
-          } else if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            this._select(span.key);
-          }
-        }}
-      >
-        ${isTick || width < 40 ? nothing : span.name}
-      </div>`);
+      marks.push(
+        html`<div
+          class="mark ${isTick ? 'tick' : ''} ${open ? 'open' : ''} ${
+            selected ? 'selected' : ''
+          }"
+          role="button"
+          tabindex="0"
+          title=${describe(span)}
+          style="left:${left}px;width:${width}px;top:${rowIndex * ROW_PX}px;background:${color}"
+          @click=${() => this._select(span.key)}
+          @keydown=${(e: KeyboardEvent) => {
+            if (e.key === 'Enter' && e.shiftKey && span.end !== undefined) {
+              // The keyboard way to a range: this span's own extent.
+              e.preventDefault();
+              this._emitRange(normalizeRange(span.start, span.end));
+            } else if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              this._select(span.key);
+            }
+          }}
+        >
+          ${isTick || width < 40 ? nothing : span.name}
+        </div>`
+      );
     }
     return marks;
   }

@@ -714,16 +714,17 @@ export class TimelineView extends LitElement {
           @keydown=${this._onModesKeydown}
         >
           ${MODES.map(
-            (m) => html`<button
-              type="button"
-              role="radio"
-              data-mode=${m.id}
-              aria-checked=${this._mode === m.id ? 'true' : 'false'}
-              tabindex=${this._mode === m.id ? 0 : -1}
-              @click=${() => this._setMode(m.id)}
-            >
-              ${m.label}
-            </button>`
+            (m) =>
+              html`<button
+                type="button"
+                role="radio"
+                data-mode=${m.id}
+                aria-checked=${this._mode === m.id ? 'true' : 'false'}
+                tabindex=${this._mode === m.id ? 0 : -1}
+                @click=${() => this._setMode(m.id)}
+              >
+                ${m.label}
+              </button>`
           )}
         </div>
         <lit-button

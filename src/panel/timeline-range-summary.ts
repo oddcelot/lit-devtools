@@ -195,13 +195,14 @@ export class TimelineRangeSummary extends LitElement {
       </header>
       <div class="layers">
         ${s.layers.map(
-          (l) => html`<span
-            ><span
-              class="dot"
-              style="background:${layerColor(this.layers, l.layerId)}"
-            ></span
-            >${label(l.layerId)} <span class="val">${l.count}</span></span
-          >`
+          (l) =>
+            html`<span
+              ><span
+                class="dot"
+                style="background:${layerColor(this.layers, l.layerId)}"
+              ></span
+              >${label(l.layerId)} <span class="val">${l.count}</span></span
+            >`
         )}
       </div>
       ${

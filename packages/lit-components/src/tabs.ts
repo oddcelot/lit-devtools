@@ -176,30 +176,31 @@ export class LitTabs extends LitElement {
       @wa-tab-show=${this._onTabShow}
     >
       ${this.items.map(
-        (item) => html`<wa-tab
-          slot="nav"
-          panel=${item.id}
-          data-tip=${this.compact && item.icon ? item.label : nothing}
-        >
-          ${item.icon ? html`<lit-icon name=${item.icon}></lit-icon>` : nothing}
-          <span class="label ${item.icon ? 'hideable' : ''}"
-            >${item.label}</span
+        (item) =>
+          html`<wa-tab
+            slot="nav"
+            panel=${item.id}
+            data-tip=${this.compact && item.icon ? item.label : nothing}
           >
-          ${
-            item.badge
-              ? html`<lit-badge variant="brand" appearance="accent" pill
-                  >${item.badge}</lit-badge
-                >`
-              : nothing
-          }
-          ${
-            item.warnings
-              ? html`<lit-badge variant="warning" appearance="accent" pill
-                  >${item.warnings}</lit-badge
-                >`
-              : nothing
-          }
-        </wa-tab>`
+            ${item.icon ? html`<lit-icon name=${item.icon}></lit-icon>` : nothing}
+            <span class="label ${item.icon ? 'hideable' : ''}"
+              >${item.label}</span
+            >
+            ${
+              item.badge
+                ? html`<lit-badge variant="brand" appearance="accent" pill
+                    >${item.badge}</lit-badge
+                  >`
+                : nothing
+            }
+            ${
+              item.warnings
+                ? html`<lit-badge variant="warning" appearance="accent" pill
+                    >${item.warnings}</lit-badge
+                  >`
+                : nothing
+            }
+          </wa-tab>`
       )}
     </wa-tab-group>`;
   }
