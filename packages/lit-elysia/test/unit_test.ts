@@ -246,7 +246,7 @@ test('href fills in and encodes params, query and hash', () => {
 });
 
 test('action builds the URL a form posts to, by the action name', () => {
-  expect(action('/actions', 'increment')).toBe('/actions?/increment');
+  expect(action('/actions', 'add')).toBe('/actions?/add');
   expect(action('/', 'default')).toBe('/');
   expect(
     action('/notes/:id', 'default' as never, {id: 2}, {query: {from: 'list'}})

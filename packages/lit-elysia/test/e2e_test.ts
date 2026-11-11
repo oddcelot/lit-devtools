@@ -593,20 +593,34 @@ test('a nested layout keeps its elements across its pages, and reloads its data'
   ).toContain('0 times');
 });
 
-test('named actions run the one their button names', async () => {
+test('named actions run the one their button names, with the form they share', async () => {
   await page.goto(`${origin}/actions`);
   await page.locator('#server-count').waitFor();
-  const before = Number(await page.locator('#server-count').textContent());
-  await page.getByRole('button', {name: 'Add one'}).click();
+  const count = async () =>
+    Number(await page.locator('#server-count').textContent());
+  const before = await count();
+  await page.getByRole('button', {name: 'Add'}).click();
   await expect
     .poll(() => page.locator('#action-result').textContent())
-    .toBe('Added one.');
-  expect(Number(await page.locator('#server-count').textContent())).toBe(
-    before + 1
-  );
+    .toBe('Added 1.');
+  expect(await count()).toBe(before + 1);
   expect(page.url()).toBe(`${origin}/actions`);
   // The page that answered the post is still the one the menu marks.
   expect(await current()).toEqual(['Named actions']);
+
+  // Both buttons post the one field: the step stays as it was typed.
+  await page.getByRole('spinbutton', {name: 'Step'}).fill('5');
+  await page.getByRole('button', {name: 'Add'}).click();
+  await expect
+    .poll(() => page.locator('#action-result').textContent())
+    .toBe('Added 5.');
+  expect(await count()).toBe(before + 6);
+  await page.getByRole('button', {name: 'Subtract'}).click();
+  await expect
+    .poll(() => page.locator('#action-result').textContent())
+    .toBe('Subtracted 5.');
+  expect(await count()).toBe(before + 1);
+
   await page.getByRole('button', {name: 'Reset'}).click();
   await expect
     .poll(() => page.locator('#server-count').textContent())
