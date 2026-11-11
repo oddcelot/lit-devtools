@@ -569,3 +569,37 @@ test('the Node bridge aborts a request whose client left, and stops its body', a
     await new Promise((resolve) => server.close(resolve));
   }
 });
+
+test('pages answer HEAD with the status and headers of their GET, and no body', async () => {
+  const shell = () => '<html><body><!--lit-elysia:body--></body></html>';
+  const app = pages({
+    shell,
+    routes: [
+      {
+        path: '/notes/:id',
+        page: () =>
+          Promise.resolve({default: {render: () => html`<p>A note</p>`}}),
+        server: () =>
+          Promise.resolve({
+            load: ({params}: {params: Record<string, string>}) => {
+              if (params['id'] !== '1') throw new PageError(404, 'Gone');
+              return {};
+            },
+          }),
+        layouts: [],
+      },
+    ],
+  });
+  const ask = (method: string, path: string) =>
+    app.handle(new Request(`http://localhost${path}`, {method}));
+
+  const get = await ask('GET', '/notes/1');
+  const head = await ask('HEAD', '/notes/1');
+  expect(head.status).toBe(200);
+  expect(head.headers.get('content-type')).toBe(
+    get.headers.get('content-type')
+  );
+  expect(await head.text()).toBe('');
+  expect((await ask('HEAD', '/notes/2')).status).toBe(404);
+  expect((await ask('HEAD', '/nowhere')).status).toBe(404);
+});
