@@ -200,12 +200,12 @@ const framework = (options: LitElysiaOptions): Plugin => {
       if (id === RESOLVED_ENTRY_ID) {
         const client = path.resolve(config.root, 'dist/client');
         const shell = await readFile(path.join(client, 'index.html'), 'utf8');
-        const preloads = await preloadsOf(
+        const {preloads, sheets} = await preloadsOf(
           config,
           await scanRoutes(routesDir()),
           path.join(client, '.vite/manifest.json')
         );
-        return entryModule(shell, preloads, adapter);
+        return entryModule(shell, preloads, sheets, adapter);
       }
       if (id === RESOLVED_START_ID) return adapter.start?.(ENTRY_ID);
       return undefined;
@@ -492,13 +492,18 @@ export const createApp = (shell, extra = {}) => {
 const entryModule = (
   shell: string,
   preloads: Record<string, string[]>,
+  sheets: Record<string, string>,
   adapter: Adapter
 ) => `
 import {createApp, prepare} from ${json(SERVER_ID)};
 ${adapter.servesStatic ? `import {staticFiles} from ${json(runtime('./static.ts'))};` : ''}
 const shell = ${json(shell)};
 const preloads = ${json(preloads)};
-const pages = createApp(() => shell, {preloads});
+// The Lit plugin's ?css-sheet stand-ins read this on each render: a sheet
+// the client build emitted goes into shadow roots as an @import of it.
+const sheets = ${json(sheets)};
+globalThis[Symbol.for('@oddsquad/vite-plugin-lit#sheet-urls')] = sheets;
+const pages = createApp(() => shell, {preloads, sheets: Object.values(sheets)});
 const app = ${
   adapter.servesStatic
     ? "staticFiles(new URL('../client/', import.meta.url)).use(pages)"
@@ -510,20 +515,28 @@ ${adapter.exportApp}
 interface ManifestChunk {
   file: string;
   imports?: string[];
+  assets?: string[];
   css?: string[];
 }
 
 /**
  * Each route's chunks, from the client build's manifest: its page's and
- * layouts', the chunks they import, and their CSS. The document links
- * them, so the browser fetches them alongside the client entry instead of
- * one after another.
+ * layouts', the chunks they import, their CSS, and the stylesheets they
+ * load as assets, `?css-sheet` files among them. The document links them,
+ * so the browser fetches them alongside the client entry instead of one
+ * after another.
+ *
+ * And the URL of each CSS file a chunk loads as an asset, by its path
+ * from the root: the `?css-sheet` files' server stand-ins import them.
  */
 const preloadsOf = async (
   config: ResolvedConfig,
   {pages, errors}: Routes,
   manifestFile: string
-): Promise<Record<string, string[]>> => {
+): Promise<{
+  preloads: Record<string, string[]>;
+  sheets: Record<string, string>;
+}> => {
   const manifest = JSON.parse(
     await readFile(manifestFile, 'utf8').catch(() => '{}')
   ) as Record<string, ManifestChunk>;
@@ -534,9 +547,26 @@ const preloadsOf = async (
     if (!chunk || into.has(config.base + chunk.file)) return;
     into.add(config.base + chunk.file);
     for (const css of chunk.css ?? []) into.add(config.base + css);
+    for (const asset of chunk.assets ?? []) {
+      if (asset.endsWith('.css')) into.add(config.base + asset);
+    }
     for (const imported of chunk.imports ?? []) collect(imported, into);
   };
-  return Object.fromEntries(
+  const loaded = new Set(
+    Object.values(manifest).flatMap((chunk) => chunk.assets ?? [])
+  );
+  const sheets = Object.fromEntries(
+    Object.entries(manifest)
+      .filter(
+        ([, chunk]) => chunk.file.endsWith('.css') && loaded.has(chunk.file)
+      )
+      // Keys are relative to the root, or absolute for some assets.
+      .map(([key, chunk]) => [
+        keyOf(path.resolve(config.root, key)),
+        config.base + chunk.file,
+      ])
+  );
+  const preloads = Object.fromEntries(
     [...pages, ...errors].map((route) => {
       const files = new Set<string>();
       for (const file of [
@@ -548,4 +578,5 @@ const preloadsOf = async (
       return [route.path, [...files]];
     })
   );
+  return {preloads, sheets};
 };

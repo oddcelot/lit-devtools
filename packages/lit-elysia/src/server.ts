@@ -62,6 +62,12 @@ export interface PagesOptions {
    */
   preloads?: Record<string, string[]>;
   /**
+   * The stylesheets shadow roots import, `?css-sheet` files: preloaded as
+   * styles, so the first root that imports one finds it loading, without
+   * applying them to the document.
+   */
+  sheets?: string[];
+  /**
    * A Content-Security-Policy for the documents, with `{nonce}` where each
    * response's nonce goes: `script-src 'self' 'nonce-{nonce}'`.
    */
@@ -374,7 +380,7 @@ const respond = async (
           await viewOf(route),
           payload,
           await options.shell(pathOf(request)),
-          preloadTags(options.preloads?.[route.path]),
+          preloadTags(options.preloads?.[route.path], options.sheets),
           options
         );
   for (const [name, value] of Object.entries(collected.headers)) {
@@ -463,12 +469,14 @@ const dataResponse = (payload: PageData) =>
   });
 
 /** `modulepreload` for the chunks, a stylesheet link for the CSS. */
-const preloadTags = (files: string[] = []) =>
+const preloadTags = (files: string[] = [], sheets: string[] = []) =>
   files
     .map((file) =>
-      file.endsWith('.css')
-        ? `<link rel="stylesheet" href="${file}">`
-        : `<link rel="modulepreload" crossorigin href="${file}">`
+      sheets.includes(file)
+        ? `<link rel="preload" as="style" href="${file}">`
+        : file.endsWith('.css')
+          ? `<link rel="stylesheet" href="${file}">`
+          : `<link rel="modulepreload" crossorigin href="${file}">`
     )
     .join('');
 

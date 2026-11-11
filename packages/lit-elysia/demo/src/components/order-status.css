@@ -1,0 +1,21 @@
+/* An order status pill; one shared sheet for every pill. */
+:host {
+  display: inline-block;
+  padding: 0 0.5em;
+  border-radius: 1em;
+  font-size: 0.8em;
+  background: var(--wa-color-neutral-fill-quiet);
+  color: var(--wa-color-neutral-on-quiet);
+}
+:host([status='paid']) {
+  background: var(--wa-color-success-fill-quiet);
+  color: var(--wa-color-success-on-quiet);
+}
+:host([status='shipped']) {
+  background: var(--wa-color-brand-fill-quiet);
+  color: var(--wa-color-brand-on-quiet);
+}
+:host([status='refunded']) {
+  background: var(--wa-color-danger-fill-quiet);
+  color: var(--wa-color-danger-on-quiet);
+}
