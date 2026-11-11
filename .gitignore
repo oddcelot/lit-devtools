@@ -50,3 +50,5 @@ lit-devtools-snapshot/
 /packages/lit-elysia/demo/dist/
 /packages/lit-elysia/demo/.e2e-tmp/
 /packages/lit-elysia/dist/
+# Wrangler's local state from `wrangler dev`.
+.wrangler/
