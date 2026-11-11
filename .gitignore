@@ -47,8 +47,8 @@ lit-devtools-snapshot/
 
 # Impeccable critique reports: dated snapshots; their findings go into beads.
 .impeccable/critique/
-/packages/lit-elysia/demo/dist/
-/packages/lit-elysia/demo/.e2e-tmp/
-/packages/lit-elysia/dist/
+/packages/pyrelia/demo/dist/
+/packages/pyrelia/demo/.e2e-tmp/
+/packages/pyrelia/dist/
 # Wrangler's local state from `wrangler dev`.
 .wrangler/

@@ -219,7 +219,7 @@ The server build's stand-in then writes `@import url("/assets/…css")` into eac
 root, and the browser loads and parses the sheet once for all of them. The
 client build's manifest maps each file to its asset. Preload it with
 `<link rel="preload" as="style">` so the first root finds it loading; a
-`rel="stylesheet"` link would apply it to the document too. lit-elysia does
+`rel="stylesheet"` link would apply it to the document too. Pyrelia does
 both for you. A file that isn't registered still goes out inline.
 
 `cssSheetBuild` overrides the choice for browser builds; a server build always
