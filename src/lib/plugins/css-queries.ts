@@ -245,6 +245,34 @@ const buildSheetCode = async (
 };
 
 /**
+ * Where a framework that renders on the server puts the URLs the client
+ * build gave each `?css-sheet` file, by its path from the root: a server
+ * sheet whose file is there writes an `@import` of it instead of its css.
+ */
+const SHEET_URLS = '@oddsquad/vite-plugin-lit#sheet-urls';
+
+/**
+ * `?css-sheet` in a server build: a stand-in with the css as `cssText`,
+ * which Lit's server renderer writes into every declarative shadow root of
+ * a component that adopts it. When the framework has registered the URL
+ * the client build gave the file (see {@link SHEET_URLS}), the text is an
+ * `@import` of it instead: each root carries a line, and the browser loads
+ * and parses the sheet once. Read on each render, so the URLs may be
+ * registered after the component's module ran.
+ */
+const serverSheetCode = (file: string, root: string) =>
+  `import css from ${JSON.stringify(`${file}?inline`)};\n` +
+  `const key = ${JSON.stringify(normalizeSlashes(path.relative(root, file)))};\n` +
+  `export default {\n` +
+  `  get cssText() {\n` +
+  `    const url = globalThis[Symbol.for(${JSON.stringify(SHEET_URLS)})]?.[key];\n` +
+  `    return url ? "@import url(" + JSON.stringify(url) + ");" : css;\n` +
+  `  },\n` +
+  `};\n`;
+
+const normalizeSlashes = (file: string) => file.split(path.sep).join('/');
+
+/**
  * Import-query support, served in dev and build alike (source code using
  * `?hmr-url`/`?css-sheet` must keep working under `vite build`, where the HMR
  * plugin doesn't apply). Exported for the baseline e2e run, which needs the
@@ -318,14 +346,11 @@ export const litCssQueries = (
         prefix === CSS_URL_VIRTUAL_PREFIX
           ? hmrUrlCode(file, isBuild)
           : isBuild
-            ? await buildSheetCode(
-                this,
-                file,
-                // A server has no page to fetch an asset from, so its sheet
-                // carries the css text for the renderer to write out.
-                options?.ssr === true ? 'inline' : getCssSheetBuild(),
-                isLib
-              )
+            ? // A server has no page to fetch an asset from, so its sheet
+              // carries the css text, or an @import, for the renderer.
+              options?.ssr === true
+              ? serverSheetCode(file, root)
+              : await buildSheetCode(this, file, getCssSheetBuild(), isLib)
             : devSheetCode(file);
       return {code, moduleType: 'js'};
     },

@@ -195,7 +195,7 @@ are building.
 | dev server                 | `replaceSync()` over the `?inline` text, swapped on each edit |
 | `vite build` (app)         | fetch over the emitted content-hashed `.css` asset            |
 | `vite build` + `build.lib` | `new CSSStyleSheet()` + `replaceSync()` over inlined css text |
-| a server render (SSR)      | the css text, which Lit's server renderer writes out          |
+| a server render (SSR)      | the css text, or an `@import` of the client's asset           |
 
 On the server, where Node has no `CSSStyleSheet`, the sheet is a stand-in that
 carries the css text. Lit's server renderer writes it into the component's
@@ -203,8 +203,27 @@ declarative shadow root, so the styles arrive with the HTML, in dev and in a
 `vite build --ssr` alike. Once the component hydrates, it adopts the real sheet
 in place of the server's `<style>`, so edits to the css still hot-swap it.
 
+Every shadow root then carries its own copy of the css: a utility sheet used
+by a thousand components on one page is in its HTML a thousand times. A
+server-rendering framework can send a line per root instead. Once the client
+build has emitted the sheet's asset, register its URL by the file's path from
+the root, before the server renders:
+
+```js
+globalThis[Symbol.for('@oddsquad/vite-plugin-lit#sheet-urls')] = {
+  'src/components/order-status.css': '/assets/order-status-CHTmdrxl.css',
+};
+```
+
+The server build's stand-in then writes `@import url("/assets/…css")` into each
+root, and the browser loads and parses the sheet once for all of them. The
+client build's manifest maps each file to its asset. Preload it with
+`<link rel="preload" as="style">` so the first root finds it loading; a
+`rel="stylesheet"` link would apply it to the document too. lit-elysia does
+both for you. A file that isn't registered still goes out inline.
+
 `cssSheetBuild` overrides the choice for browser builds; a server build always
-inlines.
+inlines, or imports a registered asset.
 
 | Value          | Build output                                                        |
 | -------------- | ------------------------------------------------------------------- |
