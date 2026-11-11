@@ -1120,8 +1120,9 @@ test('the Simulate panel stays at the bottom of the menu, clear of its links', a
     await page.locator('sim-controls').waitFor();
     const top = async () =>
       (await page.locator('sim-controls').boundingBox())!.y;
-    // The panel settles once Web Awesome's sliders upgrade, which render
-    // taller from the server (bead vpl-pi7b): measure after that.
+    // Measured once Web Awesome's sliders upgrade and the panel is still:
+    // the page shouldn't move it, but it once did (wa-page's header,
+    // wa-slider's reference row).
     await page.waitForFunction(() => customElements.get('wa-slider'));
     await expect.poll(async () => (await top()) === (await top())).toBe(true);
     const before = await top();
