@@ -1290,3 +1290,34 @@ test('the cloudflare adapter builds one Worker module for Static Assets', async 
     await rm(workerRoot, {recursive: true, force: true});
   }
 });
+
+test('the heavy page renders its rows as components, the same orders the API sends', async () => {
+  const html = await (await fetch(`${origin}/bench?rows=25`)).text();
+  expect(html).toContain('<title>25 orders</title>');
+  expect(html.match(/<order-status[^>]*><template shadowroot/g)).toHaveLength(
+    25
+  );
+  const orders = (await (
+    await fetch(`${origin}/api/orders?rows=25`)
+  ).json()) as {customer: string}[];
+  expect(orders).toHaveLength(25);
+  expect(html).toContain(orders[24]!.customer);
+  expect((await fetch(`${origin}/bench?rows=0`)).status).toBe(400);
+  expect((await fetch(`${origin}/api/orders?rows=10001`)).status).toBe(422);
+
+  await page.goto(`${origin}/bench?rows=100`);
+  // Hydrated: every pill is a live element that has rendered.
+  await expect
+    .poll(() =>
+      page.$$eval('order-status', (pills) =>
+        pills.every(
+          (pill) => (pill as unknown as {hasUpdated: boolean}).hasUpdated
+        )
+      )
+    )
+    .toBe(true);
+  await mark(page);
+  await page.getByRole('link', {name: '1,000 rows'}).click();
+  await expect.poll(() => page.locator('#orders tbody tr').count()).toBe(1000);
+  expect(await marked(page)).toBe(true);
+});

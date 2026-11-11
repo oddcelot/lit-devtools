@@ -6,6 +6,7 @@ declare module '@oddsquad/lit-elysia/routes' {
     routes: {
       '/': ServerTypes<typeof import('./routes/index.server')>;
       '/actions': ServerTypes<typeof import('./routes/actions.server')>;
+      '/bench': ServerTypes<typeof import('./routes/bench.server')>;
       '/broken': ServerTypes<typeof import('./routes/broken.server')>;
       '/cached': ServerTypes<typeof import('./routes/cached.server')>;
       '/deferred': ServerTypes<typeof import('./routes/deferred.server')>;
