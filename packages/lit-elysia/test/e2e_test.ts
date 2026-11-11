@@ -1193,6 +1193,28 @@ test('the build serves the same pages from its server entry', async () => {
   // The build's manifest is not served.
   expect((await app.handle('/.vite/manifest.json')).status).toBe(404);
 
+  // A ?css-sheet goes into each shadow root as an @import of the client's
+  // asset, which the page preloads as a style, not as a document sheet.
+  const bench = await (
+    await app.handle(
+      new Request('http://localhost/bench?rows=3', {
+        headers: {accept: 'text/html'},
+      })
+    )
+  ).text();
+  const imports = [
+    ...bench.matchAll(
+      /<order-status[^>]*><template[^>]*><style[^>]*>@import url\("([^"]+)"\);<\/style>/g
+    ),
+  ].map((match) => match[1]!);
+  expect(imports).toHaveLength(3);
+  expect(imports[0]).toMatch(/^\/assets\/order-status-[\w-]+\.css$/);
+  const links = [...bench.matchAll(/<link\b[^>]*>/g)]
+    .map((match) => match[0])
+    .filter((link) => link.includes(`href="${imports[0]}"`));
+  expect(links).toEqual([expect.stringMatching(/rel="preload" as="style"/)]);
+  expect((await app.handle(imports[0]!)).status).toBe(200);
+
   const missing = await app.handle(
     new Request('http://localhost/notes/99', {headers: {accept: 'text/html'}})
   );
@@ -1225,6 +1247,16 @@ test('the build runs under its policy, enforced, with nothing blocked', async ()
       .toEqual(['Elysia', 'Lit', 'seroval']);
     await follow('Two params');
     await expect.poll(() => page.locator('#param-a').textContent()).toBe('red');
+    // The pills' @import of their sheet passes the policy, and styles them.
+    await page.goto(`${built}/bench?rows=5`);
+    await expect
+      .poll(() =>
+        page
+          .locator('order-status')
+          .first()
+          .evaluate((pill) => getComputedStyle(pill).display)
+      )
+      .toBe('inline-block');
     // Production has no dev runtime: not a single violation is allowed.
     expect(violations.splice(0)).toEqual([]);
   } finally {

@@ -68,3 +68,43 @@ test('fetch-backed sheets on a server stay empty and fetch nothing', async () =>
   ).toBe('');
   expect(fetch).not.toHaveBeenCalled();
 });
+
+/** The stand-in a server build's `?css-sheet` module exports. */
+const serverSheet = async (css: string): Promise<unknown> => {
+  const plugin = litCssQueries(() => 'auto');
+  const configResolved = plugin.configResolved as (config: object) => void;
+  configResolved({command: 'build', root: '/app', build: {lib: false}});
+  const load = plugin.load as (
+    this: unknown,
+    id: string,
+    options: {ssr: boolean}
+  ) => Promise<{code: string}>;
+  const {code} = await load.call({}, '\0lit-plugin:css-sheet:./src/x.css.js', {
+    ssr: true,
+  });
+  const body = code
+    .replace(
+      /^import (\w+) from .*;$/m,
+      (_, name: string) => `const ${name} = ${JSON.stringify(css)};`
+    )
+    .replace('export default ', 'return ');
+  // oxlint-disable-next-line typescript/no-implied-eval
+  return new Function(body)();
+};
+
+test("a server build's sheet imports the client's asset once a framework registers it", async () => {
+  const key = Symbol.for('@oddsquad/vite-plugin-lit#sheet-urls');
+  const registry = globalThis as {[key]?: Record<string, string>};
+  const sheet = await serverSheet('a { b: c; }');
+  try {
+    // Nothing registered: the css itself, as before.
+    expect(cssTextOf(sheet)).toBe('a { b: c; }');
+    // Read on each render, so a registry set after the module ran counts.
+    registry[key] = {'src/x.css': '/assets/x-abc.css'};
+    expect(cssTextOf(sheet)).toBe('@import url("/assets/x-abc.css");');
+    registry[key] = {'src/other.css': '/assets/other.css'};
+    expect(cssTextOf(sheet)).toBe('a { b: c; }');
+  } finally {
+    delete registry[key];
+  }
+});
