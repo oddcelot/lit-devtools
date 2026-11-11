@@ -1,0 +1,31 @@
+:root {
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+body {
+  max-width: 40rem;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+header nav {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  padding-bottom: 0.5rem;
+}
+
+nav a[aria-current='page'] {
+  font-weight: 600;
+}
+
+[role='alert'] {
+  color: #c02626;
+}
+
+/* Set by the router while it waits on the server. */
+html[data-navigating] main {
+  opacity: 0.6;
+  transition: opacity 0.2s 0.15s;
+}

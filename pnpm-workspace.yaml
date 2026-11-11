@@ -1,6 +1,7 @@
 packages:
   - docs
   - packages/*
+  - packages/pyrelia/demo
   - playground
   - examples/flame
   - examples/web-awesome

@@ -22,7 +22,11 @@ export default defineConfig({
         test: {
           name: 'unit',
           environment: 'node',
-          include: ['src/test/unit/**/*_test.ts'],
+          include: [
+            'src/test/unit/**/*_test.ts',
+            'packages/pyrelia/test/unit_test.ts',
+            'packages/create-pyrelia/test/create_test.ts',
+          ],
         },
       },
       {
@@ -54,7 +58,10 @@ export default defineConfig({
         test: {
           name: 'e2e',
           environment: 'node',
-          include: ['src/test/e2e/**/*_test.ts'],
+          include: [
+            'src/test/e2e/**/*_test.ts',
+            'packages/pyrelia/test/e2e_test.ts',
+          ],
           // Each e2e file owns a vite dev server + browser; keep them
           // sequential to avoid port/file contention and CPU thrash.
           fileParallelism: false,
@@ -166,6 +173,9 @@ export default defineConfig({
       'docs/dist/',
       'docs/.astro/',
       'docs/.generated/',
+      // Written by unoSheet() in the demo's config, and committed: the
+      // Pyrelia tests build the demo without that config.
+      '/packages/pyrelia/demo/src/uno.generated.css',
       '/assets/promo-video/',
       '/assets/promo-video-v2/',
       '/assets/promo-video-extension/',

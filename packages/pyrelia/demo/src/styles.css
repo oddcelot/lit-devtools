@@ -1,0 +1,142 @@
+/* Web Awesome: the default theme, its native element styles and its
+   utilities. Its components bring their own styles. */
+@import '@awesome.me/webawesome/dist/styles/webawesome.css';
+
+body {
+  margin: 0;
+}
+
+/* Thin scrollbars in the brand colour, wherever the page scrolls.
+   scrollbar-color is inherited, into shadow roots too, so the root sets it
+   for all of them; scrollbar-width isn't, so each scroller gets it: the
+   page's own elements, and wa-page's menu and mobile drawer by their parts. */
+:root {
+  scrollbar-color: var(--wa-color-brand-fill-loud) transparent;
+}
+
+*,
+wa-page::part(menu),
+wa-page::part(drawer__body) {
+  scrollbar-width: thin;
+}
+
+/* wa-page measures its header once it upgrades, and sizes the menu from
+   it; until then it takes 0px, and the menu and the Simulate panel at its
+   bottom jump up by the header's height. Its height, known up front, stops
+   that (the measurement still corrects it if the header wraps). */
+wa-page {
+  --header-height: 3.875rem;
+}
+
+/* Desktop only: wa-page's own mobile layout sets the menu's width itself. */
+@media (min-width: 769px) {
+  wa-page {
+    --menu-width: 16rem;
+  }
+}
+
+/* The page's header: brand on one side, the layout's own bits on the other. */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--wa-space-m);
+  padding: var(--wa-space-s) var(--wa-space-l);
+}
+
+.brand {
+  font-weight: var(--wa-font-weight-bold);
+  text-decoration: none;
+}
+
+/* wa-page sizes its navigation, the menu above its footer, to the menu's
+   height, and a longer menu then runs under the footer. Grown to fit, it
+   scrolls as one: the whole menu, then the simulation panel. */
+wa-page::part(navigation) {
+  height: auto;
+  min-height: 100%;
+}
+
+/* The Simulate panel sticks to the menu's bottom: links scrolled into view
+   stop above it. sim-controls sets the height. */
+wa-page::part(menu) {
+  scroll-padding-bottom: var(--simulate-height, 0px);
+}
+
+/* The routing menu in the navigation slot. */
+#menu {
+  padding: var(--wa-space-m);
+}
+
+#menu h2 {
+  margin: var(--wa-space-m) 0 var(--wa-space-3xs);
+  font-size: var(--wa-font-size-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wa-color-text-quiet);
+}
+
+#menu h2:first-child {
+  margin-top: 0;
+}
+
+#menu ul,
+#menu li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#menu a {
+  display: block;
+  padding: var(--wa-space-2xs) var(--wa-space-xs);
+  border-radius: var(--wa-border-radius-s);
+  text-decoration: none;
+}
+
+#menu a:hover {
+  background: var(--wa-color-neutral-fill-quiet);
+}
+
+#menu a[aria-current='page'] {
+  background: var(--wa-color-brand-fill-quiet);
+  color: var(--wa-color-brand-on-quiet);
+  font-weight: var(--wa-font-weight-semibold);
+}
+
+#content {
+  padding: var(--wa-space-l);
+  max-width: 48rem;
+}
+
+/* Section tabs: plain links, the current one underlined. */
+.tabs a[aria-current='page'] {
+  font-weight: var(--wa-font-weight-semibold);
+  text-decoration-thickness: 2px;
+}
+
+wa-card {
+  margin-block: var(--wa-space-m);
+}
+
+/* Shown while the router counts a navigation as pending: from pendingMs
+   on, for pendingMinMs at least (the settings in the sidebar's footer). */
+html[data-navigating]::before {
+  content: '';
+  position: fixed;
+  z-index: 100;
+  inset: 0 auto auto 0;
+  height: 3px;
+  background: var(--wa-color-brand-fill-loud);
+  animation: progress 4s cubic-bezier(0.1, 0.7, 0.2, 1) both;
+}
+
+@keyframes progress {
+  from {
+    width: 0;
+  }
+  to {
+    width: 90%;
+  }
+}
