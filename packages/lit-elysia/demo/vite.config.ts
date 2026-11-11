@@ -10,12 +10,16 @@ export default defineConfig({
     // litElysia, whose Lit plugin compiles that import.
     unoSheet({
       outFile: 'src/uno.generated.css',
+      // These components alone, in dev and in a build alike: by default it
+      // also reads every module the dev server transforms, lit-elysia's own
+      // source among them, and the committed file would flip between two.
+      dir: 'src/components/uno',
+      include: /\/src\/components\/uno\/.*\.ts$/,
       // Wind4's utilities read the theme variables in its preflights.
       preflights: true,
       config: {
         // No reset: it would repeat in every shadow root.
         presets: [presetWind4({preflights: {reset: false}})],
-        content: {pipeline: {include: [/src\/components\/uno\/.*\.ts($|\?)/]}},
       },
     }),
     litElysia({
