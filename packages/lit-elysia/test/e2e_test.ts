@@ -1323,6 +1323,26 @@ test('the heavy page renders its rows as components, the same orders the API sen
   ).json()) as {customer: string}[];
   expect(orders).toHaveLength(25);
   expect(html).toContain(orders[24]!.customer);
+  // hydrate: false: the rows go out once, as HTML. The data record has
+  // the layouts' data alone, and the page's markers are gone, but the
+  // pills keep theirs, inside their shadow roots.
+  const record = /id="lit-elysia-data">[^<]*?\.push\((.*?)\)<\/script>/s.exec(
+    html
+  )![1]!;
+  expect(createReader().read(record)).toMatchObject({
+    route: '/bench',
+    data: undefined,
+    hydrate: false,
+  });
+  expect(record).not.toContain(orders[24]!.customer);
+  const pageHtml = html.slice(
+    html.indexOf('<!--lit-elysia-page-->'),
+    html.indexOf('<!--/lit-elysia-page-->')
+  );
+  expect(pageHtml.replace(/<template\b.*?<\/template>/gs, '')).not.toMatch(
+    /<!--\/?lit-(part|node)/
+  );
+  expect(pageHtml).toContain('<template shadowroot');
   expect((await fetch(`${origin}/bench?rows=0`)).status).toBe(400);
   expect((await fetch(`${origin}/api/orders?rows=10001`)).status).toBe(422);
 
@@ -1337,8 +1357,14 @@ test('the heavy page renders its rows as components, the same orders the API sen
       )
     )
     .toBe(true);
+  // The layouts did hydrate: the router takes the link, and renders the
+  // page from its data, as any other.
   await mark(page);
   await page.getByRole('link', {name: '1,000 rows'}).click();
   await expect.poll(() => page.locator('#orders tbody tr').count()).toBe(1000);
   expect(await marked(page)).toBe(true);
+  await page.goBack();
+  await expect.poll(() => page.locator('#orders tbody tr').count()).toBe(100);
+  await follow('Named actions');
+  await expect.poll(() => page.locator('#orders').count()).toBe(0);
 });

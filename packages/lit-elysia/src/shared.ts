@@ -33,6 +33,13 @@ export const PARAMS = Symbol.for('@oddsquad/lit-elysia#params');
 export const NOT_FOUND = '#404';
 export const ERROR = '#error';
 
+/**
+ * Around a page that isn't hydrated, in its layout's place for it: the
+ * template holds the first, the server writes the page and the second.
+ */
+export const PAGE_START = 'lit-elysia-page';
+export const PAGE_END = '/lit-elysia-page';
+
 /** What the server hands the browser to hydrate the page with. */
 export interface Payload {
   /** The route's path, such as `/notes/:id`, which names its page module. */
@@ -46,6 +53,11 @@ export interface Payload {
   form?: unknown;
   /** The keys the loads said their data depends on. */
   depends?: string[];
+  /**
+   * `false` in the document of a page with `hydrate: false`: its data and
+   * form stay on the server, and the browser hydrates the layouts alone.
+   */
+  hydrate?: false;
 }
 
 /**

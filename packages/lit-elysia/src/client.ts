@@ -5,9 +5,16 @@ import {compose} from './compose.ts';
 import {takeOver} from './navigation.ts';
 import {configurePending, type PendingOptions} from './pending.ts';
 import {enablePrefetch} from './prefetch.ts';
+import {invalidate} from './links.ts';
 import {enableInvalidate} from './revalidate.ts';
 import {createReader, type Reader} from './serialize.ts';
-import {OUTLET_ID, QUEUE, type Payload} from './shared.ts';
+import {
+  OUTLET_ID,
+  PAGE_END,
+  PAGE_START,
+  QUEUE,
+  type Payload,
+} from './shared.ts';
 import {
   remember,
   show,
@@ -40,7 +47,12 @@ export const boot = async (
   const reader = createReader();
   const payload = reader.read<Payload>(queue[0]!);
   follow(queue, reader);
-  hydrate(compose(await viewOf(site, payload.route), payload), outlet);
+  const view = await viewOf(site, payload.route);
+  if (payload.hydrate === false) {
+    hydrateAround(outlet, () => hydrate(compose(view, payload), outlet));
+  } else {
+    hydrate(compose(view, payload), outlet);
+  }
   // After the elements' first updates, which hydrate against the server's
   // HTML: from here on, styles they write get the nonce.
   setTimeout(useCspNonce);
@@ -48,6 +60,38 @@ export const boot = async (
   takeOver(site, outlet);
   enableInvalidate(site, outlet);
   enablePrefetch(site);
+};
+
+/**
+ * Hydrates the layouts around a page that isn't hydrated. Lit's hydration
+ * reads every marker in the outlet, the page's included, and the page's
+ * template isn't there to match them: the page's nodes leave for the
+ * moment it runs, and come back before anything paints. Its components,
+ * which upgrade on their own, hydrate as they come back.
+ */
+const hydrateAround = (outlet: HTMLElement, run: () => void) => {
+  const [start, end] = pageMarkers(outlet);
+  if (!start || !end) return run();
+  const page = document.createDocumentFragment();
+  while (start.nextSibling && start.nextSibling !== end) {
+    page.append(start.nextSibling);
+  }
+  try {
+    run();
+  } finally {
+    end.before(page);
+  }
+};
+
+const pageMarkers = (outlet: HTMLElement) => {
+  const walker = document.createTreeWalker(outlet, NodeFilter.SHOW_COMMENT);
+  let start: Comment | undefined;
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const data = (node as Comment).data;
+    if (data === PAGE_START) start = node as Comment;
+    else if (data === PAGE_END && start) return [start, node as Comment];
+  }
+  return [start, undefined];
 };
 
 /**
@@ -104,6 +148,9 @@ export const hotModule = async (
   const shown = shownPage();
   const outlet = document.getElementById(OUTLET_ID);
   if (!shown || !outlet || !usesFile(site, shown.route, file)) return;
+  // A page that wasn't hydrated has no data here to render again with:
+  // it loads it, and renders as any page from then on.
+  if (shown.hydrate === false) return invalidate();
   const view = await viewOf(site, shown.route);
   keepChildState();
   show(outlet, view, shown);

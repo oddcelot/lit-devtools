@@ -12,6 +12,8 @@ const day = new Intl.DateTimeFormat('en', {
 const SIZES = [100, 1000, 5000, 10_000];
 
 export default definePage('/bench', {
+  // The rows go out once, as HTML: the pills hydrate from their attributes.
+  hydrate: false,
   title: ({orders}) => `${orders.length.toLocaleString('en')} orders`,
   render: ({orders, byStatus, revenue}) => html`
     <h1>Heavy page</h1>

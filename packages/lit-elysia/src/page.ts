@@ -80,6 +80,19 @@ export interface Page<Data = undefined, Form = unknown> {
    * answers the post; otherwise `undefined`.
    */
   render: (data: Data, form?: Form) => TemplateResult;
+  /**
+   * `false`: the first load is rendered on the server alone. The document
+   * leaves its data out, and the browser hydrates the layouts around it,
+   * not its template; the components in it still hydrate themselves, from
+   * their attributes. For a page heavy with data that its components don't
+   * need, it sends the data once, as HTML, instead of twice.
+   *
+   * So on that load, what only the browser runs in its own template, an
+   * `@event` listener or a `.property`, doesn't, and deferred data doesn't
+   * fill in. When the router renders it, after a link or an `invalidate`,
+   * it renders it as any other page, from its data.
+   */
+  hydrate?: false;
 }
 
 /**
