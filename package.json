@@ -129,7 +129,7 @@
     "@jridgewell/trace-mapping": "^0.3.31",
     "devframe": "^1.1.0",
     "es-module-lexer": "^3.0.2",
-    "launch-editor": "^2.14.1",
+    "launch-editor": "^2.14.2",
     "magic-string": "^1.4.2",
     "oxc-parser": "^0.150.0",
     "oxc-resolver": "^11.24.2"
@@ -207,7 +207,7 @@
     "@vitejs/devtools-kit": "0.7.6",
     "@vitest/coverage-v8": "5.0.1",
     "cac": "7.0.0",
-    "fallow": "^3.32.0",
+    "fallow": "^3.42.0",
     "git-cliff": "^2.14.2",
     "happy-dom": "^20.14.5",
     "jsr": "0.14.3",
