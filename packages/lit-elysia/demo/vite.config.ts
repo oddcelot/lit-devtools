@@ -18,8 +18,10 @@ export default defineConfig({
       // Wind4's utilities read the theme variables in its preflights.
       preflights: true,
       config: {
-        // No reset: it would repeat in every shadow root.
-        presets: [presetWind4({preflights: {reset: false}})],
+        // No reset: it would repeat in every shadow root. `dark:` as a
+        // media query, which a shadow root sees: a class on <html> isn't
+        // an ancestor there. The page follows the system the same way.
+        presets: [presetWind4({dark: 'media', preflights: {reset: false}})],
       },
     }),
     litElysia({
