@@ -95,6 +95,11 @@ export const pages = (options: PagesOptions) => {
     app.get(route.path, (context) =>
       handle(options, route, context as unknown as Raw)
     );
+    // HEAD, for link previews and uptime checks: the GET's status and
+    // headers, without the page.
+    app.head(route.path, async (context) =>
+      bodiless(await handle(options, route, context as unknown as Raw))
+    );
     if (route.server) {
       app.post(route.path, (context) =>
         act(options, route, context as unknown as Raw)
@@ -102,12 +107,25 @@ export const pages = (options: PagesOptions) => {
     }
   }
   // Last, so every route above, the user's included, comes first.
-  app.get('/*', (context) =>
-    wantsPage(context.request)
-      ? failure(options, context as unknown as Raw, notFound())
-      : new Response('Not Found', {status: 404})
+  const missing = (raw: Raw) =>
+    wantsPage(raw.request)
+      ? failure(options, raw, notFound())
+      : new Response('Not Found', {status: 404});
+  app.get('/*', (context) => missing(context as unknown as Raw));
+  app.head('/*', async (context) =>
+    bodiless(await missing(context as unknown as Raw))
   );
   return app;
+};
+
+/** A response's status and headers alone: its body, unread, stops. */
+const bodiless = (response: Response) => {
+  void response.body?.cancel();
+  return new Response(null, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  });
 };
 
 /** The parts of Elysia's context the framework itself reads. */
