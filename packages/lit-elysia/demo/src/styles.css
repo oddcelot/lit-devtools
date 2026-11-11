@@ -20,6 +20,14 @@ wa-page::part(drawer__body) {
   scrollbar-width: thin;
 }
 
+/* wa-page measures its header once it upgrades, and sizes the menu from
+   it; until then it takes 0px, and the menu and the Simulate panel at its
+   bottom jump up by the header's height. Its height, known up front, stops
+   that (the measurement still corrects it if the header wraps). */
+wa-page {
+  --header-height: 3.875rem;
+}
+
 /* Desktop only: wa-page's own mobile layout sets the menu's width itself. */
 @media (min-width: 769px) {
   wa-page {
