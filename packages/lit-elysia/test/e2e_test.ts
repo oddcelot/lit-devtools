@@ -1215,6 +1215,24 @@ test('the build serves the same pages from its server entry', async () => {
   expect(links).toEqual([expect.stringMatching(/rel="preload" as="style"/)]);
   expect((await app.handle(imports[0]!)).status).toBe(200);
 
+  // UnoCSS's sheet too, and its @property rules go in the head: in a
+  // shadow root the browser ignores them, and the colours built on them
+  // would paint blank until the scripts ran.
+  const uno = await (
+    await app.handle(
+      new Request('http://localhost/bench/uno?rows=2', {
+        headers: {accept: 'text/html'},
+      })
+    )
+  ).text();
+  expect(
+    uno.match(
+      /<order-card[^>]*><template[^>]*><style[^>]*>@import url\("\/assets\/uno\.generated-/g
+    )
+  ).toHaveLength(2);
+  const head = uno.slice(0, uno.indexOf('</head>'));
+  expect(head).toMatch(/<style[^>]*>@property --un-[\w-]+\{/);
+
   const missing = await app.handle(
     new Request('http://localhost/notes/99', {headers: {accept: 'text/html'}})
   );
@@ -1257,6 +1275,20 @@ test('the build runs under its policy, enforced, with nothing blocked', async ()
           .evaluate((pill) => getComputedStyle(pill).display)
       )
       .toBe('inline-block');
+    // The UnoCSS cards paint their colours under the policy too.
+    await page.goto(`${built}/bench/uno?rows=5`);
+    await expect
+      .poll(() =>
+        page
+          .locator('order-card')
+          .first()
+          .evaluate(
+            (card) =>
+              getComputedStyle(card.shadowRoot!.querySelector('article')!)
+                .backgroundColor
+          )
+      )
+      .not.toBe('rgba(0, 0, 0, 0)');
     // Production has no dev runtime: not a single violation is allowed.
     expect(violations.splice(0)).toEqual([]);
   } finally {

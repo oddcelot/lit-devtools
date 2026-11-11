@@ -88,6 +88,11 @@ export const MENU: {title: string; links: MenuLink[]}[] = [
         href: href('/bench', {}, {query: {rows: 10_000}}),
         prefetch: 'off',
       },
+      {
+        label: '1,000 cards (UnoCSS)',
+        href: href('/bench/uno'),
+        prefetch: 'off',
+      },
       {label: 'The same as JSON', href: '/api/orders', reload: true},
     ],
   },

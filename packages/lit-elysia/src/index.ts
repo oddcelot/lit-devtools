@@ -205,7 +205,15 @@ const framework = (options: LitElysiaOptions): Plugin => {
           await scanRoutes(routesDir()),
           path.join(client, '.vite/manifest.json')
         );
-        return entryModule(shell, preloads, sheets, adapter);
+        const properties = await propertyRulesOf(client, config.base, sheets);
+        return entryModule(
+          properties
+            ? shell.replace('</head>', `<style>${properties}</style></head>`)
+            : shell,
+          preloads,
+          sheets,
+          adapter
+        );
       }
       if (id === RESOLVED_START_ID) return adapter.start?.(ENTRY_ID);
       return undefined;
@@ -518,6 +526,31 @@ interface ManifestChunk {
   assets?: string[];
   css?: string[];
 }
+
+/**
+ * The `@property` rules of the sheets shadow roots import, for the
+ * document's `<head>`. A browser ignores `@property` in a shadow root, so
+ * until the client registers them on the document, utilities built on
+ * them, such as UnoCSS's and Tailwind's colours, have no value: a page
+ * rendered on the server painted them blank until its scripts ran.
+ */
+const propertyRulesOf = async (
+  clientDir: string,
+  base: string,
+  sheets: Record<string, string>
+) => {
+  const rules = new Set<string>();
+  for (const url of new Set(Object.values(sheets))) {
+    const css = await readFile(
+      path.join(clientDir, url.slice(base.length)),
+      'utf8'
+    ).catch(() => '');
+    for (const [rule] of css.matchAll(/@property\s+--[\w-]+\s*\{[^}]*\}/g)) {
+      rules.add(rule);
+    }
+  }
+  return [...rules].join('');
+};
 
 /**
  * Each route's chunks, from the client build's manifest: its page's and
