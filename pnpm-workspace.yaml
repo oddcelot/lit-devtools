@@ -1,7 +1,7 @@
 packages:
   - docs
   - packages/*
-  - packages/lit-elysia/demo
+  - packages/pyrelia/demo
   - playground
   - examples/flame
   - examples/web-awesome

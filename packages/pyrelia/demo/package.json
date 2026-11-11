@@ -1,0 +1,26 @@
+{
+  "name": "pyrelia-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "start": "node dist/server/index.js",
+    "start:bun": "bun dist/server/index.js",
+    "build:cloudflare": "ADAPTER=cloudflare vp build",
+    "preview:cloudflare": "pnpm dlx --allow-build=workerd --allow-build=esbuild wrangler@4 dev"
+  },
+  "dependencies": {
+    "@awesome.me/webawesome": "^3.14.0",
+    "@elysia/openapi": "2.0.0-rc.1",
+    "@oddsquad/pyrelia": "workspace:*",
+    "elysia": "2.0.0-rc.4",
+    "lit": "^3.3.3",
+    "typebox": "^1.3.0"
+  },
+  "devDependencies": {
+    "@oddsquad/vite-plugin-lit": "workspace:*",
+    "unocss": "^66.10.5",
+    "vite": "catalog:"
+  }
+}
