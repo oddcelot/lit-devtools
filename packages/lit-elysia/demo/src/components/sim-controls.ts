@@ -72,6 +72,13 @@ export class SimControls extends LitElement {
     wa-slider {
       margin-top: var(--wa-space-s);
     }
+    /* From the server, wa-slider always has a row for reference labels: it
+       can't tell they aren't slotted, as it can for its label and hint
+       with with-label and with-hint. Upgraded, it drops the row, and the
+       panel shrank 14px. Hidden until then. */
+    wa-slider:not(:defined)::part(references) {
+      display: none;
+    }
   `;
 
   latency = 0;
