@@ -58,6 +58,11 @@ overrides:
   # Vite's peer range is `^0.7.1 || ^0.8.0`. For a package that does not name
   # the DevTools itself, pnpm fills that peer with 0.7.6, a second copy.
   '@vitejs/devtools': ^0.8.3
+  # @vscode/vsce and vscode-languageclient ask for ^10.2.6, inside
+  # GHSA-g3hv-75wg-m249 (a slow match on a crafted glob), which has no fix
+  # below 11. Both only call `minimatch()` and `new Minimatch()`, which 11
+  # keeps. Drop it once they move on.
+  minimatch@>=7.0.0 <11.0.1: ^11.0.8
   # Exact patch pins (satteri's wasm build, @testing-library/dom, vitest)
   # that would each keep a second copy one patch behind.
   '@emnapi/core': ^1.11.3
