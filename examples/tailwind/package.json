@@ -15,9 +15,9 @@
   },
   "devDependencies": {
     "@oddsquad/lit-devtools": "*",
-    "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/devtools": "^0.7.6",
-    "tailwindcss": "^4.3.3",
+    "@tailwindcss/vite": "^4.3.5",
+    "@vitejs/devtools": "^0.8.3",
+    "tailwindcss": "^4.3.5",
     "vite": "^8.3.2"
   },
   "stackblitz": {

@@ -84,7 +84,7 @@
     "@devframes/agentic": "^1.0.0",
     "@lit-labs/ssr": "^4.1.0",
     "@lit-labs/ssr-client": "^1.1.8",
-    "@vitejs/devtools-kit": "^0.7.5",
+    "@vitejs/devtools-kit": "^0.7.5 || ^0.8.0",
     "astro": "^7.3.0",
     "cac": "^7.0.0",
     "lightningcss": "^1.30.0",

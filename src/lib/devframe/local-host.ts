@@ -355,8 +355,13 @@ export async function createLocalHost(
       // devframe's client-side stores are plain key/value views over the
       // `devframe:settings:<scope>:<namespace>` shared state, which is all the
       // node side is too; here both sides resolve that state from the host.
+      // devframe 1.3 waits for trust before it reads that state. The host
+      // runs in the page, so it is always trusted.
       settings: createClientSettings(
-        {sharedState: sharedStateHost} as unknown as DevframeRpcClient,
+        {
+          sharedState: sharedStateHost,
+          ensureTrusted: async () => true,
+        } as unknown as DevframeRpcClient,
         namespace
       ),
       scope: (next?: string | null) => scope(next),
