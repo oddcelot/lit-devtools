@@ -177,6 +177,9 @@ export const GET: APIRoute<{card: Card}> = async ({
     {
       width: '100%',
       height: '100%',
+      // satori 0.63 sizes a box by its content, as CSS does; older versions
+      // counted the padding and the border in.
+      boxSizing: 'border-box',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
