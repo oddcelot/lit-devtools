@@ -9,6 +9,42 @@ release is organised by part. The VS Code extension also keeps a changelog of
 its own versions. Versions before 0.3.0 predate this file; see the git
 history for those.
 
+## 0.28.0 — 2026-11-18
+
+The language server no longer disturbs the dev server it reads from: it
+starts none of your plugins' runtimes and keeps out of `node_modules/.vite`,
+so `vite dev` stops failing at random while your editor is open. On the
+server, a `?css-sheet` can reach each shadow root as one import of the
+client's asset. The docs have a live example and a menu split into topics.
+Nothing needs action to upgrade.
+
+### Vite & Astro plugin
+
+- **Added** — **A server-rendered `?css-sheet` can be one line per shadow
+  root.** Register the client asset's URL and each declarative shadow root
+  imports it instead of carrying the whole sheet, so a sheet used by a
+  thousand components is no longer in the HTML a thousand times.
+- **Fixed** — **Installs no longer pull in a vulnerable shell-quote.** The
+  plugin now needs launch-editor 2.14.2, which depends on a fixed
+  shell-quote.
+
+### Editors & language server
+
+- **Fixed** — **The language server leaves your dev server alone.** It no
+  longer starts your plugins' runtimes, such as `workerd` from
+  `@cloudflare/vite-plugin`, and no longer writes to `node_modules/.vite`.
+  `vite dev` stops failing at random while your editor is open.
+
+### Docs & examples
+
+- **Added** — **Try Lit DevTools without installing anything.** The landing
+  page's Try it live button opens a real Vite dev server with the plugin in
+  your browser, on runbun.dev: edit the Lit flame and watch it patch in
+  place, with the DevTools panel in the preview's dock.
+- **Changed** — **The docs menu is split into topics.** Getting started,
+  Guides, DevTools, Reference and Changelog sit at the top of the sidebar,
+  and each shows only its own pages instead of the whole site at once.
+
 ## 0.27.0 — 2026-10-30
 
 The manifest reads more of what your code already says: a field's type from
