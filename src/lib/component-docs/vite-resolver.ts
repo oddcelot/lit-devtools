@@ -4,6 +4,7 @@
  * when the project has a Vite config.
  */
 
+import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {ResolverFactory} from 'oxc-resolver';
 import type {Plugin, PluginOption} from 'vite';
@@ -28,6 +29,33 @@ const flatPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> => {
 /** `plugins` flattened, without this package's own. */
 const foreignPlugins = async (plugins: PluginOption[]): Promise<Plugin[]> =>
   (await flatPlugins(plugins)).filter((plugin) => !isOwnPlugin(plugin.name));
+
+/**
+ * `plugin` without its server hooks, which start runtimes (Miniflare's
+ * `workerd`) and add middleware. A resolver needs only the resolve hooks.
+ * The copy keeps the prototype, for a plugin that is a class instance.
+ */
+const withoutServerHooks = (plugin: Plugin): Plugin =>
+  Object.assign(Object.create(Object.getPrototypeOf(plugin)), plugin, {
+    configureServer: undefined,
+    configurePreviewServer: undefined,
+  });
+
+/**
+ * Turns dependency pre-bundling off in every environment. It runs after the
+ * project's plugins, whose config hooks add entries the inline config can't
+ * remove.
+ */
+const noOptimizer: Plugin = {
+  name: 'lit-language-server:no-optimizer',
+  enforce: 'post',
+  configResolved(config) {
+    for (const environment of Object.values(config.environments)) {
+      environment.optimizeDeps.noDiscovery = true;
+      environment.optimizeDeps.include = [];
+    }
+  },
+};
 
 type Vite = typeof import('vite');
 
@@ -91,15 +119,18 @@ export const createViteResolver = async (
   // be left out of it.
   const loaded = await loadConfig(root, configFile);
   if (!loaded) return undefined;
+  const plugins = await foreignPlugins(loaded.config.plugins ?? []);
   const server = await loaded.vite.createServer({
     ...loaded.config,
-    plugins: await foreignPlugins(loaded.config.plugins ?? []),
+    plugins: [...plugins.map(withoutServerHooks), noOptimizer],
     root,
     configFile: false,
     logLevel: 'error',
     appType: 'custom',
+    // Its own directory, so the project's dev server keeps `node_modules/.vite`
+    // to itself even when a plugin forces a pre-bundle.
+    cacheDir: join(root, 'node_modules/.cache/lit-language-server/vite'),
     server: {middlewareMode: true, ws: false, watch: null},
-    optimizeDeps: {noDiscovery: true, include: []},
   });
   return {
     resolver: {
